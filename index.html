@@ -13,7 +13,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background
 .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
 .sb{background:var(--card);border-right:1px solid var(--bd);padding:14px;overflow-y:auto;max-height:100vh;position:sticky;top:0}
 .brand{text-align:center;padding:8px 0 16px;border-bottom:1px solid var(--bd);margin-bottom:14px}
-.brand img{width:70px;height:auto;display:block;margin:0 auto 10px;cursor:pointer;border-radius:8px;}
+.brand img{width:80px;height:auto;display:block;margin:0 auto 10px;cursor:pointer;border-radius:8px;}
 .brand .nm{font-size:30px;font-weight:700;letter-spacing:-1px;cursor:pointer;line-height:1}
 .brand .nm .a{color:var(--c2)}.brand .nm .b{color:var(--c1)}
 [data-t="dark"] .brand .nm .a{color:var(--c2l)}
@@ -116,7 +116,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background
 .res-h{font-size:15px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .res-s{font-size:13px;color:var(--mut);margin-top:4px}
 .score{display:inline-block;padding:3px 10px;border-radius:12px;background:var(--c2);color:#fff;font-weight:600;font-size:12px}
-.ref{font-size:11px;color:var(--mut);margin-top:14px;padding-top:10px;border-top:1px solid var(--bd);font-style:italic;line-height:1.4}
+.ref{font-size:11px;color:var(--mut);margin-top:14px;padding-top:10px;border-top:1px solid var(--bd);line-height:1.4}
 .alert{padding:12px;border-radius:var(--rs);margin:8px 0;font-size:13px;line-height:1.5}
 .alert.r{background:rgba(220,38,38,.12);border:1px solid var(--er);color:var(--er);font-weight:500}
 .alert.g{background:rgba(22,163,74,.12);border:1px solid var(--ok);color:var(--ok)}
@@ -136,13 +136,9 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background
 .tbl th,.tbl td{padding:8px 9px;border:1px solid var(--bd);text-align:left;vertical-align:top}
 .tbl th{background:var(--bg2);font-weight:600;font-size:12px}
 .home-hero{position:relative;text-align:center;padding:38px 20px 28px;overflow:hidden}
-.home-logo{width:120px;height:120px;margin:0 auto 14px;position:relative;z-index:2}
+.home-logo{width:180px;height:180px;margin:0 auto 14px;position:relative;z-index:2}
 .home-logo img{max-width:100%;height:auto;border-radius:12px;}
-.home-title{font-size:46px;font-weight:700;letter-spacing:-1.6px;margin-bottom:8px;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;position:relative;z-index:2}
-.home-title .a{color:var(--c2)}
-.home-title .b{color:var(--c1)}
-[data-t="dark"] .home-title .a{color:var(--c2l)}
-.home-tagline{color:var(--mut);font-size:13px;letter-spacing:.3px;margin:0;position:relative;z-index:2}
+.home-tagline{color:var(--mut);font-size:14px;letter-spacing:.3px;margin:10px 0 0 0;position:relative;z-index:2;font-weight:500;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--c2);color:#fff;padding:11px 22px;border-radius:var(--r);box-shadow:var(--shd2);z-index:1000;font-size:13px;transition:.3s;opacity:0;pointer-events:none;font-weight:500}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .info-pill{display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(2,132,199,.15);color:var(--in);font-size:11px;font-weight:600;margin-left:6px}
@@ -177,8 +173,7 @@ body{font-size:13px}
 <button class="home-main-btn" onclick="mostrarInicio()" title="Inicio" aria-label="Inicio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
 <div class="brand">
 <img src="Imagen.jpg" alt="HemoPocket Logo" onclick="mostrarInicio()">
-<div class="nm" onclick="mostrarInicio()"><span class="a">Hemo</span><span class="b">Pocket</span></div>
-<div class="sub">Guía rápida de consulta en Hematología</div>
+<div class="nm" onclick="mostrarInicio()" style="display:none;"><span class="a">Hemo</span><span class="b">Pocket</span></div>
 </div>
 <div class="search-wrap">
 <svg class="search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -197,7 +192,6 @@ body{font-size:13px}
 <button class="tb-btn" onclick="openCmd()" title="Búsqueda rápida (Ctrl+K)" aria-label="Búsqueda rápida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
 </div>
 
-<!-- Panel de datos del paciente -->
 <div class="pbar" id="pbar">
 <div class="pbar-t">Datos del Paciente (Globales)</div>
 <div class="pbar-g">
@@ -283,8 +277,7 @@ else if(e.key==='Enter'){e.preventDefault();if(items[cmdSel])items[cmdSel].click
 }
 function renderCmdSel(){document.querySelectorAll('.cmd-item').forEach((e,idx)=>{e.classList.toggle('sel',idx===cmdSel);if(idx===cmdSel)e.scrollIntoView({block:'nearest'});});}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openCmd()}});
-
-// === MENU CONFIG (AHORA EN MAYÚSCULAS) ===
+    // === MENU CONFIG (EN MAYÚSCULAS) ===
 const MENU=[
 {h:'INFECCIONES',o:1,items:[
 {id:'nf',name:'Algoritmo Neutropenia Febril',kw:'neutropenia febril sepsis bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
@@ -389,7 +382,7 @@ if(VIEWS[id+'_post'])VIEWS[id+'_post'](params);
 }
 
 const VIEWS={};
-function homeView(){return `<div class="card home-hero"><div class="home-logo"><img src="Imagen.jpg" alt="HemoPocket"></div><div class="home-title"><span class="a">Hemo</span><span class="b">Pocket</span></div><p class="home-tagline">Guía rápida de consulta en Hematología</p></div>`;}
+function homeView(){return `<div class="card home-hero"><div class="home-logo" style="width:160px;height:160px;"><img src="Imagen.jpg" alt="HemoPocket"></div><p class="home-tagline">Guía rápida de consulta en Hematología</p></div>`;}
 VIEWS.home=homeView;
 
 const PCC={};
@@ -423,7 +416,8 @@ const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[cfg.range
 const txt=`Cálculo de ${cfg.title}\n─────────────────────────────────────────────\n${patientHeader()}Se aplica el índice con los siguientes parámetros positivos:\n- ${factors.join('\n- ')}\n\nPuntuación: ${total}. Categoría: ${range.label.replace(/<[^>]*>/g,'')}.\n\n[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);
 }
-    // === CALCULADORAS POINT-BASED (Simples) ===
+
+// === CALCULADORAS POINT-BASED ===
 VIEWS.ripi=()=>pointCalc({id:'ripi',title:'R-IPI – LBDCG',items:[{q:'Edad > 60 años',type:'check',opts:[{l:'Sí',p:1}]},{q:'LDH > Normal',type:'check',opts:[{l:'Sí',p:1}]},{q:'ECOG ≥ 2',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio Ann Arbor III-IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sitios extranodales > 1',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'Muy bueno'},{min:1,max:2,cls:'md',label:'Bueno'},{min:3,max:5,cls:'hi',label:'Pobre'}]});
 VIEWS.ips=()=>pointCalc({id:'ips',title:'IPS – Hodgkin',items:[{q:'Albúmina < 4 g/dL',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hb < 10.5 g/dL',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sexo masculino',type:'check',opts:[{l:'Sí',p:1}]},{q:'Edad ≥ 45 años',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Leucocitosis ≥ 15k',type:'check',opts:[{l:'Sí',p:1}]},{q:'Linfopenia < 600',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'IPS 0'},{min:1,max:1,cls:'lo',label:'IPS 1'},{min:2,max:2,cls:'md',label:'IPS 2'},{min:3,max:3,cls:'md',label:'IPS 3'},{min:4,max:4,cls:'hi',label:'IPS 4'},{min:5,max:7,cls:'hi',label:'IPS ≥ 5'}]});
 VIEWS.cnsipi=()=>pointCalc({id:'cnsipi',title:'CNS-IPI',items:[{q:'Edad > 60 años',type:'check',opts:[{l:'Sí',p:1}]},{q:'LDH > Normal',type:'check',opts:[{l:'Sí',p:1}]},{q:'ECOG ≥ 2',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio III-IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Extranodal > 1',type:'check',opts:[{l:'Sí',p:1}]},{q:'Renal / suprarrenal',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:1,cls:'lo',label:'Riesgo bajo'},{min:2,max:3,cls:'md',label:'Riesgo intermedio'},{min:4,max:6,cls:'hi',label:'Riesgo alto (Profilaxis SNC)'}]});
@@ -446,126 +440,38 @@ VIEWS.g8=()=>pointCalc({id:'g8',title:'G8 Fragilidad',items:[{q:'Ingesta',opts:[
 
 // MIPI
 VIEWS.mipi=()=>`<div class="card"><h2>MIPI – Linfoma de Manto</h2><div class="row"><div class="fld"><label class="lbl">Edad</label><input type="number" id="mipi_age" value="${S.p.age}"></div><div class="fld"><label class="lbl">ECOG</label><select id="mipi_ecog"><option value="0">0-1</option><option value="1">2-4</option></select></div><div class="fld"><label class="lbl">LDH</label><input type="number" id="mipi_ldh"></div><div class="fld"><label class="lbl">LDH ULN</label><input type="number" id="mipi_uln" value="240"></div><div class="fld"><label class="lbl">Leucocitos (×10⁹/L)</label><input type="number" step="0.1" id="mipi_wbc"></div></div><div class="btns"><button class="btn" onclick="calcMIPI()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyMIPI()">Copiar</button></div><div id="mipi_res" class="res" style="display:none"></div></div>`;
-function calcMIPI(){
-const age=n($('mipi_age').value),ec=+$('mipi_ecog').value,ldh=n($('mipi_ldh').value),uln=n($('mipi_uln').value),wbc=n($('mipi_wbc').value);
-if(!age||!ldh||!uln||!wbc){toast('Faltan datos');return;}
-const sc=0.03535*age+0.6978*ec+1.367*Math.log10(ldh/uln)+0.9393*Math.log10(wbc*1000);
-let cat,cls;if(sc<5.7){cat='Riesgo bajo';cls='lo'}else if(sc<6.2){cat='Riesgo intermedio';cls='md'}else{cat='Riesgo alto';cls='hi'}
-const el=$('mipi_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${sc.toFixed(2)} pts</span><span>${cat}</span></div>`;
-window._mipi=sc.toFixed(2)+" - "+cat;}
+function calcMIPI(){const age=n($('mipi_age').value),ec=+$('mipi_ecog').value,ldh=n($('mipi_ldh').value),uln=n($('mipi_uln').value),wbc=n($('mipi_wbc').value);if(!age||!ldh||!uln||!wbc){toast('Faltan datos');return;}const sc=0.03535*age+0.6978*ec+1.367*Math.log10(ldh/uln)+0.9393*Math.log10(wbc*1000);let cat,cls;if(sc<5.7){cat='Riesgo bajo';cls='lo'}else if(sc<6.2){cat='Riesgo intermedio';cls='md'}else{cat='Riesgo alto';cls='hi'}const el=$('mipi_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${sc.toFixed(2)} pts</span><span>${cat}</span></div>`;window._mipi=sc.toFixed(2)+" - "+cat;}
 function copyMIPI(){if(!window._mipi){toast('Calcula primero');return;} copy(`Cálculo MIPI\nResultado: ${window._mipi}`);}
 
 // SOKAL
 VIEWS.sokal=()=>`<div class="card"><h2>Índice Sokal – LMC</h2><div class="row"><div class="fld"><label class="lbl">Edad</label><input type="number" id="sk_age" value="${S.p.age}"></div><div class="fld"><label class="lbl">Bazo (cm bajo reborde)</label><input type="number" step="0.5" id="sk_sp"></div><div class="fld"><label class="lbl">Plaquetas (×10⁹/L)</label><input type="number" id="sk_plt"></div><div class="fld"><label class="lbl">Blastos SP (%)</label><input type="number" step="0.1" id="sk_bl"></div></div><div class="btns"><button class="btn" onclick="calcSok()">Calcular</button></div><div id="sk_res" class="res" style="display:none"></div></div>`;
-function calcSok(){
-const a=n($('sk_age').value),sp=n($('sk_sp').value),pl=n($('sk_plt').value),bl=n($('sk_bl').value);
-if(!a||!sp||!pl||bl===null)return;
-const x=Math.exp(0.0116*(a-43.4)+0.0345*(sp-7.51)+0.188*(Math.pow(pl/700,2)-0.563)+0.0887*(bl-2.10));
-let cat,cls;if(x<0.8){cat='Riesgo bajo';cls='lo'}else if(x<=1.2){cat='Riesgo intermedio';cls='md'}else{cat='Riesgo alto';cls='hi'}
-const el=$('sk_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${x.toFixed(2)}</span><span>${cat}</span></div>`;}
+function calcSok(){const a=n($('sk_age').value),sp=n($('sk_sp').value),pl=n($('sk_plt').value),bl=n($('sk_bl').value);if(!a||!sp||!pl||bl===null)return;const x=Math.exp(0.0116*(a-43.4)+0.0345*(sp-7.51)+0.188*(Math.pow(pl/700,2)-0.563)+0.0887*(bl-2.10));let cat,cls;if(x<0.8){cat='Riesgo bajo';cls='lo'}else if(x<=1.2){cat='Riesgo intermedio';cls='md'}else{cat='Riesgo alto';cls='hi'}const el=$('sk_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${x.toFixed(2)}</span><span>${cat}</span></div>`;}
 
-// WELLS (TVP/TEP)
+// WELLS
 VIEWS.wells=()=>`<div class="card"><h2>Criterios Wells</h2><div class="fld"><label class="lbl">Selecciona escala</label><select id="wl_t" onchange="renderWells()"><option value="dvt">Wells TVP</option><option value="pe">Wells TEP</option></select></div><div id="wl_box"></div></div>`;
 VIEWS.wells_post=()=>renderWells();
-function renderWells(){
-const t=$('wl_t').value;
-const cfg=t==='dvt'?{
-title:'Wells TVP',items:[{q:'Cáncer activo',p:1},{q:'Parálisis/inmovilización MMII',p:1},{q:'Encamamiento >3d o cirugía',p:1},{q:'Dolor en trayecto venoso',p:1},{q:'Edema de toda la extremidad',p:1},{q:'Edema con fóvea',p:1},{q:'Perímetro pantorrilla >3cm',p:1},{q:'Venas colaterales sup.',p:1},{q:'TVP previa',p:1},{q:'Diagnóstico alternativo más probable',p:-2}],
-ranges:[{min:-10,max:0,cls:'lo',label:'Baja probabilidad'},{min:1,max:2,cls:'md',label:'Probabilidad intermedia'},{min:3,max:9,cls:'hi',label:'Probabilidad alta'}]
-}:{
-title:'Wells TEP',items:[{q:'Signos de TVP',p:3},{q:'Diagnóstico alternativo menos probable',p:3},{q:'Frecuencia cardiaca > 100',p:1.5},{q:'Inmovilización o cirugía',p:1.5},{q:'TVP/TEP previo',p:1.5},{q:'Hemoptisis',p:1},{q:'Cáncer activo',p:1}],
-ranges:[{min:0,max:1.5,cls:'lo',label:'Baja probabilidad'},{min:2,max:6,cls:'md',label:'Probabilidad intermedia'},{min:6.5,max:20,cls:'hi',label:'Probabilidad alta'}]};
-let h='';cfg.items.forEach((it,i)=>{h+=`<label class="chk-card"><input type="checkbox" data-p="${it.p}" onchange="calcWells()"><span>${it.q} <small>(${it.p>=0?'+':''}${it.p})</small></span></label>`;});
-h+=`<div id="wl_res" class="res" style="display:none"></div>`;$('wl_box').innerHTML=h;window._wlCfg=cfg;}
-function calcWells(){
-const cfg=window._wlCfg;let total=0;
-document.querySelectorAll('#wl_box input[type=checkbox]').forEach(cb=>{if(cb.checked)total+=+cb.dataset.p});
-const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[0];
-const el=$('wl_res');el.style.display='block';el.className='res '+range.cls;el.innerHTML=`<div class="res-h"><span class="score">${total}</span><span>${range.label}</span></div>`;}
+function renderWells(){const t=$('wl_t').value;const cfg=t==='dvt'?{title:'Wells TVP',items:[{q:'Cáncer activo',p:1},{q:'Parálisis/inmovilización MMII',p:1},{q:'Encamamiento >3d o cirugía',p:1},{q:'Dolor en trayecto venoso',p:1},{q:'Edema de toda la extremidad',p:1},{q:'Edema con fóvea',p:1},{q:'Perímetro pantorrilla >3cm',p:1},{q:'Venas colaterales sup.',p:1},{q:'TVP previa',p:1},{q:'Diagnóstico alternativo más probable',p:-2}],ranges:[{min:-10,max:0,cls:'lo',label:'Baja probabilidad'},{min:1,max:2,cls:'md',label:'Probabilidad intermedia'},{min:3,max:9,cls:'hi',label:'Probabilidad alta'}]}:{title:'Wells TEP',items:[{q:'Signos de TVP',p:3},{q:'Diagnóstico alternativo menos probable',p:3},{q:'Frecuencia cardiaca > 100',p:1.5},{q:'Inmovilización o cirugía',p:1.5},{q:'TVP/TEP previo',p:1.5},{q:'Hemoptisis',p:1},{q:'Cáncer activo',p:1}],ranges:[{min:0,max:1.5,cls:'lo',label:'Baja probabilidad'},{min:2,max:6,cls:'md',label:'Probabilidad intermedia'},{min:6.5,max:20,cls:'hi',label:'Probabilidad alta'}]};let h='';cfg.items.forEach((it,i)=>{h+=`<label class="chk-card"><input type="checkbox" data-p="${it.p}" onchange="calcWells()"><span>${it.q} <small>(${it.p>=0?'+':''}${it.p})</small></span></label>`;});h+=`<div id="wl_res" class="res" style="display:none"></div>`;$('wl_box').innerHTML=h;window._wlCfg=cfg;}
+function calcWells(){const cfg=window._wlCfg;let total=0;document.querySelectorAll('#wl_box input[type=checkbox]').forEach(cb=>{if(cb.checked)total+=+cb.dataset.p});const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[0];const el=$('wl_res');el.style.display='block';el.className='res '+range.cls;el.innerHTML=`<div class="res-h"><span class="score">${total}</span><span>${range.label}</span></div>`;}
 
 // HBPM
 VIEWS.hbpm=()=>`<div class="card"><h2>Dosis HBPM</h2><div class="row"><div class="fld"><label class="lbl">Fármaco</label><select id="hb_drug" onchange="calcHBPM()"><option value="enox">Enoxaparina</option><option value="bemi">Bemiparina</option><option value="tinz">Tinzaparina</option><option value="dalt">Dalteparina</option><option value="nadr">Nadroparina</option></select></div><div class="fld"><label class="lbl">Indicación</label><select id="hb_ind" onchange="calcHBPM()"><option value="prof_med">Profilaxis Médica</option><option value="prof_qx">Profilaxis Quirúrgica</option><option value="trat">Tratamiento TVP/TEP</option><option value="trat_fa">Tratamiento FA</option></select></div><div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.5" id="hb_wt" value="${S.p.weight}" oninput="calcHBPM()"></div><div class="fld"><label class="lbl">CrCl (mL/min)</label><input type="number" step="1" id="hb_crcl" placeholder="Si es <30 se ajusta" oninput="calcHBPM()"></div></div><div id="hb_res" class="res" style="display:none"></div></div>`;
-function calcHBPM(){
-const drug=$('hb_drug').value, ind=$('hb_ind').value, wt=n($('hb_wt').value), crcl=n($('hb_crcl').value);
-if(!wt){$('hb_res').style.display='none';return;}
-const isIR = crcl!==null && crcl<30;
-const D = {
-enox:{n:'Enoxaparina',pm:'40 mg/24h SC',pq:'40 mg/24h SC',tm:1,tmd:1.5,pmIR:'20 mg/24h SC',tmIR:1},
-bemi:{n:'Bemiparina',pm:'3500 UI/24h SC',pq:'3500 UI/24h SC',tm:115,pmIR:'2500 UI/24h SC',tmIR:85},
-tinz:{n:'Tinzaparina',pm:'4500 UI/24h SC',pq:'4500 UI/24h SC',tm:175,pmIR:'3500-4500 UI (o HNF)',tmIR:175},
-dalt:{n:'Dalteparina',pm:'5000 UI/24h SC',pq:'5000 UI/24h SC',tm:200,pmIR:'2500 UI/24h SC',tmIR:200},
-nadr:{n:'Nadroparina',pm:'0.3 mL/24h SC',pq:'2850 UI/24h SC',tm:85.5,pmIR:'Reducir 25-33%',tmIR:60}
-};
-const d=D[drug]; let dose='', warn='';
-if(ind.startsWith('prof')){
-dose = isIR ? d.pmIR : (ind==='prof_qx'?d.pq:d.pm);
-if(isIR) warn = 'CrCl <30: Dosis reducida. ';
-} else {
-if(drug==='enox') dose = isIR ? `${(wt*1).toFixed(0)} mg/24h SC` : `${(wt*1).toFixed(0)} mg/12h SC o ${(wt*1.5).toFixed(0)} mg/24h SC`;
-else if(drug==='bemi') dose = `${(wt*(isIR?d.tmIR:d.tm)).toFixed(0)} UI/24h SC`;
-else if(drug==='tinz') dose = `${(wt*d.tm).toFixed(0)} UI/24h SC`;
-else if(drug==='dalt') dose = `${Math.min(wt*d.tm, 18000).toFixed(0)} UI/24h SC`;
-else if(drug==='nadr') dose = `${(wt*(isIR?d.tmIR:d.tm)).toFixed(0)} UI/12h SC`;
-if(isIR) warn = 'CrCl <30: Requiere ajuste y control Anti-Xa.';
-}
-const el=$('hb_res');el.style.display='block';el.className='res '+(isIR?'hi':'in');
-el.innerHTML=`<div class="res-h"><span class="score">${d.n}</span></div><div class="res-s"><strong>Dosis:</strong> ${dose}<br><small style="color:var(--er)">${warn}</small></div>`;}
+function calcHBPM(){const drug=$('hb_drug').value, ind=$('hb_ind').value, wt=n($('hb_wt').value), crcl=n($('hb_crcl').value);if(!wt){$('hb_res').style.display='none';return;}const isIR = crcl!==null && crcl<30;const D = {enox:{n:'Enoxaparina',pm:'40 mg/24h SC',pq:'40 mg/24h SC',tm:1,tmd:1.5,pmIR:'20 mg/24h SC',tmIR:1},bemi:{n:'Bemiparina',pm:'3500 UI/24h SC',pq:'3500 UI/24h SC',tm:115,pmIR:'2500 UI/24h SC',tmIR:85},tinz:{n:'Tinzaparina',pm:'4500 UI/24h SC',pq:'4500 UI/24h SC',tm:175,pmIR:'3500-4500 UI (o HNF)',tmIR:175},dalt:{n:'Dalteparina',pm:'5000 UI/24h SC',pq:'5000 UI/24h SC',tm:200,pmIR:'2500 UI/24h SC',tmIR:200},nadr:{n:'Nadroparina',pm:'0.3 mL/24h SC',pq:'2850 UI/24h SC',tm:85.5,pmIR:'Reducir 25-33%',tmIR:60}};const d=D[drug]; let dose='', warn='';if(ind.startsWith('prof')){dose = isIR ? d.pmIR : (ind==='prof_qx'?d.pq:d.pm);if(isIR) warn = 'CrCl <30: Dosis reducida. ';} else {if(drug==='enox') dose = isIR ? `${(wt*1).toFixed(0)} mg/24h SC` : `${(wt*1).toFixed(0)} mg/12h SC o ${(wt*1.5).toFixed(0)} mg/24h SC`;else if(drug==='bemi') dose = `${(wt*(isIR?d.tmIR:d.tm)).toFixed(0)} UI/24h SC`;else if(drug==='tinz') dose = `${(wt*d.tm).toFixed(0)} UI/24h SC`;else if(drug==='dalt') dose = `${Math.min(wt*d.tm, 18000).toFixed(0)} UI/24h SC`;else if(drug==='nadr') dose = `${(wt*(isIR?d.tmIR:d.tm)).toFixed(0)} UI/12h SC`;if(isIR) warn = 'CrCl <30: Requiere ajuste y control Anti-Xa.';}const el=$('hb_res');el.style.display='block';el.className='res '+(isIR?'hi':'in');el.innerHTML=`<div class="res-h"><span class="score">${d.n}</span></div><div class="res-s"><strong>Dosis:</strong> ${dose}<br><small style="color:var(--er)">${warn}</small></div>`;}
 
 // ELN 2022
-VIEWS.eln=()=>`<div class="card"><h2>ELN 2022 (LMA)</h2><div id="el_box">
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>t(8;21) / inv(16) / t(16;16) (Fav)</span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>CEBPA mut bZIP (Fav)</span></label>
-<label class="chk-card"><input type="checkbox" id="el_npm" onchange="calcELN()"><span>NPM1 mutado</span></label>
-<label class="chk-card"><input type="checkbox" id="el_flt" onchange="calcELN()"><span>FLT3-ITD mutado</span></label>
-<label class="chk-card"><input type="checkbox" data-r="I" onchange="calcELN()"><span>t(9;11) (Int)</span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>TP53 mut / ASXL1 / RUNX1 etc (Adv)</span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>Cariotipo complejo / Monosómico (Adv)</span></label>
-</div><div id="el_res" class="res" style="display:none"></div></div>`;
-function calcELN(){
-const npm=$('el_npm').checked, flt=$('el_flt').checked;
-const cats=[];
-if(npm&&!flt)cats.push('F'); if(npm&&flt)cats.push('I'); if(!npm&&flt)cats.push('I');
-document.querySelectorAll('#el_box input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});
-let f='I'; if(cats.length===0)f='I'; else if(cats.includes('A'))f='A'; else if(cats.includes('I'))f='I'; else if(cats.includes('F'))f='F';
-const el=$('el_res');el.style.display='block';el.className='res '+(f==='A'?'hi':f==='I'?'md':'lo');
-el.innerHTML=`<div class="res-h"><span class="score">${f==='A'?'Adverso':f==='I'?'Intermedio':'Favorable'}</span></div>`;}
+VIEWS.eln=()=>`<div class="card"><h2>ELN 2022 (LMA)</h2><div id="el_box"><label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>t(8;21) / inv(16) / t(16;16) (Fav)</span></label><label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>CEBPA mut bZIP (Fav)</span></label><label class="chk-card"><input type="checkbox" id="el_npm" onchange="calcELN()"><span>NPM1 mutado</span></label><label class="chk-card"><input type="checkbox" id="el_flt" onchange="calcELN()"><span>FLT3-ITD mutado</span></label><label class="chk-card"><input type="checkbox" data-r="I" onchange="calcELN()"><span>t(9;11) (Int)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>TP53 mut / ASXL1 / RUNX1 etc (Adv)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>Cariotipo complejo / Monosómico (Adv)</span></label></div><div id="el_res" class="res" style="display:none"></div></div>`;
+function calcELN(){const npm=$('el_npm').checked, flt=$('el_flt').checked;const cats=[];if(npm&&!flt)cats.push('F'); if(npm&&flt)cats.push('I'); if(!npm&&flt)cats.push('I');document.querySelectorAll('#el_box input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});let f='I'; if(cats.length===0)f='I'; else if(cats.includes('A'))f='A'; else if(cats.includes('I'))f='I'; else if(cats.includes('F'))f='F';const el=$('el_res');el.style.display='block';el.className='res '+(f==='A'?'hi':f==='I'?'md':'lo');el.innerHTML=`<div class="res-h"><span class="score">${f==='A'?'Adverso':f==='I'?'Intermedio':'Favorable'}</span></div>`;}
 
 // ELN 2024
-VIEWS.eln24=()=>`<div class="card"><h2>ELN 2024 (LMA baja intensidad)</h2><div id="el24_box">
-<label class="chk-card"><input type="checkbox" id="el24_npm" onchange="calcELN24()"><span>NPM1 mutado (Fav si sin FLT3)</span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>IDH2 / DDX41 mutado (Fav)</span></label>
-<label class="chk-card"><input type="checkbox" id="el24_flt" onchange="calcELN24()"><span>FLT3-ITD (Adv)</span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>TP53 / KRAS / NRAS mutado (Adv)</span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>Cariotipo complejo / -5 / -7 / -17 (Adv)</span></label>
-</div><div id="el24_res" class="res" style="display:none"></div></div>`;
-function calcELN24(){
-const npm=$('el24_npm').checked, flt=$('el24_flt').checked;
-const cats=[];
-if(npm&&!flt)cats.push('F'); if(flt)cats.push('A');
-document.querySelectorAll('#el24_box input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});
-let f='I'; if(cats.length===0)f='I'; else if(cats.includes('A'))f='A'; else if(cats.includes('F'))f='F';
-const el=$('el24_res');el.style.display='block';el.className='res '+(f==='A'?'hi':f==='I'?'md':'lo');
-el.innerHTML=`<div class="res-h"><span class="score">${f==='A'?'Adverso':f==='I'?'Intermedio':'Favorable'}</span></div>`;}
+VIEWS.eln24=()=>`<div class="card"><h2>ELN 2024 (LMA baja intensidad)</h2><div id="el24_box"><label class="chk-card"><input type="checkbox" id="el24_npm" onchange="calcELN24()"><span>NPM1 mutado (Fav si sin FLT3)</span></label><label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>IDH2 / DDX41 mutado (Fav)</span></label><label class="chk-card"><input type="checkbox" id="el24_flt" onchange="calcELN24()"><span>FLT3-ITD (Adv)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>TP53 / KRAS / NRAS mutado (Adv)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>Cariotipo complejo / -5 / -7 / -17 (Adv)</span></label></div><div id="el24_res" class="res" style="display:none"></div></div>`;
+function calcELN24(){const npm=$('el24_npm').checked, flt=$('el24_flt').checked;const cats=[];if(npm&&!flt)cats.push('F'); if(flt)cats.push('A');document.querySelectorAll('#el24_box input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});let f='I'; if(cats.length===0)f='I'; else if(cats.includes('A'))f='A'; else if(cats.includes('F'))f='F';const el=$('el24_res');el.style.display='block';el.className='res '+(f==='A'?'hi':f==='I'?'md':'lo');el.innerHTML=`<div class="res-h"><span class="score">${f==='A'?'Adverso':f==='I'?'Intermedio':'Favorable'}</span></div>`;}
 
 // R-ISS
 VIEWS.riss=()=>`<div class="card"><h2>R-ISS (Mieloma)</h2><div class="row2"><div class="fld"><label class="lbl">β2M (mg/L)</label><input type="number" id="ri_b2m" step="0.1" oninput="calcRISS()"></div><div class="fld"><label class="lbl">Albúmina (g/dL)</label><input type="number" id="ri_alb" step="0.1" oninput="calcRISS()"></div></div><div class="fld"><label class="lbl">LDH</label><select id="ri_ldh" onchange="calcRISS()"><option value="N">Normal</option><option value="A">Elevada</option></select></div><div class="fld"><label class="lbl">Citogenética</label><select id="ri_cyt" onchange="calcRISS()"><option value="STD">Estándar</option><option value="HR">Alto Riesgo t(4;14),t(14;16),del17p</option></select></div><div id="ri_res" class="res" style="display:none"></div></div>`;
-function calcRISS(){
-const b2m=n($('ri_b2m').value), alb=n($('ri_alb').value);
-if(!b2m || !alb) return;
-let iss=2; if(b2m<3.5 && alb>=3.5) iss=1; else if(b2m>=5.5) iss=3;
-const hr=$('ri_cyt').value==='HR', ldh=$('ri_ldh').value==='A';
-let st,cls; if(iss===1 && !hr && !ldh){st='R-ISS I';cls='lo';} else if(iss===3 && (hr||ldh)){st='R-ISS III';cls='hi';} else {st='R-ISS II';cls='md';}
-const el=$('ri_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${st}</span><span>(ISS-${iss})</span></div>`;}
+function calcRISS(){const b2m=n($('ri_b2m').value), alb=n($('ri_alb').value);if(!b2m || !alb) return;let iss=2; if(b2m<3.5 && alb>=3.5) iss=1; else if(b2m>=5.5) iss=3;const hr=$('ri_cyt').value==='HR', ldh=$('ri_ldh').value==='A';let st,cls; if(iss===1 && !hr && !ldh){st='R-ISS I';cls='lo';} else if(iss===3 && (hr||ldh)){st='R-ISS III';cls='hi';} else {st='R-ISS II';cls='md';}const el=$('ri_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${st}</span><span>(ISS-${iss})</span></div>`;}
 
 // R2-ISS
 VIEWS.r2iss=()=>`<div class="card"><h2>R2-ISS (Mieloma)</h2><div class="row2"><div class="fld"><label class="lbl">β2M</label><input type="number" id="r2_b2m" step="0.1" oninput="calcR2ISS()"></div><div class="fld"><label class="lbl">Albúmina</label><input type="number" id="r2_alb" step="0.1" oninput="calcR2ISS()"></div></div><div id="r2_box"><label class="chk-card"><input type="checkbox" id="r2_ldh" onchange="calcR2ISS()"><span>LDH elevada (+1)</span></label><label class="chk-card"><input type="checkbox" id="r2_17p" onchange="calcR2ISS()"><span>del(17p) (+1)</span></label><label class="chk-card"><input type="checkbox" id="r2_414" onchange="calcR2ISS()"><span>t(4;14) (+1)</span></label><label class="chk-card"><input type="checkbox" id="r2_1q" onchange="calcR2ISS()"><span>1q gain/amp (+0.5)</span></label></div><div id="r2_res" class="res" style="display:none"></div></div>`;
-function calcR2ISS(){
-const b2m=n($('r2_b2m').value), alb=n($('r2_alb').value); if(!b2m || !alb) return;
-let iss=2; if(b2m<3.5 && alb>=3.5) iss=1; else if(b2m>=5.5) iss=3;
-let pts=iss===1?0:iss===2?1:1.5;
-if($('r2_ldh').checked)pts+=1; if($('r2_17p').checked)pts+=1; if($('r2_414').checked)pts+=1; if($('r2_1q').checked)pts+=0.5;
-let st,cls; if(pts===0){st='R2-ISS I';cls='lo'}else if(pts<=1){st='R2-ISS II';cls='lo'}else if(pts<=2.5){st='R2-ISS III';cls='md'}else{st='R2-ISS IV';cls='hi'}
-const el=$('r2_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${st} (${pts} pts)</span></div>`;}
+function calcR2ISS(){const b2m=n($('r2_b2m').value), alb=n($('r2_alb').value); if(!b2m || !alb) return;let iss=2; if(b2m<3.5 && alb>=3.5) iss=1; else if(b2m>=5.5) iss=3;let pts=iss===1?0:iss===2?1:1.5;if($('r2_ldh').checked)pts+=1; if($('r2_17p').checked)pts+=1; if($('r2_414').checked)pts+=1; if($('r2_1q').checked)pts+=0.5;let st,cls; if(pts===0){st='R2-ISS I';cls='lo'}else if(pts<=1){st='R2-ISS II';cls='lo'}else if(pts<=2.5){st='R2-ISS III';cls='md'}else{st='R2-ISS IV';cls='hi'}const el=$('r2_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${st} (${pts} pts)</span></div>`;}
 
 // NEUTROPENIA FEBRIL
 VIEWS.nf=()=>`<div class="card"><h2>Protocolo Neutropenia Febril</h2>
@@ -574,15 +480,55 @@ VIEWS.nf=()=>`<div class="card"><h2>Protocolo Neutropenia Febril</h2>
 <div class="step"><div class="step-h"><span class="step-n">3</span>MASCC (Riesgo)</div><p style="font-size:12px;color:var(--mut)">Puntuación ≥21 es Bajo Riesgo. <21 Alto Riesgo.</p><div class="row2"><button class="btn btn-g" onclick="nfShow(3,'g','BAJO RIESGO','Amoxi/Clav + Ciprofloxacino oral')">MASCC ≥ 21</button><button class="btn btn-2" onclick="nfShow(3,'r','ALTO RIESGO','Ingreso. Cefepime 2g/8h o Pip/Taz 4g/6h IV')">MASCC < 21</button></div><div id="nfo3"></div></div></div>`;
 function nfShow(id,cls,t,d){const el=$('nfo'+id);el.innerHTML=`<div class="alert ${cls}"><strong>${t}</strong><br>${d}</div>`;}
 
+// S. AUREUS
+VIEWS.saureus=()=>`<div class="card">
+<h2>Manejo de Bacteriemia por <em>S. aureus</em></h2>
+<p class="intro">Protocolo estandarizado para bacteriemia en pacientes hematológicos.</p>
+<div class="step"><div class="step-h"><span class="step-n">1</span>Terapia empírica inicial (Biterapia)</div>
+<p style="font-size:13px;color:var(--txt)">Ante sospecha firme o cocos G+ en racimos, iniciar:<br><strong>Cefazolina 2 g / 8h IV + Daptomicina 8-10 mg/kg/24h IV</strong> (o Vancomicina).</p></div>
+<div class="step"><div class="step-h"><span class="step-n">2</span>Retirada de Catéter</div><p style="font-size:13px;color:var(--txt)">Retirar el CVC siempre que sea posible.</p></div>
+<div class="step"><div class="step-h"><span class="step-n">3</span>Control Microbiológico</div><p style="font-size:13px;color:var(--txt)">Hemocultivos de control cada 48h. El día del 1º HC negativo es el "Día 1".</p></div>
+<div class="step"><div class="step-h"><span class="step-n">4</span>Ecocardiograma</div><p style="font-size:13px;color:var(--txt)">Solicitar ETE para descartar endocarditis.</p></div>
+<div class="step"><div class="step-h"><span class="step-n">5</span>Desescalada</div>
+<p style="font-size:13px;color:var(--txt)">SAMS: Suspender Dapto/Vanco, mantener Cefazolina.<br>SARM: Suspender Cefazolina, mantener Dapto/Vanco.</p></div>
+<div class="step" style="margin-bottom:0"><div class="step-h"><span class="step-n">6</span>Duración</div>
+<p style="font-size:13px;color:var(--txt)">No complicada: 14 días. Complicada: 4 a 6 semanas.</p></div>
+<div class="ref" style="margin-top:15px; border-top:1px solid var(--bd); padding-top:10px; font-size:11px; color:var(--mut);">
+<strong>Bibliografía y Guías Clínicas:</strong><br>
+1. <em>Documento de consenso de la SEIMC sobre el manejo de la bacteriemia por Staphylococcus aureus</em> (Enferm Infecc Microbiol Clin. 2015).<br>
+2. <em>Clinical Practice Guidelines by the Infectious Diseases Society of America (IDSA) for the Treatment of MRSA Infections</em> (Clin Infect Dis. 2011).
+</div>
+</div>`;
+
+// OPIOIDES
+VIEWS.opioides=()=>`<div class="card">
+<h2>Conversor de Opioides</h2>
+<p class="intro">Calcula dosis equivalente de morfina oral (MME). <strong style="color:var(--er)">Aviso:</strong> Por tolerancia cruzada, se recomienda reducir la dosis final 25-50% al rotar.</p>
+<div class="row2"><div class="fld"><label class="lbl">Opioide de origen</label><select id="op_orig" onchange="calcOpio()"><option value="1">Morfina oral (mg/día)</option><option value="3">Morfina SC / IV (mg/día)</option><option value="1.5">Oxicodona oral (mg/día)</option><option value="2.4">Fentanilo parche (mcg/h)</option><option value="2">Buprenorfina parche (mcg/h)</option><option value="0.1">Tramadol oral (mg/día)</option><option value="0.3">Tapentadol oral (mg/día)</option></select></div><div class="fld"><label class="lbl">Dosis diaria actual</label><input type="number" step="1" id="op_dose" placeholder="Ej: 60" oninput="calcOpio()"></div></div>
+<div class="row2"><div class="fld"><label class="lbl">Opioide destino</label><select id="op_dest" onchange="calcOpio()"><option value="1">Morfina oral (mg/día)</option><option value="3">Morfina SC / IV (mg/día)</option><option value="1.5">Oxicodona oral (mg/día)</option><option value="2.4">Fentanilo parche (mcg/h)</option></select></div><div class="fld"><label class="lbl">Reducción tolerancia</label><select id="op_red" onchange="calcOpio()"><option value="0.7">30% (Recomendado)</option><option value="0.5">50% (Frágil)</option><option value="1">0% (Sin reducción)</option></select></div></div>
+<div id="op_res" class="res" style="display:none"></div><div class="btns"><button class="btn btn-out btn-sm" onclick="copyOpio()">Copiar</button></div>
+</div>`;
+function calcOpio(){const f_orig=parseFloat($('op_orig').value),dose=parseFloat($('op_dose').value),f_dest=parseFloat($('op_dest').value),f_red=parseFloat($('op_red').value);if(!dose||dose<=0){$('op_res').style.display='none';return}const mme=dose*f_orig;const dest_dose_raw=mme/f_dest;const dest_dose_safe=dest_dose_raw*f_red;const rescate=(dest_dose_safe*0.15).toFixed(1);const el=$('op_res');el.style.display='block';el.className='res in';el.innerHTML=`<div class="res-h"><span class="score">Sugerida: ${dest_dose_safe.toFixed(1)} / día</span></div><div class="res-s"><strong>MME:</strong> ${mme.toFixed(1)} mg/día<br><strong>Teórica:</strong> ${dest_dose_raw.toFixed(1)} / día<br><strong>Rescate:</strong> ~${rescate} cada 4-6h.</div>`;window._opioData={orig:$('op_orig').options[$('op_orig').selectedIndex].text,dose,dest:$('op_dest').options[$('op_dest').selectedIndex].text,mme,safe:dest_dose_safe.toFixed(1)};}
+function copyOpio(){const d=window._opioData;if(!d)return;copy(`Rotación de Opioides\n─────────────────────────────────────────────\nDe ${d.orig} (${d.dose}/día) a ${d.dest}.\nMME: ${d.mme.toFixed(1)} mg/día.\nDosis segura sugerida (aplicada reducción): ${d.safe}/día.\n[Fecha: ${new Date().toLocaleDateString('es-ES')}]`);}
+
+// COLABORADORES
+VIEWS.equipo=()=>`<div class="card">
+<div class="home-logo" style="width:60px;height:60px;margin-bottom:10px;"><img src="Imagen.jpg" alt="HemoPocket"></div>
+<h2>HemoPocket</h2>
+<p style="font-size:13px;color:var(--mut);">Guía rápida de consulta clínica.</p>
+<div class="collabs-block" style="margin-top:20px;">
+  <div class="collabs-h">Autora y Revisora</div>
+  <ul class="collabs-list"><li><strong>Dra. M.T. Busnego Barreto</strong><br><span style="color:var(--mut)">Servicio de Hematología y Hemoterapia, HUNSC</span></li></ul>
+</div>
+<div class="collabs-block">
+  <div class="collabs-h">Banco de Sangre y Transfusión</div>
+  <ul class="collabs-list"><li><strong>Dra. Isabel Peris Fernaud</strong></li><li><strong>Dr. Alexander Figueroa</strong></li><li><strong>Dra. Laura Francisca Ávila Idrovo</strong></li></ul>
+</div>
+</div>`;
+
 // DIFERENCIAL MAT
 VIEWS.tma_dif=()=>`<div class="card"><h2>Diferencial MAT</h2><div id="mat_box"><label class="chk-card"><input type="checkbox" value="ttp"><span>Plaquetas < 30 y PLASMIC ≥ 6 (TTP)</span></label><label class="chk-card"><input type="checkbox" value="shua"><span>Fallo renal severo (Cr > 2), familiar, sin causa (SHUa)</span></label><label class="chk-card"><input type="checkbox" value="shut"><span>Diarrea sanguinolenta previa (STEC-SHU)</span></label><label class="chk-card"><input type="checkbox" value="cid"><span>Sepsis, Neoplasia, TP prolongado (CID)</span></label><label class="chk-card"><input type="checkbox" value="hellp"><span>Embarazo / Postparto (HELLP)</span></label></div><div class="btns"><button class="btn" onclick="calcMAT()">Evaluar</button></div><div id="mat_res" class="res" style="display:none"></div></div>`;
-function calcMAT(){
-const c=Array.from(document.querySelectorAll('#mat_box input:checked')).map(x=>x.value);
-const el=$('mat_res');el.style.display='block';
-if(c.includes('ttp')){el.className='res hi';el.innerHTML=`<div class="res-h"><span class="score">TTP (PTT)</span></div><div class="res-s">Alta sospecha. Iniciar PEX urgente + Corticoides.</div>`;}
-else if(c.includes('shua')){el.className='res hi';el.innerHTML=`<div class="res-h"><span class="score">SHUa</span></div><div class="res-s">Plantear Eculizumab si ADAMTS13 normal.</div>`;}
-else if(c.includes('shut')){el.className='res md';el.innerHTML=`<div class="res-h"><span class="score">STEC-SHU</span></div><div class="res-s">Soporte. No antibióticos.</div>`;}
-else{el.className='res in';el.innerHTML=`<div class="res-h"><span class="score">Otra MAT</span></div>`;}}
+function calcMAT(){const c=Array.from(document.querySelectorAll('#mat_box input:checked')).map(x=>x.value);const el=$('mat_res');el.style.display='block';if(c.includes('ttp')){el.className='res hi';el.innerHTML=`<div class="res-h"><span class="score">TTP (PTT)</span></div><div class="res-s">Alta sospecha. Iniciar PEX urgente + Corticoides.</div>`;}else if(c.includes('shua')){el.className='res hi';el.innerHTML=`<div class="res-h"><span class="score">SHUa</span></div><div class="res-s">Plantear Eculizumab si ADAMTS13 normal.</div>`;}else if(c.includes('shut')){el.className='res md';el.innerHTML=`<div class="res-h"><span class="score">STEC-SHU</span></div><div class="res-s">Soporte. No antibióticos.</div>`;}else{el.className='res in';el.innerHTML=`<div class="res-h"><span class="score">Otra MAT</span></div>`;}}
 
 // OTRAS SIMPLES
 VIEWS.qtc=()=>`<div class="card"><h2>QTc (Fridericia)</h2><div class="row"><div class="fld"><label>QT (ms)</label><input type="number" id="qt" oninput="calcQ()"></div><div class="fld"><label>RR (ms)</label><input type="number" id="rr" oninput="calcQ()"></div></div><div id="q_res" class="res" style="display:none"></div></div>`;
@@ -593,12 +539,17 @@ VIEWS.cacorr=()=>`<div class="card"><h2>Calcio Corregido</h2><div class="row"><d
 function calcCa(){const c=n($('caa').value),a=n($('cal').value);if(!c||!a)return;const v=c+0.8*(4.0-a);$('ca_res').style.display='block';$('ca_res').className='res in';$('ca_res').innerHTML=`<div class="res-h"><span class="score">${v.toFixed(2)} mg/dL</span></div>`;}
 VIEWS.bsa=()=>`<div class="card"><h2>Superficie Corporal</h2><div class="row"><div class="fld"><label>Talla (cm)</label><input type="number" id="bsh" value="${S.p.height}" oninput="calcBSA()"></div><div class="fld"><label>Peso (kg)</label><input type="number" id="bsw" value="${S.p.weight}" oninput="calcBSA()"></div></div><div id="bs_res" class="res" style="display:none"></div></div>`;
 function calcBSA(){const h=n($('bsh').value),w=n($('bsw').value);if(!h||!w)return;const v=Math.sqrt((h*w)/3600);$('bs_res').style.display='block';$('bs_res').className='res in';$('bs_res').innerHTML=`<div class="res-h"><span class="score">${v.toFixed(2)} m²</span></div>`;}
-VIEWS.obw=()=>`<div class="card"><h2>Ajuste Obesidad</h2><p class="intro">IBW (Peso Ideal) y ABW (Peso Ajustado)</p><div class="row"><div class="fld"><label>Talla (cm)</label><input type="number" id="owh" value="${S.p.height}"></div><div class="fld"><label>Peso (kg)</label><input type="number" id="oww" value="${S.p.weight}"></div></div><div class="btns"><button class="btn" onclick="calcOBW()">Calcular</button></div><div id="ow_res" class="res" style="display:none"></div></div>`;
+VIEWS.obw=()=>`<div class="card"><h2>Ajuste Obesidad</h2><div class="row"><div class="fld"><label>Talla (cm)</label><input type="number" id="owh" value="${S.p.height}"></div><div class="fld"><label>Peso (kg)</label><input type="number" id="oww" value="${S.p.weight}"></div></div><div class="btns"><button class="btn" onclick="calcOBW()">Calcular</button></div><div id="ow_res" class="res" style="display:none"></div></div>`;
 function calcOBW(){const h=n($('owh').value),w=n($('oww').value);if(!h||!w)return;const s=(S.p.sex==='F'?45.5:50);const in60=Math.max(0,(h-152.4)/2.54);const ibw=s+2.3*in60;const abw=ibw+0.4*(w-ibw);$('ow_res').style.display='block';$('ow_res').className='res in';$('ow_res').innerHTML=`<div class="res-h"><span class="score">IBW: ${ibw.toFixed(1)} kg | ABW: ${abw.toFixed(1)} kg</span></div>`;}
 VIEWS.cb=()=>`<div class="card"><h2>S. Lisis Tumoral (Cairo-Bishop)</h2><div id="cb_b"><label class="chk-card"><input type="checkbox" class="l"><span>Ácido úrico ≥ 8</span></label><label class="chk-card"><input type="checkbox" class="l"><span>K ≥ 6</span></label><label class="chk-card"><input type="checkbox" class="l"><span>P ≥ 4.5</span></label><label class="chk-card"><input type="checkbox" class="l"><span>Ca ≤ 7</span></label><hr style="margin:10px 0;border:0;border-top:1px solid var(--bd)"><label class="chk-card"><input type="checkbox" class="c"><span>Cr > 1.5x ULN</span></label><label class="chk-card"><input type="checkbox" class="c"><span>Arritmia / Convulsión</span></label></div><div class="btns"><button class="btn" onclick="calcCB()">Calcular</button></div><div id="cb_res" class="res" style="display:none"></div></div>`;
 function calcCB(){const l=document.querySelectorAll('#cb_b .l:checked').length;const c=document.querySelectorAll('#cb_b .c:checked').length;let r='No cumple';let cl='lo';if(l>=2&&c>=1){r='SLT Clínico';cl='hi';}else if(l>=2){r='SLT Laboratorio';cl='md';}$('cb_res').style.display='block';$('cb_res').className='res '+cl;$('cb_res').innerHTML=`<div class="res-h"><span class="score">${r}</span></div>`;}
 VIEWS.ecog=()=>`<div class="card"><h2>ECOG</h2><select id="ec" onchange="calcECOG()"><option value="0">0: Asintomático</option><option value="1">1: Sintomático ambulatorio</option><option value="2">2: En cama <50%</option><option value="3">3: En cama >50%</option><option value="4">4: Encamado</option></select><div id="ec_res" class="res" style="margin-top:10px;display:none"></div></div>`;
 function calcECOG(){$('ec_res').style.display='block';$('ec_res').className='res in';$('ec_res').innerHTML=`<div class="res-h"><span class="score">ECOG ${$('ec').value}</span></div>`;}
+
+// GUÍAS INFECCIOSAS Y URGENCIAS EN BLANCO (PLACEHOLDERS)
+VIEWS.atb=()=>`<div class="card"><h2>Sensibilidad Antibiótica Empírica</h2><div class="alert b">Sección en construcción. Añadir tabla de cobertura local.</div></div>`;
+VIEWS.g_inf=()=>`<div class="card"><h2>Guías Clínicas: Infecciones</h2><ul class="collabs-list"><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>ECIL-10:</strong> Manejo de infecciones.</li><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>Tratamiento IFI:</strong> Infección fúngica invasiva.</li></ul></div>`;
+VIEWS.g_uh=()=>`<div class="card"><h2>Guías Clínicas: Otras Urgencias</h2><ul class="collabs-list"><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>Síndrome de Lisis Tumoral</strong></li><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>Hiperleucocitosis</strong></li></ul></div>`;
 
 // LISTÍN TELEFÓNICO
 VIEWS.listin=()=>`<div class="card">
