@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="es" data-t="light">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" type="image/png" href="ISO RED.png">
+<title>HemoPocket</title>
+<style>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -520,7 +525,8 @@ function toggleFav(id){const i=S.favs.indexOf(id);if(i>=0)S.favs.splice(i,1);els
 function filterMenu(v){renderMenu(v)}
 
 function go(id,params){
-S.view=id;
+window.location.hash = id;
+document.title = "HemoPocket";
 closeSb();
 window.scrollTo(0,0);
 renderMenu($('search').value);
