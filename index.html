@@ -250,7 +250,7 @@ body{font-size:13px}
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22background%3A%23fff%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="HemaPocket">
+<meta name="apple-mobile-web-app-title" content="HemoPocket">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#c41e3a">
 </head>
@@ -260,7 +260,7 @@ body{font-size:13px}
 <aside class="sb" id="sb">
 <button class="home-main-btn" onclick="mostrarInicio()" title="Inicio" aria-label="Inicio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
 <div class="brand">
-<svg width="72" height="72" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="#c41e3a" style="display:block;margin:0 auto 10px auto;cursor:pointer" onclick="mostrarInicio()" aria-label="HemaPocket">
+<svg width="72" height="72" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="#c41e3a" style="display:block;margin:0 auto 10px auto;cursor:pointer" onclick="mostrarInicio()" aria-label="HemoPocket">
 <path d="M22 4C32 4 40 12 40 22C40 35 27 42 27 50C27 58 40 65 40 78C40 88 32 96 22 96C12 96 4 88 4 78C4 65 17 58 17 50C17 42 4 35 4 22C4 12 12 4 22 4Z"/>
 <path d="M78 4C88 4 96 12 96 22C96 35 83 42 83 50C83 58 96 65 96 78C96 88 88 96 78 96C68 96 60 88 60 78C60 65 73 58 73 50C73 42 60 35 60 22C60 12 68 4 78 4Z"/>
 <circle cx="50" cy="50" r="17"/>
@@ -2502,7 +2502,7 @@ _db:null,
 async open(){
 if(this._db)return this._db;
 return new Promise((res,rej)=>{
-const r=indexedDB.open('hemapocket',1);
+const r=indexedDB.open('hemopocket',1);
 r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains('pdfs'))db.createObjectStore('pdfs')};
 r.onsuccess=e=>{this._db=e.target.result;res(this._db)};
 r.onerror=e=>rej(e.target.error||new Error('IndexedDB no disponible'));
@@ -2690,16 +2690,16 @@ const DEFAULT_CONTACTS=[
 ];
 const DEFAULT_SUBTYPES={
 'lf':[
-{id:'fol',name:'Linfoma Folicular',pdfs:[{name:'Guía Linfoma Folicular GELTAMO',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/Folicular.pdf'}]},
+{id:'fol',name:'Linfoma Folicular',pdfs:[{name:'Guía Linfoma Folicular GELTAMO',url:'https://raw.githubusercontent.com/hemopocket/guias/main/Folicular.pdf'}]},
 {id:'lbdcg',name:'Linfoma B Difuso de Células Grandes (LBDCG)',pdfs:[]},
-{id:'manto',name:'Linfoma del Manto',pdfs:[{name:'Guía Linfoma del Manto GELTAMO',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/LCM.pdf'}]},
-{id:'hodgkin',name:'Linfoma de Hodgkin',pdfs:[{name:'Guía Linfoma Hodgkin GELTAMO',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/Hodgkin.pdf'}]},
+{id:'manto',name:'Linfoma del Manto',pdfs:[{name:'Guía Linfoma del Manto GELTAMO',url:'https://raw.githubusercontent.com/hemopocket/guias/main/LCM.pdf'}]},
+{id:'hodgkin',name:'Linfoma de Hodgkin',pdfs:[{name:'Guía Linfoma Hodgkin GELTAMO',url:'https://raw.githubusercontent.com/hemopocket/guias/main/Hodgkin.pdf'}]},
 {id:'marg',name:'Zona Marginal / MALT',pdfs:[]},
 {id:'burkitt',name:'Burkitt / High-grade B-cell',pdfs:[]},
-{id:'tcell',name:'Linfomas T',pdfs:[{name:'Guía Linfoma T-NK GELTAMO',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/Linfoma_T_NK_2024.pdf'}]},
+{id:'tcell',name:'Linfomas T',pdfs:[{name:'Guía Linfoma T-NK GELTAMO',url:'https://raw.githubusercontent.com/hemopocket/guias/main/Linfoma_T_NK_2024.pdf'}]},
 {id:'snc',name:'Linfoma primario del SNC',pdfs:[]},
 {id:'cutaneo',name:'Linfomas cutáneos',pdfs:[]},
-{id:'general',name:'Generales / Esquemas QT',pdfs:[{name:'Guía profilaxis SNC LDCGB GELTAMO',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/Profilaxis_SNC.pdf'}]}
+{id:'general',name:'Generales / Esquemas QT',pdfs:[{name:'Guía profilaxis SNC LDCGB GELTAMO',url:'https://raw.githubusercontent.com/hemopocket/guias/main/Profilaxis_SNC.pdf'}]}
 ],
 'mm':[
 {id:'mm',name:'Mieloma Múltiple',pdfs:[]},
@@ -2744,8 +2744,8 @@ const DEFAULT_SUBTYPES={
 'cart':[
 {id:'cart_ind',name:'CAR-T - Indicaciones y manejo',pdfs:[]},
 {id:'biesp',name:'Anticuerpos Biespecíficos',pdfs:[
-{name:'AcBs HUNSC 2025',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/Biespecificos.pdf'},
-{name:'AcBs GELTAMO',url:'https://raw.githubusercontent.com/HemaPocket/guias/main/Biespec%C3%ADficos_GELTAMO.pdf'}
+{name:'AcBs HUNSC 2025',url:'https://raw.githubusercontent.com/hemopocket/guias/main/Biespecificos.pdf'},
+{name:'AcBs GELTAMO',url:'https://raw.githubusercontent.com/hemopocket/guias/main/Biespec%C3%ADficos_GELTAMO.pdf'}
 ]},
 {id:'otros',name:'Otros',pdfs:[]}
 ],
@@ -3092,7 +3092,7 @@ container.innerHTML=`<div class="viewer-error">No se pudo renderizar el PDF.<br>
 Object.keys(GUIDES_TITLES).forEach(id=>{VIEWS['g_'+id]=()=>guidesView(id)});
 
 // === SINCRONIZACIÓN ===
-const DEFAULT_UPDATE_URL='https://gist.githubusercontent.com/HemaPocket/bad30d214121cd913b0b1100d7b96745/raw/hemapocket.json';
+const DEFAULT_UPDATE_URL='https://gist.githubusercontent.com/hemopocket/bad30d214121cd913b0b1100d7b96745/raw/hemopocket.json';
 VIEWS.sync=()=>{
 const lastUpd=ls.g('lastUpdate');
 const updateUrl=ls.g('updateUrl')||DEFAULT_UPDATE_URL;
@@ -3262,10 +3262,10 @@ data.subtypes[id]=getSubtypes(id).map(st=>({id:st.id,name:st.name,pdfs:[]}));
 const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
 const a=document.createElement('a');
 a.href=URL.createObjectURL(blob);
-a.download='hemapocket.json';
+a.download='hemopocket.json';
 a.click();
 URL.revokeObjectURL(a.href);
-toast('✓ Plantilla descargada como hemapocket.json');
+toast('✓ Plantilla descargada como hemopocket.json');
 }
 
 async function exportData(){
@@ -3285,7 +3285,7 @@ data.idb[key]={name:v.name,size:v.size,data:b64};
 const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
 const a=document.createElement('a');
 a.href=URL.createObjectURL(blob);
-a.download=`hemapocket-backup-${new Date().toISOString().slice(0,10)}.json`;
+a.download=`hemopocket-backup-${new Date().toISOString().slice(0,10)}.json`;
 a.click();
 URL.revokeObjectURL(a.href);
 toast('✓ Backup descargado');
@@ -3345,7 +3345,7 @@ if(!contacts.length){toast('No hay contactos para exportar');return}
 const clean=contacts.map(c=>({n:c.n,c:c.c||'',e:c.e||''}));
 const json='"contacts": '+JSON.stringify(clean,null,2)+',';
 copy(json);
-toast('✓ Copiado. Pégalo en tu hemapocket.json al mismo nivel que "subtypes".');
+toast('✓ Copiado. Pégalo en tu hemopocket.json al mismo nivel que "subtypes".');
 }
 
 function addContact(){
@@ -5104,7 +5104,7 @@ document.documentElement.dataset.t=S.theme;
 const savedUrl=ls.g('updateUrl');
 if(savedUrl&&/\/raw\/[0-9a-f]{40}\//.test(savedUrl)){
 ls.s('updateUrl','');
-console.log('[HemaPocket] URL pinchada a commit detectada, restablecida al valor por defecto');
+console.log('[hemopocket] URL pinchada a commit detectada, restablecida al valor por defecto');
 }
 // Primera apertura en este origen: rellenar localStorage con los datos embebidos
 // para que los compañeros vean contactos y guías al instante, sin esperar a la sincronización
