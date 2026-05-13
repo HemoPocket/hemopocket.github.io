@@ -2,9 +2,11 @@
 <html lang="es" data-t="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<link rel="icon" type="image/png" href="ISO RED.png">
-<title>HemoPocket</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    
+    <link rel="icon" type="image/png" href="ISO RED.png">
+    
+    <title>HemoPocket</title>
 <style>
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -524,15 +526,20 @@ function toggleSec(i){MENU[i]._o=!(MENU[i]._o||MENU[i].o);MENU[i].o=0;renderMenu
 function toggleFav(id){const i=S.favs.indexOf(id);if(i>=0)S.favs.splice(i,1);else if(S.favs.length<4)S.favs.push(id);else{toast('Máx 4 favoritos. Quita uno primero.');return}ls.s('favs',S.favs);renderMenu($('search').value)}
 function filterMenu(v){renderMenu(v)}
 
-function go(id,params){
-window.location.hash = id;
-document.title = "HemoPocket";
-closeSb();
-window.scrollTo(0,0);
-renderMenu($('search').value);
-const v=VIEWS[id];
-$('content').innerHTML=v?v(params):homeView();
-if(VIEWS[id+'_post'])VIEWS[id+'_post'](params);
+function go(id, params) {
+    S.view = id;
+    window.location.hash = id;
+    
+    // CAMBIO VITAL: Deja solo el nombre limpio, sin concatenar nada
+    document.title = "HemoPocket"; 
+    
+    closeSb();
+    window.scrollTo(0, 0);
+    renderMenu($('search').value);
+    
+    const v = VIEWS[id];
+    $('content').innerHTML = v ? v(params) : homeView();
+    if (VIEWS[id + '_post']) VIEWS[id + '_post'](params);
 }
 
 // === VIEWS ===
