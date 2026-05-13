@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     
-    <link rel="icon" type="image/png" href="ISO.png">
+    <link rel="icon" type="image/png" href="ISO RED.png?v=1">
     
     <title>HemoPocket</title>
 <style>
@@ -529,10 +529,7 @@ function filterMenu(v){renderMenu(v)}
 function go(id, params) {
     S.view = id;
     window.location.hash = id;
-    
-    // CAMBIO VITAL: Deja solo el nombre limpio, sin concatenar nada
     document.title = "HemoPocket"; 
-    
     closeSb();
     window.scrollTo(0, 0);
     renderMenu($('search').value);
