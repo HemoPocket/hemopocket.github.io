@@ -1,582 +1,338 @@
-<!DOCTYPE html>
-<html lang="es" data-t="light">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>HemoPocket</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--c1:#c41e3a;--c2:#1a3a6c;--c2l:#7ba3e0;--bg:#f5f7fa;--card:#fff;--txt:#1a1a1a;--mut:#5a6577;--bd:#e1e5eb;--inp:#fff;--shd:0 2px 6px rgba(0,0,0,.06);--shd2:0 6px 20px rgba(0,0,0,.1);--r:14px;--rs:8px;--ok:#16a34a;--wn:#f59e0b;--er:#dc2626;--in:#0284c7;--bg2:#eef1f5;--hov:#f0f3f7}
-[data-t="dark"]{--bg:#0d1117;--card:#161b22;--txt:#e6edf3;--mut:#8b949e;--bd:#30363d;--inp:#0d1117;--shd:0 2px 6px rgba(0,0,0,.3);--shd2:0 6px 20px rgba(0,0,0,.5);--bg2:#1c2128;--hov:#21262d}
-html,body{height:100%}
-body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5}
-.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
-.sb{background:var(--card);border-right:1px solid var(--bd);padding:14px;overflow-y:auto;max-height:100vh;position:sticky;top:0}
-.brand{text-align:center;padding:8px 0 16px;border-bottom:1px solid var(--bd);margin-bottom:14px}
-.brand img{width:80px;height:auto;display:block;margin:0 auto 10px;cursor:pointer;border-radius:8px;}
-.brand .nm{font-size:30px;font-weight:700;letter-spacing:-1px;cursor:pointer;line-height:1}
-.brand .nm .a{color:var(--c2)}.brand .nm .b{color:var(--c1)}
-[data-t="dark"] .brand .nm .a{color:var(--c2l)}
-.brand .sub{font-size:11px;color:var(--mut);margin-top:4px;line-height:1.3}
-.search{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--inp);color:var(--txt);font-size:13px;margin-bottom:12px;outline:none;font-family:inherit}
-.search:focus{border-color:var(--c2)}
-.search-wrap{position:relative;margin-bottom:12px}
-.search-wrap .search-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--mut);pointer-events:none}
-.search-wrap .search{margin-bottom:0;padding-left:34px}
-.search-wrap:focus-within .search-ic{color:var(--c2)}
-.menu-section{margin-bottom:6px}
-.menu-h{font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px}
-.menu-cat{padding:9px 10px;border-radius:var(--rs);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:12.5px;user-select:none;transition:.15s;text-transform:uppercase;color:var(--c2)}
-[data-t="dark"] .menu-cat{color:var(--c2l)}
-.menu-cat:hover{background:var(--hov)}
-.menu-cat .ar{transition:transform .2s;font-size:9px;color:var(--mut)}
-.menu-cat.open .ar{transform:rotate(90deg)}
-.menu-items{max-height:0;overflow:hidden;transition:max-height .3s}
-.menu-cat.open + .menu-items{max-height:2000px}
-.menu-item{padding:7px 10px 7px 22px;cursor:pointer;border-radius:var(--rs);font-size:12.5px;color:var(--mut);display:flex;justify-content:space-between;align-items:center;gap:6px}
-.menu-sub{padding:6px 10px 3px 14px;font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;letter-spacing:.4px;opacity:.8}
-.menu-sub + .menu-item, .menu-sub ~ .menu-item.in-sub{padding-left:30px}
-.menu-item:hover,.menu-item.active{background:var(--hov);color:var(--txt)}
-.menu-item.active{font-weight:500}
-.menu-item .fav{opacity:.35;cursor:pointer;padding:2px 4px;flex-shrink:0;font-size:13px}
-.menu-item .fav.on{opacity:1;color:#f59e0b}
-.menu-item:hover .fav{opacity:.8}
-.menu-item .nm-wrap{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
-.tb-btn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--bd);border-radius:50%;color:var(--mut);cursor:pointer;transition:.18s;padding:0;font-family:inherit;position:relative;flex-shrink:0}
-.tb-btn:hover{border-color:var(--c2);color:var(--c2);box-shadow:var(--shd)}
-[data-t="dark"] .tb-btn:hover{color:var(--c2l);border-color:var(--c2l)}
-.tb-btn svg{width:18px;height:18px;display:block}
-.tb-spacer{flex:1}
-.cmd-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-start;justify-content:center;padding-top:10vh;backdrop-filter:blur(2px)}
-.cmd-bg.show{display:flex}
-.cmd-box{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);width:min(560px,92vw);box-shadow:var(--shd2);overflow:hidden;display:flex;flex-direction:column;max-height:75vh}
-.cmd-box input{width:100%;padding:14px 16px;border:none;outline:none;background:transparent;color:var(--txt);font-size:15px;border-bottom:1px solid var(--bd);font-family:inherit}
-.cmd-list{overflow-y:auto;padding:6px 0}
-.cmd-item{padding:10px 16px;cursor:pointer;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.cmd-item:hover,.cmd-item.sel{background:var(--hov)}
-.cmd-item .sec{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
-.cmd-foot{padding:8px 14px;border-top:1px solid var(--bd);font-size:11px;color:var(--mut);background:var(--bg2);display:flex;gap:14px;flex-wrap:wrap}
-.cmd-foot kbd{display:inline-block;padding:1px 5px;border:1px solid var(--bd);border-radius:4px;background:var(--card);font-family:monospace;font-size:10.5px;margin:0 3px}
-.cmd-empty{padding:24px 16px;text-align:center;color:var(--mut);font-size:13px}
-.app-footer{margin-top:30px;padding:14px 10px 6px;border-top:1px solid var(--bd);font-size:11px;color:var(--mut);text-align:center;line-height:1.6}
-.app-footer strong{color:var(--txt)}
-.collabs-block{margin:0 0 14px;padding:10px 14px;background:var(--bg2);border-left:3px solid var(--c2);border-radius:var(--rs)}
-[data-t="dark"] .collabs-block{border-left-color:var(--c2l)}
-.collabs-h{font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;letter-spacing:.5px;margin-bottom:6px}
-.collabs-list{list-style:none;padding:0;margin:0;font-size:13px}
-.collabs-list li{padding:2px 0;line-height:1.5}
-.tgl-row{display:flex;justify-content:space-between;align-items:center;padding:14px 10px 6px;margin-top:14px;border-top:1px solid var(--bd)}
-.tgl{position:relative;width:42px;height:22px;background:var(--bd);border-radius:11px;cursor:pointer;transition:.2s}
-.tgl::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
-[data-t="dark"] .tgl{background:var(--c2)}
-[data-t="dark"] .tgl::after{left:22px}
-.main{padding:14px;overflow-x:hidden;max-width:100%}
-.menu-btn{display:none;width:40px;height:40px;background:var(--card);border:1px solid var(--bd);border-radius:50%;cursor:pointer;color:var(--mut);align-items:center;justify-content:center;padding:0;font-family:inherit;transition:.18s;flex-shrink:0}
-.menu-btn:hover{border-color:var(--c2);color:var(--c2);box-shadow:var(--shd)}
-[data-t="dark"] .menu-btn:hover{color:var(--c2l);border-color:var(--c2l)}
-.pbar{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:14px;box-shadow:var(--shd)}
-.pbar-t{font-size:11px;color:var(--mut);text-transform:uppercase;font-weight:600;margin-bottom:8px;letter-spacing:.5px}
-.pbar-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
-.pf{display:flex;flex-direction:column;gap:3px}
-.pf label{font-size:11px;color:var(--mut)}
-.pf input,.pf select{padding:7px 9px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--inp);color:var(--txt);font-size:13px;outline:none;width:100%;font-family:inherit}
-.pf input:focus,.pf select:focus{border-color:var(--c2)}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--shd)}
-.card h2{font-size:18px;margin-bottom:10px;color:var(--c2);font-weight:600}
-[data-t="dark"] .card h2{color:var(--c2l)}
-.card h3{font-size:14px;margin:14px 0 8px;color:var(--txt);font-weight:600}
-.card p{margin-bottom:8px}
-.card p.intro{color:var(--mut);font-size:13px}
-.lbl{display:block;font-size:13px;font-weight:500;margin-bottom:5px;color:var(--txt)}
-.fld{margin-bottom:11px}
-.fld input:not([type=radio]):not([type=checkbox]),.fld select,.fld textarea{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--inp);color:var(--txt);font-size:13px;outline:none;font-family:inherit}
-.chk-card>input{width:auto!important;padding:0!important;margin-top:3px;flex-shrink:0;flex-grow:0}
-.fld textarea{resize:vertical;min-height:60px}
-.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.chk-card{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;cursor:pointer;border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:6px;transition:.15s;font-size:13px}
-.chk-card:hover{background:var(--hov)}
-.chk-card input{margin-top:3px;flex-shrink:0;cursor:pointer}
-.chk-card.checked{border-color:var(--c2);background:rgba(26,58,108,.06)}
-[data-t="dark"] .chk-card.checked{background:rgba(123,163,224,.1);border-color:var(--c2l)}
-.chk-card small{color:var(--mut);font-size:11px}
-.btn{padding:9px 16px;border:none;border-radius:var(--rs);background:var(--c2);color:#fff;cursor:pointer;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:.15s;font-family:inherit}
-.btn:hover{filter:brightness(1.1)}
-.btn:active{transform:scale(.98)}
-.btn-2{background:var(--c1)}
-.btn-g{background:var(--ok)}
-.btn-out{background:transparent;color:var(--c2);border:1px solid var(--c2)}
-[data-t="dark"] .btn-out{color:var(--c2l);border-color:var(--c2l)}
-.btn-sm{padding:6px 11px;font-size:12px}
-.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.res{margin-top:14px;padding:14px;border-radius:var(--r);border-left:4px solid var(--c2);background:rgba(2,132,199,.08)}
-.res.lo{background:rgba(22,163,74,.1);border-left-color:var(--ok)}
-.res.md{background:rgba(245,158,11,.12);border-left-color:var(--wn)}
-.res.hi{background:rgba(220,38,38,.1);border-left-color:var(--er)}
-.res-h{font-size:15px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.res-s{font-size:13px;color:var(--mut);margin-top:4px}
-.score{display:inline-block;padding:3px 10px;border-radius:12px;background:var(--c2);color:#fff;font-weight:600;font-size:12px}
-.ref{font-size:11px;color:var(--mut);margin-top:14px;padding-top:10px;border-top:1px solid var(--bd);line-height:1.4}
-.alert{padding:12px;border-radius:var(--rs);margin:8px 0;font-size:13px;line-height:1.5}
-.alert.r{background:rgba(220,38,38,.12);border:1px solid var(--er);color:var(--er);font-weight:500}
-.alert.g{background:rgba(22,163,74,.12);border:1px solid var(--ok);color:var(--ok)}
-.alert.y{background:rgba(245,158,11,.12);border:1px solid var(--wn)}
-.alert.b{background:rgba(2,132,199,.12);border:1px solid var(--in)}
-[data-t="dark"] .alert.r{color:#f87171}
-[data-t="dark"] .alert.g{color:#4ade80}
-[data-t="dark"] .alert.y{color:#fbbf24}
-.step{margin-bottom:14px}
-.step-h{display:flex;align-items:center;gap:9px;font-weight:600;margin-bottom:10px;font-size:14px}
-.step-n{width:26px;height:26px;border-radius:50%;background:var(--c2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-weight:600}
-.step-n.done{background:var(--ok)}
-.step-n.lock{background:var(--bd);color:var(--mut)}
-.step.locked{opacity:.5;pointer-events:none}
-.step.locked .step-n{background:var(--bd);color:var(--mut)}
-.tbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px}
-.tbl th,.tbl td{padding:8px 9px;border:1px solid var(--bd);text-align:left;vertical-align:top}
-.tbl th{background:var(--bg2);font-weight:600;font-size:12px}
-.home-hero{position:relative;text-align:center;padding:38px 20px 28px;overflow:hidden}
-.home-logo{width:180px;height:180px;margin:0 auto 14px;position:relative;z-index:2}
-.home-logo img{max-width:100%;height:auto;border-radius:12px;}
-.home-tagline{color:var(--mut);font-size:14px;letter-spacing:.3px;margin:10px 0 0 0;position:relative;z-index:2;font-weight:500;}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--c2);color:#fff;padding:11px 22px;border-radius:var(--r);box-shadow:var(--shd2);z-index:1000;font-size:13px;transition:.3s;opacity:0;pointer-events:none;font-weight:500}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.info-pill{display:inline-block;padding:3px 10px;border-radius:12px;background:rgba(2,132,199,.15);color:var(--in);font-size:11px;font-weight:600;margin-left:6px}
-[data-t="dark"] .info-pill{color:#7dd3fc}
-.calc-box{background:var(--bg2);padding:12px;border-radius:var(--rs);margin:10px 0}
-input[type=number]{-moz-appearance:textfield}
-input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-@media(max-width:768px){
-.app{grid-template-columns:1fr}
-.sb{position:fixed;top:0;left:-300px;width:280px;height:100vh;z-index:100;transition:left .3s;overflow-y:auto;box-shadow:var(--shd2)}
-.sb.open{left:0}
-.menu-btn{display:inline-flex}
-.sb-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
-.sb-bg.show{display:block}
+{
+  "version": "2026.05.21",
+  "updated": "2026-05-13",
+  "collaborators": {
+    "uh": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "th": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "bs": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "lf": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "mm": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "llc": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "leuc_ag": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "mieloide": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "cito": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "ped": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ],
+    "cart": [
+      {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}
+    ]
+  },
+  "contacts": [
+    {"n": "Banco de Sangre", "c": "Hematología", "e": "32229"},
+    {"n": "Busca", "c": "", "e": "32113"},
+    {"n": "Despacho Laboratorio", "c": "Hematología", "e": "30533"},
+    {"n": "Despacho planta", "c": "Hematología", "e": "30072"},
+    {"n": "EN01", "c": "Medicina Interna", "e": "2053"},
+    {"n": "EN06 - Planta Hematología", "c": "Hematología", "e": "32095"},
+    {"n": "Farmacia", "c": "", "e": "30839"},
+    {"n": "Laboratorio", "c": "Hematología", "e": "31725"},
+    {"n": "Laboratorio Bioquimica URG", "c": "Análisis clínico", "e": "32221"},
+    {"n": "Secretaría Hospital de Día", "c": "Hematología", "e": "32224"},
+    {"n": "Anat. Patológica - Carreón", "c": "Anatomía Patológica", "e": "31709"},
+    {"n": "Anat. Patológica - Febles", "c": "Anatomía Patológica", "e": "31732"},
+    {"n": "Anat. Patológica - Idaira", "c": "Anatomía Patológica", "e": "31730"},
+    {"n": "Anat. Patológica - Lennys", "c": "Anatomía Patológica", "e": "31730"},
+    {"n": "Anat. Patológica - Leticia", "c": "Anatomía Patológica", "e": "31732"},
+    {"n": "Anat. Patológica - Linares", "c": "Anatomía Patológica", "e": "31821"},
+    {"n": "Anat. Patológica - Maeso", "c": "Anatomía Patológica", "e": "32340"},
+    {"n": "Anat. Patológica - Secretaría", "c": "Anatomía Patológica", "e": "32011"},
+    {"n": "Anat. Patológica - Vicky", "c": "Anatomía Patológica", "e": "32339"},
+    {"n": "Cirugía General - Secretaría", "c": "Cirugía General", "e": "31981"},
+    {"n": "Cirugía Torácica", "c": "Cirugía Torácica", "e": "401960"},
+    {"n": "Digestivo - Hígado", "c": "Digestivo", "e": "30671 / 32368"},
+    {"n": "Digestivo - Planta", "c": "Digestivo", "e": "32156"},
+    {"n": "Digestivo - Secretaría", "c": "Digestivo", "e": "31707"},
+    {"n": "Digestivo - Urgencias", "c": "Digestivo", "e": "401942"},
+    {"n": "Ecocardiograma", "c": "Cardiología", "e": "30618 / 30619"},
+    {"n": "Farmacia - Ambulatorio/HDD", "c": "Farmacia", "e": "30016"},
+    {"n": "Farmacia - Hospitalizados", "c": "Farmacia", "e": "30710"},
+    {"n": "Farmacia - TIT", "c": "Farmacia", "e": "30553"},
+    {"n": "Hematología - Citodiagnóstico", "c": "Hematología", "e": "30533"},
+    {"n": "Hematología - Coagulación/Sintrom", "c": "Hematología", "e": "30684"},
+    {"n": "Hematología - Consulta 5ª", "c": "Hematología", "e": "31943"},
+    {"n": "Hematología - Consulta coagulopatías", "c": "Hematología", "e": "32060"},
+    {"n": "Hematología - Consulta HSUR", "c": "Hematología", "e": "33784"},
+    {"n": "Hematología - HDD 1", "c": "Hematología", "e": "30454"},
+    {"n": "Hematología - HDD 2", "c": "Hematología", "e": "30403"},
+    {"n": "Hematología - HDD 3", "c": "Hematología", "e": "32655"},
+    {"n": "Hematología - HDD HSUR", "c": "Hematología", "e": "33776"},
+    {"n": "Hematología - Sala de sesiones", "c": "Hematología", "e": "30764"},
+    {"n": "Hematología - Secretaría Jefe", "c": "Hematología", "e": "32971"},
+    {"n": "HADO", "c": "HADO", "e": "31881 / 31884 / 30022 / 401460"},
+    {"n": "HUC - Dra. Báez", "c": "Reproducción HUC", "e": "922678735 / 34375 / 922678000"},
+    {"n": "HUC - Dra. Correa", "c": "Reproducción HUC", "e": "34575"},
+    {"n": "HUC - Reproducción", "c": "Reproducción HUC", "e": "922678582"},
+    {"n": "Lab. Bioquímica ordinaria", "c": "Laboratorio", "e": "30804"},
+    {"n": "Lab. Bioquímica Secretaría", "c": "Laboratorio", "e": "30695"},
+    {"n": "Lab. Proteínas", "c": "Laboratorio", "e": "30697"},
+    {"n": "Maxilofacial", "c": "Maxilofacial", "e": "32168"},
+    {"n": "M. Interna - Despacho Médicos", "c": "Medicina Interna", "e": "30473 / 32489 / 30833 / 32968"},
+    {"n": "M. Interna - Infecciosas/COVID", "c": "Medicina Interna", "e": "32968"},
+    {"n": "Medicina Nuclear - Médicos", "c": "Medicina Nuclear", "e": "30074"},
+    {"n": "Medicina Nuclear - Sec. Ambulatorio", "c": "Medicina Nuclear", "e": "32361"},
+    {"n": "Medicina Nuclear - Sec. Ingresado", "c": "Medicina Nuclear", "e": "30814"},
+    {"n": "M. Preventiva - Enfermería", "c": "Medicina Preventiva", "e": "32117"},
+    {"n": "M. Preventiva - Médicos", "c": "Medicina Preventiva", "e": "31837"},
+    {"n": "Microbiología - Hemocultivos", "c": "Microbiología", "e": "32067"},
+    {"n": "Microbiología - Jesús", "c": "Microbiología", "e": "30591"},
+    {"n": "Microbiología - Magdalena (Anti-S)", "c": "Microbiología", "e": "30707"},
+    {"n": "Microbiología - Serologías", "c": "Microbiología", "e": "32169 / 32225"},
+    {"n": "Microbiología - Virus respiratorios", "c": "Microbiología", "e": "31718"},
+    {"n": "Molecular - CNIO", "c": "Molecular", "e": "917328000 (Ext 343)"},
+    {"n": "Molecular - Negrín Santi", "c": "Molecular", "e": "79427"},
+    {"n": "Molecular - Negrín Yanira", "c": "Molecular", "e": "70906"},
+    {"n": "Nefrología - Corporativo", "c": "Nefrología", "e": "401970"},
+    {"n": "Nefrología - Despachos", "c": "Nefrología", "e": "31736 / 31735 / 31726 / 30754"},
+    {"n": "Nefrología - Hemodiálisis", "c": "Nefrología", "e": "32058 / 32361"},
+    {"n": "Neumología - COVID", "c": "Neumología", "e": "31784"},
+    {"n": "Neumología - Fibrobroncoscopia", "c": "Neumología", "e": "30525 / 30411"},
+    {"n": "Neumología - O2 domiciliario", "c": "Neumología", "e": "30675"},
+    {"n": "Neumología - PFR", "c": "Neumología", "e": "32982 / 32983"},
+    {"n": "Neumología - PFR (informe)", "c": "Neumología", "e": "32022"},
+    {"n": "Neumología - Secretaría", "c": "Neumología", "e": "30576"},
+    {"n": "Neumología - U. Pleura", "c": "Neumología", "e": "31855"},
+    {"n": "Neumología - U. Pleura Jefe", "c": "Neumología", "e": "31701"},
+    {"n": "Neurocirugía - Secretaría", "c": "Neurocirugía", "e": "32164"},
+    {"n": "Neurología - Secretaría", "c": "Neurología", "e": "31935 / 32081"},
+    {"n": "Nómina", "c": "RRHH", "e": "32048 / 31926 / 32049"},
+    {"n": "Nutrición", "c": "Nutrición", "e": "30098 / 30656"},
+    {"n": "Oftalmología - Urgencias", "c": "Oftalmología", "e": "30570 / 32015"},
+    {"n": "ORL - Secretaría", "c": "ORL", "e": "32073"},
+    {"n": "ORL - Urgencias", "c": "ORL", "e": "30021"},
+    {"n": "Planta 1ª norte", "c": "Hospitalización", "e": "32053"},
+    {"n": "Planta 1ª sur", "c": "Hospitalización", "e": "32099"},
+    {"n": "Planta 2ª norte", "c": "Hospitalización", "e": "32252 / 32644"},
+    {"n": "Planta 2ª sur", "c": "Hospitalización", "e": "32071"},
+    {"n": "Planta 3ª norte", "c": "Hospitalización", "e": "32098"},
+    {"n": "Planta 3ª sur", "c": "Hospitalización", "e": "32096"},
+    {"n": "Planta 4ª norte", "c": "Hospitalización", "e": "32082"},
+    {"n": "Planta 4ª sur", "c": "Hospitalización", "e": "32072"},
+    {"n": "Planta 5ª norte", "c": "Hospitalización", "e": "32052"},
+    {"n": "Planta 5ª sur", "c": "Hospitalización", "e": "32078"},
+    {"n": "Planta 6ª norte (Hematología)", "c": "Hospitalización", "e": "32095"},
+    {"n": "Planta 6ª sur", "c": "Hospitalización", "e": "32083"},
+    {"n": "Planta 7ª norte", "c": "Hospitalización", "e": "32156"},
+    {"n": "Planta 7ª sur", "c": "Hospitalización", "e": "32077"},
+    {"n": "Planta 8ª norte", "c": "Hospitalización", "e": "32162"},
+    {"n": "Planta 8ª sur", "c": "Hospitalización", "e": "35707"},
+    {"n": "Planta 9ª norte", "c": "Hospitalización", "e": "32159"},
+    {"n": "Planta 9ª sur", "c": "Hospitalización", "e": "32076"},
+    {"n": "Planta Baja norte", "c": "Hospitalización", "e": "35719"},
+    {"n": "Planta Baja sur", "c": "Hospitalización", "e": "32161 / 32103"},
+    {"n": "Psiquiatría - Ingresados", "c": "Psiquiatría", "e": "32287"},
+    {"n": "Psiquiatría - Urgencias", "c": "Psiquiatría", "e": "401211"},
+    {"n": "Radiología - Ingresados", "c": "Radiología", "e": "30718"},
+    {"n": "Radiología - Musculoesquelético", "c": "Radiología", "e": "30758"},
+    {"n": "Radiología - RMN Vicente", "c": "Radiología", "e": "31992 / 31816 / 30072"},
+    {"n": "Radiología - Secretaría", "c": "Radiología", "e": "30718 / 31815"},
+    {"n": "Radiología - TAC Abdomen", "c": "Radiología", "e": "32311"},
+    {"n": "Radiología - TAC Tórax", "c": "Radiología", "e": "31871"},
+    {"n": "Radioterapia - Cristina", "c": "Radioterapia", "e": "32331"},
+    {"n": "Radioterapia - Fco. Díaz", "c": "Radioterapia", "e": "307556"},
+    {"n": "Radioterapia - Martín", "c": "Radioterapia", "e": "30903"},
+    {"n": "Radioterapia - Secretaría", "c": "Radioterapia", "e": "32379"},
+    {"n": "RAVI - Enfermería", "c": "RAVI", "e": "32063"},
+    {"n": "RAVI - Médicos", "c": "RAVI", "e": "31780"},
+    {"n": "RAVI - Secretaría", "c": "RAVI", "e": "30099"},
+    {"n": "REA 3ª planta", "c": "REA", "e": "32181 / 32079 / 30652 / 31750"},
+    {"n": "Rehabilitación - Consulta", "c": "Rehabilitación", "e": "32274"},
+    {"n": "Rehabilitación - Secretaría", "c": "Rehabilitación", "e": "32193"},
+    {"n": "Subdirección - Secretaría", "c": "Subdirección", "e": "32338"},
+    {"n": "T. Social - Margot", "c": "Trabajo Social", "e": "31712"},
+    {"n": "U. Dolor - Planta", "c": "Unidad del Dolor", "e": "31950"},
+    {"n": "U. Dolor - Quirófano", "c": "Unidad del Dolor", "e": "30499"},
+    {"n": "U. Dolor - Secretaría", "c": "Unidad del Dolor", "e": "30895 / 30548 / 31724"},
+    {"n": "UMI 1", "c": "UMI", "e": "30727"},
+    {"n": "UMI 2", "c": "UMI", "e": "30554"},
+    {"n": "UMI 3", "c": "UMI", "e": "31776"},
+    {"n": "UMI Extendida", "c": "UMI", "e": "404124"},
+    {"n": "Urgencias - Circulantes", "c": "Urgencias", "e": "32270"},
+    {"n": "Urgencias - T4", "c": "Urgencias", "e": "30809 / 31507"},
+    {"n": "Urgencias - Triage", "c": "Urgencias", "e": "32346"},
+    {"n": "Urología - Secretaría", "c": "Urología", "e": "32390"}
+  ],
+  "subtypes": {
+    "lf": [
+      {"id": "fol", "name": "Linfoma Folicular", "pdfs": [
+        {"name": "Guía Linfoma Folicular GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Folicular.pdf"}
+      ]},
+      {"id": "lbdcg", "name": "Linfoma B Difuso de Células Grandes (LBDCG)", "pdfs": [
+        {"name": "Guía LDCGB GELTAMO 2022", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LCGBD.pdf"}
+      ]},
+      {"id": "manto", "name": "Linfoma del Manto", "pdfs": [
+        {"name": "Guía Linfoma del Manto GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LCM.pdf"}
+      ]},
+      {"id": "hodgkin", "name": "Linfoma de Hodgkin", "pdfs": [
+        {"name": "Guía Linfoma Hodgkin GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Hodgkin.pdf"}
+      ]},
+      {"id": "marg", "name": "Zona Marginal / MALT", "pdfs": []},
+      {"id": "burkitt", "name": "Burkitt / High-grade B-cell", "pdfs": [
+        {"name": "Protocolo Burkimab", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/BURKIMAB.pdf"}
+      ]},
+      {"id": "tcell", "name": "Linfomas T", "pdfs": [
+        {"name": "Guía Linfoma T-NK GELTAMO 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Linfoma_T_NK_2024.pdf"}
+      ]},
+      {"id": "snc", "name": "Linfoma primario del SNC", "pdfs": [
+        {"name": "Guía Linfoma cerebral primario GELTAMO 2019", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MATRIX.pdf"}
+      ]},
+      {"id": "general", "name": "Generales / Otros esquemas QT", "pdfs": [
+        {"name": "Guía profilaxis SNC LDCGB GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Profilaxis_SNC.pdf"},
+        {"name": "Normograma de Bleyer", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Bleyer.pdf"}
+      ]}
+    ],
+    "mm": [
+      {"id": "mm", "name": "Mieloma Múltiple", "pdfs": [
+        {"name": "Guía MM - GEM 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MM.pdf"}
+      ]},
+      {"id": "amyl", "name": "Amiloidosis AL", "pdfs": []},
+      {"id": "mgus", "name": "GMSI", "pdfs": []},
+      {"id": "wm", "name": "Macroglobulinemia de Waldenström", "pdfs": [
+        {"name": "Guía Linfoma linfoplasmocítico/MW GELTAMO 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MW.pdf"}
+      ]},
+      {"id": "general", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "llc": [
+      {"id": "llc", "name": "Leucemia Linfática Crónica", "pdfs": [
+        {"name": "Guía LLC GELL 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LLC.pdf"}
+      ]},
+      {"id": "tric", "name": "Tricoleucemia", "pdfs": []},
+      {"id": "general", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "leuc_ag": [
+      {"id": "lma_int", "name": "LMA: QT intensiva", "pdfs": [
+        {"name": "Protocolo PETHEMA LMA FLOW 2026", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/FLOW.pdf"},
+        {"name": "Protocolo PETHEMA LMA CBF 2016 (Enmienda 2019)", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/CBF.pdf"},
+        {"name": "Protocolo PETHEMA LMA NPM1 2017 (Enmienda 2019)", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/NPM1.pdf"},
+        {"name": "Protocolo PETHEMA LPA 2017", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LPA.pdf"},
+        {"name": "Protocolo PETHEMA LMA MIX 2021", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MIX.pdf"}
+      ]},
+      {"id": "lma_bi", "name": "LMA: QT de baja intensidad", "pdfs": [
+        {"name": "Protocolo LMA Unfit HUNSC", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LMA_UNFIT_%20HUNSC.pdf"},
+        {"name": "Protocolo PETHEMA LMA PAPU 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/PAPU.pdf"},
+        {"name": "Protocolo LMA CETLAM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LMA_CETLAM.pdf"}
+      ]},
+      {"id": "lma_rec", "name": "LMA en recaída", "pdfs": [
+        {"name": "Protocolo LMA-RRon 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LMArron.pdf"}
+      ]},
+      {"id": "lla", "name": "LLA", "pdfs": [
+        {"name": "Protocolo LLA Ph negativo", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LAL.pdf"},
+        {"name": "Protocolo LLA Ph positivo", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LALPh.pdf"},
+        {"name": "Protocolo Burkimab", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/BURKIMAB.pdf"},
+        {"name": "LLA en recaída", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LALR.pdf"}
+      ]},
+      {"id": "otros", "name": "Otros", "pdfs": [
+        {"name": "Síndrome de obstrucción sinusoidal 2019", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/EVOH.pdf"}
+      ]}
+    ],
+    "mieloide": [
+      {"id": "smd", "name": "SMD", "pdfs": []},
+      {"id": "mfp", "name": "Mielofibrosis / NMP", "pdfs": []},
+      {"id": "lmmc", "name": "LMMC", "pdfs": []},
+      {"id": "otros", "name": "Otros", "pdfs": []}
+    ],
+    "cito": [
+      {"id": "pti", "name": "PTI - Púrpura Trombocitopénica Inmune", "pdfs": [
+        {"name": "Protocolo PTI HUNSC", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/PTI%202023.pdf"},
+        {"name": "Guía PTI 2023", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/GEPTI.pdf"}
+      ]},
+      {"id": "ahai", "name": "AHAI - Anemia Hemolítica Autoinmune", "pdfs": []},
+      {"id": "erit", "name": "Eritropatología (Falciforme, Talasemias...)", "pdfs": [
+        {"name": "Eritropatología 2ª edición", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Eritro.pdf"}
+      ]},
+      {"id": "aplasia", "name": "Aplasia Medular / HPN", "pdfs": [
+        {"name": "Guía AM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/AM.pdf"}
+      ]},
+      {"id": "general", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "ped": [
+      {"id": "lla_ped", "name": "LLA pediátrica", "pdfs": []},
+      {"id": "lma_ped", "name": "LMA pediátrica", "pdfs": []},
+      {"id": "falc_ped", "name": "Anemia Falciforme", "pdfs": [
+        {"name": "Guía Enfermedad de células falciformes SEHOP 2019", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Falciforme.pdf"}
+      ]},
+      {"id": "tal_ped", "name": "Talasemia", "pdfs": [
+        {"name": "Guía Talasemia SEHOP 2015", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Talasemia.pdf"}
+      ]},
+      {"id": "aplasia_ped", "name": "Aplasia Medular", "pdfs": [
+        {"name": "Guía AM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/AM.pdf"}
+      ]},
+      {"id": "general_ped", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "cart": [
+      {"id": "cart_ind", "name": "CAR-T - Indicaciones y manejo", "pdfs": []},
+      {"id": "biesp", "name": "Anticuerpos Biespecíficos", "pdfs": [
+        {"name": "AcBs HUNSC 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Biespecificos.pdf"},
+        {"name": "AcBs GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Biespec%C3%ADficos_GELTAMO.pdf"}
+      ]},
+      {"id": "taspe", "name": "TASPE - Trasplante Autólogo", "pdfs": [
+        {"name": "Protocolo TASPE HUNSC", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/TASPE.pdf"},
+        {"name": "Guía acondicionamiento GETH 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/geth.pdf"}
+      ]},
+      {"id": "otros", "name": "Otros", "pdfs": []}
+    ],
+    "bs": [
+      {"id": "transf_comp", "name": "Transfusión de componentes (CH / Plaquetas / PFC / Crioprecipitados)", "pdfs": []},
+      {"id": "inmunohem", "name": "Inmunohematología (ABO/Rh, AAII, discrepancias)", "pdfs": [
+        {"name": "Inmunohematología básica y aplicada", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Inmunobanco.pdf"}
+      ]},
+      {"id": "react_transf", "name": "Reacciones transfusionales y hemovigilancia", "pdfs": [
+        {"name": "Estándares en Hemoterapia", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Hemoterapia.pdf"}
+      ]},
+      {"id": "pbm", "name": "Patient Blood Management / Optimización preoperatoria", "pdfs": []},
+      {"id": "aferesis", "name": "Aféresis terapéutica", "pdfs": []},
+      {"id": "situ_esp", "name": "Situaciones especiales (neonatos, embarazo, TPH, drepanocitosis)", "pdfs": []},
+      {"id": "transf_masiva", "name": "Transfusión masiva / Hemorragia crítica", "pdfs": []},
+      {"id": "autoinmune", "name": "AHAI y panaglutinación", "pdfs": []},
+      {"id": "general", "name": "Generales / Procedimientos del servicio", "pdfs": []}
+    ],
+    "th": [
+      {"id": "anticoag", "name": "Anticoagulación", "pdfs": []},
+      {"id": "rotem", "name": "ROTEM", "pdfs": [
+        {"name": "Protocolo ROTEM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/ROTEM.pdf"}
+      ]},
+      {"id": "ecmo", "name": "ECMO", "pdfs": [
+        {"name": "Protocolo ECMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/ECMO.pdf"}
+      ]},
+      {"id": "mat", "name": "MAT (PTT / SHU)", "pdfs": [
+        {"name": "Guía PTT", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/PTT.pdf"}
+      ]},
+      {"id": "cid", "name": "CID", "pdfs": []},
+      {"id": "hemof", "name": "Hemofilia y Coagulopatías", "pdfs": []},
+      {"id": "saf", "name": "SAF / Trombofilia", "pdfs": []},
+      {"id": "antic", "name": "Manejo perioperatorio anticoagulación", "pdfs": []},
+      {"id": "general", "name": "Generales / Reversión", "pdfs": []}
+    ],
+    "uh": [
+      {"id": "nf", "name": "Neutropenia febril", "pdfs": []},
+      {"id": "leucost", "name": "Leucostasis / Hiperleucocitosis", "pdfs": []},
+      {"id": "lisis", "name": "Síndrome de lisis tumoral", "pdfs": []},
+      {"id": "cid_urg", "name": "CID urgente", "pdfs": []},
+      {"id": "mat_urg", "name": "MAT (PTT / SHU)", "pdfs": []},
+      {"id": "compr", "name": "Compresión Medular / Sd. VCS", "pdfs": []},
+      {"id": "sangr", "name": "Sangrado Mayor / Reversión", "pdfs": []},
+      {"id": "sind_dif", "name": "Síndrome de diferenciación (LPA)", "pdfs": []},
+      {"id": "atb", "name": "Antibioterapia empírica", "pdfs": []},
+      {"id": "general", "name": "Generales / Soporte UCI", "pdfs": []},
+      {"id": "otros", "name": "Otros", "pdfs": []}
+    ]
+  }
 }
-@media(max-width:480px){
-body{font-size:13px}
-.card{padding:13px}
-.pbar-g{grid-template-columns:repeat(2,1fr)}
-.row,.row2{grid-template-columns:1fr}
-}
-.chk-card>span{flex:1;min-width:0;word-break:break-word;overflow-wrap:break-word;line-height:1.4}
-.home-main-btn{width:36px;height:36px;padding:0;background:transparent;color:var(--mut);border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:.15s}
-.home-main-btn:hover{background:var(--hov);color:var(--c1);border-color:var(--c1)}
-.top-bar{display:flex;gap:10px;align-items:center;margin-bottom:14px}
-</style>
-</head>
-<body>
-<div class="sb-bg" id="sb_bg" onclick="closeSb()"></div>
-<div class="app">
-<aside class="sb" id="sb">
-<button class="home-main-btn" onclick="mostrarInicio()" title="Inicio" aria-label="Inicio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
-<div class="brand">
-<img src="Imagen.jpg" alt="HemoPocket Logo" onclick="mostrarInicio()">
-<div class="nm" onclick="mostrarInicio()" style="display:none;"><span class="a">Hemo</span><span class="b">Pocket</span></div>
-</div>
-<div class="search-wrap">
-<svg class="search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-<input class="search" id="search" placeholder="Buscar..." oninput="filterMenu(this.value)">
-</div>
-<div id="menu"></div>
-<div class="tgl-row">
-<span style="font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>Modo oscuro</span>
-<div class="tgl" onclick="toggleTheme()"></div>
-</div>
-</aside>
-<main class="main">
-<div class="top-bar">
-<button class="menu-btn" onclick="openSb()" title="Menú" aria-label="Menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-<div class="tb-spacer"></div>
-<button class="tb-btn" onclick="openCmd()" title="Búsqueda rápida (Ctrl+K)" aria-label="Búsqueda rápida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
-</div>
-
-<div class="pbar" id="pbar">
-<div class="pbar-t">Datos del Paciente (Globales)</div>
-<div class="pbar-g">
-<div class="pf"><label>Edad</label><input type="number" id="g_age" oninput="upPt('age',this.value)"></div>
-<div class="pf"><label>Sexo</label><select id="g_sex" onchange="upPt('sex',this.value)"><option value="">-</option><option value="M">Hombre</option><option value="F">Mujer</option></select></div>
-<div class="pf"><label>Peso (kg)</label><input type="number" step="0.5" id="g_weight" oninput="upPt('weight',this.value)"></div>
-<div class="pf"><label>Talla (cm)</label><input type="number" id="g_height" oninput="upPt('height',this.value)"></div>
-<div class="pf"><label>Cr (mg/dL)</label><input type="number" step="0.01" id="g_cr" oninput="upPt('creatinine',this.value)"></div>
-</div>
-</div>
-
-<div id="content"></div>
-
-<footer class="app-footer">
-© 2026 <strong>M.T. Busnego Barreto</strong> · Servicio de Hematología y Hemoterapia, HUNSC<br>
-<span style="font-style:italic">Aviso legal: esta aplicación es una guía de apoyo a la decisión clínica. No sustituye el juicio del facultativo responsable. Verifica siempre dosis, indicaciones y protocolos con la documentación oficial vigente. Uso interno del servicio.</span>
-</footer>
-</main>
-</div>
-
-<div id="cmd_bg" class="cmd-bg" onclick="if(event.target===this)closeCmd()">
-<div class="cmd-box">
-<input id="cmd_in" placeholder="Buscar calculadora, score, guía…" autocomplete="off" oninput="renderCmd()" onkeydown="cmdKey(event)">
-<div id="cmd_list" class="cmd-list"></div>
-<div class="cmd-foot"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span></div>
-</div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-// === STATE & STORAGE ===
-const S={p:{age:'',sex:'',weight:'',height:'',creatinine:''},theme:'light',view:'home',favs:[]};
-const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}}};
-const $=id=>document.getElementById(id);
-const n=v=>{const x=parseFloat(v);return isNaN(x)?null:x};
-
-function loadState(){
-    const savedP = ls.g('patient');
-    if(savedP) Object.assign(S.p, savedP);
-    S.theme = ls.g('theme') || 'light';
-    S.favs = ls.g('favs') || [];
-    document.documentElement.dataset.t = S.theme;
-    if($('g_age')) $('g_age').value = S.p.age;
-    if($('g_sex')) $('g_sex').value = S.p.sex;
-    if($('g_weight')) $('g_weight').value = S.p.weight;
-    if($('g_height')) $('g_height').value = S.p.height;
-    if($('g_cr')) $('g_cr').value = S.p.creatinine;
-}
-loadState();
-
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-function copy(t){if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>toast('✓ Copiado')).catch(fb);else fb();function fb(){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('✓ Copiado')}catch(e){toast('Error')}document.body.removeChild(ta)}}
-function upPt(k,v){S.p[k]=v;ls.s('patient',S.p)}
-function toggleTheme(){S.theme=S.theme==='light'?'dark':'light';document.documentElement.dataset.t=S.theme;ls.s('theme',S.theme)}
-function mostrarInicio(){go('home')}
-function openSb(){$('sb').classList.add('open');$('sb_bg').classList.add('show')}
-function closeSb(){$('sb').classList.remove('open');$('sb_bg').classList.remove('show')}
-
-// === COMMAND PALETTE (Ctrl+K) ===
-let cmdSel=0;
-function openCmd(){$('cmd_bg').classList.add('show');$('cmd_in').value='';renderCmd();$('cmd_in').focus();}
-function closeCmd(){$('cmd_bg').classList.remove('show');}
-function renderCmd(){
-const f=$('cmd_in').value.toLowerCase();
-let items=getAll();
-if(f)items=items.filter(it=>it.name.toLowerCase().includes(f)||(it.kw&&it.kw.includes(f)));
-let h='';
-if(!items.length)h='<div class="cmd-empty">No se encontraron resultados</div>';
-else{
-items.forEach((it,i)=>{
-const cat=MENU.find(s=>s.items.some(x=>x.id===it.id))?.h||'';
-h+=`<div class="cmd-item ${i===cmdSel?'sel':''}" onclick="go('${it.id}');closeCmd()" onmouseover="cmdSel=${i};document.querySelectorAll('.cmd-item').forEach((e,idx)=>e.classList.toggle('sel',idx===cmdSel))">
-<span>${it.name}</span><span class="sec">${cat}</span></div>`;
-});}
-$('cmd_list').innerHTML=h;
-}
-function cmdKey(e){
-const items=document.querySelectorAll('.cmd-item');
-if(e.key==='Escape')closeCmd();
-else if(e.key==='ArrowDown'){e.preventDefault();if(cmdSel<items.length-1)cmdSel++;renderCmdSel()}
-else if(e.key==='ArrowUp'){e.preventDefault();if(cmdSel>0)cmdSel--;renderCmdSel()}
-else if(e.key==='Enter'){e.preventDefault();if(items[cmdSel])items[cmdSel].click();closeCmd();}
-}
-function renderCmdSel(){document.querySelectorAll('.cmd-item').forEach((e,idx)=>{e.classList.toggle('sel',idx===cmdSel);if(idx===cmdSel)e.scrollIntoView({block:'nearest'});});}
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openCmd()}});
-    // === MENU CONFIG (EN MAYÚSCULAS) ===
-const MENU=[
-{h:'INFECCIONES',o:1,items:[
-{id:'nf',name:'Algoritmo Neutropenia Febril',kw:'neutropenia febril sepsis bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
-{id:'saureus',name:'Bacteriemia por S. aureus',kw:'bacteriemia staphylococcus aureus sarm sams cateter endocarditis hemocultivos dapto vancomicina'},
-{id:'atb',name:'Sensibilidad antibiótica',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam'},
-{id:'g_inf',name:'Guías Clínicas Infecciosas',kw:'guias clinicas infecciones ecil ifi profilaxis antifungica aspergillus candida pdf'}
-]},
-{h:'OTRAS URGENCIAS HEMATOLÓGICAS',items:[
-{id:'g_uh',name:'Guías Clínicas',kw:'guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado pdf'}
-]},
-{h:'TROMBOSIS Y HEMOSTASIA',items:[
-{id:'plasmic',name:'PLASMIC',kw:'plasmic ttp microangiopatia trombotica'},
-{id:'tma_dif',name:'Diferencial MAT (TTP/SHUa/CID/HELLP)',kw:'diferencial microangiopatia trombotica mat ttp shua suh cid hellp plasmic adamts13 complemento esquistocitos lactato'},
-{id:'cid',name:'CID (ISTH)',kw:'cid coagulacion intravascular diseminada isth dic'},
-{id:'tt',name:'4T Score',kw:'4t hit heparina trombocitopenia'},
-{id:'wells',name:'Wells (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
-{id:'hb',name:'HAS-BLED',kw:'hasbled sangrado anticoagulacion fa'},
-{id:'hbpm',name:'Dosis HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa'}
-]},
-{h:'TERAPIA CELULAR',items:[
-{id:'crs',name:'CRS (ASTCT)',kw:'crs cart citoquinas biespecificos terapia celular'},
-{id:'icans',name:'ICE / ICANS',kw:'ice icans neurotoxicidad cart terapia celular'}
-]},
-{h:'LEUCEMIAS AGUDAS',items:[
-{id:'eln',name:'ELN 2022 (LMA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
-{id:'eln24',name:'ELN 2024 (LMA baja intensidad)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'}
-]},
-{h:'PATOLOGÍA MIELOIDE CRÓNICA',items:[
-{id:'ipssr',name:'IPSS-R (SMD)',kw:'ipssr smd mielodisplasico'},
-{id:'icpss',name:'iCPSS (LMMC)',kw:'icpss lmmc cmml'},
-{id:'sokal',name:'Sokal (LMC)',kw:'sokal lmc leucemia mieloide cronica'},
-{id:'dipss',name:'DIPSS (Mielofibrosis)',kw:'dipss mielofibrosis primaria nmp dynamic prognostic'},
-{id:'dipssp',name:'DIPSS-Plus (Mielofibrosis)',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional'},
-{id:'mipss70',name:'MIPSS70 / MIPSS70-Plus',kw:'mipss70 mipss mielofibrosis molecular mutaciones asxl1 srsf2 ezh2 idh u2af1 alto riesgo hmr'}
-]},
-{h:'MIELOMA Y GAMMAPATÍAS',items:[
-{id:'riss',name:'R-ISS',kw:'riss mieloma multiple'},
-{id:'r2iss',name:'R2-ISS',kw:'r2iss mieloma multiple'},
-{id:'ipsswm',name:'IPSS-WM (Waldenström)',kw:'ipss wm waldenstrom macroglobulinemia mgi linfoplasmocitico pronostico beta2 microglobulina igm'}
-]},
-{h:'LINFOMA',items:[
-{id:'ripi',name:'R-IPI',kw:'ripi linfoma lbdcg b grandes'},
-{id:'cnsipi',name:'CNS-IPI',kw:'cns ipi snc linfoma'},
-{id:'flipi',name:'FLIPI / R-FLIPI',kw:'flipi folicular linfoma'},
-{id:'mipi',name:'MIPI',kw:'mipi manto mantle'},
-{id:'ips',name:'IPS (Hodgkin)',kw:'ips hodgkin pronostico hasenclever'},
-{id:'aa',name:'Ann Arbor',kw:'ann arbor estadio linfoma hodgkin'}
-]},
-{h:'LLC',items:[
-{id:'cllipi',name:'CLL-IPI',kw:'cll ipi llc leucemia linfocitica cronica'}
-]},
-{h:'OTRAS CALCULADORAS',items:[
-{id:'qtc',name:'QTc (Fridericia)',kw:'qtc fridericia ekg ecg intervalo'},
-{id:'crcl',name:'Aclaramiento Cr',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
-{id:'cacorr',name:'Calcio corregido',kw:'calcio corregido payne albumina proteinas totales hipocalcemia hipercalcemia mieloma paraproteina hipoalbuminemia'},
-{id:'obw',name:'Ajuste Obesidad',kw:'ibw abw obesidad ajuste peso ideal'},
-{id:'bsa',name:'Superficie Corporal',kw:'bsa mosteller superficie corporal'},
-{id:'cb',name:'Lisis Tumoral',kw:'cairo bishop lisis tumoral sld'},
-{id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad'},
-{id:'ecog',name:'ECOG',kw:'ecog estado funcional performance'},
-{id:'g8',name:'G8 Fragilidad',kw:'g8 fragilidad anciano geriatrico'},
-{id:'opioides',name:'Conversión de Opioides',kw:'opioides conversion morfina oxicodona fentanilo parche buprenorfina tramadol tapentadol rescate dolor analgesia mme'}
-]},
-{h:'UTILIDADES',items:[
-{id:'listin',name:'Listín Telefónico',kw:'listin telefono contactos busca guardias interconsulta'},
-{id:'equipo',name:'Equipo y Colaboradores',kw:'equipo colaboradores autores revisores creditos firmantes banco sangre'}
-]}
-];
-
-function getAll(){return MENU.flatMap(s=>s.items)}
-function renderMenu(filter=''){
-const f=filter.toLowerCase().trim();
-const favs=S.favs.slice(0,4);
-let h='';
-if(favs.length){
-h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px">ACCESO RÁPIDO</div>';
-favs.forEach(id=>{const it=getAll().find(x=>x.id===id);if(it)h+=`<div class="menu-item ${S.view===id?'active':''}" onclick="go('${id}')"><span>${it.name}</span></div>`});
-h+='</div>';
-}
-MENU.forEach((sec,si)=>{
-const realItems=sec.items.filter(it=>!it.sub && (!f||it.name.toLowerCase().includes(f)||(it.kw&&it.kw.includes(f))));
-if(!realItems.length)return;
-const visible=f?realItems:sec.items;
-const open=f||sec._o||sec.o;
-h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${sec.h}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:2000px"':''}>`;
-visible.forEach(it=>{
-const isFav=S.favs.includes(it.id);
-h+=`<div class="menu-item ${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${it.name}</span></span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
-});
-h+='</div></div>';
-});
-$('menu').innerHTML=h;
-}
-function toggleSec(i){MENU[i]._o=!(MENU[i]._o||MENU[i].o);MENU[i].o=0;renderMenu($('search').value)}
-function toggleFav(id){const i=S.favs.indexOf(id);if(i>=0)S.favs.splice(i,1);else if(S.favs.length<4)S.favs.push(id);else{toast('Máx 4 favoritos.');return}ls.s('favs',S.favs);renderMenu($('search').value)}
-
-function go(id,params){
-S.view=id;window.location.hash=id;closeSb();window.scrollTo(0,0);renderMenu($('search').value);
-const v=VIEWS[id];
-$('content').innerHTML=v?v(params):homeView();
-if(VIEWS[id+'_post'])VIEWS[id+'_post'](params);
-}
-
-const VIEWS={};
-function homeView(){return `<div class="card home-hero"><div class="home-logo" style="width:160px;height:160px;"><img src="Imagen.jpg" alt="HemoPocket"></div><p class="home-tagline">Guía rápida de consulta en Hematología</p></div>`;}
-VIEWS.home=homeView;
-
-const PCC={};
-function pointCalc(opts){
-PCC[opts.id]=opts;const id=opts.id;let h=`<div class="card"><h2>${opts.title}</h2>`;
-if(opts.intro)h+=`<p class="intro">${opts.intro}</p>`;
-opts.items.forEach((it,i)=>{
-h+=`<div class="fld"><label class="lbl">${it.q}</label>`;
-if(it.type==='check'){const o=it.opts[0];h+=`<label class="chk-card" onclick="setTimeout(()=>this.classList.toggle('checked',this.querySelector('input').checked),0)"><input type="checkbox" data-q="${i}" data-p="${o.p}" onchange="pcCalc('${id}')"><span>${o.l} <small>(+${o.p})</small></span></label>`;}
-else{it.opts.forEach((o,j)=>{h+=`<label class="chk-card"><input type="radio" name="${id}_${i}" value="${o.p}" data-l="${o.l.replace(/"/g,'&quot;')}" onchange="pcCalc('${id}')"><span>${o.l} <small>(${o.p>=0?'+':''}${o.p})</small></span></label>`;});}
-h+='</div>';});
-h+=`<div id="${id}_res" class="res" style="display:none"></div><div class="btns"><button class="btn btn-out btn-sm" onclick="copyPC('${id}')">Copiar evolución</button></div><div class="ref">${opts.ref||''}</div></div>`;
-return h;
-}
-function pcCalc(id){
-const cfg=PCC[id];let total=0;
-cfg.items.forEach((it,i)=>{if(it.type==='check'){const cb=document.querySelector(`#content [data-q="${i}"]`);if(cb&&cb.checked)total+=+cb.dataset.p;}else{const r=document.querySelector(`#content input[name="${id}_${i}"]:checked`);if(r)total+=+r.value;}});
-const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[cfg.ranges.length-1];
-const el=$(`${id}_res`);el.style.display='block';el.className='res '+(range.cls||'');
-el.innerHTML=`<div class="res-h"><span class="score">${total} pts</span><span>${range.label}</span></div>${range.info||''}`;
-}
-function patientHeader(){const parts=[];if(S.p.age)parts.push(`${S.p.age} años`);if(S.p.sex)parts.push(S.p.sex==='M'?'varón':'mujer');return parts.length?`Paciente de ${parts.join(', ')}. `:'';}
-function copyPC(id){
-const cfg=PCC[id];let total=0;const factors=[];let any=false;
-cfg.items.forEach((it,i)=>{
-if(it.type==='check'){const cb=document.querySelector(`#content [data-q="${i}"]`);if(cb){any=true;if(cb.checked){total+=+cb.dataset.p;factors.push(it.q.replace(/<[^>]*>/g,'').trim());}}}
-else{const r=document.querySelector(`#content input[name="${id}_${i}"]:checked`);if(r){any=true;total+=+r.value;factors.push(`${it.q.replace(/<[^>]*>/g,'').trim()}: ${r.dataset.l}`);}}
-});
-if(!any){toast('Completa criterios');return}
-const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[cfg.ranges.length-1];
-const txt=`Cálculo de ${cfg.title}\n─────────────────────────────────────────────\n${patientHeader()}Se aplica el índice con los siguientes parámetros positivos:\n- ${factors.join('\n- ')}\n\nPuntuación: ${total}. Categoría: ${range.label.replace(/<[^>]*>/g,'')}.\n\n[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
-
-// === CALCULADORAS POINT-BASED ===
-VIEWS.ripi=()=>pointCalc({id:'ripi',title:'R-IPI – LBDCG',items:[{q:'Edad > 60 años',type:'check',opts:[{l:'Sí',p:1}]},{q:'LDH > Normal',type:'check',opts:[{l:'Sí',p:1}]},{q:'ECOG ≥ 2',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio Ann Arbor III-IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sitios extranodales > 1',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'Muy bueno'},{min:1,max:2,cls:'md',label:'Bueno'},{min:3,max:5,cls:'hi',label:'Pobre'}]});
-VIEWS.ips=()=>pointCalc({id:'ips',title:'IPS – Hodgkin',items:[{q:'Albúmina < 4 g/dL',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hb < 10.5 g/dL',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sexo masculino',type:'check',opts:[{l:'Sí',p:1}]},{q:'Edad ≥ 45 años',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Leucocitosis ≥ 15k',type:'check',opts:[{l:'Sí',p:1}]},{q:'Linfopenia < 600',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'IPS 0'},{min:1,max:1,cls:'lo',label:'IPS 1'},{min:2,max:2,cls:'md',label:'IPS 2'},{min:3,max:3,cls:'md',label:'IPS 3'},{min:4,max:4,cls:'hi',label:'IPS 4'},{min:5,max:7,cls:'hi',label:'IPS ≥ 5'}]});
-VIEWS.cnsipi=()=>pointCalc({id:'cnsipi',title:'CNS-IPI',items:[{q:'Edad > 60 años',type:'check',opts:[{l:'Sí',p:1}]},{q:'LDH > Normal',type:'check',opts:[{l:'Sí',p:1}]},{q:'ECOG ≥ 2',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio III-IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Extranodal > 1',type:'check',opts:[{l:'Sí',p:1}]},{q:'Renal / suprarrenal',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:1,cls:'lo',label:'Riesgo bajo'},{min:2,max:3,cls:'md',label:'Riesgo intermedio'},{min:4,max:6,cls:'hi',label:'Riesgo alto (Profilaxis SNC)'}]});
-VIEWS.flipi=()=>pointCalc({id:'flipi',title:'FLIPI',items:[{q:'Edad ≥ 60',type:'check',opts:[{l:'Sí',p:1}]},{q:'Estadio III-IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hb < 12 g/dL',type:'check',opts:[{l:'Sí',p:1}]},{q:'LDH > Normal',type:'check',opts:[{l:'Sí',p:1}]},{q:'> 4 áreas ganglionares',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:1,cls:'lo',label:'Riesgo bajo'},{min:2,max:2,cls:'md',label:'Riesgo intermedio'},{min:3,max:5,cls:'hi',label:'Riesgo alto'}]});
-VIEWS.plasmic=()=>pointCalc({id:'plasmic',title:'PLASMIC Score (PTT)',items:[{q:'Plaquetas < 30',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hemólisis (Retis/BI)',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sin cáncer activo',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sin trasplante',type:'check',opts:[{l:'Sí',p:1}]},{q:'VCM < 90',type:'check',opts:[{l:'Sí',p:1}]},{q:'INR < 1.5',type:'check',opts:[{l:'Sí',p:1}]},{q:'Creatinina < 2',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:4,cls:'lo',label:'Probabilidad baja'},{min:5,max:5,cls:'md',label:'Probabilidad intermedia'},{min:6,max:7,cls:'hi',label:'Probabilidad alta (PEX empírico)'}]});
-VIEWS.cid=()=>pointCalc({id:'cid',title:'CID (ISTH)',items:[{q:'Plaquetas (×10⁹/L)',opts:[{l:'>100',p:0},{l:'50-100',p:1},{l:'<50',p:2}]},{q:'D-dímero',opts:[{l:'No elevado',p:0},{l:'Mod. elevado',p:2},{l:'Muy elevado',p:3}]},{q:'TP prolongado',opts:[{l:'<3 seg',p:0},{l:'3-6 seg',p:1},{l:'>6 seg',p:2}]},{q:'Fibrinógeno',opts:[{l:'>1 g/L',p:0},{l:'<1 g/L',p:1}]}],ranges:[{min:0,max:4,cls:'lo',label:'No CID overt'},{min:5,max:8,cls:'hi',label:'CID overt'}]});
-VIEWS.tt=()=>pointCalc({id:'tt',title:'4T Score (HIT)',items:[{q:'Trombocitopenia',opts:[{l:'<30%',p:0},{l:'30-50%',p:1},{l:'>50%',p:2}]},{q:'Timing',opts:[{l:'<4d',p:0},{l:'Dudoso/>10d',p:1},{l:'5-10d o ≤1d con heparina previa',p:2}]},{q:'Trombosis',opts:[{l:'Ninguna',p:0},{l:'Progresiva/sospecha',p:1},{l:'Nueva/necro/anafilaxia',p:2}]},{q:'Otra causa',opts:[{l:'Definitiva',p:0},{l:'Posible',p:1},{l:'Ninguna',p:2}]}],ranges:[{min:0,max:3,cls:'lo',label:'Prob. baja'},{min:4,max:5,cls:'md',label:'Prob. intermedia'},{min:6,max:8,cls:'hi',label:'Prob. alta'}]});
-VIEWS.hb=()=>pointCalc({id:'hb',title:'HAS-BLED',items:[{q:'Hipertensión',type:'check',opts:[{l:'Sí',p:1}]},{q:'Función renal alt.',type:'check',opts:[{l:'Sí',p:1}]},{q:'Función hepática alt.',type:'check',opts:[{l:'Sí',p:1}]},{q:'Ictus previo',type:'check',opts:[{l:'Sí',p:1}]},{q:'Sangrado previo',type:'check',opts:[{l:'Sí',p:1}]},{q:'INR lábil',type:'check',opts:[{l:'Sí',p:1}]},{q:'Edad > 65',type:'check',opts:[{l:'Sí',p:1}]},{q:'Fármacos (AAS, AINEs)',type:'check',opts:[{l:'Sí',p:1}]},{q:'Alcohol',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:2,cls:'lo',label:'Riesgo bajo'},{min:3,max:9,cls:'hi',label:'Riesgo alto'}]});
-VIEWS.hctci=()=>pointCalc({id:'hctci',title:'HCT-CI (Sorror)',items:[{q:'Arritmia',type:'check',opts:[{l:'Sí',p:1}]},{q:'Cardiaca (EAC, ICC)',type:'check',opts:[{l:'Sí',p:1}]},{q:'EII',type:'check',opts:[{l:'Sí',p:1}]},{q:'Diabetes',type:'check',opts:[{l:'Sí',p:1}]},{q:'ACV / AIT',type:'check',opts:[{l:'Sí',p:1}]},{q:'Trastorno psiquiátrico',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hepática leve',type:'check',opts:[{l:'Sí',p:1}]},{q:'Obesidad (>35)',type:'check',opts:[{l:'Sí',p:1}]},{q:'Infección activa',type:'check',opts:[{l:'Sí',p:1}]},{q:'Reumatológica',type:'check',opts:[{l:'Sí',p:2}]},{q:'Enf. ulcerosa',type:'check',opts:[{l:'Sí',p:2}]},{q:'Renal mod/severa',type:'check',opts:[{l:'Sí',p:2}]},{q:'Pulmonar mod',type:'check',opts:[{l:'Sí',p:2}]},{q:'Neoplasia previa',type:'check',opts:[{l:'Sí',p:3}]},{q:'Hepática mod/severa',type:'check',opts:[{l:'Sí',p:3}]},{q:'Pulmonar severa',type:'check',opts:[{l:'Sí',p:3}]},{q:'Valvulopatía',type:'check',opts:[{l:'Sí',p:3}]}],ranges:[{min:0,max:0,cls:'lo',label:'Riesgo bajo'},{min:1,max:2,cls:'md',label:'Riesgo intermedio'},{min:3,max:30,cls:'hi',label:'Riesgo alto'}]});
-VIEWS.cllipi=()=>pointCalc({id:'cllipi',title:'CLL-IPI',items:[{q:'TP53 mut / del(17p)',type:'check',opts:[{l:'Sí',p:4}]},{q:'IGHV no mutado',type:'check',opts:[{l:'Sí',p:2}]},{q:'β2M > 3.5',type:'check',opts:[{l:'Sí',p:2}]},{q:'Estadio Binet B-C / Rai I-IV',type:'check',opts:[{l:'Sí',p:1}]},{q:'Edad > 65',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:1,cls:'lo',label:'Riesgo bajo'},{min:2,max:3,cls:'md',label:'Riesgo intermedio'},{min:4,max:6,cls:'hi',label:'Riesgo alto'},{min:7,max:10,cls:'hi',label:'Riesgo muy alto'}]});
-VIEWS.ipsswm=()=>pointCalc({id:'ipsswm',title:'IPSS-WM (Waldenström)',items:[{q:'Edad > 65',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hb ≤ 11.5',type:'check',opts:[{l:'Sí',p:1}]},{q:'Plaquetas ≤ 100',type:'check',opts:[{l:'Sí',p:1}]},{q:'β2M > 3',type:'check',opts:[{l:'Sí',p:1}]},{q:'IgM > 7 g/dL',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:1,cls:'lo',label:'Riesgo bajo'},{min:2,max:2,cls:'md',label:'Riesgo intermedio'},{min:3,max:5,cls:'hi',label:'Riesgo alto'}]});
-VIEWS.dipss=()=>pointCalc({id:'dipss',title:'DIPSS – Mielofibrosis',items:[{q:'Edad > 65',type:'check',opts:[{l:'Sí',p:1}]},{q:'Síntomas const.',type:'check',opts:[{l:'Sí',p:1}]},{q:'Hb < 10',type:'check',opts:[{l:'Sí',p:2}]},{q:'Leucos > 25',type:'check',opts:[{l:'Sí',p:1}]},{q:'Blastos ≥ 1%',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'Riesgo bajo'},{min:1,max:2,cls:'md',label:'Int-1'},{min:3,max:4,cls:'md',label:'Int-2'},{min:5,max:6,cls:'hi',label:'Alto'}]});
-VIEWS.dipssp=()=>pointCalc({id:'dipssp',title:'DIPSS-Plus',items:[{q:'DIPSS',opts:[{l:'Bajo',p:0},{l:'Int-1',p:1},{l:'Int-2',p:2},{l:'Alto',p:3}]},{q:'Cariotipo desfavorable',type:'check',opts:[{l:'Sí',p:1}]},{q:'Plaquetas < 100',type:'check',opts:[{l:'Sí',p:1}]},{q:'Dep. transfusional',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'Riesgo bajo'},{min:1,max:1,cls:'md',label:'Int-1'},{min:2,max:3,cls:'md',label:'Int-2'},{min:4,max:6,cls:'hi',label:'Alto'}]});
-VIEWS.mipss70=()=>pointCalc({id:'mipss70',title:'MIPSS70 / MIPSS70-Plus',items:[{q:'Hb < 10',type:'check',opts:[{l:'Sí',p:1}]},{q:'Leucos > 25',type:'check',opts:[{l:'Sí',p:2}]},{q:'Plaquetas < 100',type:'check',opts:[{l:'Sí',p:2}]},{q:'Blastos ≥ 2%',type:'check',opts:[{l:'Sí',p:1}]},{q:'Fibrosis ≥ 2',type:'check',opts:[{l:'Sí',p:1}]},{q:'Síntomas const.',type:'check',opts:[{l:'Sí',p:1}]},{q:'CALR tipo 1 AUSENTE',type:'check',opts:[{l:'Sí',p:1}]},{q:'≥ 2 mut HMR',type:'check',opts:[{l:'Sí',p:2}]},{q:'1 mut HMR',type:'check',opts:[{l:'Sí',p:1}]},{q:'Cariotipo desfavorable (Plus)',type:'check',opts:[{l:'Sí',p:3}]}],ranges:[{min:0,max:1,cls:'lo',label:'Bajo'},{min:2,max:4,cls:'md',label:'Intermedio'},{min:5,max:8,cls:'hi',label:'Alto'},{min:9,max:15,cls:'hi',label:'Muy alto'}]});
-VIEWS.icpss=()=>pointCalc({id:'icpss',title:'iCPSS (LMMC)',items:[{q:'Subtipo',opts:[{l:'LMMC-1',p:0},{l:'LMMC-2',p:1}]},{q:'Tipo',opts:[{l:'Mielodisplásico (Leu<13)',p:0},{l:'Mieloproliferativo (Leu≥13)',p:1}]},{q:'Citogenética',opts:[{l:'Bajo',p:0},{l:'Int',p:1},{l:'Alto',p:2}]},{q:'Dep. Transfusional',type:'check',opts:[{l:'Sí',p:1}]}],ranges:[{min:0,max:0,cls:'lo',label:'Bajo'},{min:1,max:1,cls:'md',label:'Int-1'},{min:2,max:3,cls:'md',label:'Int-2'},{min:4,max:5,cls:'hi',label:'Alto'}]});
-VIEWS.ipssr=()=>pointCalc({id:'ipssr',title:'IPSS-R (SMD)',items:[{q:'Cariotipo',opts:[{l:'Muy bueno',p:0},{l:'Bueno',p:1},{l:'Intermedio',p:2},{l:'Pobre',p:3},{l:'Muy pobre',p:4}]},{q:'Blastos MO',opts:[{l:'≤2%',p:0},{l:'>2-5%',p:1},{l:'5-10%',p:2},{l:'>10%',p:3}]},{q:'Hemoglobina',opts:[{l:'≥10',p:0},{l:'8-<10',p:1},{l:'<8',p:1.5}]},{q:'Plaquetas',opts:[{l:'≥100',p:0},{l:'50-<100',p:0.5},{l:'<50',p:1}]},{q:'Neutrófilos',opts:[{l:'≥0.8',p:0},{l:'<0.8',p:0.5}]}],ranges:[{min:0,max:1.5,cls:'lo',label:'Muy bajo'},{min:2,max:3,cls:'lo',label:'Bajo'},{min:3.5,max:4.5,cls:'md',label:'Intermedio'},{min:5,max:6,cls:'hi',label:'Alto'},{min:6.5,max:10,cls:'hi',label:'Muy alto'}]});
-VIEWS.g8=()=>pointCalc({id:'g8',title:'G8 Fragilidad',items:[{q:'Ingesta',opts:[{l:'Anorexia severa',p:0},{l:'Anorexia mod',p:1},{l:'Normal',p:2}]},{q:'Pérdida peso',opts:[{l:'>3kg',p:0},{l:'No sabe',p:1},{l:'1-3kg',p:2},{l:'Sin pérdida',p:3}]},{q:'Movilidad',opts:[{l:'Cama/Sillón',p:0},{l:'Sale cama, no casa',p:1},{l:'Sale de casa',p:2}]},{q:'Neuropsicológico',opts:[{l:'Severos',p:0},{l:'Leves',p:1},{l:'Sin problemas',p:2}]},{q:'IMC',opts:[{l:'<19',p:0},{l:'19-<21',p:1},{l:'21-<23',p:2},{l:'≥23',p:3}]},{q:'Toma >3 meds/día',opts:[{l:'Sí',p:0},{l:'No',p:1}]},{q:'Salud autopercibida',opts:[{l:'Peor',p:0},{l:'No sabe',p:0.5},{l:'Igual',p:1},{l:'Mejor',p:2}]},{q:'Edad',opts:[{l:'>85',p:0},{l:'80-85',p:1},{l:'<80',p:2}]}],ranges:[{min:0,max:14,cls:'hi',label:'Frágil'},{min:14.5,max:17,cls:'lo',label:'Sin fragilidad'}]});
-
-// === CALCULADORAS DE LÓGICA COMPLETA ===
-
-// MIPI
-VIEWS.mipi=()=>`<div class="card"><h2>MIPI – Linfoma de Manto</h2><div class="row"><div class="fld"><label class="lbl">Edad</label><input type="number" id="mipi_age" value="${S.p.age}"></div><div class="fld"><label class="lbl">ECOG</label><select id="mipi_ecog"><option value="0">0-1</option><option value="1">2-4</option></select></div><div class="fld"><label class="lbl">LDH</label><input type="number" id="mipi_ldh"></div><div class="fld"><label class="lbl">LDH ULN</label><input type="number" id="mipi_uln" value="240"></div><div class="fld"><label class="lbl">Leucocitos (×10⁹/L)</label><input type="number" step="0.1" id="mipi_wbc"></div></div><div class="btns"><button class="btn" onclick="calcMIPI()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyMIPI()">Copiar</button></div><div id="mipi_res" class="res" style="display:none"></div></div>`;
-function calcMIPI(){const age=n($('mipi_age').value),ec=+$('mipi_ecog').value,ldh=n($('mipi_ldh').value),uln=n($('mipi_uln').value),wbc=n($('mipi_wbc').value);if(!age||!ldh||!uln||!wbc){toast('Faltan datos');return;}const sc=0.03535*age+0.6978*ec+1.367*Math.log10(ldh/uln)+0.9393*Math.log10(wbc*1000);let cat,cls;if(sc<5.7){cat='Riesgo bajo';cls='lo'}else if(sc<6.2){cat='Riesgo intermedio';cls='md'}else{cat='Riesgo alto';cls='hi'}const el=$('mipi_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${sc.toFixed(2)} pts</span><span>${cat}</span></div>`;window._mipi=sc.toFixed(2)+" - "+cat;}
-function copyMIPI(){if(!window._mipi){toast('Calcula primero');return;} copy(`Cálculo MIPI\nResultado: ${window._mipi}`);}
-
-// SOKAL
-VIEWS.sokal=()=>`<div class="card"><h2>Índice Sokal – LMC</h2><div class="row"><div class="fld"><label class="lbl">Edad</label><input type="number" id="sk_age" value="${S.p.age}"></div><div class="fld"><label class="lbl">Bazo (cm bajo reborde)</label><input type="number" step="0.5" id="sk_sp"></div><div class="fld"><label class="lbl">Plaquetas (×10⁹/L)</label><input type="number" id="sk_plt"></div><div class="fld"><label class="lbl">Blastos SP (%)</label><input type="number" step="0.1" id="sk_bl"></div></div><div class="btns"><button class="btn" onclick="calcSok()">Calcular</button></div><div id="sk_res" class="res" style="display:none"></div></div>`;
-function calcSok(){const a=n($('sk_age').value),sp=n($('sk_sp').value),pl=n($('sk_plt').value),bl=n($('sk_bl').value);if(!a||!sp||!pl||bl===null)return;const x=Math.exp(0.0116*(a-43.4)+0.0345*(sp-7.51)+0.188*(Math.pow(pl/700,2)-0.563)+0.0887*(bl-2.10));let cat,cls;if(x<0.8){cat='Riesgo bajo';cls='lo'}else if(x<=1.2){cat='Riesgo intermedio';cls='md'}else{cat='Riesgo alto';cls='hi'}const el=$('sk_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${x.toFixed(2)}</span><span>${cat}</span></div>`;}
-
-// WELLS
-VIEWS.wells=()=>`<div class="card"><h2>Criterios Wells</h2><div class="fld"><label class="lbl">Selecciona escala</label><select id="wl_t" onchange="renderWells()"><option value="dvt">Wells TVP</option><option value="pe">Wells TEP</option></select></div><div id="wl_box"></div></div>`;
-VIEWS.wells_post=()=>renderWells();
-function renderWells(){const t=$('wl_t').value;const cfg=t==='dvt'?{title:'Wells TVP',items:[{q:'Cáncer activo',p:1},{q:'Parálisis/inmovilización MMII',p:1},{q:'Encamamiento >3d o cirugía',p:1},{q:'Dolor en trayecto venoso',p:1},{q:'Edema de toda la extremidad',p:1},{q:'Edema con fóvea',p:1},{q:'Perímetro pantorrilla >3cm',p:1},{q:'Venas colaterales sup.',p:1},{q:'TVP previa',p:1},{q:'Diagnóstico alternativo más probable',p:-2}],ranges:[{min:-10,max:0,cls:'lo',label:'Baja probabilidad'},{min:1,max:2,cls:'md',label:'Probabilidad intermedia'},{min:3,max:9,cls:'hi',label:'Probabilidad alta'}]}:{title:'Wells TEP',items:[{q:'Signos de TVP',p:3},{q:'Diagnóstico alternativo menos probable',p:3},{q:'Frecuencia cardiaca > 100',p:1.5},{q:'Inmovilización o cirugía',p:1.5},{q:'TVP/TEP previo',p:1.5},{q:'Hemoptisis',p:1},{q:'Cáncer activo',p:1}],ranges:[{min:0,max:1.5,cls:'lo',label:'Baja probabilidad'},{min:2,max:6,cls:'md',label:'Probabilidad intermedia'},{min:6.5,max:20,cls:'hi',label:'Probabilidad alta'}]};let h='';cfg.items.forEach((it,i)=>{h+=`<label class="chk-card"><input type="checkbox" data-p="${it.p}" onchange="calcWells()"><span>${it.q} <small>(${it.p>=0?'+':''}${it.p})</small></span></label>`;});h+=`<div id="wl_res" class="res" style="display:none"></div>`;$('wl_box').innerHTML=h;window._wlCfg=cfg;}
-function calcWells(){const cfg=window._wlCfg;let total=0;document.querySelectorAll('#wl_box input[type=checkbox]').forEach(cb=>{if(cb.checked)total+=+cb.dataset.p});const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[0];const el=$('wl_res');el.style.display='block';el.className='res '+range.cls;el.innerHTML=`<div class="res-h"><span class="score">${total}</span><span>${range.label}</span></div>`;}
-
-// HBPM
-VIEWS.hbpm=()=>`<div class="card"><h2>Dosis HBPM</h2><div class="row"><div class="fld"><label class="lbl">Fármaco</label><select id="hb_drug" onchange="calcHBPM()"><option value="enox">Enoxaparina</option><option value="bemi">Bemiparina</option><option value="tinz">Tinzaparina</option><option value="dalt">Dalteparina</option><option value="nadr">Nadroparina</option></select></div><div class="fld"><label class="lbl">Indicación</label><select id="hb_ind" onchange="calcHBPM()"><option value="prof_med">Profilaxis Médica</option><option value="prof_qx">Profilaxis Quirúrgica</option><option value="trat">Tratamiento TVP/TEP</option><option value="trat_fa">Tratamiento FA</option></select></div><div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.5" id="hb_wt" value="${S.p.weight}" oninput="calcHBPM()"></div><div class="fld"><label class="lbl">CrCl (mL/min)</label><input type="number" step="1" id="hb_crcl" placeholder="Si es <30 se ajusta" oninput="calcHBPM()"></div></div><div id="hb_res" class="res" style="display:none"></div></div>`;
-function calcHBPM(){const drug=$('hb_drug').value, ind=$('hb_ind').value, wt=n($('hb_wt').value), crcl=n($('hb_crcl').value);if(!wt){$('hb_res').style.display='none';return;}const isIR = crcl!==null && crcl<30;const D = {enox:{n:'Enoxaparina',pm:'40 mg/24h SC',pq:'40 mg/24h SC',tm:1,tmd:1.5,pmIR:'20 mg/24h SC',tmIR:1},bemi:{n:'Bemiparina',pm:'3500 UI/24h SC',pq:'3500 UI/24h SC',tm:115,pmIR:'2500 UI/24h SC',tmIR:85},tinz:{n:'Tinzaparina',pm:'4500 UI/24h SC',pq:'4500 UI/24h SC',tm:175,pmIR:'3500-4500 UI (o HNF)',tmIR:175},dalt:{n:'Dalteparina',pm:'5000 UI/24h SC',pq:'5000 UI/24h SC',tm:200,pmIR:'2500 UI/24h SC',tmIR:200},nadr:{n:'Nadroparina',pm:'0.3 mL/24h SC',pq:'2850 UI/24h SC',tm:85.5,pmIR:'Reducir 25-33%',tmIR:60}};const d=D[drug]; let dose='', warn='';if(ind.startsWith('prof')){dose = isIR ? d.pmIR : (ind==='prof_qx'?d.pq:d.pm);if(isIR) warn = 'CrCl <30: Dosis reducida. ';} else {if(drug==='enox') dose = isIR ? `${(wt*1).toFixed(0)} mg/24h SC` : `${(wt*1).toFixed(0)} mg/12h SC o ${(wt*1.5).toFixed(0)} mg/24h SC`;else if(drug==='bemi') dose = `${(wt*(isIR?d.tmIR:d.tm)).toFixed(0)} UI/24h SC`;else if(drug==='tinz') dose = `${(wt*d.tm).toFixed(0)} UI/24h SC`;else if(drug==='dalt') dose = `${Math.min(wt*d.tm, 18000).toFixed(0)} UI/24h SC`;else if(drug==='nadr') dose = `${(wt*(isIR?d.tmIR:d.tm)).toFixed(0)} UI/12h SC`;if(isIR) warn = 'CrCl <30: Requiere ajuste y control Anti-Xa.';}const el=$('hb_res');el.style.display='block';el.className='res '+(isIR?'hi':'in');el.innerHTML=`<div class="res-h"><span class="score">${d.n}</span></div><div class="res-s"><strong>Dosis:</strong> ${dose}<br><small style="color:var(--er)">${warn}</small></div>`;}
-
-// ELN 2022
-VIEWS.eln=()=>`<div class="card"><h2>ELN 2022 (LMA)</h2><div id="el_box"><label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>t(8;21) / inv(16) / t(16;16) (Fav)</span></label><label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>CEBPA mut bZIP (Fav)</span></label><label class="chk-card"><input type="checkbox" id="el_npm" onchange="calcELN()"><span>NPM1 mutado</span></label><label class="chk-card"><input type="checkbox" id="el_flt" onchange="calcELN()"><span>FLT3-ITD mutado</span></label><label class="chk-card"><input type="checkbox" data-r="I" onchange="calcELN()"><span>t(9;11) (Int)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>TP53 mut / ASXL1 / RUNX1 etc (Adv)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>Cariotipo complejo / Monosómico (Adv)</span></label></div><div id="el_res" class="res" style="display:none"></div></div>`;
-function calcELN(){const npm=$('el_npm').checked, flt=$('el_flt').checked;const cats=[];if(npm&&!flt)cats.push('F'); if(npm&&flt)cats.push('I'); if(!npm&&flt)cats.push('I');document.querySelectorAll('#el_box input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});let f='I'; if(cats.length===0)f='I'; else if(cats.includes('A'))f='A'; else if(cats.includes('I'))f='I'; else if(cats.includes('F'))f='F';const el=$('el_res');el.style.display='block';el.className='res '+(f==='A'?'hi':f==='I'?'md':'lo');el.innerHTML=`<div class="res-h"><span class="score">${f==='A'?'Adverso':f==='I'?'Intermedio':'Favorable'}</span></div>`;}
-
-// ELN 2024
-VIEWS.eln24=()=>`<div class="card"><h2>ELN 2024 (LMA baja intensidad)</h2><div id="el24_box"><label class="chk-card"><input type="checkbox" id="el24_npm" onchange="calcELN24()"><span>NPM1 mutado (Fav si sin FLT3)</span></label><label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>IDH2 / DDX41 mutado (Fav)</span></label><label class="chk-card"><input type="checkbox" id="el24_flt" onchange="calcELN24()"><span>FLT3-ITD (Adv)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>TP53 / KRAS / NRAS mutado (Adv)</span></label><label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>Cariotipo complejo / -5 / -7 / -17 (Adv)</span></label></div><div id="el24_res" class="res" style="display:none"></div></div>`;
-function calcELN24(){const npm=$('el24_npm').checked, flt=$('el24_flt').checked;const cats=[];if(npm&&!flt)cats.push('F'); if(flt)cats.push('A');document.querySelectorAll('#el24_box input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});let f='I'; if(cats.length===0)f='I'; else if(cats.includes('A'))f='A'; else if(cats.includes('F'))f='F';const el=$('el24_res');el.style.display='block';el.className='res '+(f==='A'?'hi':f==='I'?'md':'lo');el.innerHTML=`<div class="res-h"><span class="score">${f==='A'?'Adverso':f==='I'?'Intermedio':'Favorable'}</span></div>`;}
-
-// R-ISS
-VIEWS.riss=()=>`<div class="card"><h2>R-ISS (Mieloma)</h2><div class="row2"><div class="fld"><label class="lbl">β2M (mg/L)</label><input type="number" id="ri_b2m" step="0.1" oninput="calcRISS()"></div><div class="fld"><label class="lbl">Albúmina (g/dL)</label><input type="number" id="ri_alb" step="0.1" oninput="calcRISS()"></div></div><div class="fld"><label class="lbl">LDH</label><select id="ri_ldh" onchange="calcRISS()"><option value="N">Normal</option><option value="A">Elevada</option></select></div><div class="fld"><label class="lbl">Citogenética</label><select id="ri_cyt" onchange="calcRISS()"><option value="STD">Estándar</option><option value="HR">Alto Riesgo t(4;14),t(14;16),del17p</option></select></div><div id="ri_res" class="res" style="display:none"></div></div>`;
-function calcRISS(){const b2m=n($('ri_b2m').value), alb=n($('ri_alb').value);if(!b2m || !alb) return;let iss=2; if(b2m<3.5 && alb>=3.5) iss=1; else if(b2m>=5.5) iss=3;const hr=$('ri_cyt').value==='HR', ldh=$('ri_ldh').value==='A';let st,cls; if(iss===1 && !hr && !ldh){st='R-ISS I';cls='lo';} else if(iss===3 && (hr||ldh)){st='R-ISS III';cls='hi';} else {st='R-ISS II';cls='md';}const el=$('ri_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${st}</span><span>(ISS-${iss})</span></div>`;}
-
-// R2-ISS
-VIEWS.r2iss=()=>`<div class="card"><h2>R2-ISS (Mieloma)</h2><div class="row2"><div class="fld"><label class="lbl">β2M</label><input type="number" id="r2_b2m" step="0.1" oninput="calcR2ISS()"></div><div class="fld"><label class="lbl">Albúmina</label><input type="number" id="r2_alb" step="0.1" oninput="calcR2ISS()"></div></div><div id="r2_box"><label class="chk-card"><input type="checkbox" id="r2_ldh" onchange="calcR2ISS()"><span>LDH elevada (+1)</span></label><label class="chk-card"><input type="checkbox" id="r2_17p" onchange="calcR2ISS()"><span>del(17p) (+1)</span></label><label class="chk-card"><input type="checkbox" id="r2_414" onchange="calcR2ISS()"><span>t(4;14) (+1)</span></label><label class="chk-card"><input type="checkbox" id="r2_1q" onchange="calcR2ISS()"><span>1q gain/amp (+0.5)</span></label></div><div id="r2_res" class="res" style="display:none"></div></div>`;
-function calcR2ISS(){const b2m=n($('r2_b2m').value), alb=n($('r2_alb').value); if(!b2m || !alb) return;let iss=2; if(b2m<3.5 && alb>=3.5) iss=1; else if(b2m>=5.5) iss=3;let pts=iss===1?0:iss===2?1:1.5;if($('r2_ldh').checked)pts+=1; if($('r2_17p').checked)pts+=1; if($('r2_414').checked)pts+=1; if($('r2_1q').checked)pts+=0.5;let st,cls; if(pts===0){st='R2-ISS I';cls='lo'}else if(pts<=1){st='R2-ISS II';cls='lo'}else if(pts<=2.5){st='R2-ISS III';cls='md'}else{st='R2-ISS IV';cls='hi'}const el=$('r2_res');el.style.display='block';el.className='res '+cls;el.innerHTML=`<div class="res-h"><span class="score">${st} (${pts} pts)</span></div>`;}
-
-// NEUTROPENIA FEBRIL
-VIEWS.nf=()=>`<div class="card"><h2>Protocolo Neutropenia Febril</h2>
-<div class="step"><div class="step-h"><span class="step-n">1</span>Criterios de Sepsis</div><div class="row2"><button class="btn btn-2" onclick="nfShow(1,'r','ALTO RIESGO MÁXIMO','Ingreso. Mero 2g/8h + Amika + Vanco')">Sí</button><button class="btn btn-out" onclick="nfShow(1,'b','Pasa a paso 2','')">No</button></div><div id="nfo1"></div></div>
-<div class="step"><div class="step-h"><span class="step-n">2</span>BMR previo</div><div class="row2"><button class="btn btn-2" onclick="nfShow(2,'r','Añadir cobertura','BLEE: Mero. KPC: Ceftaz/Avibactam. SARM: Vanco')">Sí</button><button class="btn btn-out" onclick="nfShow(2,'b','Pasa a paso 3','')">No</button></div><div id="nfo2"></div></div>
-<div class="step"><div class="step-h"><span class="step-n">3</span>MASCC (Riesgo)</div><p style="font-size:12px;color:var(--mut)">Puntuación ≥21 es Bajo Riesgo. <21 Alto Riesgo.</p><div class="row2"><button class="btn btn-g" onclick="nfShow(3,'g','BAJO RIESGO','Amoxi/Clav + Ciprofloxacino oral')">MASCC ≥ 21</button><button class="btn btn-2" onclick="nfShow(3,'r','ALTO RIESGO','Ingreso. Cefepime 2g/8h o Pip/Taz 4g/6h IV')">MASCC < 21</button></div><div id="nfo3"></div></div></div>`;
-function nfShow(id,cls,t,d){const el=$('nfo'+id);el.innerHTML=`<div class="alert ${cls}"><strong>${t}</strong><br>${d}</div>`;}
-
-// S. AUREUS
-VIEWS.saureus=()=>`<div class="card">
-<h2>Manejo de Bacteriemia por <em>S. aureus</em></h2>
-<p class="intro">Protocolo estandarizado para bacteriemia en pacientes hematológicos.</p>
-<div class="step"><div class="step-h"><span class="step-n">1</span>Terapia empírica inicial (Biterapia)</div>
-<p style="font-size:13px;color:var(--txt)">Ante sospecha firme o cocos G+ en racimos, iniciar:<br><strong>Cefazolina 2 g / 8h IV + Daptomicina 8-10 mg/kg/24h IV</strong> (o Vancomicina).</p></div>
-<div class="step"><div class="step-h"><span class="step-n">2</span>Retirada de Catéter</div><p style="font-size:13px;color:var(--txt)">Retirar el CVC siempre que sea posible.</p></div>
-<div class="step"><div class="step-h"><span class="step-n">3</span>Control Microbiológico</div><p style="font-size:13px;color:var(--txt)">Hemocultivos de control cada 48h. El día del 1º HC negativo es el "Día 1".</p></div>
-<div class="step"><div class="step-h"><span class="step-n">4</span>Ecocardiograma</div><p style="font-size:13px;color:var(--txt)">Solicitar ETE para descartar endocarditis.</p></div>
-<div class="step"><div class="step-h"><span class="step-n">5</span>Desescalada</div>
-<p style="font-size:13px;color:var(--txt)">SAMS: Suspender Dapto/Vanco, mantener Cefazolina.<br>SARM: Suspender Cefazolina, mantener Dapto/Vanco.</p></div>
-<div class="step" style="margin-bottom:0"><div class="step-h"><span class="step-n">6</span>Duración</div>
-<p style="font-size:13px;color:var(--txt)">No complicada: 14 días. Complicada: 4 a 6 semanas.</p></div>
-<div class="ref" style="margin-top:15px; border-top:1px solid var(--bd); padding-top:10px; font-size:11px; color:var(--mut);">
-<strong>Bibliografía y Guías Clínicas:</strong><br>
-1. <em>Documento de consenso de la SEIMC sobre el manejo de la bacteriemia por Staphylococcus aureus</em> (Enferm Infecc Microbiol Clin. 2015).<br>
-2. <em>Clinical Practice Guidelines by the Infectious Diseases Society of America (IDSA) for the Treatment of MRSA Infections</em> (Clin Infect Dis. 2011).
-</div>
-</div>`;
-
-// OPIOIDES
-VIEWS.opioides=()=>`<div class="card">
-<h2>Conversor de Opioides</h2>
-<p class="intro">Calcula dosis equivalente de morfina oral (MME). <strong style="color:var(--er)">Aviso:</strong> Por tolerancia cruzada, se recomienda reducir la dosis final 25-50% al rotar.</p>
-<div class="row2"><div class="fld"><label class="lbl">Opioide de origen</label><select id="op_orig" onchange="calcOpio()"><option value="1">Morfina oral (mg/día)</option><option value="3">Morfina SC / IV (mg/día)</option><option value="1.5">Oxicodona oral (mg/día)</option><option value="2.4">Fentanilo parche (mcg/h)</option><option value="2">Buprenorfina parche (mcg/h)</option><option value="0.1">Tramadol oral (mg/día)</option><option value="0.3">Tapentadol oral (mg/día)</option></select></div><div class="fld"><label class="lbl">Dosis diaria actual</label><input type="number" step="1" id="op_dose" placeholder="Ej: 60" oninput="calcOpio()"></div></div>
-<div class="row2"><div class="fld"><label class="lbl">Opioide destino</label><select id="op_dest" onchange="calcOpio()"><option value="1">Morfina oral (mg/día)</option><option value="3">Morfina SC / IV (mg/día)</option><option value="1.5">Oxicodona oral (mg/día)</option><option value="2.4">Fentanilo parche (mcg/h)</option></select></div><div class="fld"><label class="lbl">Reducción tolerancia</label><select id="op_red" onchange="calcOpio()"><option value="0.7">30% (Recomendado)</option><option value="0.5">50% (Frágil)</option><option value="1">0% (Sin reducción)</option></select></div></div>
-<div id="op_res" class="res" style="display:none"></div><div class="btns"><button class="btn btn-out btn-sm" onclick="copyOpio()">Copiar</button></div>
-</div>`;
-function calcOpio(){const f_orig=parseFloat($('op_orig').value),dose=parseFloat($('op_dose').value),f_dest=parseFloat($('op_dest').value),f_red=parseFloat($('op_red').value);if(!dose||dose<=0){$('op_res').style.display='none';return}const mme=dose*f_orig;const dest_dose_raw=mme/f_dest;const dest_dose_safe=dest_dose_raw*f_red;const rescate=(dest_dose_safe*0.15).toFixed(1);const el=$('op_res');el.style.display='block';el.className='res in';el.innerHTML=`<div class="res-h"><span class="score">Sugerida: ${dest_dose_safe.toFixed(1)} / día</span></div><div class="res-s"><strong>MME:</strong> ${mme.toFixed(1)} mg/día<br><strong>Teórica:</strong> ${dest_dose_raw.toFixed(1)} / día<br><strong>Rescate:</strong> ~${rescate} cada 4-6h.</div>`;window._opioData={orig:$('op_orig').options[$('op_orig').selectedIndex].text,dose,dest:$('op_dest').options[$('op_dest').selectedIndex].text,mme,safe:dest_dose_safe.toFixed(1)};}
-function copyOpio(){const d=window._opioData;if(!d)return;copy(`Rotación de Opioides\n─────────────────────────────────────────────\nDe ${d.orig} (${d.dose}/día) a ${d.dest}.\nMME: ${d.mme.toFixed(1)} mg/día.\nDosis segura sugerida (aplicada reducción): ${d.safe}/día.\n[Fecha: ${new Date().toLocaleDateString('es-ES')}]`);}
-
-// COLABORADORES
-VIEWS.equipo=()=>`<div class="card">
-<div class="home-logo" style="width:60px;height:60px;margin-bottom:10px;"><img src="Imagen.jpg" alt="HemoPocket"></div>
-<h2>HemoPocket</h2>
-<p style="font-size:13px;color:var(--mut);">Guía rápida de consulta clínica.</p>
-<div class="collabs-block" style="margin-top:20px;">
-  <div class="collabs-h">Autora y Revisora</div>
-  <ul class="collabs-list"><li><strong>Dra. M.T. Busnego Barreto</strong><br><span style="color:var(--mut)">Servicio de Hematología y Hemoterapia, HUNSC</span></li></ul>
-</div>
-<div class="collabs-block">
-  <div class="collabs-h">Banco de Sangre y Transfusión</div>
-  <ul class="collabs-list"><li><strong>Dra. Isabel Peris Fernaud</strong></li><li><strong>Dr. Alexander Figueroa</strong></li><li><strong>Dra. Laura Francisca Ávila Idrovo</strong></li></ul>
-</div>
-</div>`;
-
-// DIFERENCIAL MAT
-VIEWS.tma_dif=()=>`<div class="card"><h2>Diferencial MAT</h2><div id="mat_box"><label class="chk-card"><input type="checkbox" value="ttp"><span>Plaquetas < 30 y PLASMIC ≥ 6 (TTP)</span></label><label class="chk-card"><input type="checkbox" value="shua"><span>Fallo renal severo (Cr > 2), familiar, sin causa (SHUa)</span></label><label class="chk-card"><input type="checkbox" value="shut"><span>Diarrea sanguinolenta previa (STEC-SHU)</span></label><label class="chk-card"><input type="checkbox" value="cid"><span>Sepsis, Neoplasia, TP prolongado (CID)</span></label><label class="chk-card"><input type="checkbox" value="hellp"><span>Embarazo / Postparto (HELLP)</span></label></div><div class="btns"><button class="btn" onclick="calcMAT()">Evaluar</button></div><div id="mat_res" class="res" style="display:none"></div></div>`;
-function calcMAT(){const c=Array.from(document.querySelectorAll('#mat_box input:checked')).map(x=>x.value);const el=$('mat_res');el.style.display='block';if(c.includes('ttp')){el.className='res hi';el.innerHTML=`<div class="res-h"><span class="score">TTP (PTT)</span></div><div class="res-s">Alta sospecha. Iniciar PEX urgente + Corticoides.</div>`;}else if(c.includes('shua')){el.className='res hi';el.innerHTML=`<div class="res-h"><span class="score">SHUa</span></div><div class="res-s">Plantear Eculizumab si ADAMTS13 normal.</div>`;}else if(c.includes('shut')){el.className='res md';el.innerHTML=`<div class="res-h"><span class="score">STEC-SHU</span></div><div class="res-s">Soporte. No antibióticos.</div>`;}else{el.className='res in';el.innerHTML=`<div class="res-h"><span class="score">Otra MAT</span></div>`;}}
-
-// OTRAS SIMPLES
-VIEWS.qtc=()=>`<div class="card"><h2>QTc (Fridericia)</h2><div class="row"><div class="fld"><label>QT (ms)</label><input type="number" id="qt" oninput="calcQ()"></div><div class="fld"><label>RR (ms)</label><input type="number" id="rr" oninput="calcQ()"></div></div><div id="q_res" class="res" style="display:none"></div></div>`;
-function calcQ(){const q=n($('qt').value),r=n($('rr').value);if(!q||!r)return;const c=Math.round(q/Math.cbrt(r/1000));$('q_res').style.display='block';$('q_res').className='res in';$('q_res').innerHTML=`<div class="res-h"><span class="score">QTc ${c} ms</span></div>`;}
-VIEWS.crcl=()=>`<div class="card"><h2>CrCl (Cockcroft-Gault)</h2><div class="row"><div class="fld"><label>Edad</label><input type="number" id="cga" value="${S.p.age}"></div><div class="fld"><label>Peso (kg)</label><input type="number" id="cgw" value="${S.p.weight}"></div><div class="fld"><label>Cr</label><input type="number" id="cgc" value="${S.p.creatinine}"></div></div><div class="btns"><button class="btn" onclick="calcCG()">Calcular</button></div><div id="cg_res" class="res" style="display:none"></div></div>`;
-function calcCG(){const a=n($('cga').value),w=n($('cgw').value),c=n($('cgc').value);if(!a||!w||!c)return;let v=((140-a)*w)/(72*c);if(S.p.sex==='F')v*=0.85;$('cg_res').style.display='block';$('cg_res').className='res in';$('cg_res').innerHTML=`<div class="res-h"><span class="score">${v.toFixed(1)} mL/min</span></div>`;}
-VIEWS.cacorr=()=>`<div class="card"><h2>Calcio Corregido</h2><div class="row"><div class="fld"><label>Ca (mg/dL)</label><input type="number" id="caa" oninput="calcCa()"></div><div class="fld"><label>Albúmina (g/dL)</label><input type="number" id="cal" oninput="calcCa()"></div></div><div id="ca_res" class="res" style="display:none"></div></div>`;
-function calcCa(){const c=n($('caa').value),a=n($('cal').value);if(!c||!a)return;const v=c+0.8*(4.0-a);$('ca_res').style.display='block';$('ca_res').className='res in';$('ca_res').innerHTML=`<div class="res-h"><span class="score">${v.toFixed(2)} mg/dL</span></div>`;}
-VIEWS.bsa=()=>`<div class="card"><h2>Superficie Corporal</h2><div class="row"><div class="fld"><label>Talla (cm)</label><input type="number" id="bsh" value="${S.p.height}" oninput="calcBSA()"></div><div class="fld"><label>Peso (kg)</label><input type="number" id="bsw" value="${S.p.weight}" oninput="calcBSA()"></div></div><div id="bs_res" class="res" style="display:none"></div></div>`;
-function calcBSA(){const h=n($('bsh').value),w=n($('bsw').value);if(!h||!w)return;const v=Math.sqrt((h*w)/3600);$('bs_res').style.display='block';$('bs_res').className='res in';$('bs_res').innerHTML=`<div class="res-h"><span class="score">${v.toFixed(2)} m²</span></div>`;}
-VIEWS.obw=()=>`<div class="card"><h2>Ajuste Obesidad</h2><div class="row"><div class="fld"><label>Talla (cm)</label><input type="number" id="owh" value="${S.p.height}"></div><div class="fld"><label>Peso (kg)</label><input type="number" id="oww" value="${S.p.weight}"></div></div><div class="btns"><button class="btn" onclick="calcOBW()">Calcular</button></div><div id="ow_res" class="res" style="display:none"></div></div>`;
-function calcOBW(){const h=n($('owh').value),w=n($('oww').value);if(!h||!w)return;const s=(S.p.sex==='F'?45.5:50);const in60=Math.max(0,(h-152.4)/2.54);const ibw=s+2.3*in60;const abw=ibw+0.4*(w-ibw);$('ow_res').style.display='block';$('ow_res').className='res in';$('ow_res').innerHTML=`<div class="res-h"><span class="score">IBW: ${ibw.toFixed(1)} kg | ABW: ${abw.toFixed(1)} kg</span></div>`;}
-VIEWS.cb=()=>`<div class="card"><h2>S. Lisis Tumoral (Cairo-Bishop)</h2><div id="cb_b"><label class="chk-card"><input type="checkbox" class="l"><span>Ácido úrico ≥ 8</span></label><label class="chk-card"><input type="checkbox" class="l"><span>K ≥ 6</span></label><label class="chk-card"><input type="checkbox" class="l"><span>P ≥ 4.5</span></label><label class="chk-card"><input type="checkbox" class="l"><span>Ca ≤ 7</span></label><hr style="margin:10px 0;border:0;border-top:1px solid var(--bd)"><label class="chk-card"><input type="checkbox" class="c"><span>Cr > 1.5x ULN</span></label><label class="chk-card"><input type="checkbox" class="c"><span>Arritmia / Convulsión</span></label></div><div class="btns"><button class="btn" onclick="calcCB()">Calcular</button></div><div id="cb_res" class="res" style="display:none"></div></div>`;
-function calcCB(){const l=document.querySelectorAll('#cb_b .l:checked').length;const c=document.querySelectorAll('#cb_b .c:checked').length;let r='No cumple';let cl='lo';if(l>=2&&c>=1){r='SLT Clínico';cl='hi';}else if(l>=2){r='SLT Laboratorio';cl='md';}$('cb_res').style.display='block';$('cb_res').className='res '+cl;$('cb_res').innerHTML=`<div class="res-h"><span class="score">${r}</span></div>`;}
-VIEWS.ecog=()=>`<div class="card"><h2>ECOG</h2><select id="ec" onchange="calcECOG()"><option value="0">0: Asintomático</option><option value="1">1: Sintomático ambulatorio</option><option value="2">2: En cama <50%</option><option value="3">3: En cama >50%</option><option value="4">4: Encamado</option></select><div id="ec_res" class="res" style="margin-top:10px;display:none"></div></div>`;
-function calcECOG(){$('ec_res').style.display='block';$('ec_res').className='res in';$('ec_res').innerHTML=`<div class="res-h"><span class="score">ECOG ${$('ec').value}</span></div>`;}
-
-// GUÍAS INFECCIOSAS Y URGENCIAS EN BLANCO (PLACEHOLDERS)
-VIEWS.atb=()=>`<div class="card"><h2>Sensibilidad Antibiótica Empírica</h2><div class="alert b">Sección en construcción. Añadir tabla de cobertura local.</div></div>`;
-VIEWS.g_inf=()=>`<div class="card"><h2>Guías Clínicas: Infecciones</h2><ul class="collabs-list"><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>ECIL-10:</strong> Manejo de infecciones.</li><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>Tratamiento IFI:</strong> Infección fúngica invasiva.</li></ul></div>`;
-VIEWS.g_uh=()=>`<div class="card"><h2>Guías Clínicas: Otras Urgencias</h2><ul class="collabs-list"><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>Síndrome de Lisis Tumoral</strong></li><li style="padding:10px; background:var(--bg2); border-radius:var(--rs); margin-bottom:8px;">📄 <strong>Hiperleucocitosis</strong></li></ul></div>`;
-
-// LISTÍN TELEFÓNICO
-VIEWS.listin=()=>`<div class="card">
-<h2>Listín Telefónico</h2>
-<p class="intro">Contactos frecuentes del servicio y hospital.</p>
-<table class="tbl">
-<tr><th>Puesto / Servicio</th><th>Extensión / Busca</th></tr>
-<tr><td>Busca Hematología Guardia</td><td>#12345</td></tr>
-<tr><td>Banco de Sangre</td><td>Ext. 4567</td></tr>
-<tr><td>Planta Hematología (Enfermería)</td><td>Ext. 8910</td></tr>
-<tr><td>Hospital de Día</td><td>Ext. 1112</td></tr>
-<tr><td>Laboratorio Urgencias</td><td>Ext. 1314</td></tr>
-</table>
-</div>`;
-
-// APP INIT
-function initApp(){
-    renderMenu();
-    const hash=window.location.hash.substring(1);
-    if(hash && getAll().find(x=>x.id===hash)) go(hash);
-    else go('home');
-}
-window.addEventListener('hashchange',()=>{
-    const hash=window.location.hash.substring(1);
-    if(hash && S.view!==hash && getAll().find(x=>x.id===hash)) go(hash);
-});
-document.addEventListener('DOMContentLoaded', initApp);
-</script>
-</body>
-</html>
