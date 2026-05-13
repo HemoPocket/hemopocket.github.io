@@ -302,6 +302,53 @@ body{font-size:13px}
 </div>
 <div class="toast" id="toast"></div>
 <script>
+const SAL_SECRETA = "HP2026!TX"; // Cambia esto por lo que quieras, es tu "llave maestra"
+
+function obtenerIDNavegador() {
+    const datos = [navigator.userAgent, navigator.language, screen.colorDepth].join('|');
+    let hash = 0;
+    for (let i = 0; i < datos.length; i++) {
+        hash = ((hash << 5) - hash) + datos.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash).toString(16).toUpperCase();
+}
+
+function generarLlave(id) {
+    const base = id + SAL_SECRETA;
+    let h = 0;
+    for (let i = 0; i < base.length; i++) {
+        h = ((h << 5) - h) + base.charCodeAt(i);
+        h |= 0;
+    }
+    return "HP-" + Math.abs(h).toString(16).toUpperCase();
+}
+(function() {
+    const idEquipo = obtenerIDNavegador();
+    const licenciaGuardada = localStorage.getItem('licencia_hemopocket');
+    const llaveCorrecta = generarLlave(idEquipo);
+
+    if (!licenciaGuardada || licenciaGuardada !== llaveCorrecta) {
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; padding:20px; font-family:sans-serif; text-align:center; background:#f5f7fa; color:#1a3a6c;">
+                    <img src="Imagen.jpg" style="width:120px; border-radius:15px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                    <h1 style="font-size:24px; margin-bottom:10px;">HemoPocket Privado</h1>
+                    <p style="color:#5a6577; margin-bottom:20px;">Esta es una copia privada para uso interno.<br>Proporciona el siguiente ID al administrador:</p>
+                    <div style="background:#fff; padding:15px 30px; border-radius:8px; border:2px dashed #1a3a6c; font-family:monospace; font-size:22px; font-weight:bold; margin-bottom:30px;">${idEquipo}</div>
+                    <input type="text" id="keyInput" placeholder="Introduce tu llave de activación" style="width:100%; max-width:300px; padding:12px; border:1px solid #bdc3c7; border-radius:8px; margin-bottom:15px; text-align:center; font-size:16px;">
+                    <button onclick="activarApp()" style="width:100%; max-width:300px; padding:12px; background:#c41e3a; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">ACTIVAR APLICACIÓN</button>
+                </div>
+            `;
+        });
+    }
+})();
+
+window.activarApp = function() {
+    const input = document.getElementById('keyInput').value.trim().toUpperCase();
+    localStorage.setItem('licencia_hemopocket', input);
+    location.reload();
+}
 // === STATE & STORAGE ===
 const S={p:{age:'',sex:'',weight:'',height:'',creatinine:''},theme:'light',view:'home',favs:[],contacts:[],pdfs:{}};
 const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}}};
