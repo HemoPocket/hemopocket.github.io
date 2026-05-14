@@ -3,7 +3,458 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-<!-- ... existing code ... -->
+<link rel="icon" type="image/png" href="ISO.png">
+<link rel="apple-touch-icon" href="ISO.png">
+
+<!-- Manifest Base64 -->
+<link rel="manifest" href="data:application/manifest+json;base64,eyJpY29ucyI6W3sicHVycG9zZSI6ImFueSBtYXNrYWJsZSIsInR5cGUiOiJpbWFnZS9zdmcreG1sIiwic2l6ZXMiOiJhbnkiLCJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnJTIwdmlld0JveCUzRCUyMjAlMjAwJTIwMTAwJTIwMTAwJTIyJTIweG1sbnMlM0QlMjJodHRwJTNBJTJGJTJGd3d3LnczLm9yZyUyRjIwMDAlMkZzdmclMjIlMjBzdHlsZSUzRCUyMmJhY2tncm91bmQlM0ElMjNmZmYlMjIlMjBmaWxsJTNEJTIyJTIzYzQxZTNhJTIyJTNFJTNDcGF0aCUyMGQlM0QlMjdNMjIlMjA0QzMyJTIwNCUyMDQwJTIwMTIlMjA0MCUyMDIyQzQwJTIwMzUlMjAyNyUyMDQyJTIwMjclMjA1MEMyNyUyMDU4JTIwNDAlMjA2NSUyMDQwJTIwNzhDNDAlMjA4OCUyMDMyJTIwOTYlMjAyMiUyMDk2QzEyJTIwOTYlMjA0JTIwODglMjA0JTIwNzhDNCUyMDY1JTIwMTclMjA1OCUyMDE3JTIwNTBDMTclMjA0MiUyMDQlMjAzNSUyMDQlMjAyMkM0JTIwMTIlMjAxMiUyMDQlMjAyMiUyMDRaJTI3JTJGJTNFJTNDcGF0aCUyMGQlM0QlMjdNNzglMjA0Qzg4JTIwNCUyMDk2JTIwMTIlMjA5NiUyMDIyQzk2JTIwMzUlMjA4MyUyMDQyJTIwODMlMjA1MEM4MyUyMDU4JTIwOTYlMjA2NSUyMDk2JTIwNzhDOTYlMjA4OCUyMDg4JTIwOTYlMjA3OCUyMDk2QzY4JTIwOTYlMjA2MCUyMDg4JTIwNjAlMjA3OEM2MCUyMDY1JTIwNzMlMjA1OCUyMDczJTIwNTBDNzMlMjA0MiUyMDYwJTIwMzUlMjA2MCUyMDIyQzYwJTIwMTIlMjA2OCUyMDQlMjA3OCUyMDRaJTI3JTJGJTNFJTNDY2lyY2xlJTIwY3glM0QlMjI1MCUyMiUyMGN5JTNEJTIyNTAlMjIlMjByJTNEJTIyMTclMjIlMkYlM0UlM0MlMkZzdmclM0UifV0sImRlc2NyaXB0aW9uIjoiR3XDrWEgcHLDoWN0aWNhIGRlIGNvbnN1bHRhIHLDoXBpZGEiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiI2M0MWUzYSIsIm5hbWUiOiJIZW1hUG9ja2V0Iiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic2hvcnRfbmFtZSI6IkhlbWFQb2NrZXQifQ==">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+<!-- ... existing code ... -->
+```
+
+```html:HemoPocket Pro v2:index.html
+<!-- ... existing code ... -->
+{h:'LEUCEMIAS AGUDAS',items:[
+    {id:'eln',name:'ELN 2022 (LMA INTENSIVA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
+    {id:'eln24',name:'ELN 2024 (LMA BAJA INT.)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
+    {id:'g_leuc_ag',name:'GUÍAS CLÍNICAS (LA)',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
+]},
+{h:'PATOLOGÍA MIELOIDE CRÓNICA',items:[
+    {sub:1,name:'Smd'},
+    {id:'ipssr',name:'IPSS-R',kw:'ipssr smd mielodisplasico'},
+    {id:'ipssm',name:'IPSS-M (INFO)',kw:'ipssm smd mielodisplasico'},
+    {sub:1,name:'Lmmc'},
+    {id:'icpss',name:'ICPSS',kw:'icpss lmmc cmml'},
+    {sub:1,name:'Lmc'},
+    {id:'sokal',name:'SOKAL',kw:'sokal lmc leucemia mieloide cronica'},
+    {sub:1,name:'Mielofibrosis'},
+    {id:'dipss',name:'DIPSS',kw:'dipss mielofibrosis primaria nmp dynamic prognostic'},
+    {id:'dipssp',name:'DIPSS-PLUS',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional'},
+    {id:'mipss70',name:'MIPSS70 / MIPSS70-PLUS',kw:'mipss70 mipss mielofibrosis molecular mutaciones asxl1 srsf2 ezh2 idh u2af1 alto riesgo hmr'},
+    {id:'g_mieloide',name:'GUÍAS CLÍNICAS (MIEL)',kw:'guias clinicas patologia mieloide smd mielofibrosis nmp lmmc lmc pdf'}
+]},
+{h:'MIELOMA Y GAMMAPATÍAS',items:[
+<!-- ... existing code ... -->
+```
+
+```html:HemoPocket Pro v2:index.html
+<!-- ... existing code ... -->
+// === STATE & STORAGE ===
+const S={p:{age:'',sex:'',weight:'',height:'',creatinine:''},theme:'light',view:'home',favs:[],contacts:[],pdfs:{},lastGuideView:'home'};
+const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}}};
+const $=id=>document.getElementById(id);
+const n=v=>{const x=parseFloat(v);return isNaN(x)?null:x};
+
+const DB = {
+  "collaborators": {
+    "uh": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "th": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "bs": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "lf": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "mm": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "llc": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "mieloide": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "cito": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "ped": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}],
+    "cart": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}]
+  },
+  "contacts": [
+    {"n": "Banco de Sangre", "c": "Hematología", "e": "32229"},
+    {"n": "Busca", "c": "", "e": "32113"},
+    {"n": "Despacho Laboratorio", "c": "Hematología", "e": "30533"},
+    {"n": "Despacho planta", "c": "Hematología", "e": "30072"},
+    {"n": "EN01", "c": "Medicina Interna", "e": "2053"},
+    {"n": "EN06 - Planta Hematología", "c": "Hematología", "e": "32095"},
+    {"n": "Farmacia", "c": "", "e": "30839"},
+    {"n": "Laboratorio", "c": "Hematología", "e": "31725"},
+    {"n": "Laboratorio Bioquimica URG", "c": "Análisis clínico", "e": "32221"},
+    {"n": "Secretaría Hospital de Día", "c": "Hematología", "e": "32224"},
+    {"n": "Anat. Patológica - Carreón", "c": "Anatomía Patológica", "e": "31709"},
+    {"n": "Anat. Patológica - Febles", "c": "Anatomía Patológica", "e": "31732"},
+    {"n": "Anat. Patológica - Idaira", "c": "Anatomía Patológica", "e": "31730"},
+    {"n": "Anat. Patológica - Lennys", "c": "Anatomía Patológica", "e": "31730"},
+    {"n": "Anat. Patológica - Leticia", "c": "Anatomía Patológica", "e": "31732"},
+    {"n": "Anat. Patológica - Linares", "c": "Anatomía Patológica", "e": "31821"},
+    {"n": "Anat. Patológica - Maeso", "c": "Anatomía Patológica", "e": "32340"},
+    {"n": "Anat. Patológica - Secretaría", "c": "Anatomía Patológica", "e": "32011"},
+    {"n": "Anat. Patológica - Vicky", "c": "Anatomía Patológica", "e": "32339"},
+    {"n": "Cirugía General - Secretaría", "c": "Cirugía General", "e": "31981"},
+    {"n": "Cirugía Torácica", "c": "Cirugía Torácica", "e": "401960"},
+    {"n": "Digestivo - Hígado", "c": "Digestivo", "e": "30671 / 32368"},
+    {"n": "Digestivo - Planta", "c": "Digestivo", "e": "32156"},
+    {"n": "Digestivo - Secretaría", "c": "Digestivo", "e": "31707"},
+    {"n": "Digestivo - Urgencias", "c": "Digestivo", "e": "401942"},
+    {"n": "Ecocardiograma", "c": "Cardiología", "e": "30618 / 30619"},
+    {"n": "Farmacia - Ambulatorio/HDD", "c": "Farmacia", "e": "30016"},
+    {"n": "Farmacia - Hospitalizados", "c": "Farmacia", "e": "30710"},
+    {"n": "Farmacia - TIT", "c": "Farmacia", "e": "30553"},
+    {"n": "Hematología - Citodiagnóstico", "c": "Hematología", "e": "30533"},
+    {"n": "Hematología - Coagulación/Sintrom", "c": "Hematología", "e": "30684"},
+    {"n": "Hematología - Consulta 5ª", "c": "Hematología", "e": "31943"},
+    {"n": "Hematología - Consulta coagulopatías", "c": "Hematología", "e": "32060"},
+    {"n": "Hematología - Consulta HSUR", "c": "Hematología", "e": "33784"},
+    {"n": "Hematología - HDD 1", "c": "Hematología", "e": "30454"},
+    {"n": "Hematología - HDD 2", "c": "Hematología", "e": "30403"},
+    {"n": "Hematología - HDD 3", "c": "Hematología", "e": "32655"},
+    {"n": "Hematología - HDD HSUR", "c": "Hematología", "e": "33776"},
+    {"n": "Hematología - Sala de sesiones", "c": "Hematología", "e": "30764"},
+    {"n": "Hematología - Secretaría Jefe", "c": "Hematología", "e": "32971"},
+    {"n": "HADO", "c": "HADO", "e": "31881 / 31884 / 30022 / 401460"},
+    {"n": "HUC - Dra. Báez", "c": "Reproducción HUC", "e": "922678735 / 34375 / 922678000"},
+    {"n": "HUC - Dra. Correa", "c": "Reproducción HUC", "e": "34575"},
+    {"n": "HUC - Reproducción", "c": "Reproducción HUC", "e": "922678582"},
+    {"n": "Lab. Bioquímica ordinaria", "c": "Laboratorio", "e": "30804"},
+    {"n": "Lab. Bioquímica Secretaría", "c": "Laboratorio", "e": "30695"},
+    {"n": "Lab. Proteínas", "c": "Laboratorio", "e": "30697"},
+    {"n": "Maxilofacial", "c": "Maxilofacial", "e": "32168"},
+    {"n": "M. Interna - Despacho Médicos", "c": "Medicina Interna", "e": "30473 / 32489 / 30833 / 32968"},
+    {"n": "M. Interna - Infecciosas/COVID", "c": "Medicina Interna", "e": "32968"},
+    {"n": "Medicina Nuclear - Médicos", "c": "Medicina Nuclear", "e": "30074"},
+    {"n": "Medicina Nuclear - Sec. Ambulatorio", "c": "Medicina Nuclear", "e": "32361"},
+    {"n": "Medicina Nuclear - Sec. Ingresado", "c": "Medicina Nuclear", "e": "30814"},
+    {"n": "M. Preventiva - Enfermería", "c": "Medicina Preventiva", "e": "32117"},
+    {"n": "M. Preventiva - Médicos", "c": "Medicina Preventiva", "e": "31837"},
+    {"n": "Microbiología - Hemocultivos", "c": "Microbiología", "e": "32067"},
+    {"n": "Microbiología - Jesús", "c": "Microbiología", "e": "30591"},
+    {"n": "Microbiología - Magdalena (Anti-S)", "c": "Microbiología", "e": "30707"},
+    {"n": "Microbiología - Serologías", "c": "Microbiología", "e": "32169 / 32225"},
+    {"n": "Microbiología - Virus respiratorios", "c": "Microbiología", "e": "31718"},
+    {"n": "Molecular - CNIO", "c": "Molecular", "e": "917328000 (Ext 343)"},
+    {"n": "Molecular - Negrín Santi", "c": "Molecular", "e": "79427"},
+    {"n": "Molecular - Negrín Yanira", "c": "Molecular", "e": "70906"},
+    {"n": "Nefrología - Corporativo", "c": "Nefrología", "e": "401970"},
+    {"n": "Nefrología - Despachos", "c": "Nefrología", "e": "31736 / 31735 / 31726 / 30754"},
+    {"n": "Nefrología - Hemodiálisis", "c": "Nefrología", "e": "32058 / 32361"},
+    {"n": "Neumología - COVID", "c": "Neumología", "e": "31784"},
+    {"n": "Neumología - Fibrobroncoscopia", "c": "Neumología", "e": "30525 / 30411"},
+    {"n": "Neumología - O2 domiciliario", "c": "Neumología", "e": "30675"},
+    {"n": "Neumología - PFR", "c": "Neumología", "e": "32982 / 32983"},
+    {"n": "Neumología - PFR (informe)", "c": "Neumología", "e": "32022"},
+    {"n": "Neumología - Secretaría", "c": "Neumología", "e": "30576"},
+    {"n": "Neumología - U. Pleura", "c": "Neumología", "e": "31855"},
+    {"n": "Neumología - U. Pleura Jefe", "c": "Neumología", "e": "31701"},
+    {"n": "Neurocirugía - Secretaría", "c": "Neurocirugía", "e": "32164"},
+    {"n": "Neurología - Secretaría", "c": "Neurología", "e": "31935 / 32081"},
+    {"n": "Nómina", "c": "RRHH", "e": "32048 / 31926 / 32049"},
+    {"n": "Nutrición", "c": "Nutrición", "e": "30098 / 30656"},
+    {"n": "Oftalmología - Urgencias", "c": "Oftalmología", "e": "30570 / 32015"},
+    {"n": "ORL - Secretaría", "c": "ORL", "e": "32073"},
+    {"n": "ORL - Urgencias", "c": "ORL", "e": "30021"},
+    {"n": "Planta 1ª norte", "c": "Hospitalización", "e": "32053"},
+    {"n": "Planta 1ª sur", "c": "Hospitalización", "e": "32099"},
+    {"n": "Planta 2ª norte", "c": "Hospitalización", "e": "32252 / 32644"},
+    {"n": "Planta 2ª sur", "c": "Hospitalización", "e": "32071"},
+    {"n": "Planta 3ª norte", "c": "Hospitalización", "e": "32098"},
+    {"n": "Planta 3ª sur", "c": "Hospitalización", "e": "32096"},
+    {"n": "Planta 4ª norte", "c": "Hospitalización", "e": "32082"},
+    {"n": "Planta 4ª sur", "c": "Hospitalización", "e": "32072"},
+    {"n": "Planta 5ª norte", "c": "Hospitalización", "e": "32052"},
+    {"n": "Planta 5ª sur", "c": "Hospitalización", "e": "32078"},
+    {"n": "Planta 6ª norte (Hematología)", "c": "Hospitalización", "e": "32095"},
+    {"n": "Planta 6ª sur", "c": "Hospitalización", "e": "32083"},
+    {"n": "Planta 7ª norte", "c": "Hospitalización", "e": "32156"},
+    {"n": "Planta 7ª sur", "c": "Hospitalización", "e": "32077"},
+    {"n": "Planta 8ª norte", "c": "Hospitalización", "e": "32162"},
+    {"n": "Planta 8ª sur", "c": "Hospitalización", "e": "35707"},
+    {"n": "Planta 9ª norte", "c": "Hospitalización", "e": "32159"},
+    {"n": "Planta 9ª sur", "c": "Hospitalización", "e": "32076"},
+    {"n": "Planta Baja norte", "c": "Hospitalización", "e": "35719"},
+    {"n": "Planta Baja sur", "c": "Hospitalización", "e": "32161 / 32103"},
+    {"n": "Psiquiatría - Ingresados", "c": "Psiquiatría", "e": "32287"},
+    {"n": "Psiquiatría - Urgencias", "c": "Psiquiatría", "e": "401211"},
+    {"n": "Radiología - Ingresados", "c": "Radiología", "e": "30718"},
+    {"n": "Radiología - Musculoesquelético", "c": "Radiología", "e": "30758"},
+    {"n": "Radiología - RMN Vicente", "c": "Radiología", "e": "31992 / 31816 / 30072"},
+    {"n": "Radiología - Secretaría", "c": "Radiología", "e": "30718 / 31815"},
+    {"n": "Radiología - TAC Abdomen", "c": "Radiología", "e": "32311"},
+    {"n": "Radiología - TAC Tórax", "c": "Radiología", "e": "31871"},
+    {"n": "Radioterapia - Cristina", "c": "Radioterapia", "e": "32331"},
+    {"n": "Radioterapia - Fco. Díaz", "c": "Radioterapia", "e": "307556"},
+    {"n": "Radioterapia - Martín", "c": "Radioterapia", "e": "30903"},
+    {"n": "Radioterapia - Secretaría", "c": "Radioterapia", "e": "32379"},
+    {"n": "RAVI - Enfermería", "c": "RAVI", "e": "32063"},
+    {"n": "RAVI - Médicos", "c": "RAVI", "e": "31780"},
+    {"n": "RAVI - Secretaría", "c": "RAVI", "e": "30099"},
+    {"n": "REA 3ª planta", "c": "REA", "e": "32181 / 32079 / 30652 / 31750"},
+    {"n": "Rehabilitación - Consulta", "c": "Rehabilitación", "e": "32274"},
+    {"n": "Rehabilitación - Secretaría", "c": "Rehabilitación", "e": "32193"},
+    {"n": "Subdirección - Secretaría", "c": "Subdirección", "e": "32338"},
+    {"n": "T. Social - Margot", "c": "Trabajo Social", "e": "31712"},
+    {"n": "U. Dolor - Planta", "c": "Unidad del Dolor", "e": "31950"},
+    {"n": "U. Dolor - Quirófano", "c": "Unidad del Dolor", "e": "30499"},
+    {"n": "U. Dolor - Secretaría", "c": "Unidad del Dolor", "e": "30895 / 30548 / 31724"},
+    {"n": "UMI 1", "c": "UMI", "e": "30727"},
+    {"n": "UMI 2", "c": "UMI", "e": "30554"},
+    {"n": "UMI 3", "c": "UMI", "e": "31776"},
+    {"n": "UMI Extendida", "c": "UMI", "e": "404124"},
+    {"n": "Urgencias - Circulantes", "c": "Urgencias", "e": "32270"},
+    {"n": "Urgencias - T4", "c": "Urgencias", "e": "30809 / 31507"},
+    {"n": "Urgencias - Triage", "c": "Urgencias", "e": "32346"},
+    {"n": "Urología - Secretaría", "c": "Urología", "e": "32390"}
+  ],
+  "subtypes": {
+    "lf": [
+      {"id": "fol", "name": "Linfoma Folicular", "pdfs": [{"name": "Guía Linfoma Folicular GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Folicular.pdf"}]},
+      {"id": "lbdcg", "name": "Linfoma B Difuso de Células Grandes (LBDCG)", "pdfs": [{"name": "Guía LDCGB GELTAMO 2022", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LCGBD.pdf"}]},
+      {"id": "manto", "name": "Linfoma del Manto", "pdfs": [{"name": "Guía Linfoma del Manto GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LCM.pdf"}]},
+      {"id": "hodgkin", "name": "Linfoma de Hodgkin", "pdfs": [{"name": "Guía Linfoma Hodgkin GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Hodgkin.pdf"}]},
+      {"id": "marg", "name": "Zona Marginal / MALT", "pdfs": []},
+      {"id": "burkitt", "name": "Burkitt / High-grade B-cell", "pdfs": [{"name": "Protocolo Burkimab", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/BURKIMAB.pdf"}]},
+      {"id": "tcell", "name": "Linfomas T", "pdfs": [{"name": "Guía Linfoma T-NK GELTAMO 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Linfoma_T_NK_2024.pdf"}]},
+      {"id": "snc", "name": "Linfoma primario del SNC", "pdfs": [{"name": "Guía Linfoma cerebral primario GELTAMO 2019", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MATRIX.pdf"}]},
+      {"id": "general", "name": "Generales / Otros esquemas QT", "pdfs": [{"name": "Guía profilaxis SNC LDCGB GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Profilaxis_SNC.pdf"}, {"name": "Normograma de Bleyer", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Bleyer.pdf"}]}
+    ],
+    "mm": [
+      {"id": "mm", "name": "Mieloma Múltiple", "pdfs": [{"name": "Guía MM - GEM 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MM.pdf"}]},
+      {"id": "amyl", "name": "Amiloidosis AL", "pdfs": []},
+      {"id": "mgus", "name": "GMSI", "pdfs": []},
+      {"id": "wm", "name": "Macroglobulinemia de Waldenström", "pdfs": [{"name": "Guía Linfoma linfoplasmocítico/MW GELTAMO 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MW.pdf"}]},
+      {"id": "general", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "llc": [
+      {"id": "llc", "name": "Leucemia Linfática Crónica", "pdfs": [{"name": "Guía LLC GELL 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LLC.pdf"}]},
+      {"id": "tric", "name": "Tricoleucemia", "pdfs": []},
+      {"id": "general", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "leuc_ag": [
+      {"id": "lma_int", "name": "LMA: QT intensiva", "pdfs": [{"name": "Protocolo PETHEMA LMA FLOW 2026", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/FLOW.pdf"}, {"name": "Protocolo PETHEMA LMA CBF 2016 (Enmienda 2019)", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/CBF.pdf"}, {"name": "Protocolo PETHEMA LMA NPM1 2017 (Enmienda 2019)", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/NPM1.pdf"}, {"name": "Protocolo PETHEMA LPA 2017", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LPA.pdf"}, {"name": "Protocolo PETHEMA LMA MIX 2021", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/MIX.pdf"}]},
+      {"id": "lma_bi", "name": "LMA: QT de baja intensidad", "pdfs": [{"name": "Protocolo LMA Unfit HUNSC", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LMA_UNFIT_%20HUNSC.pdf"}, {"name": "Protocolo PETHEMA LMA PAPU 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/PAPU.pdf"}, {"name": "Protocolo LMA CETLAM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LMA_CETLAM.pdf"}]},
+      {"id": "lma_rec", "name": "LMA en recaída", "pdfs": [{"name": "Protocolo LMA-RRon 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LMArron.pdf"}]},
+      {"id": "lla", "name": "LLA", "pdfs": [{"name": "Protocolo LLA Ph negativo", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LAL.pdf"}, {"name": "Protocolo LLA Ph positivo", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LALPh.pdf"}, {"name": "Protocolo Burkimab", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/BURKIMAB.pdf"}, {"name": "LLA en recaída", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/LALR.pdf"}]},
+      {"id": "otros", "name": "Otros", "pdfs": [{"name": "Síndrome de obstrucción sinusoidal 2019", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/EVOH.pdf"}]}
+    ],
+    "mieloide": [
+      {"id": "smd", "name": "SMD", "pdfs": []},
+      {"id": "mfp", "name": "Mielofibrosis / NMP", "pdfs": []},
+      {"id": "lmmc", "name": "LMMC", "pdfs": []},
+      {"id": "otros", "name": "Otros", "pdfs": []}
+    ],
+    "cito": [
+      {"id": "pti", "name": "PTI - Púrpura Trombocitopénica Inmune", "pdfs": [{"name": "Protocolo PTI HUNSC", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/PTI%202023.pdf"}, {"name": "Guía PTI 2023", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/GEPTI.pdf"}]},
+      {"id": "ahai", "name": "AHAI - Anemia Hemolítica Autoinmune", "pdfs": []},
+      {"id": "erit", "name": "Eritropatología (Falciforme, Talasemias...)", "pdfs": [{"name": "Eritropatología 2ª edición", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Eritro.pdf"}]},
+      {"id": "aplasia", "name": "Aplasia Medular / HPN", "pdfs": [{"name": "Guía AM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/AM.pdf"}]},
+      {"id": "general", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "ped": [
+      {"id": "lla_ped", "name": "LLA pediátrica", "pdfs": []},
+      {"id": "lma_ped", "name": "LMA pediátrica", "pdfs": []},
+      {"id": "falc_ped", "name": "Anemia Falciforme", "pdfs": [{"name": "Guía Enfermedad de células falciformes SEHOP 2019", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Falciforme.pdf"}]},
+      {"id": "tal_ped", "name": "Talasemia", "pdfs": [{"name": "Guía Talasemia SEHOP 2015", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Talasemia.pdf"}]},
+      {"id": "aplasia_ped", "name": "Aplasia Medular", "pdfs": [{"name": "Guía AM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/AM.pdf"}]},
+      {"id": "general_ped", "name": "Generales / Soporte", "pdfs": []}
+    ],
+    "cart": [
+      {"id": "cart_ind", "name": "CAR-T - Indicaciones y manejo", "pdfs": []},
+      {"id": "biesp", "name": "Anticuerpos Biespecíficos", "pdfs": [{"name": "AcBs HUNSC 2025", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Biespecificos.pdf"}, {"name": "AcBs GELTAMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Biespec%C3%ADficos_GELTAMO.pdf"}]},
+      {"id": "taspe", "name": "TASPE - Trasplante Autólogo", "pdfs": [{"name": "Protocolo TASPE HUNSC", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/TASPE.pdf"}, {"name": "Guía acondicionamiento GETH 2024", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/geth.pdf"}]},
+      {"id": "otros", "name": "Otros", "pdfs": []}
+    ],
+    "bs": [
+      {"id": "transf_comp", "name": "Transfusión de componentes (CH / Plaquetas / PFC / Crioprecipitados)", "pdfs": []},
+      {"id": "inmunohem", "name": "Inmunohematología (ABO/Rh, AAII, discrepancias)", "pdfs": [{"name": "Inmunohematología básica y aplicada", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Inmunobanco.pdf"}]},
+      {"id": "react_transf", "name": "Reacciones transfusionales y hemovigilancia", "pdfs": [{"name": "Estándares en Hemoterapia", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/Hemoterapia.pdf"}]},
+      {"id": "pbm", "name": "Patient Blood Management / Optimización preoperatoria", "pdfs": []},
+      {"id": "aferesis", "name": "Aféresis terapéutica", "pdfs": []},
+      {"id": "situ_esp", "name": "Situaciones especiales (neonatos, embarazo, TPH, drepanocitosis)", "pdfs": []},
+      {"id": "transf_masiva", "name": "Transfusión masiva / Hemorragia crítica", "pdfs": []},
+      {"id": "autoinmune", "name": "AHAI y panaglutinación", "pdfs": []},
+      {"id": "general", "name": "Generales / Procedimientos del servicio", "pdfs": []}
+    ],
+    "th": [
+      {"id": "anticoag", "name": "Anticoagulación", "pdfs": []},
+      {"id": "rotem", "name": "ROTEM", "pdfs": [{"name": "Protocolo ROTEM", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/ROTEM.pdf"}]},
+      {"id": "ecmo", "name": "ECMO", "pdfs": [{"name": "Protocolo ECMO", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/ECMO.pdf"}]},
+      {"id": "mat", "name": "MAT (PTT / SHU)", "pdfs": [{"name": "Guía PTT", "url": "https://raw.githubusercontent.com/HemaPocket/guias/main/PTT.pdf"}]},
+      {"id": "cid", "name": "CID", "pdfs": []},
+      {"id": "hemof", "name": "Hemofilia y Coagulopatías", "pdfs": []},
+      {"id": "saf", "name": "SAF / Trombofilia", "pdfs": []},
+      {"id": "antic", "name": "Manejo perioperatorio anticoagulación", "pdfs": []},
+      {"id": "general", "name": "Generales / Reversión", "pdfs": []}
+    ],
+    "uh": [
+      {"id": "nf", "name": "Neutropenia febril", "pdfs": []},
+      {"id": "leucost", "name": "Leucostasis / Hiperleucocitosis", "pdfs": []},
+      {"id": "lisis", "name": "Síndrome de lisis tumoral", "pdfs": []},
+      {"id": "cid_urg", "name": "CID urgente", "pdfs": []},
+      {"id": "mat_urg", "name": "MAT (PTT / SHU)", "pdfs": []},
+      {"id": "compr", "name": "Compresión Medular / Sd. VCS", "pdfs": []},
+      {"id": "sangr", "name": "Sangrado Mayor / Reversión", "pdfs": []},
+      {"id": "sind_dif", "name": "Síndrome de diferenciación (LPA)", "pdfs": []},
+      {"id": "atb", "name": "Antibioterapia empírica", "pdfs": []},
+      {"id": "general", "name": "Generales / Soporte UCI", "pdfs": []},
+      {"id": "otros", "name": "Otros", "pdfs": []}
+    ]
+  }
+};
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+<!-- ... existing code ... -->
+```
+
+```html:HemoPocket Pro v2:index.html
+<!-- ... existing code ... -->
+VIEWS.home=homeView;
+
+const CATEGORY_NAMES = {
+  lf: 'Linfoma', mm: 'Mieloma Múltiple', llc: 'LLC y Tricoleucemia', leuc_ag: 'Leucemias Agudas', mieloide: 'Patología Mieloide',
+  cito: 'Citopenias', ped: 'Pediatría', cart: 'Terapia Celular', bs: 'Banco de Sangre', th: 'Trombosis y Hemostasia', uh: 'Urgencias Hematológicas', inf: 'Infecciones'
+};
+
+function renderGuides(catId) {
+    const catName = CATEGORY_NAMES[catId] || 'Guías Clínicas';
+    const subtypes = DB.subtypes[catId] || [];
+    
+    let html = `<div class="card"><h2>${catName}</h2><p class="intro">Protocolos y guías de práctica clínica.</p>`;
+    
+    if (subtypes.length === 0) {
+        html += `<div class="alert b">No hay guías cargadas en esta sección.</div>`;
+    } else {
+        subtypes.forEach(sub => {
+            html += `<div class="coll open" style="margin-bottom:12px;">
+                <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>${sub.name}</span><span class="ar">▶</span></div>
+                <div class="coll-c" style="padding: 10px 14px;">`;
+            
+            if (sub.pdfs && sub.pdfs.length > 0) {
+                html += `<div class="pdf-list">`;
+                sub.pdfs.forEach(pdf => {
+                    html += `<div class="pdf-item" onclick="openPdf('${pdf.url}', '${pdf.name}', '${catId}')">
+                        <span class="name">📄 ${pdf.name}</span>
+                        <span class="info-pill">PDF</span>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div style="font-size:12.5px;color:var(--mut);font-style:italic;padding:4px 0;">Contenido en revisión...</div>`;
+            }
+            
+            html += `</div></div>`;
+        });
+    }
+    html += `</div>`;
+    return html;
+}
+
+VIEWS.g_inf = () => renderGuides('inf');
+VIEWS.g_uh = () => renderGuides('uh');
+VIEWS.g_th = () => renderGuides('th');
+VIEWS.g_bs = () => renderGuides('bs');
+VIEWS.g_cart = () => renderGuides('cart');
+VIEWS.g_cito = () => renderGuides('cito');
+VIEWS.g_leuc_ag = () => renderGuides('leuc_ag');
+VIEWS.g_mieloide = () => renderGuides('mieloide');
+VIEWS.g_mm = () => renderGuides('mm');
+VIEWS.g_lf = () => renderGuides('lf');
+VIEWS.g_llc = () => renderGuides('llc');
+VIEWS.g_ped = () => renderGuides('ped');
+
+window.openPdf = function(url, title, fromCat) {
+    S.lastGuideView = 'g_' + fromCat;
+    const html = `
+    <div class="card viewer-card">
+        <div class="viewer-header">
+            <button class="btn btn-out btn-sm" onclick="go(S.lastGuideView)">← Volver</button>
+            <div class="title" title="${title}">${title}</div>
+        </div>
+        <div class="viewer-pages" id="pdf_pages">
+            <div class="viewer-loading">Cargando documento... (esto puede tardar unos segundos)</div>
+        </div>
+    </div>`;
+    $('content').innerHTML = html;
+    window.scrollTo(0,0);
+    
+    const loadingTask = pdfjsLib.getDocument(url);
+    loadingTask.promise.then(function(pdf) {
+        const container = $('pdf_pages');
+        container.innerHTML = '';
+        
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            
+            pdf.getPage(pageNum).then(function(page) {
+                const viewport = page.getViewport({scale: 1.5});
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: canvas.getContext('2d'),
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        }
+    }).catch(function(reason) {
+        $('pdf_pages').innerHTML = `<div class="viewer-error"><strong>Error al cargar PDF:</strong><br>${reason.message || 'No se pudo acceder al documento. Verifica que la ruta o el enlace sea accesible.'}</div>`;
+    });
+};
+
+// ==========================================
+// NUEVO: ALGORITMO S. AUREUS
+// ==========================================
+<!-- ... existing code ... -->
+```
+
+```html:HemoPocket Pro v2:index.html
+<!-- ... existing code ... -->
+{min:21,max:26,cls:'lo',label:'Bajo riesgo (≥21 pts)',info:'<div class="res-s">Riesgo de complicaciones <5%. Candidato a alta precoz o manejo ambulatorio con terapia oral (Ciprofloxacino + Amoxicilina/Clavulánico) si no hay contraindicaciones clínicas.</div>'}
+],
+ref:'Klastersky J, et al. The Multinational Association for Supportive Care in Cancer risk index. J Clin Oncol. 2000;18(16):3038-3051.'
+});
+
+VIEWS.equipo=()=>{
+    let html = `<div class="card">
+    <h2>Equipo y Colaboradores</h2>
+    <p class="intro">HemoPocket es posible gracias a la colaboración del equipo médico del Servicio de Hematología y Hemoterapia.</p>`;
+    
+    const mapNombres = { uh: 'Urgencias Hematológicas', th: 'Trombosis y Hemostasia', bs: 'Banco de Sangre', lf: 'Linfoma', mm: 'Mieloma Múltiple', llc: 'LLC', leuc_ag: 'Leucemias Agudas', mieloide: 'Patología Mieloide', cito: 'Citopenias', ped: 'Pediatría', cart: 'Terapia Celular' };
+    
+    Object.keys(DB.collaborators).forEach(key => {
+        if(DB.collaborators[key].length > 0) {
+            html += `<div class="collabs-block">
+                <div class="collabs-h">${mapNombres[key] || key}</div>
+                <ul class="collabs-list">`;
+            DB.collaborators[key].forEach(c => {
+                html += `<li><strong>${c.n}</strong> — <span style="color:var(--mut);font-size:12px">${c.r}</span></li>`;
+            });
+            html += `</ul></div>`;
+        }
+    });
+    
+    html += `</div>`;
+    return html;
+};
+
+VIEWS.sync=()=>`<div class="card">
+<h2>Sincronización</h2>
+<p class="intro">La aplicación guarda los datos localmente. Las actualizaciones de protocolos se descargarán automáticamente al estar online.</p>
+<div class="alert ${navigator.onLine?'g':'r'}"><strong>Estado de conexión:</strong> ${navigator.onLine?'Conectado y sincronizado':'Sin conexión'}</div>
+</div>`;
+
+VIEWS.phone=()=>{
+    let html = `<div class="card">
+    <h2>Listín Telefónico</h2>
+    <div class="ct-wrap">
+    <table class="contact-tbl">
+    <tr><th>Nombre/Servicio</th><th>Ubicación/Área</th><th>Extensión/Busca</th></tr>`;
+    
+    DB.contacts.forEach(c => {
+        html += `<tr><td>${c.n}</td><td>${c.c || '-'}</td><td>${c.e}</td></tr>`;
+    });
+    
+    html += `</table></div></div>`;
+    return html;
+};
+
+let cmdItems = [];
+<!-- ... existing code ... -->eb-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HemoPocket">
