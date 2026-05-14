@@ -2499,15 +2499,21 @@ async clear(){const s=await this._store('readwrite');return new Promise((res,rej
 
 // === GUÍAS CLÍNICAS ===
 const GUIDES_TITLES={
-'lf':'Linfoma','mm':'Mieloma y Gammapatías','llc':'LLC y Linfoides Crónicos',
-'leuc_ag':'Leucemias agudas','mieloide':'Patología mieloide',
-'cito':'Citopenias','ped':'Hematología pediátrica',
-'cart':'Terapia celular','th':'Trombosis y Hemostasia',
-'inf':'Infecciones / Neutropenia febril','uh':'Otras urgencias hematológicas',
-'bs':'Banco de Sangre'
+'inf':'Neutropenia febril e infecciones',
+'uh':'Otras urgencias hematológicas',
+'th':'Trombosis y Hemostasia',
+'bs':'Banco de Sangre',
+'cart':'Terapia celular',
+'cito':'Citopenias',
+'leuc_ag':'Leucemias agudas',
+'mieloide':'Patología mieloide crónica',
+'mm':'Mieloma y Gammapatías',
+'lf':'Linfoma',
+'llc':'LLC',
+'ped':'Hematología pediátrica'
 };
 
-const EMBEDDED_VERSION='2026.05.14';
+const EMBEDDED_VERSION='2026.05.23';
 const DEFAULT_CONTACTS=[
 // === Originales ===
 {n:'Banco de Sangre',c:'Hematología',e:'32229'},
@@ -2781,22 +2787,22 @@ function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 const DEFAULT_COLLABORATORS={
 inf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 uh:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-th:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 bs:[
 {n:'Dra. Isabel Peris Fernaud',r:'Adjunta · Banco de Sangre'},
 {n:'Dr. Alexander Figueroa',r:'Adjunto · Banco de Sangre'},
 {n:'Dra. Laura Francisca Ávila Idrovo',r:'Adjunta · Banco de Sangre'}
 ],
-lf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-mm:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-llc:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 leuc_ag:[
 {n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'},
 {n:'Dra. Ana Oliva',r:'Adjunta · Leucemias agudas'},
 {n:'Dra. Silvia Martín',r:'Adjunta · Leucemias agudas'}
 ],
-mieloide:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-cito:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+mm:[],
+lf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+llc:[],
+mieloide:[],
+cito:[],
+th:[],
 ped:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 cart:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}]
 };
@@ -5573,11 +5579,17 @@ function init(){
 S.theme=ls.g('theme')||'light';
 S.favs=ls.g('favs')||[];
 document.documentElement.dataset.t=S.theme;
-// Limpiar URLs antiguas pinchadas a un commit concreto (que se rompen al editar el gist)
+// Limpiar URLs antiguas (pinchadas a commit concreto, nombre antiguo del Gist, propietario antiguo)
 const savedUrl=ls.g('updateUrl');
-if(savedUrl&&/\/raw\/[0-9a-f]{40}\//.test(savedUrl)){
+const isStaleUrl=savedUrl&&(
+/\/raw\/[0-9a-f]{40}\//.test(savedUrl)||
+/hemacand/i.test(savedUrl)||
+/hemapocket\.json/.test(savedUrl)||
+/HemaPocket/.test(savedUrl)
+);
+if(isStaleUrl){
 ls.s('updateUrl','');
-console.log('[hemopocket] URL pinchada a commit detectada, restablecida al valor por defecto');
+console.log('[hemopocket] URL guardada obsoleta detectada, restablecida al valor por defecto');
 }
 // Primera apertura en este origen: rellenar localStorage con los datos embebidos
 // para que los compañeros vean contactos y guías al instante, sin esperar a la sincronización
