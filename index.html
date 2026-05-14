@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>HemoPocket — Guía rápida de consulta en Hematología</title>
+<title>HemoPocket</title>
 <meta name="description" content="HemoPocket: guía rápida de consulta y cálculo en hematología clínica.">
 <meta name="theme-color" content="#c41e3a">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22background%3A%23fff%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
+<link rel="manifest" href='data:application/manifest+json,{"name":"HemoPocket","short_name":"HemoPocket","description":"Guía rápida de consulta en Hematología","start_url":".","scope":".","display":"standalone","background_color":"%23ffffff","theme_color":"%23c41e3a","icons":[{"src":"data:image/svg%2Bxml,%3Csvg viewBox%3D%270 0 100 100%27 xmlns%3D%27http://www.w3.org/2000/svg%27 style%3D%27background:%23fff%27 fill%3D%27%23c41e3a%27%3E%3Cpath d%3D%27M22 4C32 4 40 12 40 22C40 35 27 42 27 50C27 58 40 65 40 78C40 88 32 96 22 96C12 96 4 88 4 78C4 65 17 58 17 50C17 42 4 35 4 22C4 12 12 4 22 4Z%27/%3E%3Cpath d%3D%27M78 4C88 4 96 12 96 22C96 35 83 42 83 50C83 58 96 65 96 78C96 88 88 96 78 96C68 96 60 88 60 78C60 65 73 58 73 50C73 42 60 35 60 22C60 12 68 4 78 4Z%27/%3E%3Ccircle cx%3D%2750%27 cy%3D%2750%27 r%3D%2717%27/%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}'>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--c1:#c41e3a;--c2:#1a3a6c;--c2l:#7ba3e0;--bg:#f5f7fa;--card:#fff;--txt:#1a1a1a;--mut:#5a6577;--bd:#e1e5eb;--inp:#fff;--shd:0 2px 6px rgba(0,0,0,.06);--shd2:0 6px 20px rgba(0,0,0,.1);--r:14px;--rs:8px;--ok:#16a34a;--wn:#f59e0b;--er:#dc2626;--in:#0284c7;--bg2:#eef1f5;--hov:#f0f3f7}
@@ -178,8 +179,8 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background
 [data-t="dark"] .home-phone{color:var(--c2l)}
 .home-logo{width:128px;height:128px;margin:0 auto 18px;color:var(--c1);position:relative;z-index:2}
 .home-wordmark{position:relative;z-index:2;text-align:center;line-height:.92;margin-bottom:14px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-.home-wordmark .hp-hemo{font-size:66px;font-weight:800;letter-spacing:-2.5px;color:var(--c2)}
-.home-wordmark .hp-pocket{font-size:44px;font-weight:300;letter-spacing:8px;color:var(--c2);margin-top:-4px;padding-left:8px}
+.home-wordmark .hp-hemo{font-size:66px;font-weight:700;letter-spacing:-2px;color:var(--c2)}
+.home-wordmark .hp-pocket{font-size:44px;font-weight:400;letter-spacing:7px;color:var(--c2);margin-top:-2px;padding-left:7px}
 [data-t="dark"] .home-wordmark .hp-hemo,[data-t="dark"] .home-wordmark .hp-pocket{color:var(--c2l)}
 @media(max-width:480px){.home-wordmark .hp-hemo{font-size:52px;letter-spacing:-1.8px}.home-wordmark .hp-pocket{font-size:34px;letter-spacing:6px;padding-left:6px}.home-logo{width:104px;height:104px}}
 .home-logo svg{width:100%;height:100%;display:block}
@@ -276,8 +277,8 @@ body{font-size:13px}
 <circle cx="50" cy="50" r="17"/>
 </svg>
 <div class="wm" onclick="mostrarInicio()" style="cursor:pointer;text-align:center;line-height:.95;margin-bottom:4px">
-<div style="font-size:26px;font-weight:800;letter-spacing:-1.2px;color:var(--c2)">HEMO</div>
-<div style="font-size:18px;font-weight:300;letter-spacing:3px;color:var(--c2);margin-top:-2px">POCKET</div>
+<div style="font-size:26px;font-weight:700;letter-spacing:-1px;color:var(--c2)">HEMO</div>
+<div style="font-size:18px;font-weight:400;letter-spacing:2.5px;color:var(--c2);margin-top:-1px">POCKET</div>
 </div>
 <div class="sub">Guía rápida de consulta en Hematología</div>
 </div>
@@ -353,56 +354,56 @@ el.title=`${state}\nEstado: ${online?'Online':'Offline'}${lastUpd?'\nÚltima sin
 
 // === MENU CONFIG ===
 const MENU=[
-{h:'NEUTROPENIA FEBRIL E INFECCIONES',o:1,items:[
-{id:'nf',name:'ALGORITMO DE NEUTROPENIA FEBRIL',kw:'neutropenia febril sepsis bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
-{id:'atb',name:'SENSIBILIDAD ANTIBIÓTICA',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam ceftolozano tazobactam ceftarolina meropenem cefepime piperacilina vancomicina daptomicina linezolid colistina amikacina'},
-{id:'saureus',name:'BACTERIEMIA POR S. AUREUS',kw:'bacteriemia s aureus sams samr endocarditis cefazolina cloxacilina daptomicina vancomicina hemocultivos retirada cateter ecocardiograma',new:'2026-05-13'},
-{id:'fiebre_persist',name:'FIEBRE PERSISTENTE >72H',kw:'fiebre persistente neutropenia galactomanano tac torax escalamiento antifungico empirico caspofungina voriconazol isavuconazol ifi',new:'2026-05-13'},
-{id:'ifi',name:'IFI / ASPERGILOSIS',kw:'ifi aspergilosis invasiva eortc msgerc galactomanano beta d glucano voriconazol isavuconazol l-amb halo cavitacion bal',new:'2026-05-13'},
-{id:'atb_dur',name:'DURACIÓN DE ANTIBIOTERAPIA',kw:'duracion antibioterapia bacteriemia endocarditis itu meningitis neumonia celulitis candidemia balance shorten pirate',new:'2026-05-13'},
-{id:'g_inf',name:'GUÍAS CLÍNICAS',kw:'guias clinicas infecciones ecil ifi profilaxis antifungica antibioterapia paciente hematologico pdf'}
+{h:'NEUTROPENIA FEBRIL',o:1,items:[
+{id:'nf',name:'Algoritmo de neutropenia febril',kw:'neutropenia febril sepsis bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
+{id:'atb',name:'Sensibilidad antibiótica',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam ceftolozano tazobactam ceftarolina meropenem cefepime piperacilina vancomicina daptomicina linezolid colistina amikacina'},
+{id:'saureus',name:'Bacteriemia por S. aureus',kw:'bacteriemia s aureus sams samr endocarditis cefazolina cloxacilina daptomicina vancomicina hemocultivos retirada cateter ecocardiograma',new:'2026-05-13'},
+{id:'fiebre_persist',name:'Fiebre persistente >72 h',kw:'fiebre persistente neutropenia galactomanano tac torax escalamiento antifungico empirico caspofungina voriconazol isavuconazol ifi',new:'2026-05-13'},
+{id:'ifi',name:'IFI / Aspergilosis',kw:'ifi aspergilosis invasiva eortc msgerc galactomanano beta d glucano voriconazol isavuconazol l-amb halo cavitacion bal',new:'2026-05-13'},
+{id:'atb_dur',name:'Duración de antibioterapia',kw:'duracion antibioterapia bacteriemia endocarditis itu meningitis neumonia celulitis candidemia balance shorten pirate',new:'2026-05-13'},
+{id:'g_inf',name:'Guías clínicas',kw:'guias clinicas infecciones ecil ifi profilaxis antifungica antibioterapia paciente hematologico pdf'}
 ]},
 {h:'OTRAS URGENCIAS HEMATOLÓGICAS',items:[
-{id:'g_uh',name:'GUÍAS CLÍNICAS',kw:'guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado hiperleucocitosis pdf'}
+{id:'g_uh',name:'Guías clínicas',kw:'guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado hiperleucocitosis pdf'}
 ]},
 {h:'TROMBOSIS Y HEMOSTASIA',items:[
 {id:'plasmic',name:'PLASMIC',kw:'plasmic ttp microangiopatia trombotica'},
-{id:'tma_dif',name:'DIFERENCIAL MAT (TTP/SHUA/CID/HELLP)',kw:'diferencial microangiopatia trombotica mat ttp shua suh cid hellp plasmic adamts13 complemento esquistocitos lactato',new:'2026-05-11'},
+{id:'tma_dif',name:'Diferencial MAT (TTP/SHUa/CID/HELLP)',kw:'diferencial microangiopatia trombotica mat ttp shua suh cid hellp plasmic adamts13 complemento esquistocitos lactato',new:'2026-05-11'},
 {id:'cid',name:'CID (ISTH)',kw:'cid coagulacion intravascular diseminada isth dic'},
-{id:'tt',name:'4T SCORE',kw:'4t hit heparina trombocitopenia'},
-{id:'wells',name:'WELLS (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
+{id:'tt',name:'4T Score',kw:'4t hit heparina trombocitopenia'},
+{id:'wells',name:'Wells (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
 {id:'hb',name:'HAS-BLED',kw:'hasbled sangrado anticoagulacion fa'},
-{id:'hbpm',name:'DOSIS HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa',new:'2026-05-11'},
-{id:'coag_alt',name:'ALTERACIÓN PRUEBAS COAGULACIÓN',kw:'tp ttpa alargado alteracion pruebas basicas coagulacion test mezclas factores algoritmo'},
-{id:'bridging',name:'BRIDGING PERIOPERATORIO',kw:'bridging perioperatorio anticoagulacion cirugia avk acod hbpm puente suspension'},
-{id:'reversion',name:'REVERSIÓN ANTICOAGULACIÓN',kw:'reversion anticoagulacion sangrado idarucizumab andexanet ccp octaplex protamina vitamina k antidoto'},
-{id:'rotem',name:'INTERPRETACIÓN ROTEM',kw:'rotem tromboelastometria extem intem fibtem aptem heptem patron interpretacion'},
-{id:'hemof_urg',name:'HEMOFILIA/EVW URGENCIAS',kw:'hemofilia urgencia evw von willebrand factor viii ix sangrado vital snc inhibidor desmopresina rfviia feiba emicizumab'},
-{id:'g_th',name:'GUÍAS CLÍNICAS',kw:'guias clinicas trombosis hemostasia tev fa hit hemofilia protocolo pdf'}
+{id:'hbpm',name:'Dosis HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa',new:'2026-05-11'},
+{id:'coag_alt',name:'Alteración pruebas coagulación',kw:'tp ttpa alargado alteracion pruebas basicas coagulacion test mezclas factores algoritmo'},
+{id:'bridging',name:'Bridging perioperatorio',kw:'bridging perioperatorio anticoagulacion cirugia avk acod hbpm puente suspension'},
+{id:'reversion',name:'Reversión anticoagulación',kw:'reversion anticoagulacion sangrado idarucizumab andexanet ccp octaplex protamina vitamina k antidoto'},
+{id:'rotem',name:'Interpretación ROTEM',kw:'rotem tromboelastometria extem intem fibtem aptem heptem patron interpretacion'},
+{id:'hemof_urg',name:'Hemofilia/EvW urgencias',kw:'hemofilia urgencia evw von willebrand factor viii ix sangrado vital snc inhibidor desmopresina rfviia feiba emicizumab'},
+{id:'g_th',name:'Guías clínicas',kw:'guias clinicas trombosis hemostasia tev fa hit hemofilia protocolo pdf'}
 ]},
 {h:'BANCO DE SANGRE',items:[
-{id:'disc_abo',name:'DISCREPANCIA ABO',kw:'discrepancia abo grupo serico hematico tipificacion banco sangre transfusion'},
-{id:'aaii',name:'ANTICUERPOS IRREGULARES',kw:'anticuerpos irregulares aaii coombs indirecto fenotipo significativo benigno banco sangre'},
-{id:'panag',name:'PANAGLUTINACIÓN',kw:'panaglutinacion autocontrol coombs directo aloanticuerpo autoanticuerpo banco sangre'},
-{id:'trans_ch',name:'TRANSFUSIÓN HEMATÍES',kw:'transfusion concentrado hematies ch hemoglobina umbral banco sangre sets'},
-{id:'trans_pq',name:'TRANSFUSIÓN PLAQUETAS',kw:'transfusion plaquetas trombopenia umbral profilactica oncohematologica banco sangre sets'},
-{id:'trans_pfc',name:'TRANSFUSIÓN PLASMA (PFC)',kw:'transfusion plasma fresco congelado pfc dosis tp ttpa fibrinogeno banco sangre sets'},
-{id:'pre_op',name:'OPTIMIZACIÓN PREOPERATORIA',kw:'optimizacion preoperatoria hierro oral intravenoso ferinject venofer ganzoni eritropoyetina epo cot banco sangre'},
-{id:'g_bs',name:'GUÍAS CLÍNICAS',kw:'guias clinicas banco sangre transfusion inmunohematologia aaii abo reaccion transfusional aferesis pbm hemovigilancia protocolo pdf'}
+{id:'disc_abo',name:'Discrepancia ABO',kw:'discrepancia abo grupo serico hematico tipificacion banco sangre transfusion'},
+{id:'aaii',name:'Anticuerpos irregulares',kw:'anticuerpos irregulares aaii coombs indirecto fenotipo significativo benigno banco sangre'},
+{id:'panag',name:'Panaglutinación',kw:'panaglutinacion autocontrol coombs directo aloanticuerpo autoanticuerpo banco sangre'},
+{id:'trans_ch',name:'Transfusión hematíes',kw:'transfusion concentrado hematies ch hemoglobina umbral banco sangre sets'},
+{id:'trans_pq',name:'Transfusión plaquetas',kw:'transfusion plaquetas trombopenia umbral profilactica oncohematologica banco sangre sets'},
+{id:'trans_pfc',name:'Transfusión plasma (PFC)',kw:'transfusion plasma fresco congelado pfc dosis tp ttpa fibrinogeno banco sangre sets'},
+{id:'pre_op',name:'Optimización preoperatoria',kw:'optimizacion preoperatoria hierro oral intravenoso ferinject venofer ganzoni eritropoyetina epo cot banco sangre'},
+{id:'g_bs',name:'Guías clínicas',kw:'guias clinicas banco sangre transfusion inmunohematologia aaii abo reaccion transfusional aferesis pbm hemovigilancia protocolo pdf'}
 ]},
 {h:'TERAPIA CELULAR',items:[
 {id:'crs',name:'CRS (ASTCT)',kw:'crs cart citoquinas biespecificos terapia celular'},
 {id:'icans',name:'ICE / ICANS',kw:'ice icans neurotoxicidad cart terapia celular'},
 {id:'taspe',name:'TASPE',kw:'taspe trasplante autologo progenitores hematopoyeticos auto-tph autosct movilizacion plerixafor acondicionamiento bea m mel200 cd34 prendimiento'},
-{id:'g_cart',name:'GUÍAS CLÍNICAS',kw:'guias clinicas terapia celular cart biespecificos protocolo pdf'}
+{id:'g_cart',name:'Guías clínicas',kw:'guias clinicas terapia celular cart biespecificos protocolo pdf'}
 ]},
 {h:'CITOPENIAS',items:[
-{id:'g_cito',name:'GUÍAS CLÍNICAS',kw:'guias clinicas citopenias pti ahai eritropatologia anemia hemolitica falciforme talasemia esferocitosis aplasia hpn protocolo pdf'}
+{id:'g_cito',name:'Guías clínicas',kw:'guias clinicas citopenias pti ahai eritropatologia anemia hemolitica falciforme talasemia esferocitosis aplasia hpn protocolo pdf'}
 ]},
 {h:'LEUCEMIAS AGUDAS',items:[
 {id:'eln',name:'ELN 2022 (LMA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
-{id:'eln24',name:'ELN 2024 (LMA BAJA INTENSIDAD)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
-{id:'g_leuc_ag',name:'GUÍAS CLÍNICAS',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
+{id:'eln24',name:'ELN 2024 (LMA baja intensidad)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
+{id:'g_leuc_ag',name:'Guías clínicas',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
 ]},
 {h:'PATOLOGÍA MIELOIDE CRÓNICA',items:[
 {sub:1,name:'SMD'},
@@ -411,51 +412,51 @@ const MENU=[
 {sub:1,name:'LMMC'},
 {id:'icpss',name:'iCPSS',kw:'icpss lmmc cmml'},
 {sub:1,name:'LMC'},
-{id:'sokal',name:'SOKAL',kw:'sokal lmc leucemia mieloide cronica'},
+{id:'sokal',name:'Sokal',kw:'sokal lmc leucemia mieloide cronica'},
 {sub:1,name:'Mielofibrosis'},
 {id:'dipss',name:'DIPSS',kw:'dipss mielofibrosis primaria nmp dynamic prognostic',new:'2026-05-11'},
-{id:'dipssp',name:'DIPSS-PLUS',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional',new:'2026-05-11'},
-{id:'mipss70',name:'MIPSS70 / MIPSS70-PLUS',kw:'mipss70 mipss mielofibrosis molecular mutaciones asxl1 srsf2 ezh2 idh u2af1 alto riesgo hmr',new:'2026-05-11'},
-{id:'g_mieloide',name:'GUÍAS CLÍNICAS',kw:'guias clinicas patologia mieloide smd mielofibrosis nmp lmmc lmc pdf'}
+{id:'dipssp',name:'DIPSS-Plus',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional',new:'2026-05-11'},
+{id:'mipss70',name:'MIPSS70 / MIPSS70-Plus',kw:'mipss70 mipss mielofibrosis molecular mutaciones asxl1 srsf2 ezh2 idh u2af1 alto riesgo hmr',new:'2026-05-11'},
+{id:'g_mieloide',name:'Guías clínicas',kw:'guias clinicas patologia mieloide smd mielofibrosis nmp lmmc lmc pdf'}
 ]},
 {h:'MIELOMA Y GAMMAPATÍAS',items:[
 {id:'riss',name:'R-ISS',kw:'riss mieloma multiple'},
 {id:'r2iss',name:'R2-ISS',kw:'r2iss mieloma multiple'},
-{id:'ipsswm',name:'IPSS-WM (WALDENSTRÖM)',kw:'ipss wm waldenstrom macroglobulinemia mgi linfoplasmocitico pronostico beta2 microglobulina igm',new:'2026-05-11'},
-{id:'g_mm',name:'GUÍAS CLÍNICAS',kw:'guias clinicas mieloma multiple smoldering amiloidosis waldenstrom protocolo pdf'}
+{id:'ipsswm',name:'IPSS-WM (Waldenström)',kw:'ipss wm waldenstrom macroglobulinemia mgi linfoplasmocitico pronostico beta2 microglobulina igm',new:'2026-05-11'},
+{id:'g_mm',name:'Guías clínicas',kw:'guias clinicas mieloma multiple smoldering amiloidosis waldenstrom protocolo pdf'}
 ]},
 {h:'LINFOMA',items:[
 {id:'ripi',name:'R-IPI',kw:'ripi linfoma lbdcg b grandes'},
 {id:'cnsipi',name:'CNS-IPI',kw:'cns ipi snc linfoma'},
 {id:'flipi',name:'FLIPI / R-FLIPI',kw:'flipi folicular linfoma'},
 {id:'mipi',name:'MIPI',kw:'mipi manto mantle'},
-{id:'ips',name:'IPS (HODGKIN)',kw:'ips hodgkin pronostico hasenclever'},
-{id:'aa',name:'ANN ARBOR',kw:'ann arbor estadio linfoma hodgkin'},
-{id:'g_lf',name:'GUÍAS CLÍNICAS',kw:'guias clinicas linfoma protocolo pdf folicular difuso manto hodgkin marginal burkitt'}
+{id:'ips',name:'IPS (Hodgkin)',kw:'ips hodgkin pronostico hasenclever'},
+{id:'aa',name:'Ann Arbor',kw:'ann arbor estadio linfoma hodgkin'},
+{id:'g_lf',name:'Guías clínicas',kw:'guias clinicas linfoma protocolo pdf folicular difuso manto hodgkin marginal burkitt'}
 ]},
 {h:'LLC',items:[
 {id:'cllipi',name:'CLL-IPI',kw:'cll ipi llc leucemia linfocitica cronica'},
-{id:'g_llc',name:'GUÍAS CLÍNICAS',kw:'guias clinicas llc tricoleucemia waldenstrom protocolo pdf'}
+{id:'g_llc',name:'Guías clínicas',kw:'guias clinicas llc tricoleucemia waldenstrom protocolo pdf'}
 ]},
 {h:'HEMATOLOGÍA PEDIÁTRICA',items:[
-{id:'g_ped',name:'GUÍAS CLÍNICAS',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
+{id:'g_ped',name:'Guías clínicas',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
 ]},
 {h:'OTRAS CALCULADORAS',items:[
-{id:'opioides',name:'CONVERSIÓN DE OPIOIDES (MME)',kw:'opioides conversion morfina oxicodona fentanilo tramadol tapentadol metadona hidromorfona buprenorfina mme equivalente rotacion',new:'2026-05-13'},
-{id:'qtc',name:'QTC (FRIDERICIA)',kw:'qtc fridericia ekg ecg intervalo'},
-{id:'crcl',name:'ACLARAMIENTO CR',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
-{id:'cacorr',name:'CALCIO CORREGIDO',kw:'calcio corregido payne albumina proteinas totales hipocalcemia hipercalcemia mieloma paraproteina hipoalbuminemia',new:'2026-05-12'},
-{id:'obw',name:'AJUSTE OBESIDAD',kw:'ibw abw obesidad ajuste peso ideal'},
-{id:'bsa',name:'SUPERFICIE CORPORAL',kw:'bsa mosteller superficie corporal'},
-{id:'cb',name:'LISIS TUMORAL',kw:'cairo bishop lisis tumoral sld'},
-{id:'hctci',name:'HCT-CI (SORROR)',kw:'hctci sorror trasplante comorbilidad'},
+{id:'opioides',name:'Conversión de opioides (MME)',kw:'opioides conversion morfina oxicodona fentanilo tramadol tapentadol metadona hidromorfona buprenorfina mme equivalente rotacion',new:'2026-05-13'},
+{id:'qtc',name:'QTc (Fridericia)',kw:'qtc fridericia ekg ecg intervalo'},
+{id:'crcl',name:'Aclaramiento Cr',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
+{id:'cacorr',name:'Calcio corregido',kw:'calcio corregido payne albumina proteinas totales hipocalcemia hipercalcemia mieloma paraproteina hipoalbuminemia',new:'2026-05-12'},
+{id:'obw',name:'Ajuste obesidad',kw:'ibw abw obesidad ajuste peso ideal'},
+{id:'bsa',name:'Superficie corporal',kw:'bsa mosteller superficie corporal'},
+{id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
+{id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad'},
 {id:'ecog',name:'ECOG',kw:'ecog estado funcional performance'},
-{id:'g8',name:'G8 FRAGILIDAD',kw:'g8 fragilidad anciano geriatrico'}
+{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico'}
 ]},
 {h:'UTILIDADES',items:[
-{id:'phone',name:'LISTÍN TELEFÓNICO',kw:'telefonos contactos directorio listin corporativo busca'},
-{id:'equipo',name:'EQUIPO',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
-{id:'sync',name:'SINCRONIZACIÓN',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'}
+{id:'phone',name:'Listín telefónico',kw:'telefonos contactos directorio listin corporativo busca'},
+{id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
+{id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'}
 ]}
 ];
 
@@ -2777,8 +2778,30 @@ const DEFAULT_SUBTYPES={
 
 function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
-function getCollaborators(id){const all=ls.g('collaborators')||{};return all[id]||[]}
-function getAllCollaborators(){return ls.g('collaborators')||{}}
+const DEFAULT_COLLABORATORS={
+inf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+uh:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+th:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+bs:[
+{n:'Dra. Isabel Peris Fernaud',r:'Adjunta · Banco de Sangre'},
+{n:'Dr. Alexander Figueroa',r:'Adjunto · Banco de Sangre'},
+{n:'Dra. Laura Francisca Ávila Idrovo',r:'Adjunta · Banco de Sangre'}
+],
+lf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+mm:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+llc:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+leuc_ag:[
+{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'},
+{n:'Dra. Ana Oliva',r:'Adjunta · Leucemias agudas'},
+{n:'Dra. Silvia Martín',r:'Adjunta · Leucemias agudas'}
+],
+mieloide:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+cito:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+ped:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+cart:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}]
+};
+function getCollaborators(id){const all=ls.g('collaborators')||DEFAULT_COLLABORATORS;return all[id]||[]}
+function getAllCollaborators(){return ls.g('collaborators')||DEFAULT_COLLABORATORS}
 function renderCollaboratorsBlock(id){
 const list=getCollaborators(id);
 if(!list.length)return '';
