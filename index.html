@@ -2,18 +2,16 @@
 <html lang="es" data-t="light">
 <head>
 <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    
-    <link rel="icon" type="image/png" href="ISO.png?v=1">
-    
-    <title>HemoPocket</title>
-<style>
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>HemoPocket</title>
+<title>HemoPocket — Guía rápida de consulta en Hematología</title>
+<meta name="description" content="HemoPocket: guía rápida de consulta y cálculo en hematología clínica.">
+<meta name="theme-color" content="#c41e3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HemoPocket">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22background%3A%23fff%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--c1:#c41e3a;--c2:#1a3a6c;--c2l:#7ba3e0;--bg:#f5f7fa;--card:#fff;--txt:#1a1a1a;--mut:#5a6577;--bd:#e1e5eb;--inp:#fff;--shd:0 2px 6px rgba(0,0,0,.06);--shd2:0 6px 20px rgba(0,0,0,.1);--r:14px;--rs:8px;--ok:#16a34a;--wn:#f59e0b;--er:#dc2626;--in:#0284c7;--bg2:#eef1f5;--hov:#f0f3f7}
@@ -178,7 +176,12 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background
 .home-phone{position:absolute;top:14px;right:14px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:50%;cursor:pointer;background:var(--card);color:var(--c2);transition:.18s;padding:0;font-family:inherit;z-index:5}
 .home-phone:hover{border-color:var(--c2);transform:scale(1.05);box-shadow:var(--shd)}
 [data-t="dark"] .home-phone{color:var(--c2l)}
-.home-logo{width:92px;height:92px;margin:0 auto 14px;color:var(--c1);position:relative;z-index:2}
+.home-logo{width:128px;height:128px;margin:0 auto 18px;color:var(--c1);position:relative;z-index:2}
+.home-wordmark{position:relative;z-index:2;text-align:center;line-height:.92;margin-bottom:14px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.home-wordmark .hp-hemo{font-size:66px;font-weight:800;letter-spacing:-2.5px;color:var(--c2)}
+.home-wordmark .hp-pocket{font-size:44px;font-weight:300;letter-spacing:8px;color:var(--c2);margin-top:-4px;padding-left:8px}
+[data-t="dark"] .home-wordmark .hp-hemo,[data-t="dark"] .home-wordmark .hp-pocket{color:var(--c2l)}
+@media(max-width:480px){.home-wordmark .hp-hemo{font-size:52px;letter-spacing:-1.8px}.home-wordmark .hp-pocket{font-size:34px;letter-spacing:6px;padding-left:6px}.home-logo{width:104px;height:104px}}
 .home-logo svg{width:100%;height:100%;display:block}
 .home-title{font-size:46px;font-weight:700;letter-spacing:-1.6px;margin-bottom:8px;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;position:relative;z-index:2}
 .home-title .a{color:var(--c1)}
@@ -266,9 +269,17 @@ body{font-size:13px}
 <div class="app">
 <aside class="sb" id="sb">
 <button class="home-main-btn" onclick="mostrarInicio()" title="Inicio" aria-label="Inicio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
-<div class="brand" style="text-align: center; padding: 10px 0;">
-    <img src="ISO.png" alt="H" onclick="mostrarInicio()" style="width: 50px; height: auto; cursor: pointer; border-radius: 8px;">
-    <div class="nm" style="display:none;">HemoPocket</div>
+<div class="brand">
+<svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="#c41e3a" style="display:block;margin:0 auto 8px auto;cursor:pointer" onclick="mostrarInicio()" aria-label="HemoPocket">
+<path d="M22 4C32 4 40 12 40 22C40 35 27 42 27 50C27 58 40 65 40 78C40 88 32 96 22 96C12 96 4 88 4 78C4 65 17 58 17 50C17 42 4 35 4 22C4 12 12 4 22 4Z"/>
+<path d="M78 4C88 4 96 12 96 22C96 35 83 42 83 50C83 58 96 65 96 78C96 88 88 96 78 96C68 96 60 88 60 78C60 65 73 58 73 50C73 42 60 35 60 22C60 12 68 4 78 4Z"/>
+<circle cx="50" cy="50" r="17"/>
+</svg>
+<div class="wm" onclick="mostrarInicio()" style="cursor:pointer;text-align:center;line-height:.95;margin-bottom:4px">
+<div style="font-size:26px;font-weight:800;letter-spacing:-1.2px;color:var(--c2)">HEMO</div>
+<div style="font-size:18px;font-weight:300;letter-spacing:3px;color:var(--c2);margin-top:-2px">POCKET</div>
+</div>
+<div class="sub">Guía rápida de consulta en Hematología</div>
 </div>
 <div class="search-wrap">
 <svg class="search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -304,53 +315,6 @@ body{font-size:13px}
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const SAL_SECRETA = "HP2026!TX"; // Cambia esto por lo que quieras, es tu "llave maestra"
-
-function obtenerIDNavegador() {
-    const datos = [navigator.userAgent, navigator.language, screen.colorDepth].join('|');
-    let hash = 0;
-    for (let i = 0; i < datos.length; i++) {
-        hash = ((hash << 5) - hash) + datos.charCodeAt(i);
-        hash |= 0;
-    }
-    return Math.abs(hash).toString(16).toUpperCase();
-}
-
-function generarLlave(id) {
-    const base = id + SAL_SECRETA;
-    let h = 0;
-    for (let i = 0; i < base.length; i++) {
-        h = ((h << 5) - h) + base.charCodeAt(i);
-        h |= 0;
-    }
-    return "HP-" + Math.abs(h).toString(16).toUpperCase();
-}
-(function() {
-    const idEquipo = obtenerIDNavegador();
-    const licenciaGuardada = localStorage.getItem('licencia_hemopocket');
-    const llaveCorrecta = generarLlave(idEquipo);
-
-    if (!licenciaGuardada || licenciaGuardada !== llaveCorrecta) {
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; padding:20px; font-family:sans-serif; text-align:center; background:#f5f7fa; color:#1a3a6c;">
-                    <img src="Imagen.jpg" style="width:120px; border-radius:15px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-                    <h1 style="font-size:24px; margin-bottom:10px;">HemoPocket Privado</h1>
-                    <p style="color:#5a6577; margin-bottom:20px;">Esta es una copia privada para uso interno.<br>Proporciona el siguiente ID al administrador:</p>
-                    <div style="background:#fff; padding:15px 30px; border-radius:8px; border:2px dashed #1a3a6c; font-family:monospace; font-size:22px; font-weight:bold; margin-bottom:30px;">${idEquipo}</div>
-                    <input type="text" id="keyInput" placeholder="Introduce tu llave de activación" style="width:100%; max-width:300px; padding:12px; border:1px solid #bdc3c7; border-radius:8px; margin-bottom:15px; text-align:center; font-size:16px;">
-                    <button onclick="activarApp()" style="width:100%; max-width:300px; padding:12px; background:#c41e3a; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">ACTIVAR APLICACIÓN</button>
-                </div>
-            `;
-        });
-    }
-})();
-
-window.activarApp = function() {
-    const input = document.getElementById('keyInput').value.trim().toUpperCase();
-    localStorage.setItem('licencia_hemopocket', input);
-    location.reload();
-}
 // === STATE & STORAGE ===
 const S={p:{age:'',sex:'',weight:'',height:'',creatinine:''},theme:'light',view:'home',favs:[],contacts:[],pdfs:{}};
 const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}}};
@@ -389,102 +353,109 @@ el.title=`${state}\nEstado: ${online?'Online':'Offline'}${lastUpd?'\nÚltima sin
 
 // === MENU CONFIG ===
 const MENU=[
-{h:'Urgencias Hematológicas',o:1,items:[
-{sub:1,name:'Neutropenia febril'},
-{id:'nf',name:'Algoritmo terapéutico',kw:'neutropenia febril sepsis bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
-{id:'atb',name:'Sensibilidad antibiótica',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam ceftolozano tazobactam ceftarolina meropenem cefepime piperacilina vancomicina daptomicina linezolid colistina amikacina neutropenia febril'},
-{id:'g_uh',name:'Guías Clínicas',kw:'guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado pdf'}
+{h:'NEUTROPENIA FEBRIL E INFECCIONES',o:1,items:[
+{id:'nf',name:'ALGORITMO DE NEUTROPENIA FEBRIL',kw:'neutropenia febril sepsis bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
+{id:'atb',name:'SENSIBILIDAD ANTIBIÓTICA',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam ceftolozano tazobactam ceftarolina meropenem cefepime piperacilina vancomicina daptomicina linezolid colistina amikacina'},
+{id:'saureus',name:'BACTERIEMIA POR S. AUREUS',kw:'bacteriemia s aureus sams samr endocarditis cefazolina cloxacilina daptomicina vancomicina hemocultivos retirada cateter ecocardiograma',new:'2026-05-13'},
+{id:'fiebre_persist',name:'FIEBRE PERSISTENTE >72H',kw:'fiebre persistente neutropenia galactomanano tac torax escalamiento antifungico empirico caspofungina voriconazol isavuconazol ifi',new:'2026-05-13'},
+{id:'ifi',name:'IFI / ASPERGILOSIS',kw:'ifi aspergilosis invasiva eortc msgerc galactomanano beta d glucano voriconazol isavuconazol l-amb halo cavitacion bal',new:'2026-05-13'},
+{id:'atb_dur',name:'DURACIÓN DE ANTIBIOTERAPIA',kw:'duracion antibioterapia bacteriemia endocarditis itu meningitis neumonia celulitis candidemia balance shorten pirate',new:'2026-05-13'},
+{id:'g_inf',name:'GUÍAS CLÍNICAS',kw:'guias clinicas infecciones ecil ifi profilaxis antifungica antibioterapia paciente hematologico pdf'}
 ]},
-{h:'Trombosis y Hemostasia',items:[
+{h:'OTRAS URGENCIAS HEMATOLÓGICAS',items:[
+{id:'g_uh',name:'GUÍAS CLÍNICAS',kw:'guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado hiperleucocitosis pdf'}
+]},
+{h:'TROMBOSIS Y HEMOSTASIA',items:[
 {id:'plasmic',name:'PLASMIC',kw:'plasmic ttp microangiopatia trombotica'},
-{id:'tma_dif',name:'Diferencial MAT (TTP/SHUa/CID/HELLP)',kw:'diferencial microangiopatia trombotica mat ttp shua suh cid hellp plasmic adamts13 complemento esquistocitos lactato',new:'2026-05-11'},
+{id:'tma_dif',name:'DIFERENCIAL MAT (TTP/SHUA/CID/HELLP)',kw:'diferencial microangiopatia trombotica mat ttp shua suh cid hellp plasmic adamts13 complemento esquistocitos lactato',new:'2026-05-11'},
 {id:'cid',name:'CID (ISTH)',kw:'cid coagulacion intravascular diseminada isth dic'},
-{id:'tt',name:'4T Score',kw:'4t hit heparina trombocitopenia'},
-{id:'wells',name:'Wells (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
+{id:'tt',name:'4T SCORE',kw:'4t hit heparina trombocitopenia'},
+{id:'wells',name:'WELLS (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
 {id:'hb',name:'HAS-BLED',kw:'hasbled sangrado anticoagulacion fa'},
-{id:'hbpm',name:'Dosis HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa',new:'2026-05-11'},
-{id:'coag_alt',name:'Alteración pruebas coagulación',kw:'tp ttpa alargado alteracion pruebas basicas coagulacion test mezclas factores algoritmo'},
-{id:'bridging',name:'Bridging perioperatorio',kw:'bridging perioperatorio anticoagulacion cirugia avk acod hbpm puente suspension'},
-{id:'reversion',name:'Reversión anticoagulación',kw:'reversion anticoagulacion sangrado idarucizumab andexanet ccp octaplex protamina vitamina k antidoto'},
-{id:'rotem',name:'Interpretación ROTEM',kw:'rotem tromboelastometria extem intem fibtem aptem heptem patron interpretacion'},
-{id:'hemof_urg',name:'Hemofilia/EvW urgencias',kw:'hemofilia urgencia evw von willebrand factor viii ix sangrado vital snc inhibidor desmopresina rfviia feiba emicizumab'},
-{id:'g_th',name:'Guías Clínicas',kw:'guias clinicas trombosis hemostasia tev fa hit hemofilia protocolo pdf'}
+{id:'hbpm',name:'DOSIS HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa',new:'2026-05-11'},
+{id:'coag_alt',name:'ALTERACIÓN PRUEBAS COAGULACIÓN',kw:'tp ttpa alargado alteracion pruebas basicas coagulacion test mezclas factores algoritmo'},
+{id:'bridging',name:'BRIDGING PERIOPERATORIO',kw:'bridging perioperatorio anticoagulacion cirugia avk acod hbpm puente suspension'},
+{id:'reversion',name:'REVERSIÓN ANTICOAGULACIÓN',kw:'reversion anticoagulacion sangrado idarucizumab andexanet ccp octaplex protamina vitamina k antidoto'},
+{id:'rotem',name:'INTERPRETACIÓN ROTEM',kw:'rotem tromboelastometria extem intem fibtem aptem heptem patron interpretacion'},
+{id:'hemof_urg',name:'HEMOFILIA/EVW URGENCIAS',kw:'hemofilia urgencia evw von willebrand factor viii ix sangrado vital snc inhibidor desmopresina rfviia feiba emicizumab'},
+{id:'g_th',name:'GUÍAS CLÍNICAS',kw:'guias clinicas trombosis hemostasia tev fa hit hemofilia protocolo pdf'}
 ]},
-{h:'Banco de Sangre',items:[
-{id:'disc_abo',name:'Discrepancia ABO',kw:'discrepancia abo grupo serico hematico tipificacion banco sangre transfusion'},
-{id:'aaii',name:'Anticuerpos irregulares',kw:'anticuerpos irregulares aaii coombs indirecto fenotipo significativo benigno banco sangre'},
-{id:'panag',name:'Panaglutinación',kw:'panaglutinacion autocontrol coombs directo aloanticuerpo autoanticuerpo banco sangre'},
-{id:'trans_ch',name:'Transfusión Hematíes',kw:'transfusion concentrado hematies ch hemoglobina umbral banco sangre sets'},
-{id:'trans_pq',name:'Transfusión Plaquetas',kw:'transfusion plaquetas trombopenia umbral profilactica oncohematologica banco sangre sets'},
-{id:'trans_pfc',name:'Transfusión Plasma (PFC)',kw:'transfusion plasma fresco congelado pfc dosis tp ttpa fibrinogeno banco sangre sets'},
-{id:'pre_op',name:'Optimización preoperatoria',kw:'optimizacion preoperatoria hierro oral intravenoso ferinject venofer ganzoni eritropoyetina epo cot banco sangre'},
-{id:'g_bs',name:'Guías Clínicas',kw:'guias clinicas banco sangre transfusion inmunohematologia aaii abo reaccion transfusional aferesis pbm hemovigilancia protocolo pdf'}
+{h:'BANCO DE SANGRE',items:[
+{id:'disc_abo',name:'DISCREPANCIA ABO',kw:'discrepancia abo grupo serico hematico tipificacion banco sangre transfusion'},
+{id:'aaii',name:'ANTICUERPOS IRREGULARES',kw:'anticuerpos irregulares aaii coombs indirecto fenotipo significativo benigno banco sangre'},
+{id:'panag',name:'PANAGLUTINACIÓN',kw:'panaglutinacion autocontrol coombs directo aloanticuerpo autoanticuerpo banco sangre'},
+{id:'trans_ch',name:'TRANSFUSIÓN HEMATÍES',kw:'transfusion concentrado hematies ch hemoglobina umbral banco sangre sets'},
+{id:'trans_pq',name:'TRANSFUSIÓN PLAQUETAS',kw:'transfusion plaquetas trombopenia umbral profilactica oncohematologica banco sangre sets'},
+{id:'trans_pfc',name:'TRANSFUSIÓN PLASMA (PFC)',kw:'transfusion plasma fresco congelado pfc dosis tp ttpa fibrinogeno banco sangre sets'},
+{id:'pre_op',name:'OPTIMIZACIÓN PREOPERATORIA',kw:'optimizacion preoperatoria hierro oral intravenoso ferinject venofer ganzoni eritropoyetina epo cot banco sangre'},
+{id:'g_bs',name:'GUÍAS CLÍNICAS',kw:'guias clinicas banco sangre transfusion inmunohematologia aaii abo reaccion transfusional aferesis pbm hemovigilancia protocolo pdf'}
 ]},
-{h:'Terapia celular',items:[
+{h:'TERAPIA CELULAR',items:[
 {id:'crs',name:'CRS (ASTCT)',kw:'crs cart citoquinas biespecificos terapia celular'},
 {id:'icans',name:'ICE / ICANS',kw:'ice icans neurotoxicidad cart terapia celular'},
 {id:'taspe',name:'TASPE',kw:'taspe trasplante autologo progenitores hematopoyeticos auto-tph autosct movilizacion plerixafor acondicionamiento bea m mel200 cd34 prendimiento'},
-{id:'g_cart',name:'Guías Clínicas',kw:'guias clinicas terapia celular cart biespecificos protocolo pdf'}
+{id:'g_cart',name:'GUÍAS CLÍNICAS',kw:'guias clinicas terapia celular cart biespecificos protocolo pdf'}
 ]},
-{h:'Citopenias',items:[
-{id:'g_cito',name:'Guías Clínicas',kw:'guias clinicas citopenias pti ahai eritropatologia anemia hemolitica falciforme talasemia esferocitosis aplasia hpn protocolo pdf'}
+{h:'CITOPENIAS',items:[
+{id:'g_cito',name:'GUÍAS CLÍNICAS',kw:'guias clinicas citopenias pti ahai eritropatologia anemia hemolitica falciforme talasemia esferocitosis aplasia hpn protocolo pdf'}
 ]},
-{h:'Leucemias agudas',items:[
+{h:'LEUCEMIAS AGUDAS',items:[
 {id:'eln',name:'ELN 2022 (LMA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
-{id:'eln24',name:'ELN 2024 (LMA baja intensidad)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
-{id:'g_leuc_ag',name:'Guías Clínicas',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
+{id:'eln24',name:'ELN 2024 (LMA BAJA INTENSIDAD)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
+{id:'g_leuc_ag',name:'GUÍAS CLÍNICAS',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
 ]},
-{h:'Patología mieloide crónica',items:[
+{h:'PATOLOGÍA MIELOIDE CRÓNICA',items:[
 {sub:1,name:'SMD'},
 {id:'ipssr',name:'IPSS-R',kw:'ipssr smd mielodisplasico'},
 {id:'ipssm',name:'IPSS-M (info)',kw:'ipssm smd mielodisplasico'},
 {sub:1,name:'LMMC'},
 {id:'icpss',name:'iCPSS',kw:'icpss lmmc cmml'},
 {sub:1,name:'LMC'},
-{id:'sokal',name:'Sokal',kw:'sokal lmc leucemia mieloide cronica'},
+{id:'sokal',name:'SOKAL',kw:'sokal lmc leucemia mieloide cronica'},
 {sub:1,name:'Mielofibrosis'},
 {id:'dipss',name:'DIPSS',kw:'dipss mielofibrosis primaria nmp dynamic prognostic',new:'2026-05-11'},
-{id:'dipssp',name:'DIPSS-Plus',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional',new:'2026-05-11'},
-{id:'mipss70',name:'MIPSS70 / MIPSS70-Plus',kw:'mipss70 mipss mielofibrosis molecular mutaciones asxl1 srsf2 ezh2 idh u2af1 alto riesgo hmr',new:'2026-05-11'},
-{id:'g_mieloide',name:'Guías Clínicas',kw:'guias clinicas patologia mieloide smd mielofibrosis nmp lmmc lmc pdf'}
+{id:'dipssp',name:'DIPSS-PLUS',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional',new:'2026-05-11'},
+{id:'mipss70',name:'MIPSS70 / MIPSS70-PLUS',kw:'mipss70 mipss mielofibrosis molecular mutaciones asxl1 srsf2 ezh2 idh u2af1 alto riesgo hmr',new:'2026-05-11'},
+{id:'g_mieloide',name:'GUÍAS CLÍNICAS',kw:'guias clinicas patologia mieloide smd mielofibrosis nmp lmmc lmc pdf'}
 ]},
-{h:'Mieloma y gammapatías',items:[
+{h:'MIELOMA Y GAMMAPATÍAS',items:[
 {id:'riss',name:'R-ISS',kw:'riss mieloma multiple'},
 {id:'r2iss',name:'R2-ISS',kw:'r2iss mieloma multiple'},
-{id:'ipsswm',name:'IPSS-WM (Waldenström)',kw:'ipss wm waldenstrom macroglobulinemia mgi linfoplasmocitico pronostico beta2 microglobulina igm',new:'2026-05-11'},
-{id:'g_mm',name:'Guías Clínicas',kw:'guias clinicas mieloma multiple smoldering amiloidosis waldenstrom protocolo pdf'}
+{id:'ipsswm',name:'IPSS-WM (WALDENSTRÖM)',kw:'ipss wm waldenstrom macroglobulinemia mgi linfoplasmocitico pronostico beta2 microglobulina igm',new:'2026-05-11'},
+{id:'g_mm',name:'GUÍAS CLÍNICAS',kw:'guias clinicas mieloma multiple smoldering amiloidosis waldenstrom protocolo pdf'}
 ]},
-{h:'Linfoma',items:[
+{h:'LINFOMA',items:[
 {id:'ripi',name:'R-IPI',kw:'ripi linfoma lbdcg b grandes'},
 {id:'cnsipi',name:'CNS-IPI',kw:'cns ipi snc linfoma'},
 {id:'flipi',name:'FLIPI / R-FLIPI',kw:'flipi folicular linfoma'},
 {id:'mipi',name:'MIPI',kw:'mipi manto mantle'},
-{id:'ips',name:'IPS (Hodgkin)',kw:'ips hodgkin pronostico hasenclever'},
-{id:'aa',name:'Ann Arbor',kw:'ann arbor estadio linfoma hodgkin'},
-{id:'g_lf',name:'Guías Clínicas',kw:'guias clinicas linfoma protocolo pdf folicular difuso manto hodgkin marginal burkitt'}
+{id:'ips',name:'IPS (HODGKIN)',kw:'ips hodgkin pronostico hasenclever'},
+{id:'aa',name:'ANN ARBOR',kw:'ann arbor estadio linfoma hodgkin'},
+{id:'g_lf',name:'GUÍAS CLÍNICAS',kw:'guias clinicas linfoma protocolo pdf folicular difuso manto hodgkin marginal burkitt'}
 ]},
 {h:'LLC',items:[
 {id:'cllipi',name:'CLL-IPI',kw:'cll ipi llc leucemia linfocitica cronica'},
-{id:'g_llc',name:'Guías Clínicas',kw:'guias clinicas llc tricoleucemia waldenstrom protocolo pdf'}
+{id:'g_llc',name:'GUÍAS CLÍNICAS',kw:'guias clinicas llc tricoleucemia waldenstrom protocolo pdf'}
 ]},
-{h:'Hematología pediátrica',items:[
-{id:'g_ped',name:'Guías Clínicas',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
+{h:'HEMATOLOGÍA PEDIÁTRICA',items:[
+{id:'g_ped',name:'GUÍAS CLÍNICAS',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
 ]},
-{h:'Otras Calculadoras',items:[
-{id:'qtc',name:'QTc (Fridericia)',kw:'qtc fridericia ekg ecg intervalo'},
-{id:'crcl',name:'Aclaramiento Cr',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
-{id:'cacorr',name:'Calcio corregido',kw:'calcio corregido payne albumina proteinas totales hipocalcemia hipercalcemia mieloma paraproteina hipoalbuminemia',new:'2026-05-12'},
-{id:'obw',name:'Ajuste Obesidad',kw:'ibw abw obesidad ajuste peso ideal'},
-{id:'bsa',name:'Superficie Corporal',kw:'bsa mosteller superficie corporal'},
-{id:'cb',name:'Lisis Tumoral',kw:'cairo bishop lisis tumoral sld'},
-{id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad'},
+{h:'OTRAS CALCULADORAS',items:[
+{id:'opioides',name:'CONVERSIÓN DE OPIOIDES (MME)',kw:'opioides conversion morfina oxicodona fentanilo tramadol tapentadol metadona hidromorfona buprenorfina mme equivalente rotacion',new:'2026-05-13'},
+{id:'qtc',name:'QTC (FRIDERICIA)',kw:'qtc fridericia ekg ecg intervalo'},
+{id:'crcl',name:'ACLARAMIENTO CR',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
+{id:'cacorr',name:'CALCIO CORREGIDO',kw:'calcio corregido payne albumina proteinas totales hipocalcemia hipercalcemia mieloma paraproteina hipoalbuminemia',new:'2026-05-12'},
+{id:'obw',name:'AJUSTE OBESIDAD',kw:'ibw abw obesidad ajuste peso ideal'},
+{id:'bsa',name:'SUPERFICIE CORPORAL',kw:'bsa mosteller superficie corporal'},
+{id:'cb',name:'LISIS TUMORAL',kw:'cairo bishop lisis tumoral sld'},
+{id:'hctci',name:'HCT-CI (SORROR)',kw:'hctci sorror trasplante comorbilidad'},
 {id:'ecog',name:'ECOG',kw:'ecog estado funcional performance'},
-{id:'g8',name:'G8 Fragilidad',kw:'g8 fragilidad anciano geriatrico'}
+{id:'g8',name:'G8 FRAGILIDAD',kw:'g8 fragilidad anciano geriatrico'}
 ]},
-{h:'Utilidades',items:[
-{id:'phone',name:'Listín Telefónico',kw:'telefonos contactos directorio listin corporativo busca'},
-{id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
-{id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'}
+{h:'UTILIDADES',items:[
+{id:'phone',name:'LISTÍN TELEFÓNICO',kw:'telefonos contactos directorio listin corporativo busca'},
+{id:'equipo',name:'EQUIPO',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
+{id:'sync',name:'SINCRONIZACIÓN',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'}
 ]}
 ];
 
@@ -542,13 +513,13 @@ const ICON_PHONE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 
 function homeView() {
     return `
-    <div class="card home-hero" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px;">
-        <div class="home-logo" style="width: 180px; height: 180px; margin-bottom: 20px;">
-            <img src="Imagen.jpg" alt="Logo Principal" style="width: 100%; height: auto; border-radius: 15px; box-shadow: var(--shd2);">
+    <div class="card home-hero">
+        <div class="home-logo">${LOGO_SVG}</div>
+        <div class="home-wordmark">
+            <div class="hp-hemo">HEMO</div>
+            <div class="hp-pocket">POCKET</div>
         </div>
-        <p class="home-tagline" style="font-size: 16px; font-weight: 500; color: var(--mut);">
-            Guía rápida de consulta en Hematología
-        </p>
+        <p class="home-tagline">Guía rápida de consulta en Hematología</p>
     </div>`;
 }
 VIEWS.home=homeView;
@@ -2530,7 +2501,8 @@ const GUIDES_TITLES={
 'lf':'Linfoma','mm':'Mieloma y Gammapatías','llc':'LLC y Linfoides Crónicos',
 'leuc_ag':'Leucemias agudas','mieloide':'Patología mieloide',
 'cito':'Citopenias','ped':'Hematología pediátrica',
-'cart':'Terapia celular','th':'Trombosis y Hemostasia','uh':'Urgencias Hematológicas',
+'cart':'Terapia celular','th':'Trombosis y Hemostasia',
+'inf':'Infecciones / Neutropenia febril','uh':'Otras urgencias hematológicas',
 'bs':'Banco de Sangre'
 };
 
@@ -2768,14 +2740,23 @@ const DEFAULT_SUBTYPES={
 {id:'antic',name:'Manejo perioperatorio anticoagulación',pdfs:[]},
 {id:'general',name:'Generales / Reversión',pdfs:[]}
 ],
+'inf':[
+{id:'nf_protocolo',name:'Neutropenia febril — protocolos',pdfs:[]},
+{id:'ecil',name:'Guías ECIL (bacterianas y fúngicas)',pdfs:[]},
+{id:'ifi_guias',name:'IFI / Aspergilosis / Candidiasis',pdfs:[]},
+{id:'profilaxis_atb',name:'Profilaxis antimicrobiana',pdfs:[]},
+{id:'profilaxis_viral',name:'Profilaxis viral (VHS/VVZ/CMV/PJP)',pdfs:[]},
+{id:'cmv_pcr',name:'CMV / EBV / BK virus',pdfs:[]},
+{id:'tuberculosis',name:'Tuberculosis e inmunodeprimidos',pdfs:[]},
+{id:'inf_general',name:'Generales / Soporte infeccioso',pdfs:[]}
+],
 'uh':[
-{id:'sld',name:'Neutropenia febril',pdfs:[]},
-{id:'leucost',name:'Síndrome de lisis tumoral',pdfs:[]},
+{id:'leucost',name:'Leucostasis / Hiperleucocitosis',pdfs:[]},
+{id:'lisis',name:'Síndrome de lisis tumoral',pdfs:[]},
 {id:'cid_urg',name:'CID urgente',pdfs:[]},
 {id:'mat_urg',name:'MAT (PTT / SHU)',pdfs:[]},
 {id:'compr',name:'Compresión Medular / Sd. VCS',pdfs:[]},
 {id:'sangr',name:'Sangrado Mayor / Reversión',pdfs:[]},
-{id:'cvc_inf',name:'Leucostasis / Hiperleucocitosis',pdfs:[]},
 {id:'transf_react',name:'Reacción transfusional',pdfs:[]},
 {id:'sind_dif',name:'Síndrome de diferenciación (LPA)',pdfs:[]},
 {id:'general',name:'Generales / Soporte UCI',pdfs:[]},
@@ -3097,6 +3078,466 @@ for(let i=1;i<placeholders.length;i++)observer.observe(placeholders[i]);
 container.innerHTML=`<div class="viewer-error">No se pudo renderizar el PDF.<br><strong>Error:</strong> <code style="font-size:11px">${e.message}</code><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="retryViewer()">Reintentar</button><button class="btn btn-out" onclick="downloadCurrentPDF()">Descargar PDF</button></div></div>`;
 }
 };
+
+// === CONVERSIÓN DE OPIOIDES (MME) ===
+const OPIO_FACT={
+mor_vo:{n:'Morfina oral',f:1,unit:'mg'},
+mor_iv:{n:'Morfina IV/SC',f:3,unit:'mg'},
+oxi_vo:{n:'Oxicodona oral',f:1.5,unit:'mg'},
+oxi_iv:{n:'Oxicodona IV/SC',f:3,unit:'mg'},
+hidro_vo:{n:'Hidromorfona oral',f:4,unit:'mg'},
+hidro_iv:{n:'Hidromorfona IV/SC',f:20,unit:'mg'},
+tram_vo:{n:'Tramadol oral',f:0.2,unit:'mg'},
+tram_iv:{n:'Tramadol IV/SC',f:0.2,unit:'mg'},
+cod:{n:'Codeína oral',f:0.15,unit:'mg'},
+tap:{n:'Tapentadol oral',f:0.4,unit:'mg'},
+fent_td:{n:'Fentanilo transdérmico',f:2.4,unit:'µg/h',td:true},
+fent_iv:{n:'Fentanilo IV/SC',f:0.3,unit:'µg'},
+bup_td:{n:'Buprenorfina transdérmica',f:0.6,unit:'µg/h',td:true}
+};
+function metadonaFactor(mme){
+if(mme<=20)return 4;
+if(mme<=40)return 8;
+if(mme<=60)return 10;
+return 12;
+}
+
+VIEWS.opioides=()=>{
+let optsFrom='',optsTo='';
+Object.keys(OPIO_FACT).forEach(k=>{
+optsFrom+=`<option value="${k}">${OPIO_FACT[k].n}</option>`;
+optsTo+=`<option value="${k}">${OPIO_FACT[k].n}</option>`;
+});
+optsFrom+=`<option value="meta_vo">Metadona oral</option>`;
+optsTo+=`<option value="meta_vo">Metadona oral</option>`;
+return `<div class="card">
+<h2>Conversión de opioides (MME oral)</h2>
+<p class="intro">Convierte cualquier opioide a equivalente de morfina oral (MME/día) y entre opioides. Aplica automáticamente una <strong>reducción del 25–50%</strong> por tolerancia cruzada incompleta al rotar a un opioide distinto. Para fentanilo y buprenorfina transdérmicos, la dosis se introduce en <strong>µg/h</strong>; el resto en <strong>mg/día</strong>.</p>
+
+<div class="row">
+<div class="fld"><label class="lbl">Opioide actual</label>
+<select id="op_from" onchange="calcOpio()">${optsFrom}</select></div>
+<div class="fld"><label class="lbl">Dosis actual</label><input type="number" step="0.01" id="op_dose" placeholder="mg/día (o µg/h si parche)" oninput="calcOpio()"></div>
+<div class="fld"><label class="lbl">Rotar a</label>
+<select id="op_to" onchange="calcOpio()">${optsTo}</select></div>
+<div class="fld"><label class="lbl">Reducción por tolerancia cruzada</label>
+<select id="op_red" onchange="calcOpio()">
+<option value="0.5">50% (anciano, IR/IH, polifarmacia)</option>
+<option value="0.3" selected>30% (estándar)</option>
+<option value="0.25">25% (dolor mal controlado, joven, función conservada)</option>
+<option value="0">Sin reducción (uso experto)</option>
+</select></div>
+</div>
+<div id="op_res" class="res" style="display:none"></div>
+<div class="btns"><button class="btn" onclick="calcOpio()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyOpio()">Copiar evolución</button></div>
+
+<div class="alert y" style="margin-top:14px;font-size:12.5px"><strong>Avisos clave:</strong> (1) MME &gt;50/día = riesgo significativo de sobredosis; &gt;90/día = muy alto riesgo, valorar naloxona y reducción. (2) Metadona tiene <strong>tolerancia cruzada parcial</strong> y conversión NO lineal: a mayor dosis de morfina, mayor potencia relativa de metadona; iniciar siempre en consulta especializada. (3) Buprenorfina y fentanilo TD tienen perfiles complejos; la rotación debe ser supervisada. (4) Dosis de rescate: 10–15% de la dosis diaria de fondo cada 4 h (oral) o cada 1 h (IV).</div>
+
+<h3>Tabla rápida de equivalencias (a MME oral)</h3>
+<table class="tbl">
+<tr><th>Opioide</th><th>Factor a MME oral</th><th>Ejemplo práctico</th></tr>
+<tr><td>Morfina oral</td><td>×1</td><td>30 mg/día = 30 MME</td></tr>
+<tr><td>Morfina IV/SC</td><td>×3</td><td>10 mg/día IV = 30 MME</td></tr>
+<tr><td>Oxicodona oral</td><td>×1.5</td><td>20 mg/día = 30 MME</td></tr>
+<tr><td>Hidromorfona oral</td><td>×4</td><td>8 mg/día = 32 MME</td></tr>
+<tr><td>Hidromorfona IV/SC</td><td>×20</td><td>2 mg/día IV = 40 MME</td></tr>
+<tr><td>Tramadol oral</td><td>×0.2</td><td>200 mg/día = 40 MME</td></tr>
+<tr><td>Codeína oral</td><td>×0.15</td><td>240 mg/día = 36 MME</td></tr>
+<tr><td>Tapentadol oral</td><td>×0.4</td><td>200 mg/día = 80 MME</td></tr>
+<tr><td>Fentanilo transdérmico</td><td>µg/h × 2.4</td><td>parche 25 µg/h = 60 MME/día</td></tr>
+<tr><td>Buprenorfina transdérmica</td><td>µg/h × 0.6</td><td>parche 35 µg/h = 21 MME/día</td></tr>
+<tr><td>Metadona oral</td><td>variable (×4 a ×12)</td><td>según MME total — iniciar bajo</td></tr>
+</table>
+
+<div class="ref">CDC Clinical Practice Guideline for Prescribing Opioids for Pain. MMWR Recomm Rep. 2022;71(3):1-95. American Pain Society / AAHPM. SECPAL Guía de Cuidados Paliativos 2021. Mercadante S, Caraceni A. Conversion ratios for opioid switching in the treatment of cancer pain. Palliat Med. 2011;25(5):504-515.</div>
+</div>`;
+};
+
+function calcOpio(){
+const from=$('op_from').value,to=$('op_to').value,dose=n($('op_dose').value),red=parseFloat($('op_red').value);
+if(dose==null||dose<=0){$('op_res').style.display='none';return}
+// Paso 1: calcular MME del opioide actual
+let mme;
+if(from==='meta_vo'){
+const factor=metadonaFactor(dose);
+mme=dose*factor;
+}else{
+const conf=OPIO_FACT[from];
+mme=dose*conf.f;
+}
+// Paso 2: calcular dosis en opioide destino
+let toDose,toUnit,toName,toFactor;
+if(to==='meta_vo'){
+const factor=metadonaFactor(mme);
+toDose=mme/factor;
+toUnit='mg/día';
+toName='Metadona oral';
+toFactor=`×1/${factor}`;
+}else{
+const conf=OPIO_FACT[to];
+toDose=mme/conf.f;
+toUnit=conf.td?'µg/h (parche)':((to.endsWith('_iv')||to.endsWith('_sc'))?'mg/día IV/SC':'mg/día');
+if(to==='fent_iv')toUnit='µg/día IV/SC';
+toName=conf.n;
+toFactor=`×1/${conf.f}`;
+}
+// Paso 3: aplicar reducción por tolerancia cruzada (solo si rotamos)
+const isRotation=from!==to;
+const reducedDose=isRotation?toDose*(1-red):toDose;
+const reductionTxt=isRotation&&red>0?` (con reducción del ${(red*100).toFixed(0)}% por tolerancia cruzada incompleta)`:'';
+// Clasificación de riesgo
+let riskCls,riskTxt;
+if(mme<50){riskCls='lo';riskTxt='Dosis baja (MME <50/día)'}
+else if(mme<90){riskCls='md';riskTxt='Dosis moderada (MME 50–90/día) — vigilancia'}
+else{riskCls='hi';riskTxt='Dosis alta (MME ≥90/día) — naloxona disponible, revisar indicación'}
+const fromName=from==='meta_vo'?'Metadona oral':OPIO_FACT[from].n;
+const el=$('op_res');el.style.display='block';el.className='res '+riskCls;
+el.innerHTML=`<div class="res-h"><span class="score">${mme.toFixed(0)} MME/día</span><span>${riskTxt}</span></div>
+<div class="res-s" style="margin-top:10px">
+<strong>Origen:</strong> ${fromName} ${dose} ${OPIO_FACT[from]?OPIO_FACT[from].unit:'mg'} → <strong>${mme.toFixed(1)} MME/día</strong> de morfina oral.<br>
+<strong>Equivalencia bruta en ${toName}:</strong> ${toDose.toFixed(2)} ${toUnit}.<br>
+<strong>Dosis recomendada al rotar:</strong> <span style="font-size:15px;color:var(--c1);font-weight:700">${reducedDose.toFixed(1)} ${toUnit}</span>${reductionTxt}.
+</div>
+<div class="res-s" style="margin-top:8px"><small><strong>Rescate sugerido:</strong> 10–15% de la dosis diaria de fondo cada 4 h vía oral o cada 1 h vía IV. <strong>Naloxona</strong>: tener prescrita si MME ≥50/día o factores de riesgo (apnea del sueño, depresión respiratoria, insuficiencia respiratoria, opioides + benzodiacepinas, edad avanzada).</small></div>`;
+window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'mg',mme,toName,reducedDose,toUnit,red,isRotation,riskTxt};
+}
+
+function copyOpio(){
+const d=window._opioData;if(!d){toast('Calcula primero');return}
+const rotTxt=d.isRotation?`Se realiza rotación de ${d.fromName} a ${d.toName}.`:`Se mantiene el mismo opioide (${d.fromName}).`;
+const redTxt=(d.isRotation&&d.red>0)?` Tras aplicar una reducción del ${(d.red*100).toFixed(0)}% por tolerancia cruzada incompleta entre opioides, se propone una dosis inicial de ${d.reducedDose.toFixed(1)} ${d.toUnit}.`:'';
+const txt=`Conversión de opioides — equivalente de morfina oral (MME)
+─────────────────────────────────────────────
+${patientHeader()}El paciente recibe actualmente ${d.fromName} a dosis de ${d.dose} ${d.fromUnit}, equivalente a ${d.mme.toFixed(1)} MME/día de morfina oral (${d.riskTxt.toLowerCase()}).
+
+${rotTxt}${redTxt}
+
+Se asocia pauta de rescate (10–15% de la dosis diaria de fondo cada 4 h vía oral o cada 1 h vía intravenosa). Se valora prescripción de naloxona si la dosis total supera 50 MME/día o existen factores de riesgo asociados. Se monitoriza analgesia, función intestinal, sedación y depresión respiratoria.
+
+[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
+copy(txt);
+}
+
+// === BACTERIEMIA POR S. AUREUS ===
+VIEWS.saureus=()=>`<div class="card">
+<h2>Bacteriemia por <em>Staphylococcus aureus</em></h2>
+<p class="intro">Algoritmo de manejo de bacteriemia por S. aureus. <strong>Toda bacteriemia por S. aureus es clínicamente significativa</strong>: nunca asumir contaminación. Mortalidad 15–30%.</p>
+
+<div class="alert r"><strong>Reglas de oro</strong>
+<ul style="padding-left:20px;margin-top:6px;line-height:1.7">
+<li><strong>2 sets de hemocultivos</strong> al diagnóstico y <strong>cada 48–72 h hasta negativización</strong>.</li>
+<li><strong>Retirada del catéter venoso central</strong> si está implicado o si bacteriemia persistente &gt;72 h pese a ATB adecuado.</li>
+<li><strong>Ecocardiograma</strong> obligatorio (ETT mínimo; ETE si prótesis valvular, dispositivos, sospecha endocarditis, persistente).</li>
+<li><strong>Duración: 14 días desde el primer hemocultivo negativo</strong> si no complicada; <strong>4–6 semanas</strong> si complicada/endocarditis.</li>
+<li><strong>Consulta con Infecciosas</strong> mejora el pronóstico (Vogel 2016, IDSA).</li>
+</ul>
+</div>
+
+<h3>1. Tratamiento empírico inicial (antes del antibiograma)</h3>
+<div class="alert b">
+<strong>Biterapia obligada</strong> en el paciente neutropénico o crítico:
+<ul style="padding-left:20px;margin-top:6px;line-height:1.7">
+<li><strong>Cefazolina 2 g/8h IV</strong> (cubre SAMS; mejor tolerada y eficacia equivalente o superior a cloxacilina — CAMERA-2). En PNS sospechado: cloxacilina 2 g/4h IV.</li>
+<li><strong>+ Daptomicina 10 mg/kg/24h IV</strong> (cubre SAMR; <em>evitar si foco pulmonar</em> porque el surfactante la inactiva → usar vancomicina) <em>o</em> <strong>vancomicina</strong> 15–20 mg/kg/12h IV (objetivo AUC₂₄ 400–600 mg·h/L; carga 25–30 mg/kg).</li>
+</ul>
+</div>
+
+<h3>2. Desescalada tras antibiograma</h3>
+<table class="tbl">
+<tr><th>Resultado</th><th>Tratamiento</th></tr>
+<tr><td><strong>SAMS</strong> (meticilín-sensible)</td><td>Mantener <strong>cefazolina 2 g/8h IV</strong> (o cloxacilina 2 g/4h IV). <strong>Retirar</strong> dapto/vanco. La vancomicina en SAMS aumenta mortalidad — NO mantener (Schweizer 2011, ARREST trial).</td></tr>
+<tr><td><strong>SAMR</strong> (meticilín-resistente)</td><td>Mantener <strong>daptomicina 10 mg/kg/24h</strong> (o vancomicina). <strong>Retirar</strong> cefazolina. Si CMI vancomicina &gt;1 o fallo terapéutico → daptomicina; si bacteriemia persistente, valorar <strong>daptomicina + ceftarolina 600 mg/8h</strong> (sinergia).</td></tr>
+</table>
+
+<h3>3. Estudio obligatorio de complicaciones</h3>
+<div class="alert y">
+<ul style="padding-left:20px;margin-top:4px;line-height:1.7">
+<li><strong>Ecocardiograma transtorácico (ETT)</strong>: siempre.</li>
+<li><strong>Ecocardiograma transesofágico (ETE)</strong>: si prótesis valvular, dispositivo intracardíaco (marcapasos, DAI), bacteriemia persistente &gt;72 h pese a ATB adecuada, sospecha clínica de endocarditis, sin foco claro, comunidad con dispositivo IV crónico.</li>
+<li><strong>Búsqueda de focos metastásicos</strong>: examen físico dirigido (piel, hueso, articulaciones, próstata); RM de columna si dolor lumbar (espondilodiscitis); ecografía/TC abdominal si fiebre persistente; <strong>fondo de ojo</strong> si síntomas oculares o inmunosupresión.</li>
+<li><strong>Retirada de CVC</strong>: siempre que sea factible; obligatoria si bacteriemia persistente &gt;72 h o catéter implicado.</li>
+</ul>
+</div>
+
+<h3>4. Hemocultivos de control</h3>
+<p style="line-height:1.7">Repetir 2 sets <strong>cada 48–72 h</strong> hasta obtener el primer set negativo. <strong>Es desde ese primer HC negativo desde el que se cuentan los días de tratamiento</strong>. Si persisten positivos &gt;72 h de ATB adecuado → bacteriemia complicada: ETE, búsqueda agresiva de foco profundo, considerar cambio de antibiótico o combinación.</p>
+
+<h3>5. Duración del tratamiento</h3>
+<table class="tbl">
+<tr><th>Escenario</th><th>Duración</th></tr>
+<tr><td>Bacteriemia <strong>no complicada</strong>: ETE negativo, foco extirpado/retirado, defervescencia &lt;72 h, HC negativos a las 48–72 h, sin endocarditis ni siembra metastásica</td><td><strong>14 días</strong> desde primer HC negativo (mínimo 14 días IV total)</td></tr>
+<tr><td>Bacteriemia <strong>complicada</strong>: persistente, sin retirada de foco, sembrada, inmunodeprimido</td><td><strong>4–6 semanas</strong></td></tr>
+<tr><td>Endocarditis sobre <strong>válvula nativa</strong> SAMS</td><td>4 semanas (6 si complicada o cerebro)</td></tr>
+<tr><td>Endocarditis SAMR</td><td>6 semanas + valorar combinaciones</td></tr>
+<tr><td>Endocarditis sobre <strong>válvula protésica</strong></td><td>6 semanas + rifampicina 300 mg/8h (los primeros 14 días con gentamicina 1 mg/kg/8h)</td></tr>
+<tr><td>Espondilodiscitis / osteomielitis</td><td>6–8 semanas (más larga si absceso epidural)</td></tr>
+</table>
+
+<h3>6. Step-down oral (en casos seleccionados)</h3>
+<p style="line-height:1.7">Recientemente avalado por <strong>POET trial</strong> (NEJM 2019, endocarditis izquierda estable) y <strong>SABATO</strong> en bacteriemia no complicada: tras 5–10 días IV y HC negativos sin complicaciones, se puede pasar a vía oral con biodisponibilidad alta:</p>
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>SAMS</strong>: cefadroxilo 1 g/12h o cloxacilina 1 g/6h VO.</li>
+<li><strong>SAMR</strong>: linezolid 600 mg/12h VO o cotrimoxazol forte 1 comp/8h VO (si sensible).</li>
+</ul>
+
+<div class="ref">Liu C et al. IDSA guidelines for MRSA infections. Clin Infect Dis. 2020. Holland TL et al. Clinical management of <em>Staphylococcus aureus</em> bacteremia. JAMA. 2014;312(13):1330-1341. Tong SYC et al. CAMERA-2 trial (combinación β-lactámico + vanco/dapto en bacteriemia SAMR). JAMA. 2020;323(6):527-537. Schweizer ML et al. Comparative effectiveness of nafcillin or cefazolin versus vancomycin in MSSA bacteremia. Antimicrob Agents Chemother. 2011. Iversen K et al. POET trial. NEJM. 2019;380(5):415-424.</div>
+</div>`;
+
+// === FIEBRE PERSISTENTE EN NEUTROPENIA ===
+VIEWS.fiebre_persist=()=>`<div class="card">
+<h2>Fiebre persistente en neutropenia (&gt;72–96 h)</h2>
+<p class="intro">Algoritmo de manejo de la fiebre que persiste pese a antibioterapia empírica adecuada en el paciente neutropénico. Distinguir entre fiebre persistente con cultivos negativos vs. recurrente con cultivos positivos requiere abordajes diferenciados.</p>
+
+<div class="alert b">
+<strong>Definiciones operativas</strong>
+<ul style="padding-left:20px;margin-top:6px;line-height:1.7">
+<li><strong>Fiebre persistente</strong>: continúa &gt;72 h tras inicio de ATB empírica de amplio espectro, sin foco identificado.</li>
+<li><strong>Fiebre recurrente</strong>: defervescencia inicial y reaparición tras &gt;48 h afebril.</li>
+<li><strong>Aspergilosis probable</strong> (criterios EORTC/MSGERC 2020): hospedador + clínico + micología.</li>
+</ul>
+</div>
+
+<h3>1. Reevaluación clínica completa (72–96 h)</h3>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Examen físico dirigido: <strong>piel</strong> (eccthyma, nódulos), <strong>catéter</strong> (eritema/dolor), <strong>perianal</strong>, oral (mucositis, herpes), <strong>senos paranasales</strong> (mucormicosis), <strong>fondo de ojo</strong>.</li>
+<li><strong>Repetir 2 sets de hemocultivos</strong> (incluyendo del CVC y de vena periférica para diferencial).</li>
+<li>Reanalíticas: hemograma, función renal/hepática, PCR, procalcitonina.</li>
+<li>Considerar <strong>urocultivo, coprocultivo + toxina C. difficile</strong>, exudado nasofaríngeo (VRS, gripe, SARS-CoV-2).</li>
+</ul>
+
+<h3>2. Estudio dirigido a IFI (a partir de 72–96 h)</h3>
+<div class="alert y">
+<strong>Pruebas a solicitar:</strong>
+<ul style="padding-left:20px;margin-top:4px;line-height:1.7">
+<li><strong>TC tórax de alta resolución</strong>: busca halo, halo invertido, cavitación, nódulo, signo de la media luna.</li>
+<li><strong>Galactomanano sérico</strong>: 2 determinaciones consecutivas; positivo si índice ≥0.5. Aspergilosis probable si dos consecutivos ≥0.5 (sérico) o uno ≥1.0 (BAL).</li>
+<li><strong>β-D-glucano</strong>: positivo (≥80 pg/mL) en aspergilosis, candidiasis invasiva y PJP. Falsos positivos con cefepime, transfusiones, hemodiálisis con membranas de celulosa, IgIV.</li>
+<li><strong>PCR Aspergillus</strong> en plasma y BAL si fibrobroncoscopia.</li>
+<li><strong>TC senos / TC abdomen</strong> según foco clínico.</li>
+<li><strong>Hemocultivos para hongos</strong> (técnica de lisis-centrifugación si disponible).</li>
+<li>Si lesión cutánea o nódulo accesible → <strong>biopsia con cultivo y anatomopatología</strong> urgente.</li>
+</ul>
+</div>
+
+<h3>3. Modificación del antibiótico</h3>
+<table class="tbl">
+<tr><th>Situación</th><th>Acción</th></tr>
+<tr><td>Empírico inicial fue cefepime / pip-tazo</td><td>Cambiar a <strong>meropenem 1–2 g/8h</strong> (cobertura BLEE/anaerobios)</td></tr>
+<tr><td>Mucositis severa, foco abdominal, hemocultivos con Gram+ pendiente</td><td>Añadir <strong>vancomicina</strong> 15–20 mg/kg/12h (objetivo AUC 400–600)</td></tr>
+<tr><td>Antecedente / colonización por BMR</td><td><strong>Cefiderocol</strong> 2 g/8h (BLEE, MBL, CRAB) o <strong>ceftazidima/avibactam</strong> 2.5 g/8h (KPC, OXA-48) ± aztreonam si MBL</td></tr>
+<tr><td>Sospecha de SAMR o foco cutáneo/CVC con Gram+</td><td><strong>Daptomicina</strong> 10 mg/kg/24h (no si foco pulmonar) o vancomicina</td></tr>
+<tr><td>Diarrea + ATB de amplio espectro</td><td>Añadir <strong>fidaxomicina</strong> 200 mg/12h VO empírica + suspender ATB innecesarios</td></tr>
+</table>
+
+<h3>4. Antifúngico empírico (si fiebre &gt;96 h y neutropenia esperada &gt;7 días)</h3>
+<table class="tbl">
+<tr><th>Situación</th><th>Antifúngico de elección</th></tr>
+<tr><td><strong>Sin profilaxis previa con azoles</strong></td><td><strong>Caspofungina</strong> 70 mg → 50 mg/24h IV (anidulafungina 200 → 100 mg/24h equivalente)</td></tr>
+<tr><td><strong>Profilaxis previa con candina</strong> (caspofungina, anidulafungina, micafungina)</td><td>Cambiar a <strong>voriconazol</strong> 6 mg/kg/12h × 1 día → 4 mg/kg/12h IV (objetivo nivel valle 1–5.5 mg/L) o <strong>isavuconazol</strong> 200 mg/8h × 6 dosis → 200 mg/24h</td></tr>
+<tr><td><strong>Profilaxis previa con azol</strong> (posaconazol, fluconazol)</td><td>Cambiar a <strong>L-AmB</strong> 3–5 mg/kg/24h IV (o equinocandina si Aspergillus no probable)</td></tr>
+<tr><td><strong>Sospecha mucormicosis</strong> (rinosinusal, RM con realce dural, diabetes mal controlada, sobrecarga de hierro)</td><td><strong>L-AmB 5–10 mg/kg/24h</strong> + cirugía + considerar posaconazol o isavuconazol</td></tr>
+<tr><td>Aspergilosis probable/probada confirmada</td><td><strong>Isavuconazol</strong> 200 mg/8h × 6 dosis → 200 mg/24h (preferido por menos interacciones y nefrotoxicidad) <em>o</em> <strong>voriconazol</strong> (monitorizar niveles)</td></tr>
+</table>
+
+<h3>5. Cuándo desescalar antifúngico</h3>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Si fiebre cede + cultivos negativos + imagen negativa + GM/β-D-glucano negativos en 2 determinaciones → suspender antifúngico empírico tras recuperación de neutrófilos.</li>
+<li>Si IFI probable/probada → mantener mínimo <strong>6–12 semanas</strong> hasta resolución radiológica completa + recuperación inmunológica.</li>
+</ul>
+
+<h3>6. Interacciones clave con tratamiento hematológico</h3>
+<div class="alert y" style="font-size:12.5px">
+<strong>Azoles e inhibidores de CYP3A4</strong>: voriconazol/posaconazol/itraconazol/isavuconazol inhiben CYP3A4 y aumentan niveles de:
+<ul style="padding-left:20px;margin-top:4px">
+<li><strong>Venetoclax</strong>: reducir dosis al 25% con azol fuerte (posa, vori); 50% con isavuconazol o fluconazol.</li>
+<li><strong>Midostaurina, gilteritinib, ibrutinib, ruxolitinib</strong>: reducir dosis o suspender el azol.</li>
+<li><strong>Vincristina</strong>: combinación contraindicada con azoles (neurotoxicidad severa).</li>
+<li><strong>Tacrolimus, ciclosporina, sirolimus</strong>: aumentan niveles 2-3×; monitorizar y reducir dosis.</li>
+</ul>
+</div>
+
+<div class="ref">Maertens JA et al. <em>ECIL-9 Treatment of fever and IFD in neutropenic patients 2024 update</em>. Patterson TF et al. <em>IDSA guidelines for aspergillosis</em>. Clin Infect Dis. 2016. Donnelly JP et al. <em>Revision and update of consensus definitions of invasive fungal disease (EORTC/MSGERC)</em>. Clin Infect Dis. 2020. Pappas PG et al. <em>IDSA guidelines for candidiasis</em>. 2016. Cornely OA et al. <em>Global guideline for the diagnosis and management of mucormycosis</em>. Lancet Infect Dis. 2019.</div>
+</div>`;
+
+// === IFI / ASPERGILOSIS ===
+VIEWS.ifi=()=>`<div class="card">
+<h2>Infección fúngica invasiva (IFI) / Aspergilosis</h2>
+<p class="intro">Definiciones EORTC/MSGERC 2020 para el diagnóstico de IFI en el paciente con neoplasia hematológica. Distingue tres categorías diagnósticas (probada, probable, posible) y orienta el tratamiento.</p>
+
+<h3>Categorías diagnósticas (EORTC/MSGERC 2020)</h3>
+<table class="tbl">
+<tr><th>Categoría</th><th>Requisitos</th></tr>
+<tr><td><strong>IFI probada</strong></td><td>Tejido (biopsia/autopsia) con hifas <em>y</em> cultivo positivo a hongo filamentoso; <em>o</em> hemocultivo positivo a Aspergillus/Fusarium/Scedosporium en paciente clínicamente compatible</td></tr>
+<tr><td><strong>IFI probable</strong></td><td><strong>Hospedador</strong> (1 criterio) + <strong>Clínico</strong> (1 criterio) + <strong>Micología</strong> (1 criterio)</td></tr>
+<tr><td><strong>IFI posible</strong></td><td>Hospedador + Clínico, <strong>sin</strong> criterio micológico</td></tr>
+</table>
+
+<h3>Criterios de hospedador (al menos 1)</h3>
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>Neutropenia</strong> &lt;0.5 ×10⁹/L durante &gt;10 días reciente</li>
+<li><strong>Trasplante alogénico de progenitores hematopoyéticos</strong></li>
+<li><strong>Corticoides</strong> ≥0.3 mg/kg/día de prednisona o equivalente durante &gt;3 semanas (en últimos 60 días)</li>
+<li><strong>Tratamiento inmunosupresor</strong> en los últimos 90 días: calcineurínicos, anti-TNF, alemtuzumab, fludarabina, ibrutinib (riesgo aumentado), bortezomib</li>
+<li><strong>Inmunodeficiencia primaria</strong> hereditaria</li>
+<li><strong>EICH severo</strong> en tratamiento</li>
+</ul>
+
+<h3>Criterios clínicos (al menos 1)</h3>
+<div class="alert b">
+<strong>Aspergilosis pulmonar</strong> — TC tórax muestra al menos uno de:
+<ul style="padding-left:20px;margin-top:4px;line-height:1.7">
+<li>Lesiones <strong>nodulares</strong> bien circunscritas con o sin <strong>halo en vidrio esmerilado</strong> (signo precoz patognomónico en neutropénico)</li>
+<li><strong>Signo del halo invertido</strong> (más sugestivo de mucormicosis)</li>
+<li><strong>Cavitación</strong> central</li>
+<li><strong>Signo de la media luna</strong> (aire en torno a nódulo, suele aparecer en recuperación de neutrófilos)</li>
+<li><strong>Consolidación segmentaria/lobar</strong> en neutropénico (criterio menos específico)</li>
+</ul>
+</div>
+
+<div class="alert b">
+<strong>Aspergilosis traqueobronquial</strong>: úlceras, pseudomembranas o placas en broncoscopia.<br>
+<strong>Sinusitis</strong>: TC con erosión ósea, destrucción ósea, extensión a estructuras vecinas.<br>
+<strong>SNC</strong>: hallazgos focales en imagen sin otras causas explicables (RM con realce).
+</div>
+
+<h3>Criterios micológicos (al menos 1)</h3>
+<table class="tbl">
+<tr><th>Marcador</th><th>Umbral</th></tr>
+<tr><td><strong>Galactomanano sérico</strong></td><td>≥1.0 (un único valor) <em>o</em> ≥0.5 en 2 muestras consecutivas</td></tr>
+<tr><td><strong>Galactomanano en BAL</strong></td><td>≥1.0</td></tr>
+<tr><td><strong>β-D-glucano</strong> (criterio menor, no específico)</td><td>≥80 pg/mL en 2 determinaciones consecutivas</td></tr>
+<tr><td><strong>PCR Aspergillus</strong></td><td>Positiva en 2 muestras consecutivas de sangre <em>o</em> en BAL</td></tr>
+<tr><td><strong>Cultivo</strong></td><td>Crecimiento de Aspergillus en esputo, BAL, cepillado bronquial, aspirado de seno</td></tr>
+<tr><td><strong>Citología/histopatología</strong></td><td>Hifas septadas con ramificación dicotómica en ángulo agudo</td></tr>
+</table>
+
+<h3>Tratamiento de la aspergilosis pulmonar invasiva</h3>
+<div class="alert g">
+<strong>Primera línea (IDSA 2016, ECIL-9 2024):</strong>
+<ul style="padding-left:20px;margin-top:6px;line-height:1.7">
+<li><strong>Isavuconazol</strong> 200 mg/8h × 6 dosis → 200 mg/24h (preferido por menor nefrotoxicidad e interacciones, no requiere monitorización de niveles). VO disponible con misma biodisponibilidad.</li>
+<li><strong>Voriconazol</strong> 6 mg/kg/12h IV × 1 día → 4 mg/kg/12h IV (paso a 200 mg/12h VO cuando estable). Monitorizar nivel valle (objetivo 1–5.5 mg/L); ajustar por toxicidad (hepatotoxicidad, alucinaciones, fluorosis ósea).</li>
+</ul>
+<strong>Alternativa / rescate:</strong>
+<ul style="padding-left:20px;margin-top:6px;line-height:1.7">
+<li><strong>L-AmB</strong> 3–5 mg/kg/24h IV (especialmente en sospecha de mucormicosis).</li>
+<li><strong>Posaconazol</strong> tabletas 300 mg/12h × 1 día → 300 mg/24h (no recomendado como 1ª línea en aspergilosis grave, sí como descalada o profilaxis).</li>
+<li><strong>Combinación voriconazol + equinocandina</strong>: considerar en aspergilosis grave o que progresa (estudio Marr 2015 mostró beneficio marginal en GM &gt;2).</li>
+</ul>
+</div>
+
+<h3>Duración del tratamiento</h3>
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>Mínimo 6–12 semanas</strong>; en realidad hasta resolución completa radiológica y recuperación inmunológica.</li>
+<li>Cuando vuelva a ciclos de quimioterapia o trasplante → <strong>profilaxis secundaria</strong> con el mismo azol durante toda la inmunosupresión.</li>
+<li>Monitorización con TC tórax cada 2–4 semanas hasta resolución; GM seriado en sangre.</li>
+</ul>
+
+<h3>Mucormicosis (sospecha urgente)</h3>
+<div class="alert r" style="font-size:12.5px">
+<strong>Pensar en mucormicosis si:</strong> rinosinusitis con destrucción ósea, signo del halo invertido en TC, lesión cutánea necrótica, diabetes mal controlada, sobrecarga de hierro (deferoxamina), uso prolongado de voriconazol/posaconazol (breakthrough), trasplantados.
+<ul style="padding-left:20px;margin-top:4px">
+<li><strong>L-AmB 5–10 mg/kg/24h IV</strong> + cirugía precoz + corrección de factores predisponentes (control glucémico, retirar hierro).</li>
+<li>Step-down a <strong>posaconazol</strong> 300 mg/24h o <strong>isavuconazol</strong> 200 mg/24h tras estabilización.</li>
+<li>Sin tratamiento, mortalidad &gt;80%.</li>
+</ul>
+</div>
+
+<div class="ref">Donnelly JP et al. <em>Revision and Update of the Consensus Definitions of Invasive Fungal Disease (EORTC/MSGERC)</em>. Clin Infect Dis. 2020;71(6):1367-1376. Patterson TF et al. <em>Practice Guidelines for the Diagnosis and Management of Aspergillosis</em>. IDSA. Clin Infect Dis. 2016;63(4):e1-e60. Maertens JA et al. <em>ECIL-9 invasive fungal diseases in neutropenic patients</em>. 2024. Cornely OA et al. <em>Global guideline for mucormycosis</em>. Lancet Infect Dis. 2019. Ullmann AJ et al. <em>ESCMID-ECMM-ERS guideline for aspergillosis</em>. Clin Microbiol Infect. 2018.</div>
+</div>`;
+
+// === DURACIÓN DE ANTIBIOTERAPIA ===
+VIEWS.atb_dur=()=>`<div class="card">
+<h2>Duración recomendada de antibioterapia</h2>
+<p class="intro">Tabla rápida de duraciones según foco y germen. Los últimos años han traído un giro importante hacia <strong>tratamientos más cortos</strong> con eficacia equivalente y menos resistencias / efectos adversos (estudios SHORTEN, PIRATE, BALANCE, MERINO).</p>
+
+<div class="alert b">
+<strong>Principios generales (2024)</strong>
+<ul style="padding-left:20px;margin-top:6px;line-height:1.7">
+<li>Contar la duración desde el <strong>primer hemocultivo negativo</strong> si bacteriemia.</li>
+<li>Descalar a vía oral cuando el paciente está estable, sin foco profundo y tolera la VO (PRINCIPLE, OVIVA).</li>
+<li>La <strong>procalcitonina</strong> puede ayudar a suspender ATB antes en sepsis (ProACT, PRORATA).</li>
+<li>Tratamientos más largos que los recomendados <strong>no mejoran resultados</strong> y aumentan resistencias.</li>
+</ul>
+</div>
+
+<h3>Bacteriemia y endocarditis</h3>
+<table class="tbl">
+<tr><th>Escenario</th><th>Duración</th></tr>
+<tr><td><strong>Bacteriemia BGN</strong> (E. coli, Klebsiella) no complicada</td><td><strong>7 días</strong> desde primer HC negativo (PIRATE, BALANCE 7 vs 14)</td></tr>
+<tr><td><strong>Bacteriemia BGN</strong> complicada (foco profundo, inmunodeprimido, persistente)</td><td>10–14 días</td></tr>
+<tr><td><strong>Bacteriemia S. aureus no complicada</strong></td><td>14 días desde primer HC negativo</td></tr>
+<tr><td><strong>Bacteriemia S. aureus complicada</strong></td><td>4–6 semanas</td></tr>
+<tr><td><strong>Bacteriemia enterocócica</strong></td><td>≥14 días no complicada; 4–6 semanas si endocarditis</td></tr>
+<tr><td><strong>Candidemia</strong></td><td>14 días desde primer HC negativo + retirada CVC + fondo de ojo</td></tr>
+<tr><td><strong>Endocarditis válvula nativa SAMS</strong></td><td>4 semanas (6 si cerebro, persistente)</td></tr>
+<tr><td><strong>Endocarditis válvula nativa SAMR</strong></td><td>6 semanas</td></tr>
+<tr><td><strong>Endocarditis válvula nativa enterocócica</strong></td><td>4–6 semanas (ampicilina + ceftriaxona)</td></tr>
+<tr><td><strong>Endocarditis válvula protésica</strong></td><td>6 semanas + rifampicina + gentamicina (14 días)</td></tr>
+<tr><td><strong>Bacteriemia con foco erradicable</strong> (catéter retirado, absceso drenado)</td><td>7–14 días</td></tr>
+</table>
+
+<h3>Tracto urinario</h3>
+<table class="tbl">
+<tr><th>Cuadro</th><th>Duración</th></tr>
+<tr><td><strong>Cistitis no complicada</strong> mujer</td><td>Fosfomicina 1 dosis · Nitrofurantoína 5 días · Cotrimoxazol 3 días</td></tr>
+<tr><td><strong>Cistitis complicada</strong></td><td>7 días</td></tr>
+<tr><td><strong>Pielonefritis no complicada</strong></td><td>7 días (fluoroquinolonas) · 10–14 días (β-lactámicos)</td></tr>
+<tr><td><strong>Pielonefritis complicada / urosepsis</strong></td><td>10–14 días</td></tr>
+<tr><td><strong>Prostatitis aguda</strong></td><td>2–4 semanas (FQ o cotrimoxazol)</td></tr>
+<tr><td><strong>Prostatitis crónica</strong></td><td>4–6 semanas</td></tr>
+</table>
+
+<h3>Vía respiratoria</h3>
+<table class="tbl">
+<tr><th>Cuadro</th><th>Duración</th></tr>
+<tr><td><strong>Neumonía adquirida en comunidad</strong></td><td><strong>5–7 días</strong> (afebril ≥48h, estable; PCT-guiada puede ser 3–5 días)</td></tr>
+<tr><td><strong>Neumonía aspiración</strong></td><td>5–7 días</td></tr>
+<tr><td><strong>Neumonía nosocomial / VAP</strong></td><td><strong>7–8 días</strong> (incluso bacteriemia P. aeruginosa: ATS/IDSA 2016)</td></tr>
+<tr><td><strong>Absceso pulmonar</strong></td><td>4–6 semanas (hasta resolución radiológica)</td></tr>
+<tr><td><strong>Empiema</strong></td><td>2–4 semanas + drenaje</td></tr>
+</table>
+
+<h3>SNC y partes blandas</h3>
+<table class="tbl">
+<tr><th>Cuadro</th><th>Duración</th></tr>
+<tr><td><strong>Meningitis neumocócica/meningocócica</strong></td><td>7 días</td></tr>
+<tr><td><strong>Meningitis por Listeria</strong></td><td>14–21 días (ampicilina + gentamicina inicial)</td></tr>
+<tr><td><strong>Meningitis por Streptococcus B / BGN</strong></td><td>14–21 días</td></tr>
+<tr><td><strong>Absceso cerebral</strong></td><td>4–8 semanas + drenaje</td></tr>
+<tr><td><strong>Celulitis no complicada</strong></td><td>5–7 días</td></tr>
+<tr><td><strong>Infección piel/partes blandas complicada</strong></td><td>7–14 días</td></tr>
+<tr><td><strong>Fascitis necrotizante</strong></td><td>Hasta desbridamiento completo + 5–7 días afebril</td></tr>
+<tr><td><strong>Osteomielitis aguda</strong></td><td>4–6 semanas</td></tr>
+<tr><td><strong>Osteomielitis crónica</strong></td><td>≥3 meses + desbridamiento</td></tr>
+<tr><td><strong>Artritis séptica nativa</strong></td><td>2–4 semanas</td></tr>
+<tr><td><strong>Artritis sobre prótesis (PJI)</strong></td><td>6–12 semanas + DAIR o recambio protésico</td></tr>
+</table>
+
+<h3>Infecciones específicas en el paciente hematológico</h3>
+<table class="tbl">
+<tr><th>Infección</th><th>Duración</th></tr>
+<tr><td><strong>Aspergilosis invasiva</strong></td><td>≥6–12 semanas hasta resolución radiológica + recuperación inmune</td></tr>
+<tr><td><strong>Candidiasis invasiva</strong></td><td>14 días desde último HC negativo + control oftalmológico</td></tr>
+<tr><td><strong>Pneumocystis jirovecii (PJP)</strong></td><td>21 días cotrimoxazol + profilaxis posterior</td></tr>
+<tr><td><strong>CMV enfermedad</strong></td><td>2–3 semanas hasta PCR negativa + 2 semanas más</td></tr>
+<tr><td><strong>C. difficile (1º episodio)</strong></td><td>10 días fidaxomicina o vancomicina oral</td></tr>
+<tr><td><strong>C. difficile recurrente</strong></td><td>Fidaxomicina pulsada + bezlotoxumab; valorar TMF</td></tr>
+<tr><td><strong>Neutropenia febril (afebril, neutrófilos &gt;500)</strong></td><td>Suspender al recuperar neutrófilos (≥48h afebril)</td></tr>
+</table>
+
+<h3>Otros focos</h3>
+<table class="tbl">
+<tr><th>Cuadro</th><th>Duración</th></tr>
+<tr><td><strong>Colecistitis aguda</strong></td><td>4–7 días post-colecistectomía / control del foco</td></tr>
+<tr><td><strong>Colangitis</strong></td><td>4–7 días tras drenaje biliar</td></tr>
+<tr><td><strong>Peritonitis secundaria con control del foco</strong></td><td>4 días (STOP-IT trial, 2015)</td></tr>
+<tr><td><strong>Diverticulitis no complicada</strong></td><td>4–7 días (o sin ATB si leve)</td></tr>
+<tr><td><strong>Sepsis sin foco</strong></td><td>7–10 días según evolución y procalcitonina</td></tr>
+</table>
+
+<div class="ref">Yahav D et al. <em>PIRATE</em>: Seven Versus 14 Days of Antibiotic Therapy for Uncomplicated Gram-Negative Bacteremia. Clin Infect Dis. 2019;69(7):1091-1098. <em>BALANCE Trial</em>: 7 vs 14 days for bloodstream infection. NEJM. 2023. <em>SHORTEN Trial</em>: short course for fever in cancer. Sawyer RG et al. <em>STOP-IT</em>: Trial of short-course antimicrobial therapy for intraabdominal infection. NEJM. 2015. Kalil AC et al. <em>IDSA/ATS Guidelines for HAP/VAP</em>. Clin Infect Dis. 2016. Harris PNA et al. <em>MERINO</em>: pip-tazo vs meropenem in BLEE bacteremia. JAMA. 2018.</div>
+</div>`;
 
 Object.keys(GUIDES_TITLES).forEach(id=>{VIEWS['g_'+id]=()=>guidesView(id)});
 
