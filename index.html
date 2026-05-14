@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22background%3A%23fff%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
-<link rel="manifest" href='data:application/manifest+json,{"name":"HemoPocket","short_name":"HemoPocket","description":"Guía rápida de consulta en Hematología","start_url":".","scope":".","display":"standalone","background_color":"%23ffffff","theme_color":"%23c41e3a","icons":[{"src":"data:image/svg%2Bxml,%3Csvg viewBox%3D%270 0 100 100%27 xmlns%3D%27http://www.w3.org/2000/svg%27 style%3D%27background:%23fff%27 fill%3D%27%23c41e3a%27%3E%3Cpath d%3D%27M22 4C32 4 40 12 40 22C40 35 27 42 27 50C27 58 40 65 40 78C40 88 32 96 22 96C12 96 4 88 4 78C4 65 17 58 17 50C17 42 4 35 4 22C4 12 12 4 22 4Z%27/%3E%3Cpath d%3D%27M78 4C88 4 96 12 96 22C96 35 83 42 83 50C83 58 96 65 96 78C96 88 88 96 78 96C68 96 60 88 60 78C60 65 73 58 73 50C73 42 60 35 60 22C60 12 68 4 78 4Z%27/%3E%3Ccircle cx%3D%2750%27 cy%3D%2750%27 r%3D%2717%27/%3E%3C/svg%3E","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}'>
+<link rel="manifest" href="/manifest.json">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--c1:#c41e3a;--c2:#1a3a6c;--c2l:#7ba3e0;--bg:#f5f7fa;--card:#fff;--txt:#1a1a1a;--mut:#5a6577;--bd:#e1e5eb;--inp:#fff;--shd:0 2px 6px rgba(0,0,0,.06);--shd2:0 6px 20px rgba(0,0,0,.1);--r:14px;--rs:8px;--ok:#16a34a;--wn:#f59e0b;--er:#dc2626;--in:#0284c7;--bg2:#eef1f5;--hov:#f0f3f7}
@@ -257,7 +257,6 @@ body{font-size:13px}
 @media(max-width:768px){.viewer-card{height:calc(100vh - 70px)}.viewer-pages{padding:8px 4px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
-<link rel="manifest" href="data:application/manifest+json;base64,eyJpY29ucyI6W3sicHVycG9zZSI6ImFueSBtYXNrYWJsZSIsInR5cGUiOiJpbWFnZS9zdmcreG1sIiwic2l6ZXMiOiJhbnkiLCJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnJTIwdmlld0JveCUzRCUyMjAlMjAwJTIwMTAwJTIwMTAwJTIyJTIweG1sbnMlM0QlMjJodHRwJTNBJTJGJTJGd3d3LnczLm9yZyUyRjIwMDAlMkZzdmclMjIlMjBzdHlsZSUzRCUyMmJhY2tncm91bmQlM0ElMjNmZmYlMjIlMjBmaWxsJTNEJTIyJTIzYzQxZTNhJTIyJTNFJTNDcGF0aCUyMGQlM0QlMjdNMjIlMjA0QzMyJTIwNCUyMDQwJTIwMTIlMjA0MCUyMDIyQzQwJTIwMzUlMjAyNyUyMDQyJTIwMjclMjA1MEMyNyUyMDU4JTIwNDAlMjA2NSUyMDQwJTIwNzhDNDAlMjA4OCUyMDMyJTIwOTYlMjAyMiUyMDk2QzEyJTIwOTYlMjA0JTIwODglMjA0JTIwNzhDNCUyMDY1JTIwMTclMjA1OCUyMDE3JTIwNTBDMTclMjA0MiUyMDQlMjAzNSUyMDQlMjAyMkM0JTIwMTIlMjAxMiUyMDQlMjAyMiUyMDRaJTI3JTJGJTNFJTNDcGF0aCUyMGQlM0QlMjdNNzglMjA0Qzg4JTIwNCUyMDk2JTIwMTIlMjA5NiUyMDIyQzk2JTIwMzUlMjA4MyUyMDQyJTIwODMlMjA1MEM4MyUyMDU4JTIwOTYlMjA2NSUyMDk2JTIwNzhDOTYlMjA4OCUyMDg4JTIwOTYlMjA3OCUyMDk2QzY4JTIwOTYlMjA2MCUyMDg4JTIwNjAlMjA3OEM2MCUyMDY1JTIwNzMlMjA1OCUyMDczJTIwNTBDNzMlMjA0MiUyMDYwJTIwMzUlMjA2MCUyMDIyQzYwJTIwMTIlMjA2OCUyMDQlMjA3OCUyMDRaJTI3JTJGJTNFJTNDY2lyY2xlJTIwY3glM0QlMjI1MCUyMiUyMGN5JTNEJTIyNTAlMjIlMjByJTNEJTIyMTclMjIlMkYlM0UlM0MlMkZzdmclM0UifV0sImRlc2NyaXB0aW9uIjoiR3XDrWEgcHLDoWN0aWNhIGRlIGNvbnN1bHRhIHLDoXBpZGEiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiI2M0MWUzYSIsIm5hbWUiOiJIZW1hUG9ja2V0Iiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic2hvcnRfbmFtZSI6IkhlbWFQb2NrZXQifQ==">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22background%3A%23fff%22%20fill%3D%22%23c41e3a%22%3E%3Cpath%20d%3D%27M22%204C32%204%2040%2012%2040%2022C40%2035%2027%2042%2027%2050C27%2058%2040%2065%2040%2078C40%2088%2032%2096%2022%2096C12%2096%204%2088%204%2078C4%2065%2017%2058%2017%2050C17%2042%204%2035%204%2022C4%2012%2012%204%2022%204Z%27%2F%3E%3Cpath%20d%3D%27M78%204C88%204%2096%2012%2096%2022C96%2035%2083%2042%2083%2050C83%2058%2096%2065%2096%2078C96%2088%2088%2096%2078%2096C68%2096%2060%2088%2060%2078C60%2065%2073%2058%2073%2050C73%2042%2060%2035%2060%2022C60%2012%2068%204%2078%204Z%27%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2217%22%2F%3E%3C%2Fsvg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -2786,25 +2785,25 @@ function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 const DEFAULT_COLLABORATORS={
 inf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-uh:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-bs:[
-{n:'Dra. Isabel Peris Fernaud',r:'Adjunta · Banco de Sangre'},
-{n:'Dr. Alexander Figueroa',r:'Adjunto · Banco de Sangre'},
-{n:'Dra. Laura Francisca Ávila Idrovo',r:'Adjunta · Banco de Sangre'}
-],
 leuc_ag:[
 {n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'},
 {n:'Dra. Ana Oliva',r:'Adjunta · Leucemias agudas'},
 {n:'Dra. Silvia Martín',r:'Adjunta · Leucemias agudas'}
 ],
+bs:[
+{n:'Dra. Isabel Peris Fernaud',r:'Adjunta · Banco de Sangre'},
+{n:'Dr. Alexander Figueroa',r:'Adjunto · Banco de Sangre'},
+{n:'Dra. Laura Francisca Ávila Idrovo',r:'Adjunta · Banco de Sangre'}
+],
+uh:[],
+th:[],
 mm:[],
-lf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+lf:[],
 llc:[],
 mieloide:[],
 cito:[],
-th:[],
-ped:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-cart:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}]
+ped:[],
+cart:[]
 };
 function getCollaborators(id){const all=ls.g('collaborators')||DEFAULT_COLLABORATORS;return all[id]||[]}
 function getAllCollaborators(){return ls.g('collaborators')||DEFAULT_COLLABORATORS}
