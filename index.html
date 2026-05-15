@@ -1286,8 +1286,8 @@ VIEWS.crs=()=>`<div class="card">
 <h3>Manejo orientativo</h3>
 <table class="tbl">
 <tr><th>Grado</th><th>Manejo</th></tr>
-<tr><td>1</td><td>Soporte sintomático, paracetamol, hidratación. Considerar tocilizumab si persiste &gt;3 días o comorbilidad</td></tr>
-<tr><td>2</td><td>Tocilizumab 8 mg/kg IV (máx 800mg) ± dexametasona 10 mg IV/6h</td></tr>
+<tr><td>1</td><td>Soporte sintomático, paracetamol, hidratación. ± <strong>dexametasona 10 mg IV puntual</strong> (individualizar). Considerar tocilizumab si persiste &gt;3 días o comorbilidad</td></tr>
+<tr><td>2</td><td>Tocilizumab 8 mg/kg IV (máx 800 mg) ± <strong>dexametasona 10 mg IV/12 h</strong></td></tr>
 <tr><td>3</td><td>Tocilizumab + Dexametasona 10-20 mg IV/6h. UCI</td></tr>
 <tr><td>4</td><td>Metilprednisolona 1 g/día + tocilizumab. UCI. Considerar anakinra/siltuximab</td></tr>
 </table>
@@ -1923,120 +1923,256 @@ copy(txt);
 }
 
 VIEWS.crcl=()=>`<div class="card">
-<h2>Aclaramiento de Creatinina (Cockcroft-Gault)</h2>
-<p class="intro">Lee automáticamente edad, sexo, peso y creatinina del panel superior.</p>
+<h2>Aclaramiento de creatinina — paciente oncohematológico</h2>
+<p class="intro">Calcula simultáneamente <strong>Cockcroft-Gault</strong> (con peso ideal/ajustado automático según IMC), <strong>CKD-EPI 2021</strong> (sin raza) y muestra el <strong>GFR capado a 125 mL/min</strong> para la fórmula de Calvert (carboplatino).</p>
 <div class="row">
-<div class="fld"><label class="lbl">Edad (años)</label><input type="number" id="cg_age" value="${S.p.age||''}"></div>
-<div class="fld"><label class="lbl">Sexo</label><select id="cg_sex"><option value="M" ${S.p.sex==='M'?'selected':''}>Hombre</option><option value="F" ${S.p.sex==='F'?'selected':''}>Mujer</option></select></div>
-<div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.1" id="cg_w" value="${S.p.weight||''}"></div>
-<div class="fld"><label class="lbl">Creatinina (mg/dL)</label><input type="number" step="0.01" id="cg_cr" value="${S.p.creatinine||''}"></div>
+<div class="fld"><label class="lbl">Edad (años)</label><input type="number" id="cg_age" value="${S.p.age||''}" oninput="calcCG()"></div>
+<div class="fld"><label class="lbl">Sexo</label><select id="cg_sex" onchange="calcCG()"><option value="M" ${S.p.sex==='M'?'selected':''}>Hombre</option><option value="F" ${S.p.sex==='F'?'selected':''}>Mujer</option></select></div>
+<div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="cg_h" value="${S.p.height||''}" oninput="calcCG()"></div>
+<div class="fld"><label class="lbl">Peso real (kg)</label><input type="number" step="0.1" id="cg_w" value="${S.p.weight||''}" oninput="calcCG()"></div>
+<div class="fld"><label class="lbl">Creatinina (mg/dL)</label><input type="number" step="0.01" id="cg_cr" value="${S.p.creatinine||''}" oninput="calcCG()"></div>
 </div>
 <div class="btns"><button class="btn" onclick="calcCG()">Calcular</button>
 <button class="btn btn-out btn-sm" onclick="copyCG()">Copiar</button></div>
 <div id="cg_res" class="res" style="display:none"></div>
-<div class="ref">Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine. Nephron. 1976;16(1):31-41.</div>
+
+<h3>Recomendaciones clave en oncohematología</h3>
+<div class="alert b">
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>Cockcroft-Gault</strong> sigue siendo el <strong>estándar para ajuste de dosis</strong> de fármacos oncohematológicos en la mayoría de fichas técnicas (carboplatino, melfalán, lenalidomida, capecitabina, citarabina dosis altas, etc.).</li>
+<li><strong>Peso a usar en C-G</strong>:
+<ul><li>IMC &lt; 18.5 (caquexia): <strong>peso ideal (IBW)</strong> para evitar sobreestimar.</li>
+<li>IMC 18.5–29.9: <strong>peso real</strong>.</li>
+<li>IMC ≥ 30 (obesidad): <strong>peso ajustado (ABW)</strong> — fórmula = IBW + 0.4 × (peso real − IBW).</li></ul></li>
+<li><strong>Creatinina baja artefacto</strong> (caquexia/sarcopenia, paciente oncológico avanzado): NO redondear a 1.0 mg/dL; el C-G sobreestima. Valorar GFR medido (24 h, iothalamato, cistatina C) en decisiones críticas.</li>
+<li><strong>Calvert (carboplatino)</strong>: capar GFR a <strong>125 mL/min</strong> (FDA 2010). La calculadora muestra el valor capado.</li>
+<li><strong>CKD-EPI 2021</strong>: más preciso en GFR normal-alto; usar como referencia general. NO sustituye a C-G en cálculo de dosis de quimio (la mayoría de ensayos clínicos usaron C-G).</li>
+<li><strong>Daratumumab / SC, lenalidomida, bortezomib, brentuximab</strong>: ajuste por C-G según ficha técnica.</li>
+</ul>
+</div>
+
+<div class="ref">Cockcroft DW, Gault MH. Nephron. 1976;16(1):31-41. Inker LA et al. New creatinine- and cystatin C-based equations to estimate GFR without race (CKD-EPI 2021). N Engl J Med. 2021;385(19):1737-1749. FDA 2010 (capping de Calvert a 125 mL/min). Calvert AH et al. J Clin Oncol. 1989. ASCO 2021 — ajuste de dosis en obesidad. Levey AS et al. NKF-KDIGO guidelines.</div>
 </div>`;
+VIEWS.crcl_post=()=>{if($('cg_age')?.value&&$('cg_w')?.value&&$('cg_cr')?.value)calcCG()};
 
 function calcCG(){
-const a=n($('cg_age').value),s=$('cg_sex').value,w=n($('cg_w').value),cr=n($('cg_cr').value);
-if(!a||!w||!cr){toast('Completa los campos');return}
-let cl=((140-a)*w)/(72*cr);
-if(s==='F')cl*=0.85;
-let cat,cls;
-if(cl>=90){cat='Función renal normal o levemente disminuida';cls='lo'}
-else if(cl>=60){cat='Disminución leve (G2)';cls='lo'}
-else if(cl>=45){cat='Disminución leve-moderada (G3a)';cls='md'}
-else if(cl>=30){cat='Disminución moderada-severa (G3b)';cls='md'}
-else if(cl>=15){cat='Disminución severa (G4)';cls='hi'}
-else{cat='Fallo renal (G5)';cls='hi'}
-const el=$('cg_res');el.style.display='block';el.className='res '+cls;
-el.innerHTML=`<div class="res-h"><span class="score">${cl.toFixed(1)} mL/min</span><span>${cat}</span></div>`;
+const a=n($('cg_age').value),s=$('cg_sex').value,h=n($('cg_h').value),w=n($('cg_w').value),cr=n($('cg_cr').value);
+if(!a||!w||!cr){$('cg_res').style.display='none';return}
+// Peso a usar según IMC
+const bmi=h?w/Math.pow(h/100,2):null;
+let pesoUsado=w,pesoLabel='peso real',ibw=null,abw=null;
+if(h){
+const inOver60=Math.max(0,(h-152.4)/2.54);
+ibw=(s==='M'?50:45.5)+2.3*inOver60;
+abw=ibw+0.4*(w-ibw);
+if(bmi&&bmi<18.5){pesoUsado=ibw;pesoLabel='IBW (caquexia/IMC bajo)'}
+else if(bmi&&bmi>=30){pesoUsado=abw;pesoLabel='ABW (obesidad)'}
 }
-function copyCG(){const r=$('cg_res');if(r.style.display==='none'){toast('Calcula primero');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const sex=$('cg_sex').value==='M'?'varón':'mujer';
-const txt=`Aclaramiento de creatinina – Fórmula de Cockcroft-Gault
+// Cockcroft-Gault con peso ajustado
+let cg=((140-a)*pesoUsado)/(72*cr);
+if(s==='F')cg*=0.85;
+// Cockcroft-Gault con peso REAL (para comparativa)
+let cgReal=((140-a)*w)/(72*cr);
+if(s==='F')cgReal*=0.85;
+// CKD-EPI 2021 (sin raza)
+const k=s==='F'?0.7:0.9;
+const alpha=s==='F'?-0.241:-0.302;
+const minCr=Math.min(cr/k,1);
+const maxCr=Math.max(cr/k,1);
+let ckdepi=142*Math.pow(minCr,alpha)*Math.pow(maxCr,-1.200)*Math.pow(0.9938,a);
+if(s==='F')ckdepi*=1.012;
+// Calvert capping
+const cgCalvert=Math.min(cg,125);
+// Estadiaje KDIGO basado en CG (mas usado para dosis)
+let cat,cls;
+if(cg>=90){cat='Función renal normal o levemente disminuida (G1)';cls='lo'}
+else if(cg>=60){cat='Disminución leve (G2)';cls='lo'}
+else if(cg>=45){cat='Disminución leve-moderada (G3a)';cls='md'}
+else if(cg>=30){cat='Disminución moderada-severa (G3b)';cls='md'}
+else if(cg>=15){cat='Disminución severa (G4)';cls='hi'}
+else{cat='Fallo renal (G5)';cls='hi'}
+const ibwTxt=ibw!==null?` · IBW ${ibw.toFixed(1)} kg · ABW ${abw.toFixed(1)} kg`:'';
+const bmiTxt=bmi!==null?` · IMC ${bmi.toFixed(1)}`:'';
+const calvCap=cg>125?'<small style="color:var(--wn)"> (capado a 125 mL/min para Calvert)</small>':'';
+const el=$('cg_res');el.style.display='block';el.className='res '+cls;
+el.innerHTML=`<div class="res-h"><span class="score">${cg.toFixed(0)} mL/min</span><span>${cat}</span></div>
+<div class="res-s" style="margin-top:8px">
+<strong>Cockcroft-Gault:</strong> ${cg.toFixed(1)} mL/min <small>(usando ${pesoLabel}${pesoUsado!==w?` ${pesoUsado.toFixed(1)} kg`:''})</small><br>
+${ibw!==null&&Math.abs(cg-cgReal)>1?`<small style="color:var(--mut)">C-G con peso real: ${cgReal.toFixed(1)} mL/min</small><br>`:''}
+<strong>CKD-EPI 2021:</strong> ${ckdepi.toFixed(1)} mL/min/1.73m²<br>
+<strong>Para Calvert (carboplatino):</strong> ${cgCalvert.toFixed(0)} mL/min${calvCap}
+</div>
+<div class="res-s" style="margin-top:6px"><small>Paciente${bmiTxt}${ibwTxt}. <strong>Recomendación</strong>: usar C-G para ajuste de dosis de quimio según ficha técnica; CKD-EPI como referencia general.</small></div>`;
+window._cgData={a,s,h,w,cr,cg,cgReal,ckdepi,pesoUsado,pesoLabel,bmi,ibw,abw,cat,cgCalvert,capped:cg>125};
+}
+function copyCG(){const d=window._cgData;if(!d){toast('Calcula primero');return}
+const sex=d.s==='M'?'varón':'mujer';
+const pesoTxt=d.pesoLabel==='peso real'?'el peso real':d.pesoLabel==='IBW (caquexia/IMC bajo)'?`el peso ideal (${d.pesoUsado.toFixed(1)} kg) por IMC bajo`:`el peso ajustado (ABW = ${d.pesoUsado.toFixed(1)} kg) por obesidad`;
+const ckdTxt=`${d.ckdepi.toFixed(1)} mL/min/1.73 m² por CKD-EPI 2021 (sin raza)`;
+const calvTxt=d.capped?` Para la fórmula de Calvert (carboplatino) se cape el GFR a 125 mL/min (FDA 2010), resultando en una dosis basada en GFR de 125 mL/min.`:'';
+const txt=`Aclaramiento de creatinina — paciente oncohematológico
 ─────────────────────────────────────────────
-Paciente ${sex} de ${$('cg_age').value} años, peso ${$('cg_w').value} kg, con creatinina sérica de ${$('cg_cr').value} mg/dL.
+Paciente ${sex} de ${d.a} años${d.h?`, talla ${d.h} cm`:''}, peso ${d.w} kg${d.bmi!==null?` (IMC ${d.bmi.toFixed(1)} kg/m²)`:''}, con creatinina sérica de ${d.cr} mg/dL.
 
-${result}.
+Aclaramiento de creatinina por Cockcroft-Gault de ${d.cg.toFixed(1)} mL/min usando ${pesoTxt}; equivalente a ${ckdTxt}. La función renal se clasifica como ${d.cat.toLowerCase()}.${calvTxt}
 
-Este valor se utiliza para el ajuste de dosis de fármacos con eliminación renal. Recordar que la fórmula de Cockcroft-Gault sigue siendo la referencia para ajuste de dosis en oncohematología; en pacientes con peso extremo o edad muy avanzada puede complementarse con CKD-EPI.
+Este valor se utiliza para el ajuste de dosis de fármacos con eliminación renal en oncohematología. Cockcroft-Gault sigue siendo la fórmula de referencia para el ajuste de dosis según ficha técnica (carboplatino, melfalán, lenalidomida, citarabina dosis altas, daratumumab SC, etc.). CKD-EPI 2021 se utiliza como referencia general de la función renal.
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);}
 
 VIEWS.obw=()=>`<div class="card">
-<h2>Ajuste de Peso por Obesidad (IBW / ABW)</h2>
-<p class="intro">Calcula peso ideal (Devine) y peso ajustado para dosificación. Lee del panel superior.</p>
+<h2>Ajuste de peso por obesidad — paciente oncohematológico</h2>
+<p class="intro">Calcula <strong>IBW</strong> (peso ideal, Devine), <strong>ABW</strong> (ajustado, factor 0.4), <strong>LBW</strong> (masa magra, Janmahasatian 2005) e IMC. Recomienda el peso a usar según el fármaco habitual en oncohematología.</p>
 <div class="row">
 <div class="fld"><label class="lbl">Sexo</label><select id="ob_sex"><option value="M" ${S.p.sex==='M'?'selected':''}>Hombre</option><option value="F" ${S.p.sex==='F'?'selected':''}>Mujer</option></select></div>
-<div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="ob_h" value="${S.p.height||''}"></div>
-<div class="fld"><label class="lbl">Peso real (kg)</label><input type="number" step="0.1" id="ob_w" value="${S.p.weight||''}"></div>
+<div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="ob_h" value="${S.p.height||''}" oninput="calcOB()"></div>
+<div class="fld"><label class="lbl">Peso real (kg)</label><input type="number" step="0.1" id="ob_w" value="${S.p.weight||''}" oninput="calcOB()"></div>
 </div>
 <div class="btns"><button class="btn" onclick="calcOB()">Calcular</button>
 <button class="btn btn-out btn-sm" onclick="copyOB()">Copiar</button></div>
 <div id="ob_res" class="res" style="display:none"></div>
-<div class="ref">Devine BJ. Drug Intell Clin Pharm. 1974;8:650-655. Pai MP, Paloucek FP. Origin of the "Ideal" Body Weight Equations. Ann Pharmacother. 2000;34(9):1066-1069.</div>
+
+<h3>Peso a usar según fármaco — oncohematología</h3>
+<table class="tbl">
+<tr><th>Fármaco / situación</th><th>Peso recomendado</th></tr>
+<tr><td><strong>Quimioterapia citotóxica</strong> (BSA-based: antraciclinas, ciclofosfamida, etopósido, citarabina, melfalán, alquilantes)</td><td><strong>Peso real</strong> (ASCO 2012 — NO ajustar por obesidad salvo toxicidad demostrada)</td></tr>
+<tr><td><strong>Carboplatino</strong> (fórmula de Calvert)</td><td>Peso real con FG por Cockcroft-Gault y <strong>capar GFR a 125 mL/min</strong>; si peso &gt; IBW+20%, valorar IBW</td></tr>
+<tr><td><strong>Busulfán</strong> (acondicionamiento)</td><td><strong>ABW</strong> si IMC ≥30; peso real si IMC &lt;30. Monitorizar AUC.</td></tr>
+<tr><td><strong>HBPM profiláctica</strong></td><td>Peso real (intensificar si IMC ≥40)</td></tr>
+<tr><td><strong>HBPM terapéutica</strong></td><td>Peso real (vigilar anti-Xa si IMC ≥40 o peso &gt;120 kg)</td></tr>
+<tr><td><strong>Vancomicina</strong></td><td><strong>Peso real</strong> (carga y mantenimiento; objetivo AUC 400-600)</td></tr>
+<tr><td><strong>Aminoglucósidos</strong> (gentamicina, amikacina, tobramicina)</td><td><strong>ABW</strong> si IMC ≥30; IBW si peso real entre IBW y 1.3×IBW</td></tr>
+<tr><td><strong>Daptomicina</strong></td><td><strong>Peso real</strong> (estudios en obesos &gt;120 kg, sin techo claro)</td></tr>
+<tr><td><strong>Antifúngicos azoles</strong> (voriconazol, posaconazol, isavuconazol)</td><td>Dosis fija (no por peso) — monitorizar niveles en voriconazol</td></tr>
+<tr><td><strong>Anfotericina B liposomal (L-AmB)</strong></td><td><strong>Peso real</strong> (3–5 mg/kg/día; 5–10 si mucormicosis)</td></tr>
+<tr><td><strong>Equinocandinas</strong> (caspofungina, anidulafungina, micafungina)</td><td>Dosis fija; <strong>caspofungina aumenta carga si peso &gt;80 kg</strong> (70 mg→70 mg/día)</td></tr>
+<tr><td><strong>Aciclovir / ganciclovir</strong> IV</td><td><strong>IBW</strong> si IMC ≥30 (riesgo de nefro/neurotoxicidad con peso real)</td></tr>
+<tr><td><strong>Cockcroft-Gault</strong> (función renal)</td><td><strong>ABW</strong> si IMC ≥30; peso real si IMC &lt;30 (ver calculadora CrCl)</td></tr>
+<tr><td><strong>Aclaramiento de creatinina (CKD-EPI)</strong></td><td>Indexado por BSA — no necesita peso para la fórmula</td></tr>
+</table>
+
+<div class="ref">Devine BJ. Drug Intell Clin Pharm. 1974;8:650-655. Janmahasatian S et al. Quantification of lean bodyweight. Clin Pharmacokinet. 2005;44(10):1051-1065. Griggs JJ et al. Appropriate chemotherapy dosing for obese adult patients with cancer: ASCO clinical practice guideline. J Clin Oncol. 2012;30(13):1553-1561. Pai MP, Paloucek FP. Ann Pharmacother. 2000. Hanley MJ et al. Effect of obesity on the pharmacokinetics of drugs in humans. Clin Pharmacokinet. 2010;49(2):71-87.</div>
 </div>`;
+VIEWS.obw_post=()=>{if($('ob_h')?.value&&$('ob_w')?.value)calcOB()};
 
 function calcOB(){
 const s=$('ob_sex').value,h=n($('ob_h').value),w=n($('ob_w').value);
-if(!h||!w){toast('Completa los campos');return}
-const inOver60=Math.max(0,(h-152.4)/2.54);//inches over 60
+if(!h||!w){$('ob_res').style.display='none';return}
+const inOver60=Math.max(0,(h-152.4)/2.54);
 const ibw=(s==='M'?50:45.5)+2.3*inOver60;
 const abw=ibw+0.4*(w-ibw);
+// LBW Janmahasatian 2005
 const bmi=w/Math.pow(h/100,2);
-const dose=w<ibw?w:bmi<30?w:abw;
-let cat=bmi<25?'normopeso':bmi<30?'sobrepeso':bmi<35?'obesidad I':bmi<40?'obesidad II':'obesidad III';
-const el=$('ob_res');el.style.display='block';el.className='res in';
+const lbw=s==='M'
+  ? (9270*w)/(6680+216*bmi)
+  : (9270*w)/(8780+244*bmi);
+let cat,cls;
+if(bmi<18.5){cat='bajo peso';cls='md'}
+else if(bmi<25){cat='normopeso';cls='lo'}
+else if(bmi<30){cat='sobrepeso';cls='md'}
+else if(bmi<35){cat='obesidad I';cls='md'}
+else if(bmi<40){cat='obesidad II';cls='hi'}
+else{cat='obesidad III (mórbida)';cls='hi'}
+const aboveIBW=((w-ibw)/ibw*100).toFixed(0);
+const el=$('ob_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">IMC ${bmi.toFixed(1)}</span><span>${cat}</span></div>
-<div class="res-s">
-<strong>IBW (peso ideal):</strong> ${ibw.toFixed(1)} kg<br>
-<strong>ABW (peso ajustado):</strong> ${abw.toFixed(1)} kg<br>
-<strong>Peso recomendado para dosificación:</strong> ${dose.toFixed(1)} kg<br>
-<small>(Si peso real &lt; IBW: usar real. Si IMC &lt;30: usar real. Si IMC ≥30: usar ABW)</small>
-</div>`;
+<div class="res-s" style="margin-top:8px">
+<strong>Peso real:</strong> ${w.toFixed(1)} kg · <strong>IBW (Devine):</strong> ${ibw.toFixed(1)} kg · <strong>ABW (factor 0.4):</strong> ${abw.toFixed(1)} kg · <strong>LBW (Janmahasatian):</strong> ${lbw.toFixed(1)} kg<br>
+Peso real está ${w>ibw?'+':''}${aboveIBW}% respecto al ideal.
+</div>
+<div class="res-s" style="margin-top:6px"><small>Mira la tabla siguiente para elegir el peso según el fármaco. Como regla general en oncohematología: <strong>peso real</strong> para quimio citotóxica BSA-based, <strong>ABW</strong> para aminoglucósidos/Cockcroft-Gault en obesos, <strong>IBW</strong> para aciclovir/ganciclovir en obesos.</small></div>`;
+window._obData={s,h,w,ibw,abw,lbw,bmi,cat};
 }
-function copyOB(){const r=$('ob_res');if(r.style.display==='none'){toast('Calcula primero');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const sex=$('ob_sex').value==='M'?'varón':'mujer';
-const txt=`Ajuste de peso en obesidad (IBW / ABW)
+function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}
+const sex=d.s==='M'?'varón':'mujer';
+const txt=`Ajuste de peso en obesidad — paciente oncohematológico
 ─────────────────────────────────────────────
-${patientHeader()}Paciente ${sex} con talla de ${$('ob_h').value} cm y peso real de ${$('ob_w').value} kg.
+${patientHeader()}Paciente ${sex} con talla de ${d.h} cm y peso real de ${d.w} kg. Índice de masa corporal de ${d.bmi.toFixed(1)} kg/m² (${d.cat}).
 
-${result}.
+Se calculan los pesos de referencia para la dosificación de fármacos:
+- Peso ideal (IBW, fórmula de Devine): ${d.ibw.toFixed(1)} kg.
+- Peso ajustado (ABW, factor 0.4): ${d.abw.toFixed(1)} kg.
+- Masa magra (LBW, fórmula de Janmahasatian 2005): ${d.lbw.toFixed(1)} kg.
 
-El peso ajustado se utiliza para el cálculo de dosis de fármacos hidrosolubles (aminoglucósidos, vancomicina, heparina no fraccionada, HBPM en peso extremo), evitando la sobredosificación que supondría el peso real en pacientes con sobrepeso significativo.
+Recomendaciones de dosificación: peso real para la mayoría de quimioterapias BSA-based (ASCO 2012), vancomicina y daptomicina; peso ajustado (ABW) para aminoglucósidos y aclaramiento de creatinina por Cockcroft-Gault si IMC ≥30; peso ideal (IBW) para aciclovir y ganciclovir en obesos por riesgo nefro/neurotóxico.
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);}
 
 VIEWS.bsa=()=>`<div class="card">
-<h2>Superficie Corporal (Mosteller)</h2>
-<p class="intro">Calcula BSA con fórmula de Mosteller. Lee del panel superior.</p>
+<h2>Superficie corporal — paciente oncohematológico</h2>
+<p class="intro">Calcula la BSA por las dos fórmulas más usadas en oncología (<strong>Mosteller</strong> y <strong>DuBois</strong>) y, opcionalmente, la <strong>dosis de carboplatino</strong> según la fórmula de Calvert. Recordatorio sobre <strong>capping</strong> en pacientes obesos.</p>
 <div class="row">
-<div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="bs_h" value="${S.p.height||''}"></div>
-<div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.1" id="bs_w" value="${S.p.weight||''}"></div>
+<div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="bs_h" value="${S.p.height||''}" oninput="calcBSA()"></div>
+<div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.1" id="bs_w" value="${S.p.weight||''}" oninput="calcBSA()"></div>
 </div>
+
+<div class="calc-box" style="margin-top:14px">
+<div style="font-size:12.5px;font-weight:600;margin-bottom:8px;color:var(--c2)">Calvert opcional (carboplatino)</div>
+<p style="font-size:12px;color:var(--mut);margin-bottom:8px"><strong>Dosis (mg) = AUC × (GFR + 25)</strong>. El GFR se capa a un máximo de <strong>125 mL/min</strong> (FDA 2010) para evitar sobredosificación. Cockcroft-Gault recomendado para el GFR (calc. CrCl en esta app).</p>
+<div class="row2">
+<div class="fld"><label class="lbl">AUC objetivo (mg·min/mL)</label><input type="number" step="0.5" id="bs_auc" placeholder="ej: 5" oninput="calcBSA()"></div>
+<div class="fld"><label class="lbl">GFR / CrCl (mL/min)</label><input type="number" id="bs_gfr" placeholder="ej: 95" oninput="calcBSA()"></div>
+</div>
+</div>
+
 <div class="btns"><button class="btn" onclick="calcBSA()">Calcular</button>
 <button class="btn btn-out btn-sm" onclick="copyBSA()">Copiar</button></div>
 <div id="bs_res" class="res" style="display:none"></div>
-<div class="ref">Mosteller RD. Simplified calculation of body-surface area. N Engl J Med. 1987;317(17):1098.</div>
+
+<h3>Capping y consideraciones clínicas</h3>
+<div class="alert b">
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>ASCO 2012 / 2021</strong>: dosis plenas según BSA con peso real en quimioterapia citotóxica de pacientes obesos, salvo toxicidad demostrada (NO capping rutinario).</li>
+<li><strong>Capping histórico a 2.0 m²</strong>: algunos protocolos antiguos lo aplicaban. Hoy <strong>desaconsejado</strong> en general — perpetúa infradosificación en obesos.</li>
+<li><strong>Capping del GFR a 125 mL/min en Calvert</strong>: <strong>sí recomendado</strong> (FDA 2010, Calvert 1989). Evita sobredosis de carboplatino cuando se sobreestima la función renal.</li>
+<li><strong>BSA en hemoderivados</strong>: dosis de células CD34+ se expresan por kg de receptor, no por BSA.</li>
+<li><strong>Mosteller vs DuBois</strong>: diferencias clínicamente irrelevantes (&lt;3% en adultos). Mosteller es la fórmula preferida en quimioterapia por simplicidad.</li>
+</ul>
+</div>
+
+<div class="ref">Mosteller RD. N Engl J Med. 1987;317(17):1098. DuBois D, DuBois EF. Arch Intern Med. 1916;17:863-871. Calvert AH et al. J Clin Oncol. 1989;7(11):1748-1756. FDA Pharmacology Toxicology Subcommittee 2010 (carboplatino — capping a 125 mL/min). Griggs JJ et al. ASCO chemotherapy dosing in obesity. J Clin Oncol. 2012 y actualización 2021.</div>
 </div>`;
+VIEWS.bsa_post=()=>{if($('bs_h')?.value&&$('bs_w')?.value)calcBSA()};
 
 function calcBSA(){
 const h=n($('bs_h').value),w=n($('bs_w').value);
-if(!h||!w){toast('Completa los campos');return}
-const b=Math.sqrt((h*w)/3600);
-const el=$('bs_res');el.style.display='block';el.className='res in';
-el.innerHTML=`<div class="res-h"><span class="score">${b.toFixed(2)} m²</span><span>BSA Mosteller</span></div><div class="res-s">Fórmula: √(altura × peso / 3600)</div>`;
+if(!h||!w){$('bs_res').style.display='none';return}
+const bsaMost=Math.sqrt((h*w)/3600);
+const bsaDuBois=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725);
+const auc=n($('bs_auc').value),gfr=n($('bs_gfr').value);
+let calvHtml='';
+if(auc!==null&&gfr!==null&&auc>0&&gfr>0){
+const gfrCap=Math.min(gfr,125);
+const calvertDose=auc*(gfrCap+25);
+const capped=gfr>125;
+calvHtml=`<div class="res-s" style="margin-top:10px;border-top:1px solid var(--bd);padding-top:8px">
+<strong>Calvert — carboplatino:</strong> AUC ${auc} × (${gfrCap}${capped?'<sup>*</sup>':''} + 25) = <span style="font-size:15px;font-weight:700;color:var(--c1)">${calvertDose.toFixed(0)} mg</span><br>
+${capped?'<small><sup>*</sup> GFR capado a 125 mL/min según FDA 2010.</small>':''}
+</div>`;
 }
-function copyBSA(){const r=$('bs_res');if(r.style.display==='none')return;
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const txt=`Superficie corporal (fórmula de Mosteller)
+const el=$('bs_res');el.style.display='block';el.className='res in';
+el.innerHTML=`<div class="res-h"><span class="score">${bsaMost.toFixed(2)} m²</span><span>BSA Mosteller</span></div>
+<div class="res-s" style="margin-top:6px">
+<strong>Mosteller:</strong> √(${h} × ${w} / 3600) = ${bsaMost.toFixed(3)} m²<br>
+<strong>DuBois:</strong> 0.007184 × peso<sup>0.425</sup> × talla<sup>0.725</sup> = ${bsaDuBois.toFixed(3)} m²<br>
+<small>Diferencia ${(Math.abs(bsaMost-bsaDuBois)/bsaMost*100).toFixed(1)}% — clínicamente irrelevante.</small>
+</div>
+${calvHtml}`;
+window._bsaData={h,w,bsaMost,bsaDuBois,auc,gfr};
+}
+function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}
+let calvTxt='';
+if(d.auc&&d.gfr){
+const gfrCap=Math.min(d.gfr,125);
+const dose=d.auc*(gfrCap+25);
+const capped=d.gfr>125;
+calvTxt=` Aplicando la fórmula de Calvert con AUC objetivo de ${d.auc} mg·min/mL y GFR de ${d.gfr}${capped?` mL/min (capado a 125 mL/min según FDA 2010)`:' mL/min'}, la dosis calculada de carboplatino es de ${dose.toFixed(0)} mg.`;
+}
+const txt=`Superficie corporal — paciente oncohematológico
 ─────────────────────────────────────────────
-${patientHeader()}Con talla ${$('bs_h').value} cm y peso ${$('bs_w').value} kg, la superficie corporal calculada mediante la fórmula de Mosteller es de ${result.replace(/.*\b(\d+[.,]?\d*\s*m²).*/,'$1')||result}.
+${patientHeader()}Con talla de ${d.h} cm y peso de ${d.w} kg, la superficie corporal calculada por la fórmula de Mosteller es de ${d.bsaMost.toFixed(2)} m² (DuBois: ${d.bsaDuBois.toFixed(2)} m²). Se utiliza Mosteller como fórmula de referencia en dosificación de quimioterapia citotóxica.${calvTxt}
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);}
@@ -2785,25 +2921,25 @@ function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 const DEFAULT_COLLABORATORS={
 inf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
+uh:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 leuc_ag:[
 {n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'},
 {n:'Dra. Ana Oliva',r:'Adjunta · Leucemias agudas'},
 {n:'Dra. Silvia Martín',r:'Adjunta · Leucemias agudas'}
 ],
+cart:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 bs:[
 {n:'Dra. Isabel Peris Fernaud',r:'Adjunta · Banco de Sangre'},
 {n:'Dr. Alexander Figueroa',r:'Adjunto · Banco de Sangre'},
 {n:'Dra. Laura Francisca Ávila Idrovo',r:'Adjunta · Banco de Sangre'}
 ],
-uh:[],
 th:[],
 mm:[],
 lf:[],
 llc:[],
 mieloide:[],
 cito:[],
-ped:[],
-cart:[]
+ped:[]
 };
 function getCollaborators(id){const all=ls.g('collaborators')||DEFAULT_COLLABORATORS;return all[id]||[]}
 function getAllCollaborators(){return ls.g('collaborators')||DEFAULT_COLLABORATORS}
@@ -5242,24 +5378,7 @@ VIEWS.taspe=()=>`<div class="card">
 <p class="small muted">Esquema práctico de las fases del auto-TPH: indicaciones, movilización, recolección, acondicionamiento, infusión y prendimiento. Referencias: EBMT Handbook 2024 (Carreras et al.), Manual TPH Carreras 8ª ed., ASTCT/ASH guidelines.</p>
 
 <div class="coll" data-open="1">
-<div class="coll-h"><strong>1. Indicaciones principales</strong><span class="chev">▾</span></div>
-<div class="coll-b">
-<table class="tbl">
-<thead><tr><th>Patología</th><th>Indicación</th></tr></thead>
-<tbody>
-<tr><td><strong>Mieloma múltiple</strong></td><td>Estándar en pacientes ≤70 años fit tras inducción (VRd / VTd / Dara-VRd). Tandem si MM alto riesgo o respuesta subóptima.</td></tr>
-<tr><td><strong>LNH difuso B grandes células</strong></td><td>2ª línea en recaída quimiosensible (si no candidato a CAR-T). Históricamente consolidación de 1ª línea en alto riesgo (controversia post-CAR-T).</td></tr>
-<tr><td><strong>Linfoma del manto</strong></td><td>Consolidación de 1ª línea en pacientes jóvenes tras inducción con citarabina (Nordic, MCL Younger).</td></tr>
-<tr><td><strong>Linfoma de Hodgkin</strong></td><td>Recaída quimiosensible o refractario (BEAM + brentuximab consolidación AETHERA si alto riesgo).</td></tr>
-<tr><td><strong>Linfoma T periférico</strong></td><td>Consolidación de 1ª línea en RC1 (excepto ALK+).</td></tr>
-<tr><td><strong>Tumores germinales recidivados</strong></td><td>Quimioterapia de rescate + auto-TPH (TI-CE).</td></tr>
-<tr><td><strong>Esclerosis múltiple/EAI</strong></td><td>EM agresiva remitente-recurrente refractaria; esclerodermia sistémica difusa.</td></tr>
-</tbody>
-</table>
-</div></div>
-
-<div class="coll">
-<div class="coll-h"><strong>2. Evaluación pre-trasplante</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>1. Evaluación pre-trasplante</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <ul style="margin:6px 0;padding-left:22px">
 <li><strong>Estado de la enfermedad</strong>: ≥ RP (idealmente RC en linfomas) antes del acondicionamiento.</li>
@@ -5273,7 +5392,7 @@ VIEWS.taspe=()=>`<div class="card">
 </div></div>
 
 <div class="coll">
-<div class="coll-h"><strong>3. Movilización y recolección de CD34+</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>2. Movilización y recolección de CD34+</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <table class="tbl">
 <thead><tr><th>Esquema</th><th>Pauta</th><th>Comentario</th></tr></thead>
@@ -5295,7 +5414,7 @@ VIEWS.taspe=()=>`<div class="card">
 </div></div>
 
 <div class="coll">
-<div class="coll-h"><strong>4. Acondicionamiento</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>3. Acondicionamiento</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <table class="tbl">
 <thead><tr><th>Régimen</th><th>Composición</th><th>Indicación</th></tr></thead>
@@ -5311,7 +5430,7 @@ VIEWS.taspe=()=>`<div class="card">
 </div></div>
 
 <div class="coll">
-<div class="coll-h"><strong>5. Infusión y soporte peri-trasplante</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>4. Infusión y soporte peri-trasplante</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <ul style="margin:6px 0;padding-left:22px">
 <li><strong>Día 0</strong>: infusión del producto criopreservado tras descongelación a 37°C. Premedicación con paracetamol + antihistamínico ± hidrocortisona.</li>
@@ -5324,7 +5443,7 @@ VIEWS.taspe=()=>`<div class="card">
 </div></div>
 
 <div class="coll">
-<div class="coll-h"><strong>6. Prendimiento y alta</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>5. Prendimiento y alta</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <table class="tbl">
 <thead><tr><th>Evento</th><th>Criterio</th><th>Día habitual</th></tr></thead>
@@ -5338,7 +5457,7 @@ VIEWS.taspe=()=>`<div class="card">
 </div></div>
 
 <div class="coll">
-<div class="coll-h"><strong>7. Complicaciones precoces</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>6. Complicaciones precoces</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <ul style="margin:6px 0;padding-left:22px">
 <li><strong>Mucositis</strong> (OMS gr 3-4 en 30-60%): pico día +5 a +10. Manejo: enjuagues, opioides, NPT si gr 4. Cobertura ATB amplia si fiebre (ver protocolo neutropenia febril).</li>
@@ -5352,7 +5471,7 @@ VIEWS.taspe=()=>`<div class="card">
 </div></div>
 
 <div class="coll">
-<div class="coll-h"><strong>8. Seguimiento post-alta</strong><span class="chev">▾</span></div>
+<div class="coll-h"><strong>7. Seguimiento post-alta</strong><span class="chev">▾</span></div>
 <div class="coll-b">
 <ul style="margin:6px 0;padding-left:22px">
 <li>Revisiones semanales el primer mes; quincenales hasta día +100; mensuales hasta +6 meses.</li>
@@ -5466,14 +5585,7 @@ const ATB_NEW=[
 {n:'Aztreonam/avibactam (Emblaveo)',sp:'Espectro: MBL + BLEE/AmpC/OXA-48 coproducidas. Aprobado EMA abril 2024.',niche:'Específicamente diseñado para Enterobacterales MBL. Sustituye la combinación ceftaz/avi + aztreonam.'},
 {n:'Sulbactam/durlobactam (Xacduro)',sp:'Espectro: dirigido a A. baumannii incluso CRAB. Durlobactam inhibe clase A, C, D (incluida OXA-23 de CRAB).',niche:'1ª línea CRAB (IDSA 2024) combinado con carbapenem. Aprobado FDA 2023.'},
 {n:'Ceftarolina',sp:'Cefalosporina 5G. Espectro: MRSA, S. pneumoniae R, BLEE NO cubierta.',niche:'NAC, IPPB complicadas con MRSA, bacteriemia MRSA persistente (combinada con daptomicina).'},
-{n:'Ceftobiprol',sp:'Cefalosporina 5G. Espectro: MRSA + P. aeruginosa (única 5G con cobertura Pseudomonas).',niche:'NAC, NHA. Bacteriemia S. aureus (estudio ERADICATE 2023).'},
-{n:'Dalbavancina / Oritavancina',sp:'Lipoglucopéptidos. Espectro: Gram+ incluido MRSA y VRE (oritavancina). Vida media muy larga (1-2 sem).',niche:'IPPB no complicada (1 dosis); bacteriemia/endocarditis Gram+ con alta de hospitalización temprana.'},
-{n:'Tedizolid',sp:'Oxazolidinona. Espectro: Gram+ MRSA, VRE. Mejor perfil hematológico que linezolid.',niche:'IPPB Gram+. Tratamientos prolongados con menor toxicidad medular.'},
-{n:'Eravaciclina',sp:'Tetraciclina sintética. Espectro: MDR Gram+/-, anaerobios, A. baumannii.',niche:'IAA complicadas con MDR. No bacteriemia primaria.'},
-{n:'Plazomicina',sp:'Aminoglucósido. Espectro: BLEE, KPC, AmpC. NO eficaz contra MBL.',niche:'ITU complicada por CR-Enterobacterales. Combinación en KPC.'},
-{n:'Lefamulina',sp:'Pleuromutilina. Espectro: atípicos (Mycoplasma, Chlamydia, Legionella), neumococo, MRSA.',niche:'NAC bacteriana adquirida en la comunidad (oral o IV).'},
-{n:'Delafloxacino',sp:'Fluoroquinolona. Espectro: Gram+ (incluido MRSA), Gram- moderada.',niche:'IPPB MRSA, NAC.'},
-{n:'Omadaciclina',sp:'Tetraciclina. Espectro: MRSA, VRE, atípicos. NO eficaz contra P. aeruginosa ni Proteus.',niche:'NAC, IPPB Gram+ resistentes.'}
+{n:'Ceftobiprol',sp:'Cefalosporina 5G. Espectro: MRSA + P. aeruginosa (única 5G con cobertura Pseudomonas).',niche:'NAC, NHA. Bacteriemia S. aureus (estudio ERADICATE 2023).'}
 ];
 
 VIEWS.atb=()=>{
@@ -5543,10 +5655,9 @@ return `<div class="card">
 <tr><td>Ampicilina</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>✅✅</td></tr>
 <tr><td>Vancomicina</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td></tr>
 <tr><td>Daptomicina</td><td>✅</td><td>✅</td><td>✅ (dosis altas)</td><td>✅</td><td>✅</td></tr>
-<tr><td>Linezolid / Tedizolid</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+<tr><td>Linezolid</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
 <tr><td>Ceftarolina</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>⚠️</td></tr>
 <tr><td>Ceftobiprol</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td><td>✅ (E. faecalis)</td></tr>
-<tr><td>Dalbavancina / Oritavancina</td><td>✅</td><td>✅</td><td>⚠️ / ✅</td><td>✅</td><td>✅</td></tr>
 </tbody>
 </table>
 </div></div>
