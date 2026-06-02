@@ -1,0 +1,13 @@
+# Working/source files — not part of the published PWA
+Guias por añadir/
+PARA SUBIR NUEVAS GUIAS.docx
+Fondo transparente.jpg
+Imagen.jpg
+hemapocket.json
+serve.ps1
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+desktop.ini
+*.tmp

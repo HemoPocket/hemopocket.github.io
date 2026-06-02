@@ -3,14 +3,16 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v3';
+const CACHE = 'hemopocket-v46';
 const APP_SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(APP_SHELL).catch(() => null))
   );
-  self.skipWaiting();
+  // NO skipWaiting aquí: dejamos que la versión nueva quede "esperando" para
+  // que la app muestre el aviso "Actualizar". Al pulsarlo, la app envía
+  // 'skipWaiting' (ver abajo) y la versión vieja se reemplaza automáticamente.
 });
 
 self.addEventListener('activate', e => {
