@@ -4827,7 +4827,20 @@ const CHAT_SYN={
   neutropenia:'fiebre febril sepsis',
   trombosis:'anticoagulacion trombo embolia',
   sangrado:'hemorragia reversion',
-  hemorragia:'sangrado reversion'
+  hemorragia:'sangrado reversion',
+  endovenoso:'iv intravenoso intravenosa ev',
+  intravenoso:'iv endovenoso intravenosa ev',
+  intravenosa:'iv endovenoso intravenoso ev',
+  ev:'iv intravenoso endovenoso',
+  iv:'intravenoso endovenoso ev',
+  subcutaneo:'sc',
+  subcutanea:'sc',
+  sc:'subcutaneo',
+  opioide:'opioides',
+  opioides:'opioide conversion morfina',
+  conversion:'equivalencia equivalente convertir rotacion rotar mme',
+  equivalencia:'conversion equivalente mme',
+  rotacion:'rotar conversion opioide'
 };
 function chatNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñ\s]/g,' ').replace(/\s+/g,' ').trim();}
 function chatTokens(s){return chatNorm(s).split(' ').filter(t=>t.length>=2);}
@@ -4839,10 +4852,10 @@ function chatBuildBase(){
   try{getAll().forEach(it=>{
     let body=it.name+' '+(it.kw||'');let refs=[];
     if(!CHAT_SKIP_RENDER.has(it.id)){try{const html=VIEWS[it.id]?VIEWS[it.id]():'';if(typeof html==='string'){const tmp=document.createElement('div');tmp.innerHTML=html;body+=' '+(tmp.textContent||'').replace(/\s+/g,' ');tmp.querySelectorAll('.ref').forEach(r=>{const t=(r.textContent||'').replace(/\s+/g,' ').trim();if(t)refs.push(t);});}}catch(e){}}
-    docs.push({type:'tool',id:it.id,title:it.name,body:chatNorm(body),refs:refs});
+    docs.push({type:'tool',id:it.id,title:it.name,body:chatNorm(body),kwn:chatNorm(it.name+' '+(it.kw||'')),refs:refs});
   });}catch(e){}
-  try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];const dt=(s.drugs||[]).map(d=>d.name+' '+(d.dose||'')+' '+(d.route||'')).join(' ');docs.push({type:'scheme',id:k,title:s.label,body:chatNorm(k+' '+s.label+' '+dt),data:s});});}catch(e){}
-  try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{docs.push({type:'phone',section:sn,title:(e[0]||'').replace(/\n/g,' '),loc:e[1],phone:e[2],ext:e[3],body:chatNorm(sn+' '+e[0]+' '+(e[1]||'')+' '+(e[3]||''))});});});}catch(e){}
+  try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];const dt=(s.drugs||[]).map(d=>d.name+' '+(d.dose||'')+' '+(d.route||'')).join(' ');docs.push({type:'scheme',id:k,title:s.label,body:chatNorm(k+' '+s.label+' '+dt),kwn:chatNorm(s.label+' '+dt+' '+k),data:s});});}catch(e){}
+  try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{docs.push({type:'phone',section:sn,title:(e[0]||'').replace(/\n/g,' '),loc:e[1],phone:e[2],ext:e[3],body:chatNorm(sn+' '+e[0]+' '+(e[1]||'')+' '+(e[3]||'')),kwn:chatNorm((e[0]||'')+' '+sn)});});});}catch(e){}
   return docs;
 }
 // convierte el código interno de la guía (p.ej. "leuc_ag_lma_int") en un nombre legible
@@ -4902,7 +4915,7 @@ function chatSearch(query,limit){
   const phoneIntent=/ (telefono|telefonos|telefonico|numero|extension|ext|contacto|contactar|llamar|llamo|marcar) /.test(' '+chatNorm(query)+' ');
   // localiza un token como PALABRA COMPLETA (evita que "pti" case dentro de "optimizacion" o "lma" dentro de "lmadre")
   const wholeWord=(str,t,from)=>{let p=str.indexOf(t,from||0);while(p!==-1){const a=(p===0||str[p-1]===' '),b=(p+t.length===str.length||str[p+t.length]===' ');if(a&&b)return p;p=str.indexOf(t,p+1);}return -1;};
-  const scored=idx.map(doc=>{let sc=0;const matched=new Set(),tMatched=new Set();const tN=chatNorm(doc.title);const tC=tN.replace(/\s+/g,'');
+  const scored=idx.map(doc=>{let sc=0;const matched=new Set(),tMatched=new Set(),kMatched=new Set();const kwN=doc.kwn||'';const tN=chatNorm(doc.title);const tC=tN.replace(/\s+/g,'');
     // offsets donde empieza cada palabra del título en su versión sin espacios (para que "rchop" case con "r chop"=R-CHOP pero "hola" NO case dentro de "despacho laboratorio")
     const tStarts=[];{let o=0;tN.split(' ').forEach(w=>{tStarts.push(o);o+=w.length;});}
     const tCompactHit=t=>{let p=tC.indexOf(t);while(p!==-1){if(tStarts.indexOf(p)!==-1)return true;p=tC.indexOf(t,p+1);}return false;};
@@ -4912,6 +4925,8 @@ function chatSearch(query,limit){
       const tHit=short?wholeWord(tN,t)!==-1:tN.indexOf(t)!==-1;
       // coincidencia en el título (también versión sin guiones/espacios para nombres tipo R-CHOP, pero solo al inicio de palabra)
       if(tHit||(isC&&t.length>=3&&tCompactHit(t))){sc+=20*w*idf;if(isC&&qualifies(t)){matched.add(t);tMatched.add(t);}}
+      // coincidencia en las PALABRAS CLAVE curadas (kw): señal de alta precisión, distingue la herramienta correcta del PDF que solo la menciona de pasada
+      if(kwN){const kHit=short?wholeWord(kwN,t)!==-1:kwN.indexOf(t)!==-1;if(kHit){sc+=14*w*idf;if(isC&&qualifies(t)){matched.add(t);kMatched.add(t);}}}
       let c=0,p=0;
       if(short){let q=wholeWord(doc.body,t,0);while(q!==-1&&c<6){c++;q=wholeWord(doc.body,t,q+t.length);}}
       else{while((p=doc.body.indexOf(t,p))!==-1&&c<6){c++;p+=t.length;}}
@@ -4919,19 +4934,21 @@ function chatSearch(query,limit){
     // bonus fuerte si la consulta completa (sin espacios) está en el título: nombre exacto del esquema
     if(qComp.length>=4&&tC.indexOf(qComp)!==-1){sc+=60;anchors.forEach(a=>{matched.add(a);tMatched.add(a);});}
     if(doc.type==='phone'&&phoneIntent)sc*=3.5;     // si piden teléfono, la ficha telefónica gana al empate
-    if(doc.type!=='pdf')sc*=1.15;return {doc,sc,cov:matched.size,tcov:tMatched.size};
+    if(doc.type!=='pdf')sc*=1.15;return {doc,sc,cov:matched.size,tcov:tMatched.size,kcov:kMatched.size};
   }).filter(x=>x.sc>0&&x.cov>0)
-    // ordena por: coincidencias en el TÍTULO (lo más específico) > cobertura total > puntuación
-    .sort((a,b)=>b.tcov-a.tcov||b.cov-a.cov||b.sc-a.sc);
+    // ordena por: coincidencias en el TÍTULO > palabras clave curadas > cobertura total > puntuación
+    .sort((a,b)=>b.tcov-a.tcov||b.kcov-a.kcov||b.cov-a.cov||b.sc-a.sc);
   if(!scored.length)return [];
   // si algún doc coincide en el título, descarta los que solo coinciden en el cuerpo (evita divagar)
   const maxT=scored[0].tcov;
   let pool=maxT>0?scored.filter(x=>x.tcov===maxT):scored;
-  // entre los finalistas, quédate solo con los de mayor cobertura (p.ej. esquema + fármaco)
-  const maxCov=pool[0].cov;
-  pool=pool.filter(x=>x.cov===maxCov);
-  const top=pool[0].sc;
-  return pool.filter(x=>x.sc>=top*0.5).slice(0,limit).map(x=>x.doc);
+  // entre los finalistas: conserva los de mayor cobertura del CUERPO o los de mayor cobertura de PALABRAS CLAVE curadas
+  const maxK=pool.reduce((m,x)=>Math.max(m,x.kcov),0);
+  const maxCov=pool.reduce((m,x)=>Math.max(m,x.cov),0);
+  pool=pool.filter(x=>x.cov===maxCov||(maxK>0&&x.kcov===maxK));
+  const topSc=pool.reduce((m,x)=>Math.max(m,x.sc),0);
+  // no descartes por puntuación un resultado que cubre TODOS los términos objetivo (p.ej. la guía PDF real), aunque una herramienta con kw reciba más boost
+  return pool.filter(x=>x.sc>=topSc*0.5||x.cov===maxCov).slice(0,limit).map(x=>x.doc);
 }
 function chatSnippet(rawText,query){
   const low=(rawText||'').toLowerCase();
@@ -5015,7 +5032,83 @@ function chatSmallTalk(q){
     return chatBotBox('¡Hasta luego! 👋 Cuando quieras volver a consultar algo, aquí estaré.');
   return chatBotBox('¡Hola! Soy <strong>Eri</strong> 🩸<br><br>Tu asistente de HemoPocket. Puedo buscarte dosis, esquemas, teléfonos o el contenido de las guías clínicas.<br><br>¿Qué necesitas?');
 }
-function chatSend(preset){const inp=$('chat_input');const q=((preset!=null?preset:(inp?inp.value:''))||'').trim();if(!q)return;if(inp)inp.value='';chatPushUser(q);const small=chatSmallTalk(q);if(small){_chatGreeted=true;chatPushHTML(small);return;}if(!_chatBase)_chatBase=chatBuildBase();const res=chatSearch(chatCleanQuery(q),6);chatPushHTML(chatAnswerHTML(q,res));}
+// === Cálculo inline de opioides: Eri responde el número, no solo abre la calculadora ===
+const OPIO_NLP=[
+  {re:/metadona/,vo:'meta_vo',iv:null,td:null},
+  {re:/morfina/,vo:'mor_vo',iv:'mor_iv',td:null},
+  {re:/oxicodona/,vo:'oxi_vo',iv:'oxi_iv',td:null},
+  {re:/hidromorfona/,vo:'hidro_vo',iv:'hidro_iv',td:null},
+  {re:/tramadol/,vo:'tram_vo',iv:'tram_iv',td:null},
+  {re:/codeina/,vo:'cod',iv:null,td:null},
+  {re:/tapentadol/,vo:'tap',iv:null,td:null},
+  {re:/fentanilo|fentanil/,vo:null,iv:'fent_iv',td:'fent_td'},
+  {re:/buprenorfina/,vo:null,iv:null,td:'bup_td'}
+];
+function opioRouteAt(s){
+  if(/transdermic|parche| td /.test(s))return 'td';
+  if(/endovenos|intravenos|subcutane|parenteral| iv | ev | sc | im /.test(s))return 'iv';
+  if(/ oral | vo | boca |comprimid|capsul|sublingual/.test(s))return 'vo';
+  return null;
+}
+function opioPick(o,route){
+  if(route==='td'&&o.td)return o.td;
+  if(route==='iv'&&o.iv)return o.iv;
+  if(route==='vo'&&o.vo)return o.vo;
+  return o.vo||o.td||o.iv;   // sin vía explícita: oral › transdérmico › parenteral
+}
+function opioMME(key,dose){return key==='meta_vo'?dose*metadonaFactor(dose):dose*OPIO_FACT[key].f;}
+function opioDoseFromMME(key,mme){return key==='meta_vo'?mme/metadonaFactor(mme):mme/OPIO_FACT[key].f;}
+function opioName(key){return key==='meta_vo'?'Metadona oral':OPIO_FACT[key].n;}
+function opioUnitMin(key){if(key==='meta_vo')return 'mg';const c=OPIO_FACT[key];if(c.td)return 'µg/h';if(key==='fent_iv')return 'µg';return 'mg';}
+function fmtOpioNum(x){return (Math.round(x*10)/10).toString().replace(/\.0$/,'');}
+function opioInline(q){
+  const s=' '+chatNorm(q)+' ';
+  if(!/(cuant|equival|convert|convier|rota|rotar|pasar|paso|seria|sale|corresponde| a | en )/.test(s))return null;
+  const drugs=[];OPIO_NLP.forEach(o=>{const p=s.search(o.re);if(p!==-1)drugs.push({o,pos:p});});
+  if(!drugs.length)return null;drugs.sort((a,b)=>a.pos-b.pos);
+  const dm=s.match(/(\d+(?:[.,]\d+)?)/);if(!dm)return null;
+  const dose=parseFloat(dm[1].replace(',','.'));if(!(dose>0))return null;
+  let fromKey,toKey;
+  if(drugs.length===1){
+    const o=drugs[0].o,dp=drugs[0].pos,hits=[];
+    [['td',/transdermic|parche| td /g],['iv',/endovenos|intravenos|subcutane|parenteral| iv | ev | sc | im /g],['vo',/ oral | vo | boca |comprimid|capsul|sublingual/g]]
+      .forEach(([r,re])=>{let m;while((m=re.exec(s)))hits.push({r,pos:m.index});});
+    const uniq=[];hits.forEach(h=>{if(!uniq.some(u=>u.r===h.r))uniq.push(h);});
+    if(uniq.length<2)return null;   // p.ej. solo "morfina oral" sin vía destino → ambiguo
+    const src=uniq.slice().sort((a,b)=>Math.abs(a.pos-dp)-Math.abs(b.pos-dp))[0];
+    const dst=uniq.find(u=>u.r!==src.r);
+    fromKey=opioPick(o,src.r);toKey=opioPick(o,dst.r);
+  }else{
+    const rA=opioRouteAt(' '+s.slice(drugs[0].pos,drugs[0].pos+24)+' ');
+    const rB=opioRouteAt(' '+s.slice(drugs[1].pos,drugs[1].pos+24)+' ');
+    fromKey=opioPick(drugs[0].o,rA);toKey=opioPick(drugs[1].o,rB);
+  }
+  if(!fromKey||!toKey||fromKey===toKey)return null;
+  const mme=opioMME(fromKey,dose),toDose=opioDoseFromMME(toKey,mme);
+  if(!isFinite(toDose)||toDose<=0)return null;
+  return {dose,fromKey,toKey,mme,toDose,isRot:fromKey.split('_')[0]!==toKey.split('_')[0],meta:fromKey==='meta_vo'||toKey==='meta_vo'};
+}
+function opioInlineCard(r){
+  const fU=opioUnitMin(r.fromKey),tU=opioUnitMin(r.toKey);
+  let main,note;
+  if(r.isRot){
+    main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong>${fmtOpioNum(r.toDose)} ${tU}</strong> de ${chatEsc(opioName(r.toKey))} <em>(equivalencia bruta)</em>.`;
+    note=`Al <strong>rotar de opioide</strong> se aplica una reducción del 25–50% por tolerancia cruzada incompleta → dosis inicial sugerida <strong style="color:var(--c1)">${fmtOpioNum(r.toDose*0.5)}–${fmtOpioNum(r.toDose*0.75)} ${tU}</strong>, ajustando con dosis de rescate.`;
+  }else{
+    main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong style="color:var(--c1)">${fmtOpioNum(r.toDose)} ${tU}</strong> de ${chatEsc(opioName(r.toKey))}.`;
+    note='Mismo fármaco, solo cambia la vía: no se aplica reducción por tolerancia cruzada.';
+  }
+  const metaW=r.meta?'<div style="margin-top:6px;font-size:11.5px;color:#9a3412"><strong>⚠️ Metadona:</strong> conversión NO lineal y tolerancia cruzada parcial; iniciar siempre en consulta especializada.</div>':'';
+  return `<div style="${CHAT_CARD};border-left-color:#b91c1c">
+    <div style="${CHAT_TTL}">🧮 Conversión de opioides</div>
+    <div style="font-size:13.5px;line-height:1.55">${main}</div>
+    <div style="font-size:12px;color:var(--mut);margin-top:5px">≈ <strong>${fmtOpioNum(r.mme)} MME/día</strong> de morfina oral.</div>
+    <div style="font-size:12px;color:var(--txt);margin-top:6px;line-height:1.5">${note}</div>
+    ${metaW}
+    <button onclick="go('opioides')" style="${CHAT_LINK}">📍 Abrir calculadora de opioides →</button>
+  </div>`;
+}
+function chatSend(preset){const inp=$('chat_input');const q=((preset!=null?preset:(inp?inp.value:''))||'').trim();if(!q)return;if(inp)inp.value='';chatPushUser(q);const small=chatSmallTalk(q);if(small){_chatGreeted=true;chatPushHTML(small);return;}if(!_chatBase)_chatBase=chatBuildBase();let oi=null;try{oi=opioInline(q);}catch(e){oi=null;}if(oi){chatPushHTML(`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">${opioInlineCard(oi)}</div></div>`);return;}const res=chatSearch(chatCleanQuery(q),6);chatPushHTML(chatAnswerHTML(q,res));}
 function chatInit(){
   const log=$('chat_log');if(!log)return;log.innerHTML='';_chatGreeted=true;
   _chatBase=chatBuildBase();
