@@ -4107,10 +4107,11 @@ const updateUrl=ls.g('updateUrl')||DEFAULT_UPDATE_URL;
 const version=ls.g('updateVersion')||'';
 const online=navigator.onLine;
 const btnDisabled=!online||!updateUrl;
-const btnText=!updateUrl?'Configura primero la URL (abajo)':!online?'Sin Internet':'Actualizar ahora';
+const btnText=!updateUrl?'Configura primero la URL (abajo)':!online?'Sin Internet':'Descargar todo ahora';
 return `<div class="card">
 <h2>Actualizar la app</h2>
-<p class="intro">Pulsa el botón cuando tengas Internet. La app descarga las guías actualizadas y todos los PDFs. Después puedes usarla offline en cualquier momento.</p>
+<p class="intro"><strong>La app se actualiza sola</strong> en segundo plano (guías, contactos, equipo y PDFs) siempre que tengas Internet. <strong>Normalmente no necesitas usar este botón.</strong></p>
+<p class="intro">Úsalo solo si vas a quedarte <strong>sin cobertura</strong> (guardia, traslado…) y quieres forzar ahora la descarga de todas las guías y PDFs, viendo el progreso y si algo falla.</p>
 
 <div class="alert ${online?'g':'r'}" style="margin:14px 0">
 <strong>Estado:</strong> ${online?'Online':'Sin Internet'}<br>
