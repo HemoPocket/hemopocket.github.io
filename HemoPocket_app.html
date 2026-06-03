@@ -7625,14 +7625,12 @@ window.RXtranscribe=RXtranscribe;
 let LC_MODE='lab';
 function setLCmode(m){LC_MODE=m;
   document.querySelectorAll('.lc-tab').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
-  const ph=$('lc_in'), help=$('lc_help'), dr=$('lc_daterow');
+  const ph=$('lc_in'), help=$('lc_help');
   if(m==='lab'){
     ph.placeholder='Ej: Hemoglobina 8,9 g/dL (12-16)\nLeucocitos 12.500/uL\nNeutrofilos 75% / 9.400/uL\nPlaquetas 45.000/uL\nActividad de protrombina 65%\nGlucemia 110 mg/dl ...';
-    if(dr) dr.style.display='';
     if(help) help.innerHTML=LC_HELP_LAB;
   } else {
     ph.placeholder='Ej: PARACETAMOL 1000 MG - 1 COMPRIMIDO CADA 8 HORAS - VIA ORAL, ACICLOVIR 800 MG - 1 COMPRIMIDO CADA 24 HORAS - VIA ORAL';
-    if(dr) dr.style.display='none';
     if(help) help.innerHTML=LC_HELP_RX;
   }
   $('lc_out').value='';
@@ -7643,7 +7641,7 @@ const LC_HELP_LAB=`<ul style="padding-left:18px;line-height:1.7;font-size:12.5px
 <li>Elimina los <strong>rangos/valores normales</strong> entre paréntesis y normaliza el nombre (p. ej. «Hemoglobina 8,9 g/dl (12-16)» → «Hb 8,9 g/dl»).</li>
 <li>Añade la <strong>unidad estándar</strong> a cada parámetro.</li>
 <li><strong>Hemograma:</strong> solo Hb, VCM, Leucocitos, Neutrófilos, Linfocitos, Monocitos (valores <strong>absolutos</strong>), Plaquetas, Reticulocitos y Frotis. Ignora Hto, HCM, CHCM, RDW, eosinófilos, basófilos.</li>
-<li>Agrupa por <strong>Hemograma · Coagulación · Bioquímica · Proteinograma · Serologías · Microbiología</strong> con la fecha indicada.</li>
+<li>Agrupa por <strong>Hemograma · Coagulación · Bioquímica · Proteinograma · Serologías · Microbiología</strong>. La <strong>fecha</strong> se detecta automáticamente del propio texto pegado (la primera que aparezca).</li>
 </ul>
 <div class="alert y" style="margin-top:8px;font-size:12px"><strong>Importante:</strong> es una ayuda de transcripción. <strong>Revisa siempre</strong> el resultado antes de copiarlo a la historia.</div>`;
 const LC_HELP_RX=`<ul style="padding-left:18px;line-height:1.7;font-size:12.5px">
@@ -7654,8 +7652,6 @@ const LC_HELP_RX=`<ul style="padding-left:18px;line-height:1.7;font-size:12.5px"
 <div class="alert y" style="margin-top:8px;font-size:12px"><strong>Importante:</strong> ayuda de redacción; <strong>verifica fármaco, dosis y pauta</strong> antes de prescribir.</div>`;
 
 VIEWS.labconv=()=>{
-const td=new Date();
-const today=String(td.getDate()).padStart(2,'0')+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getFullYear()).slice(-2);
 return `<div class="card">
 <h2>📝 Asistente de redacción</h2>
 <p class="intro">Limpia y da formato a texto clínico en bruto. Dos modos: <strong>analíticas</strong> (ordena y normaliza resultados de laboratorio) y <strong>recetas</strong> (transcribe listas de medicamentos a un texto legible).</p>
@@ -7668,10 +7664,7 @@ return `<div class="card">
 <div class="fld"><label class="lbl">Pega aquí el texto</label>
 <textarea id="lc_in" style="min-height:160px" placeholder="Ej: Hemoglobina 8,9 g/dL (12-16)&#10;Leucocitos 12.500/uL&#10;Neutrofilos 75% / 9.400/uL&#10;Plaquetas 45.000/uL&#10;Actividad de protrombina 65%&#10;Glucemia 110 mg/dl ..."></textarea></div>
 
-<div class="row2">
-<div class="fld" id="lc_daterow"><label class="lbl">Fecha (DD-MM-AA)</label><input type="text" id="lc_date" value="${today}" placeholder="DD-MM-AA"></div>
-<div class="fld" style="display:flex;align-items:flex-end"><div class="btns" style="margin:0"><button class="btn" onclick="runAssistant()">Procesar</button><button class="btn btn-out btn-sm" onclick="$('lc_in').value='';$('lc_out').value='';">Limpiar</button></div></div>
-</div>
+<div class="btns" style="margin-top:6px"><button class="btn" onclick="runAssistant()">Procesar</button><button class="btn btn-out btn-sm" onclick="$('lc_in').value='';$('lc_out').value='';">Limpiar</button></div>
 
 <div class="fld" style="margin-top:6px"><label class="lbl">Resultado (editable)</label>
 <textarea id="lc_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px"></textarea></div>
@@ -7695,11 +7688,11 @@ function runAssistant(){
     return;
   }
   const r=window.LCtranscribe(raw);
-  let date=($('lc_date').value||'').trim();
-  if(!date&&r.dateGuess){date=r.dateGuess;$('lc_date').value=date;}
+  const date=r.dateGuess||'';
   const out=window.LCbuild(r.found,date);
   $('lc_out').value=out||'No se han reconocido valores. Revisa el texto pegado o complétalo manualmente.';
   if(!out)toast('No se reconocieron valores');
+  else if(!date)toast('No se detectó fecha en el texto');
 }
 function runLabConv(){runAssistant();}
 function copyLabConv(){const v=$('lc_out').value;if(!v.trim()){toast('Procesa primero');return}copy(v);}
