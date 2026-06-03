@@ -608,7 +608,6 @@ const MENU=[
 {id:'hemof_adq',name:'Hemofilia adquirida',kw:'hemofilia adquirida inhibidor fviii autoanticuerpo ttpa test mezclas bypass agente rfviia feiba emicizumab inhibidor',new:'2026-05-29'},
 {id:'diagno_coag',name:'Diagnóstico diferencial coagulación',kw:'diagnostico diferencial coagulacion patron tp ttpa tt tabla algoritmo urgencias coagulopatia',new:'2026-05-29'},
 {id:'agrego',name:'Patrones Agregometría Óptica',kw:'agregometria optica born trombopatia patron diagnostico glanzmann bernard soulier evw pool storage adp colageno ristocetina',new:'2026-05-29'},
-{id:'ptt_score',name:'Scores PTT (PLASMIC/ASAP/Francés)',kw:'ptt ttp score plasmic asap frances adamts13 microangiopatia trombotica mat probabilidad pretratamiento',new:'2026-05-29'},
 {id:'ptt_tto',name:'Tratamiento PTT aguda',kw:'ptt ttp tratamiento recambio plasmatico caplacizumab rituximab corticoides plasma fresco congelado refractariedad exacerbacion recaida',new:'2026-05-29'},
 {id:'g_th',name:'Guías clínicas',kw:'guias clinicas trombosis hemostasia tev fa hit hemofilia protocolo pdf'}
 ]},
@@ -5423,7 +5422,7 @@ function chatPttIntent(q){
   const nq=chatNorm(q);
   if(!/purpura tromb(o|ó)tica|trombotica trombocitopenica|\bttp\b|microangiopatia trombotica|adamts ?13/.test(nq))return null;
   if(/inmune|\bpti\b|\bitp\b/.test(nq))return null;
-  return chatRouteCard('ptt_tto','🩸','Púrpura trombótica trombocitopénica (PTT)','Microangiopatía trombótica por déficit de ADAMTS13 — emergencia hematológica. Aquí tienes el <strong>manejo agudo</strong> (recambio plasmático, corticoides, caplacizumab) y los scores diagnósticos.',[['ptt_score','Scores PTT (PLASMIC/ASAP)'],['tma_dif','Diferencial de MAT']]);
+  return chatRouteCard('ptt_tto','🩸','Púrpura trombótica trombocitopénica (PTT)','Microangiopatía trombótica por déficit de ADAMTS13 — emergencia hematológica. Aquí tienes el <strong>manejo agudo</strong> (recambio plasmático, corticoides, caplacizumab) y los scores diagnósticos.',[['plasmic','PLASMIC Score (PTT)'],['tma_dif','Diferencial de MAT']]);
 }
 // CRS (síndrome de liberación de citoquinas) — no confundir con SOS/otros "síndromes"
 function chatCrsIntent(q){
@@ -7354,52 +7353,6 @@ VIEWS.agrego=()=>`<div class="card">
 </div>
 
 <div class="ref">Harrison's Hematology. Gresele P et al. ISTH Guidelines on Platelet Function Testing (2020). Haematologica 2021. Patrones diagnósticos de Agregometría — Servicio de Hematología HUNSC.</div>
-</div>`;
-
-// ─── SCORES PTT ────────────────────────────────────────────────────
-VIEWS.ptt_score=()=>`<div class="card">
-<h2>🧮 Scores PTT — Probabilidad pretest de déficit ADAMTS13</h2>
-<p class="intro">La determinación de ADAMTS13 no está disponible como prueba urgente en la mayoría de centros. Usar escalas clínicas para iniciar tratamiento empírico mientras se espera el resultado. <strong>Aplicables solo en adultos.</strong></p>
-
-<div class="alert r" style="margin-bottom:12px">
-<strong>Diagnóstico de PTT:</strong> Anemia hemolítica microangiopática (esquistocitos en frotis) + Trombocitopenia <strong>SIN otra causa</strong> + ADAMTS13 &lt;10% (déficit grave). La péntada clásica (AHMA + trombocitopenia + fiebre + neurológico + renal) coincide en &lt;10% de los casos de PTT aguda.
-</div>
-
-<div style="overflow-x:auto;margin-bottom:14px">
-<table class="tbl" style="min-width:620px">
-<thead>
-<tr><th>Variable</th><th>Escala Francesa</th><th>Escala ASAP</th><th>Escala PLASMIC</th></tr>
-</thead>
-<tbody>
-<tr><td>Edad ≤ 68 años</td><td>—</td><td>+1</td><td>—</td></tr>
-<tr><td>Plaquetas</td><td>&lt;30×10⁹/L (+1)</td><td>≤44×10⁹/L (+1)</td><td>&lt;30×10⁹/L (+1)</td></tr>
-<tr><td>Creatinina</td><td>&lt;2.25 mg/dL (+1)</td><td>Hombre ≤2 mg/dL / Mujer ≤1.9 mg/dL (+1)</td><td>&lt;2 mg/dL (+1)</td></tr>
-<tr><td>Sin TPH previo</td><td>—</td><td>+1</td><td>Sin TPH ni TOS (+1)</td></tr>
-<tr><td>Hemólisis</td><td>BrInd &gt;2 mg/dL o Retic&gt;2.5% o Hapto indetectable (+1)</td><td>—</td><td>— (+1)</td></tr>
-<tr><td>Sin cáncer activo</td><td>—</td><td>—</td><td>+1</td></tr>
-<tr><td>INR &lt;1.5</td><td>—</td><td>—</td><td>+1</td></tr>
-<tr><td>VCM &lt;90 fL</td><td>—</td><td>—</td><td>+1</td></tr>
-<tr><td><strong>Puntuación máxima</strong></td><td><strong>0–2</strong></td><td><strong>0–5</strong></td><td><strong>0–7</strong></td></tr>
-</tbody>
-</table>
-</div>
-
-<div style="overflow-x:auto">
-<table class="tbl" style="min-width:540px">
-<thead><tr><th>Escala</th><th>Puntuación baja (&lt;2% ADAMTS13 déficit)</th><th>Puntuación media</th><th>Puntuación alta (&gt;4/5 PTT)</th></tr></thead>
-<tbody>
-<tr><td><strong>Francesa</strong><br><small>S:84%, E:84%, VPN:92%</small></td><td>0 → 2% PTT</td><td>1 → 70% PTT</td><td>2 → 94% PTT</td></tr>
-<tr><td><strong>ASAP</strong><br><small>S:88%, E:93%, VPN:94%</small></td><td>0–2 → 1.5% PTT</td><td>3 → 17% PTT</td><td>4 → 85% PTT</td></tr>
-<tr><td><strong>PLASMIC</strong><br><small>S:85–90%, VPN:92–98%</small></td><td>0–4 → 1% PTT</td><td>5 → 11% PTT</td><td>6–7 → 78.3% PTT</td></tr>
-</tbody>
-</table>
-</div>
-
-<div class="alert b" style="margin-top:10px;font-size:12.5px">
-<strong>Actuación según puntuación:</strong> Puntuación alta (PLASMIC 6–7 / Francesa 2 / ASAP 4) → <strong>iniciar recambio plasmático urgente</strong> mientras se espera ADAMTS13. Puntuación muy baja → investigar otras causas de MAT (SHUa, CID, HELLP, MAT por fármacos).
-</div>
-
-<div class="ref">Coppo P et al. Predictive features of severe acquired ADAMTS13 deficiency. PLoS One. 2010;5:e10208 (Escala Francesa). Nieto JM et al. Development and validation of ASAP score. Clin Chem Lab Med. 2018;56:294-302. Bendapudi PK et al. PLASMIC score. Lancet Haematol. 2017;4:e157-164. Mingot Castellano ME et al. Recomendaciones para el abordaje clínico de pacientes con PTT. Med Clin (Barc). 2021. https://doi.org/10.1016/j.medcli.2021.03.040</div>
 </div>`;
 
 // ─── TRATAMIENTO PTT AGUDA ─────────────────────────────────────────
