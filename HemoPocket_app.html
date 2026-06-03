@@ -4284,7 +4284,7 @@ const QT_SCHEMES = {
       {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV', days:[2]},
       {name:'Doxorubicina',  dose:'50 mg/m²',  route:'IV', days:[2]},
       {name:'Vincristina',   dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[2]},
-      {name:'Prednisona',    dose:'100 mg',    route:'VO', days:[1,2,3,4,5]}
+      {name:'Prednisona',    dose:'60 mg/m²',  route:'VO', days:[1,2,3,4,5]}
     ]
   },
   'CHOP': {
@@ -4388,13 +4388,13 @@ const QT_SCHEMES = {
     ]
   },
   'MTX-RCHOP': {
-    label: 'MTX-R-CHOP – R-CHOP + Metotrexato intercalado (cada 21 días)',
+    label: 'MTX-R-CHOP – R-CHOP + Metotrexato día 15 (cada 21 días)',
     drugs: [
       {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
       {name:'Ciclofosfamida',  dose:'750 mg/m²',            route:'IV', days:[1]},
       {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[1]},
       {name:'Vincristina',     dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[1]},
-      {name:'Prednisona',      dose:'100 mg',               route:'VO', days:[1,2,3,4,5]},
+      {name:'Prednisona',      dose:'60 mg/m²',             route:'VO', days:[1,2,3,4,5]},
       {name:'Metotrexato',     dose:'3500 mg/m² IC 24h',    route:'IV', days:[15]}
     ]
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
@@ -4624,13 +4624,13 @@ const QT_SCHEMES = {
     ]
   },
   'MTX-RCHOP': {
-    label: 'MTX-R-CHOP – R-CHOP + Metotrexato intercalado (cada 21 días)',
+    label: 'MTX-R-CHOP – R-CHOP + Metotrexato día 15 (cada 21 días)',
     drugs: [
       {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
       {name:'Ciclofosfamida',  dose:'750 mg/m²',            route:'IV', days:[1]},
       {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[1]},
       {name:'Vincristina',     dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[1]},
-      {name:'Prednisona',      dose:'100 mg',               route:'VO', days:[1,2,3,4,5]},
+      {name:'Prednisona',      dose:'60 mg/m²',             route:'VO', days:[1,2,3,4,5]},
       {name:'Metotrexato',     dose:'3500 mg/m² IC 24h',    route:'IV', days:[15]}
     ]
   },
@@ -4714,7 +4714,9 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Filgrastim (G-CSF, priming)',           dose:'10 µg/kg',      route:'SC', days:[1,2,3,4,5,6,7,8]},
       {name:'Busulfán',                              dose:'3,2 mg/kg',     route:'IV 2h', days:[2,3,4,5]},
-      {name:'Etopósido',                             dose:'20 mg/kg',      route:'IV 2h', days:[6,7]},
+      {name:'Etopósido (1ª de 3 subdosis seguidas, sin pausa)', dose:'7 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
+      {name:'Etopósido (2ª de 3 subdosis seguidas)',            dose:'7 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
+      {name:'Etopósido (3ª de 3 subdosis seguidas)',            dose:'6 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
       {name:'Citarabina (AraC)',                     dose:'3 g/m²/12h',    route:'IV 3h', days:[7,8]},
       {name:'Infusión de progenitores hematopoyéticos', dose:'—',          route:'IV', days:[10]}
     ]
@@ -5418,6 +5420,9 @@ function qtAddDays(base,n){
 const d=new Date(base);d.setDate(d.getDate()+n);return d;
 }
 
+function qtBSA(weightKg,heightCm){ // DuBois & DuBois (Arch Intern Med 1916)
+  return 0.007184*Math.pow(weightKg,0.425)*Math.pow(heightCm,0.725);
+}
 function qtRoundDose(mg){
   if(mg>=200) return Math.round(mg/5)*5;
   if(mg>=50)  return Math.round(mg);
@@ -5451,10 +5456,10 @@ function qtUpdateBSA(){
   const d=$('qt_bsa');
   if(d){
     if(p>0&&t>0){
-      const bsa=Math.sqrt(t*p/3600);
+      const bsa=qtBSA(p,t);
       const sx=$('qt_sexo')?.value;
       const sxStr=sx==='H'?' · Hombre':sx==='M'?' · Mujer':'';
-      d.innerHTML='SC: <strong>'+bsa.toFixed(2)+' m²</strong> (Mosteller) · '+p+' kg · '+t+' cm'+sxStr;
+      d.innerHTML='SC: <strong>'+bsa.toFixed(2)+' m²</strong> (DuBois) · '+p+' kg · '+t+' cm'+sxStr;
       d.style.color='var(--c1)';
     } else {
       d.innerHTML='Introduce peso y talla para calcular la dosis';
@@ -5469,7 +5474,7 @@ const d1str=$('qt_d1')?.value;
 const cycle=parseInt($('qt_cycle')?.value||'1',10);
 const peso=parseFloat($('qt_peso')?.value)||0;
 const talla=parseFloat($('qt_talla')?.value)||0;
-const bsa=(peso>0&&talla>0)?Math.sqrt(talla*peso/3600):0;
+const bsa=(peso>0&&talla>0)?qtBSA(peso,talla):0;
 const wrap=$('qt_out_wrap');const info=$('qt_info');
 if(!wrap||!info)return;
 if(!key||!d1str){wrap.style.display='none';info.innerHTML='';return;}
