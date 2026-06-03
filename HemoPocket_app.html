@@ -459,6 +459,12 @@ body{font-size:13px}
 </div>
 </div>
 <style>
+#toTop{position:fixed;right:22px;bottom:92px;width:44px;height:44px;border-radius:50%;background:var(--c2);color:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shd2);z-index:90;opacity:0;visibility:hidden;transform:translateY(8px) scale(.9);transition:opacity .2s,transform .2s,visibility .2s}
+#toTop.show{opacity:.96;visibility:visible;transform:none}
+#toTop:hover{opacity:1}
+#toTop:active{transform:scale(.9)}
+#toTop svg{width:20px;height:20px}
+[data-t="dark"] #toTop{background:var(--c2l);color:#0d1117}
 #eriWrap{position:fixed;right:16px;bottom:16px;width:64px;height:64px;z-index:1200;touch-action:none}
 #eriWrap.dragging #chatFab{transition:none}
 #eriWrap[hidden]{display:none}
@@ -530,6 +536,7 @@ body{font-size:13px}
 .ios-share-ic{display:inline-block;vertical-align:-3px;width:16px;height:16px;margin:0 1px}
 .ios-install-box .ios-ok{margin-top:16px;width:100%;background:linear-gradient(135deg,#22487f,#16294a);color:#fff;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
 </style>
+<button id="toTop" onclick="bttGo()" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg></button>
 <div id="eriWrap">
 <button id="chatFab" class="pulse" onclick="toggleChat()" aria-label="Eri" title="Eri">
 <svg viewBox="0 0 48 48"><defs><radialGradient id="eriBody" cx="50%" cy="46%" r="60%"><stop offset="0%" stop-color="#d8392c"/><stop offset="68%" stop-color="#cf3024"/><stop offset="100%" stop-color="#ad2116"/></radialGradient><radialGradient id="eriBowl" cx="50%" cy="48%" r="55%"><stop offset="0%" stop-color="#c62c20"/><stop offset="100%" stop-color="#b72215"/></radialGradient><radialGradient id="eriBowlDark" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#560d11" stop-opacity=".4"/><stop offset="58%" stop-color="#560d11" stop-opacity=".12"/><stop offset="100%" stop-color="#560d11" stop-opacity="0"/></radialGradient><radialGradient id="eriBowlLight" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f4745c" stop-opacity=".3"/><stop offset="60%" stop-color="#f4745c" stop-opacity=".08"/><stop offset="100%" stop-color="#f4745c" stop-opacity="0"/></radialGradient><radialGradient id="eriRimGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffa088" stop-opacity=".62"/><stop offset="55%" stop-color="#ffa088" stop-opacity=".16"/><stop offset="100%" stop-color="#ffa088" stop-opacity="0"/></radialGradient><radialGradient id="eriEdge" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#3c090d" stop-opacity="0"/><stop offset="82%" stop-color="#3c090d" stop-opacity="0"/><stop offset="93%" stop-color="#3c090d" stop-opacity=".14"/><stop offset="100%" stop-color="#360a0d" stop-opacity=".34"/></radialGradient><filter id="eriSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation=".85"/></filter><clipPath id="eriClip"><circle cx="24" cy="24" r="21"/></clipPath></defs><g transform="translate(-0.07 5.93) scale(0.857)"><circle cx="24" cy="24" r="21" fill="url(#eriBody)"/><g clip-path="url(#eriClip)"><ellipse cx="24" cy="24.3" rx="13.2" ry="12.5" fill="#9c1a11" filter="url(#eriSoft)"/><ellipse cx="24" cy="24.9" rx="10.4" ry="9.9" fill="url(#eriBowl)" filter="url(#eriSoft)"/><ellipse cx="24" cy="20.4" rx="9.3" ry="6" fill="url(#eriBowlDark)" filter="url(#eriSoft)"/><ellipse cx="24" cy="29.3" rx="8" ry="4.8" fill="url(#eriBowlLight)" filter="url(#eriSoft)"/><ellipse cx="14.6" cy="14.2" rx="7.6" ry="3.4" fill="url(#eriRimGlow)" filter="url(#eriSoft)" transform="rotate(-40 14.6 14.2)"/><ellipse cx="32.6" cy="33.2" rx="5" ry="2.3" fill="url(#eriRimGlow)" opacity=".45" filter="url(#eriSoft)" transform="rotate(-40 32.6 33.2)"/><g filter="url(#eriSoft)"><circle cx="19" cy="27.4" r="1" fill="#6a0f14" opacity=".14"/><circle cx="29.2" cy="28.3" r="1.1" fill="#6a0f14" opacity=".12"/><circle cx="27.6" cy="20.6" r=".6" fill="#ff9d8c" opacity=".16"/></g><circle cx="24" cy="24" r="21" fill="url(#eriEdge)"/></g><g class="eri-face"><ellipse cx="16.7" cy="27.4" rx="2.5" ry="1.6" fill="#ff8a76" opacity=".34"/><ellipse cx="31.3" cy="27.4" rx="2.5" ry="1.6" fill="#ff8a76" opacity=".34"/><circle cx="20.5" cy="23.9" r="1.95" fill="#3a0a10"/><circle cx="27.5" cy="23.9" r="1.95" fill="#3a0a10"/><circle cx="19.75" cy="23.15" r=".66" fill="#fff"/><circle cx="26.75" cy="23.15" r=".66" fill="#fff"/><circle cx="21.1" cy="24.6" r=".32" fill="#fff" opacity=".75"/><circle cx="28.1" cy="24.6" r=".32" fill="#fff" opacity=".75"/><path d="M21 27.8 Q24 30.2 27 27.8" stroke="#3a0a10" stroke-width="1.1" fill="none" stroke-linecap="round"/></g></g><path d="M34.1 1.5 H44.4 A2.6 2.6 0 0 1 47 4.1 V8.9 A2.6 2.6 0 0 1 44.4 11.5 H38 L34.5 15 L35.6 11.5 H34.1 A2.6 2.6 0 0 1 31.5 8.9 V4.1 A2.6 2.6 0 0 1 34.1 1.5 Z" fill="#dceffb" stroke="#8fb8e6" stroke-width=".9"/><ellipse cx="36.5" cy="3.6" rx="2.6" ry="1" fill="#fff" opacity=".45"/><circle cx="34.3" cy="6.5" r=".75" fill="#2f74c6"/><g class="eri-wave" stroke="#2f74c6" stroke-width="1.15" stroke-linecap="round"><line x1="36.3" y1="7.6" x2="36.3" y2="5.4"/><line x1="38.15" y1="8.5" x2="38.15" y2="4.5"/><line x1="40" y1="9.3" x2="40" y2="3.7"/><line x1="41.85" y1="8.5" x2="41.85" y2="4.5"/><line x1="43.7" y1="7.6" x2="43.7" y2="5.4"/></g><circle cx="45.7" cy="6.5" r=".75" fill="#2f74c6"/></svg>
@@ -8169,6 +8176,20 @@ out.innerHTML=html;
 
 
 // === INIT ===
+// === Botón "volver al inicio" (ventana y visor PDF) ===
+function bttTarget(){const vp=document.querySelector('.viewer-pages');if(vp&&vp.offsetParent!==null&&vp.scrollHeight>vp.clientHeight)return vp;return window;}
+function bttScrolled(){const t=bttTarget();return t===window?(window.scrollY||document.documentElement.scrollTop||0):t.scrollTop;}
+function bttUpdate(){const el=$('toTop');if(!el)return;
+  // ocultar si hay un modal/panel por encima
+  const blocked=$('cmd_bg')?.classList.contains('show')||document.getElementById('chatPanel')?.classList.contains('open');
+  el.classList.toggle('show',!blocked&&bttScrolled()>320);}
+function bttGo(){const t=bttTarget();try{t.scrollTo({top:0,behavior:'smooth'});}catch(e){if(t===window)window.scrollTo(0,0);else t.scrollTop=0;}}
+function setupBackToTop(){
+  // captura: detecta scroll de la ventana y de contenedores internos (visor PDF)
+  window.addEventListener('scroll',bttUpdate,true);
+  window.addEventListener('resize',bttUpdate,{passive:true});
+  bttUpdate();
+}
 function init(){
 S.theme=ls.g('theme')||'light';
 S.favs=ls.g('favs')||[];
@@ -8252,6 +8273,7 @@ renderMenu();
 })();
 updateSyncInd();
 setupShortcuts();
+setupBackToTop();
 // Actualiza indicador de sync ante cambios de conectividad
 window.addEventListener('online',updateSyncInd);
 window.addEventListener('offline',updateSyncInd);
