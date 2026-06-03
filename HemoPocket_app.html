@@ -375,9 +375,13 @@ body{font-size:13px}
 .viewer-header{flex:0 0 auto;padding:8px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;background:var(--card)}
 .viewer-header .title{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .viewer-pages{flex:1;overflow-y:auto;overflow-x:auto;background:#525659;padding:14px 8px;-webkit-overflow-scrolling:touch}
-.viewer-header .vw-z{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;font-size:19px;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
-.viewer-header .vw-z:active{transform:scale(.9)}
-.viewer-header .vw-zlbl{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--mut);min-width:40px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;user-select:none}
+.viewer-toolbar{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:9px;padding:6px 10px;border-bottom:1px solid var(--bd);background:var(--bg2);flex-wrap:wrap}
+.viewer-toolbar .vw-pg{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.viewer-toolbar .vw-pg input{width:44px;text-align:center;padding:4px;border:1px solid var(--bd);border-radius:6px;background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px;font-variant-numeric:tabular-nums}
+.viewer-toolbar .vw-sep{width:1px;height:20px;background:var(--bd)}
+.vw-z{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;font-size:19px;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
+.vw-z:active{transform:scale(.9)}
+.vw-zlbl{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--mut);min-width:40px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;user-select:none}
 .viewer-pages canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;max-width:100%;height:auto}
 .viewer-page-placeholder{width:100%;max-width:900px;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:300px}
 .viewer-loading{padding:30px;text-align:center;color:var(--mut)}
@@ -3635,10 +3639,14 @@ VIEWS.viewer=()=>`<div class="card viewer-card">
 <div class="viewer-header">
 <button class="btn btn-out btn-sm" onclick="viewerBack()">← Volver</button>
 <span class="title" id="vw_title">Cargando...</span>
+<button class="btn btn-out btn-sm" onclick="downloadCurrentPDF()" title="Descargar PDF">⬇️</button>
+</div>
+<div class="viewer-toolbar">
+<span class="vw-pg">Pág. <input id="vw_page" type="text" inputmode="numeric" value="1" onkeydown="if(event.key==='Enter'){event.preventDefault();vwGoInput();this.blur();}" onfocus="this.select()" aria-label="Ir a página"> / <span id="vw_total">–</span></span>
+<span class="vw-sep"></span>
 <button class="vw-z" onclick="vwZoom(-1)" title="Alejar" aria-label="Alejar">−</button>
 <span class="vw-zlbl" id="vw_zlabel" onclick="vwZoomReset()" title="Ajustar">100%</span>
 <button class="vw-z" onclick="vwZoom(1)" title="Acercar" aria-label="Acercar">+</button>
-<button class="btn btn-out btn-sm" onclick="downloadCurrentPDF()" title="Descargar PDF">⬇️</button>
 </div>
 <div class="viewer-pages" id="vw_pages">
 <div class="viewer-loading">⏳ Cargando PDF...</div>
@@ -3703,6 +3711,9 @@ ph.textContent=`Página ${i} de ${pdf.numPages}`;
 placeholders.push(ph);
 container.appendChild(ph);
 }
+if($('vw_total'))$('vw_total').textContent=pdf.numPages;
+if($('vw_page'))$('vw_page').value='1';
+container.addEventListener('scroll',()=>{if(!_pgRAF)_pgRAF=requestAnimationFrame(()=>{_pgRAF=0;vwUpdateCurrentPage();});},{passive:true});
 const renderPage=async(pageNum,target)=>{
 if(target.dataset.rendered)return;
 target.dataset.rendered='1';
@@ -3771,6 +3782,26 @@ function vwSetZoom(z){
 }
 function vwZoom(dir){vwSetZoom(_vwZoom+dir*0.25);}
 function vwZoomReset(){vwSetZoom(1);}
+// Navegación a página concreta (como Adobe)
+function vwGoToPage(n){
+  const c=window._vwContainer;if(!c)return;
+  const total=parseInt(($('vw_total')||{}).textContent)||0;
+  n=Math.max(1,total?Math.min(total,n):n);
+  const p=c.querySelector('.viewer-page-placeholder[data-page="'+n+'"]');
+  if(!p)return;
+  const top=p.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop-4;
+  c.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+  const el=$('vw_page');if(el)el.value=n;
+}
+function vwGoInput(){const el=$('vw_page');if(!el)return;const n=parseInt(el.value);if(n>=1)vwGoToPage(n);}
+let _pgRAF=0;
+function vwUpdateCurrentPage(){
+  const c=window._vwContainer,el=$('vw_page');if(!c||!el)return;
+  if(document.activeElement===el)return; // no pisar mientras se escribe
+  const ct=c.getBoundingClientRect().top;let cur=1,best=-Infinity;
+  c.querySelectorAll('.viewer-page-placeholder').forEach(p=>{const t=p.getBoundingClientRect().top-ct;if(t<=8&&t>best){best=t;cur=parseInt(p.dataset.page)||cur;}});
+  el.value=cur;
+}
 // Pinch-zoom con dos dedos (el viewport global desactiva el pinch nativo, así que lo gestionamos aquí)
 let _pinch=null,_pinchRAF=0;
 function vwDist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
