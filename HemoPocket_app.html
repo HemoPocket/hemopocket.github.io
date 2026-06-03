@@ -3180,6 +3180,24 @@ const DEFAULT_SUBTYPES={
 
 function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
+// Algoritmos GELTAMO empaquetados en la app (NO dependen del Gist/sincronización):
+// se abren directos con el visor y quedan offline gracias al service worker.
+const GELTAMO_ALGOS_FOL=[
+{name:'Algoritmo · LF en 1ª línea (App GELTAMO)',url:'guias/GELTAMO_LF_1L.pdf'},
+{name:'Algoritmo · LF en recaída (App GELTAMO)',url:'guias/GELTAMO_LF_recaida.pdf'}
+];
+const GELTAMO_ALGOS_LBDCG=[
+{name:'Algoritmo · LDCGB en 1ª línea (App GELTAMO)',url:'guias/GELTAMO_LBDCG_1L.pdf'},
+{name:'Algoritmo · LDCGB en recaída/refractario (App GELTAMO)',url:'guias/GELTAMO_LBDCG_RR.pdf'}
+];
+// Empareja por id o por nombre (robusto si el Gist cambia los id de los subtipos).
+function geltamoAlgosFor(sectionId,st){
+if(sectionId!=='lf')return [];
+const n=(st.name||'').toLowerCase();
+if(st.id==='fol'||/folicular/.test(n))return GELTAMO_ALGOS_FOL;
+if(st.id==='lbdcg'||/difuso|lbdcg|ldcgb|c[eé]lulas grandes|dlbcl/.test(n))return GELTAMO_ALGOS_LBDCG;
+return [];
+}
 const DEFAULT_COLLABORATORS={
 inf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
 uh:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
@@ -3291,8 +3309,14 @@ h+='<div class="alert b">Sin contenido. Activa edición para añadir apartados.<
 }else{
 subs.forEach(st=>{
 const k=`${id}_${st.id}`;
+const algos=geltamoAlgosFor(id,st);
+let bundled='';
+if(algos.length){
+bundled=algos.map(p=>`<div class="pdf-item" onclick="openPDFurl('${p.url}','${p.name.replace(/'/g,"\\'")}')"><span class="name">📄 ${p.name}</span></div>`).join('')
++`<div style="font-size:11px;color:var(--mut);padding:4px 2px 8px;line-height:1.5">Algoritmos reproducidos de la <strong>App GELTAMO</strong>. © GELTAMO — material orientativo; consulta siempre la fuente original.</div>`;
+}
 h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}')"><span>${st.name}</span><span class="ar">▶</span></div>
-<div class="coll-c"><div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
+<div class="coll-c">${bundled}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
 });
 }
 }
@@ -3396,6 +3420,12 @@ if(window._currentPDF&&window._currentPDF.url)URL.revokeObjectURL(window._curren
 _returnView=(S.view&&S.view!=='viewer')?S.view:'home';
 go('viewer',{key:decodeURIComponent(encodedKey)});
 }
+// Abrir un PDF empaquetado en la app por URL (mismo origen). El service worker lo cachea → queda offline.
+function openPDFurl(url,name){
+if(window._currentPDF&&window._currentPDF.url)URL.revokeObjectURL(window._currentPDF.url);
+_returnView=(S.view&&S.view!=='viewer')?S.view:'home';
+go('viewer',{url:url,name:name||'PDF'});
+}
 
 function viewerBack(){go(_returnView||'home')}
 
@@ -3433,6 +3463,17 @@ $('vw_pages').innerHTML='<div class="viewer-error">No se ha especificado un PDF.
 return;
 }
 let data;
+if(params.url){
+try{
+const r=await fetch(params.url);
+if(!r.ok)throw new Error('HTTP '+r.status);
+data={blob:await r.blob(),name:params.name||'PDF'};
+}catch(e){
+$('vw_title').textContent='No disponible';
+$('vw_pages').innerHTML=`<div class="viewer-error">No se pudo abrir el PDF.<br><small>${e.message}. Si estás sin conexión y no se había abierto nunca, conéctate una vez para guardarlo en el dispositivo.</small></div>`;
+return;
+}
+}else{
 try{data=await idb.get(params.key)}catch(e){
 $('vw_pages').innerHTML=`<div class="viewer-error">Error: ${e.message}</div>`;return;
 }
@@ -3440,6 +3481,7 @@ if(!data||!data.blob){
 $('vw_title').textContent='No encontrado';
 $('vw_pages').innerHTML='<div class="viewer-error">Este PDF no está descargado en el dispositivo. Vuelve a sincronizar desde el botón <strong>Actualizar</strong>.</div>';
 return;
+}
 }
 const pdfBlob=new Blob([data.blob],{type:'application/pdf'});
 const url=URL.createObjectURL(pdfBlob);
