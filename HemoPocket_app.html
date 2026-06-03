@@ -678,6 +678,7 @@ const MENU=[
 {id:'g_mieloide',name:'Guías clínicas',kw:'guias clinicas patologia mieloide smd mielofibrosis nmp lmmc lmc pdf'}
 ]},
 {h:'MIELOMA Y GAMMAPATÍAS',items:[
+{id:'imwg',name:'Criterios IMWG (diagnóstico)',kw:'imwg criterios diagnostico mieloma gmsi mgus smoldering quiescente crab slim proteina monoclonal gammapatia plasmocitoma',new:'2026-06-03'},
 {id:'riss',name:'R-ISS',kw:'riss mieloma multiple'},
 {id:'r2iss',name:'R2-ISS',kw:'r2iss mieloma multiple'},
 {id:'ipsswm',name:'IPSS-WM (Waldenström)',kw:'ipss wm waldenstrom macroglobulinemia mgi linfoplasmocitico pronostico beta2 microglobulina igm',new:'2026-05-11'},
@@ -694,6 +695,7 @@ const MENU=[
 ]},
 {h:'Leucemia linfática crónica',items:[
 {id:'cllipi',name:'CLL-IPI',kw:'cll ipi llc leucemia linfocitica cronica'},
+{id:'binet_rai',name:'Estadiaje Binet / Rai',kw:'binet rai estadiaje estadio llc leucemia linfatica cronica areas linfoides anemia trombopenia',new:'2026-06-03'},
 {id:'g_llc',name:'Guías clínicas',kw:'guias clinicas llc tricoleucemia waldenstrom protocolo pdf'}
 ]},
 {h:'HEMATOLOGÍA PEDIÁTRICA',items:[
@@ -1111,6 +1113,59 @@ VIEWS.aa=()=>`<div class="card">
 <div id="aa_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="copyAA()">Copiar</button></div>
 <div class="ref">Cheson BD et al. Recommendations for initial evaluation, staging, and response assessment of Hodgkin and non-Hodgkin lymphoma: the Lugano classification. J Clin Oncol. 2014;32(27):3059-3068.</div>
+</div>`;
+
+VIEWS.binet_rai=()=>`<div class="card">
+<h2>Estadiaje de la LLC — Binet y Rai</h2>
+<p class="intro">Estadificación clínica de la leucemia linfática crónica. La anemia/trombopenia que estadifican son por <strong>infiltración medular</strong>, no de causa inmune.</p>
+<p class="small muted" style="margin:4px 0 2px"><strong>Binet</strong> (áreas linfoides: cervical, axilar, inguinal —uni o bilateral cuentan como una—, bazo e hígado; total 5)</p>
+<table class="tbl">
+<thead><tr><th>Estadio</th><th>Criterio</th><th>Riesgo</th></tr></thead>
+<tbody>
+<tr><td><strong>A</strong></td><td>&lt;3 áreas linfoides afectas. Hb ≥10 g/dL y plaquetas ≥100×10⁹/L.</td><td>Bajo</td></tr>
+<tr><td><strong>B</strong></td><td>≥3 áreas linfoides afectas. Hb ≥10 g/dL y plaquetas ≥100×10⁹/L.</td><td>Intermedio</td></tr>
+<tr><td><strong>C</strong></td><td>Hb &lt;10 g/dL <em>y/o</em> plaquetas &lt;100×10⁹/L (cualquier nº de áreas).</td><td>Alto</td></tr>
+</tbody>
+</table>
+<p class="small muted" style="margin:12px 0 2px"><strong>Rai</strong> (modificado: 0 = bajo · I–II = intermedio · III–IV = alto)</p>
+<table class="tbl">
+<thead><tr><th>Estadio</th><th>Criterio</th><th>Riesgo</th></tr></thead>
+<tbody>
+<tr><td><strong>0</strong></td><td>Linfocitosis aislada (sangre periférica y médula ósea).</td><td>Bajo</td></tr>
+<tr><td><strong>I</strong></td><td>Linfocitosis + adenopatías.</td><td>Intermedio</td></tr>
+<tr><td><strong>II</strong></td><td>Linfocitosis + esplenomegalia y/o hepatomegalia (± adenopatías).</td><td>Intermedio</td></tr>
+<tr><td><strong>III</strong></td><td>Linfocitosis + anemia (Hb &lt;11 g/dL).</td><td>Alto</td></tr>
+<tr><td><strong>IV</strong></td><td>Linfocitosis + trombopenia (plaquetas &lt;100×10⁹/L).</td><td>Alto</td></tr>
+</tbody>
+</table>
+<div class="ref">Binet JL et al. Cancer. 1981;48(1):198-206. Rai KR et al. Blood. 1975;46(2):219-234. Hallek M et al. iwCLL guidelines. Blood. 2018;131(25):2745-2760.</div>
+</div>`;
+
+VIEWS.imwg=()=>`<div class="card">
+<h2>Criterios diagnósticos IMWG — Gammapatías monoclonales</h2>
+<p class="intro">Definiciones de GMSI, mieloma quiescente (<em>smoldering</em>) y mieloma múltiple según el International Myeloma Working Group.</p>
+<table class="tbl">
+<thead><tr><th>Entidad</th><th>Criterios (todos)</th></tr></thead>
+<tbody>
+<tr><td><strong>GMSI</strong> (no IgM)</td><td>Proteína M sérica &lt;3 g/dL · CP clonales médula ósea &lt;10% · sin eventos definitorios (CRAB/SLiM) ni amiloidosis atribuibles.</td></tr>
+<tr><td><strong>Mieloma quiescente</strong> (smoldering)</td><td>Proteína M sérica ≥3 g/dL (o urinaria ≥500 mg/24 h) <em>y/o</em> CP clonales médula ósea 10–60% · sin eventos definitorios ni amiloidosis.</td></tr>
+<tr><td><strong>Mieloma múltiple</strong></td><td>CP clonales médula ósea ≥10% (o plasmocitoma óseo/extramedular por biopsia) <strong>+ ≥1 evento definitorio</strong> (CRAB o SLiM, abajo).</td></tr>
+</tbody>
+</table>
+<p class="small muted" style="margin:12px 0 2px"><strong>Eventos definitorios de mieloma</strong></p>
+<table class="tbl">
+<tbody>
+<tr><td><strong>C</strong> · Calcio</td><td>Calcio sérico &gt;11 mg/dL (o &gt;1 mg/dL sobre el límite superior).</td></tr>
+<tr><td><strong>R</strong> · Renal</td><td>Aclaramiento de creatinina &lt;40 mL/min o creatinina &gt;2 mg/dL.</td></tr>
+<tr><td><strong>A</strong> · Anemia</td><td>Hb &lt;10 g/dL (o &gt;2 g/dL por debajo del límite inferior de la normalidad).</td></tr>
+<tr><td><strong>B</strong> · Bone (hueso)</td><td>≥1 lesión osteolítica en radiografía, TC o PET-TC.</td></tr>
+<tr><td><strong>S</strong> · Sixty</td><td>CP clonales médula ósea ≥60%.</td></tr>
+<tr><td><strong>Li</strong> · Light chains</td><td>Ratio de CLL involucrada/no involucrada ≥100 (con CLL involucrada ≥100 mg/L).</td></tr>
+<tr><td><strong>M</strong> · MRI</td><td>&gt;1 lesión focal en RM (≥5 mm).</td></tr>
+</tbody>
+</table>
+<p class="small muted" style="margin-top:8px">Para el pronóstico una vez diagnosticado, usa <strong>R-ISS</strong> / <strong>R2-ISS</strong> en esta app.</p>
+<div class="ref">Rajkumar SV et al. International Myeloma Working Group updated criteria for the diagnosis of multiple myeloma. Lancet Oncol. 2014;15(12):e538-e548.</div>
 </div>`;
 
 function calcAA(){
