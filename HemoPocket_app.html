@@ -107,6 +107,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .cmd-foot{padding:8px 14px;border-top:1px solid var(--bd);font-size:11px;color:var(--mut);background:var(--bg2);display:flex;gap:14px;flex-wrap:wrap}
 .cmd-foot kbd{display:inline-block;padding:1px 5px;border:1px solid var(--bd);border-radius:4px;background:var(--card);font-family:monospace;font-size:10.5px;margin:0 3px}
 .cmd-empty{padding:24px 16px;text-align:center;color:var(--mut);font-size:13px}
+.cmd-grp{padding:9px 16px 3px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700}
+.cmd-nm{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmd-ic{font-size:13px;flex-shrink:0;width:18px;text-align:center}
 .app-footer{margin-top:24px;padding:14px 12px 82px;border-top:1px solid var(--bd);font-size:10px;color:var(--mut);text-align:center;line-height:1.55}
 .app-footer .footer-org{display:block;margin-top:1px}
 .app-footer .footer-legal{display:block;font-style:italic;text-wrap:balance;max-width:540px;margin:6px auto 0}
@@ -434,7 +437,7 @@ body{font-size:13px}
 </div>
 <div id="cmd_bg" class="cmd-bg" onclick="if(event.target===this)closeCmd()">
 <div class="cmd-box">
-<input id="cmd_in" placeholder="Buscar calculadora, score, guía…" autocomplete="off" oninput="renderCmd()" onkeydown="cmdKey(event)">
+<input id="cmd_in" placeholder="Buscar calculadora, score, esquema o teléfono…" autocomplete="off" oninput="renderCmd()" onkeydown="cmdKey(event)">
 <div id="cmd_list" class="cmd-list"></div>
 <div class="cmd-foot"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span></div>
 </div>
@@ -8205,8 +8208,9 @@ if(document.visibilityState==='visible')setTimeout(autoCheckUpdate,500);
 }catch(e){console.warn('auto-update setup:',e.message)}
 }
 
-// === COMMAND PALETTE + SHORTCUTS ===
-let _cmdSel=0;
+// === COMMAND PALETTE + SHORTCUTS (búsqueda global) ===
+let _cmdSel=0, _cmdIndex=null, _cmdResults=[];
+const CMD_ICON={tool:'🧮',phone:'📞',scheme:'💊',eri:'💬'};
 function openCmd(){
 const bg=$('cmd_bg');if(!bg)return;
 bg.classList.add('show');
@@ -8215,51 +8219,81 @@ renderCmd();
 setTimeout(()=>inp.focus(),50);
 }
 function closeCmd(){$('cmd_bg')?.classList.remove('show')}
+// índice global: calculadoras + esquemas QT + teléfonos + Eri (cacheado)
+function cmdBuildIndex(){
+const idx=[];
+try{MENU.forEach(sec=>sec.items.forEach(it=>{if(it.sub)return;
+  idx.push({kind:'tool',id:it.id,name:it.name,sec:sec.h,_new:it.new,nf:chatNorm(it.name),nb:chatNorm(it.name+' '+(it.kw||'')+' '+sec.h)});}));}catch(e){}
+try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];
+  idx.push({kind:'scheme',id:k,name:s.label,sec:'Esquema QT',nf:chatNorm(s.label),nb:chatNorm(s.label+' '+k+' '+(s.kw||''))});});}catch(e){}
+try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{const nm=(e[0]||'').replace(/\n/g,' ');
+  idx.push({kind:'phone',name:nm,sec:sn,ext:e[3],phone:e[2],loc:e[1],nf:chatNorm(nm),nb:chatNorm(sn+' '+nm+' '+(e[1]||'')+' '+(e[3]||''))});});});}catch(e){}
+idx.push({kind:'eri',id:'__eri',name:'Asistente Eri',sec:'Asistente',nf:chatNorm('asistente eri'),nb:chatNorm('eri chat asistente ayuda preguntar bot hematologia globulo rojo')});
+return idx;
+}
+function cmdScore(it,qtokens,qraw){
+for(const t of qtokens){if(it.nb.indexOf(t)<0)return 0;}   // todos los tokens deben aparecer
+let s;
+if(it.nf===qraw)s=1000;
+else if(it.nf.startsWith(qraw))s=600;
+else if(it.nf.indexOf(qraw)>=0)s=300;
+else if(qtokens.every(t=>it.nf.indexOf(t)>=0))s=180;
+else s=90;
+if(it.kind==='tool')s+=40; else if(it.kind==='scheme')s+=20;   // prioriza herramientas
+return s;
+}
+function cmdRow(it,i){
+const icon=CMD_ICON[it.kind]||'•';
+const right = it.kind==='phone' ? `<span class="sec">📞 ${chatEsc(it.ext||it.phone||'')}</span>` : `<span class="sec">${chatEsc(it.sec||'')}</span>`;
+const nu=(it.kind==='tool'&&it._new&&typeof isRecentlyNew==='function'&&isRecentlyNew(it._new))?' <span class="tag-new">nuevo</span>':'';
+return `<div class="cmd-item ${i===_cmdSel?'sel':''}" onclick="cmdPick(${i})" onmouseenter="_cmdSel=${i};refreshCmdSel()"><span class="cmd-nm"><span class="cmd-ic">${icon}</span>${chatEsc(it.name)}${nu}</span>${right}</div>`;
+}
 function renderCmd(){
-const f=($('cmd_in').value||'').toLowerCase().trim();
-const items=[];
-MENU.forEach(sec=>sec.items.forEach(it=>{
-if(it.sub)return;
-const score=cmdScore(it,sec.h,f);
-if(score>0||!f)items.push({it,sec:sec.h,score});
-}));
-const _eriIt={id:'__eri',name:'Asistente Eri',kw:'eri chat chatbot asistente ayuda globulo rojo preguntar bot hematologia'};
-const _eriSc=cmdScore(_eriIt,'Asistente',f);
-if(f&&_eriSc>0)items.push({it:_eriIt,sec:'Asistente',score:_eriSc});
-items.sort((a,b)=>b.score-a.score);
-const top=items.slice(0,30);
-if(_cmdSel>=top.length)_cmdSel=Math.max(0,top.length-1);
-const list=$('cmd_list');
-if(!top.length){list.innerHTML='<div class="cmd-empty">Sin resultados</div>';return}
-list.innerHTML=top.map((x,i)=>`<div class="cmd-item ${i===_cmdSel?'sel':''}" data-id="${x.it.id}" onclick="cmdGo('${x.it.id}')" onmouseenter="_cmdSel=${i};refreshCmdSel()"><span>${x.it.name}${x.it.new&&isRecentlyNew(x.it.new)?' <span class="tag-new">nuevo</span>':''}</span><span class="sec">${x.sec}</span></div>`).join('');
+if(!_cmdIndex)_cmdIndex=cmdBuildIndex();
+const raw=chatNorm($('cmd_in').value||'');
+const qtokens=raw?raw.split(' ').filter(Boolean):[];
+const list=$('cmd_list');_cmdResults=[];
+if(!qtokens.length){   // estado vacío: recientes + favoritos
+  let html='';
+  const byId=id=>getAll().find(x=>x.id===id);
+  const recents=(S.recent||[]).map(byId).filter(Boolean).slice(0,5);
+  const favs=(S.favs||[]).map(byId).filter(Boolean).filter(f=>!recents.some(r=>r.id===f.id));
+  const grp=(title,arr)=>{if(!arr.length)return '';let h=`<div class="cmd-grp">${title}</div>`;arr.forEach(it=>{const i=_cmdResults.length;_cmdResults.push({kind:'tool',id:it.id,name:it.name,sec:''});h+=cmdRow(_cmdResults[i],i);});return h;};
+  html+=grp('Recientes',recents);
+  html+=grp('Favoritos',favs);
+  if(!_cmdResults.length)html+=grp('Sugerencias',getAll().filter(it=>!it.sub).slice(0,6));
+  if(_cmdSel>=_cmdResults.length)_cmdSel=0;
+  list.innerHTML=html;return;
+}
+const scored=[];
+_cmdIndex.forEach(it=>{const sc=cmdScore(it,qtokens,raw);if(sc>0)scored.push({it,sc});});
+scored.sort((a,b)=>b.sc-a.sc);
+_cmdResults=scored.slice(0,40).map(x=>x.it);
+if(_cmdSel>=_cmdResults.length)_cmdSel=Math.max(0,_cmdResults.length-1);
+if(!_cmdResults.length){list.innerHTML='<div class="cmd-empty">Sin resultados</div>';return}
+list.innerHTML=_cmdResults.map((it,i)=>cmdRow(it,i)).join('');
 }
 function refreshCmdSel(){
 document.querySelectorAll('#cmd_list .cmd-item').forEach((el,i)=>el.classList.toggle('sel',i===_cmdSel));
 }
-function cmdScore(it,sec,f){
-if(!f)return 1;
-const name=it.name.toLowerCase();
-const kw=(it.kw||'').toLowerCase();
-const secL=sec.toLowerCase();
-if(name===f)return 1000;
-if(name.startsWith(f))return 500;
-if(name.includes(f))return 200;
-if(kw.includes(f))return 100;
-if(secL.includes(f))return 50;
-return 0;
-}
 function cmdKey(e){
-const items=document.querySelectorAll('#cmd_list .cmd-item');
-if(e.key==='ArrowDown'){e.preventDefault();_cmdSel=Math.min(items.length-1,_cmdSel+1);refreshCmdSel();ensureCmdVisible()}
+const n=_cmdResults.length;
+if(e.key==='ArrowDown'){e.preventDefault();_cmdSel=Math.min(n-1,_cmdSel+1);refreshCmdSel();ensureCmdVisible()}
 else if(e.key==='ArrowUp'){e.preventDefault();_cmdSel=Math.max(0,_cmdSel-1);refreshCmdSel();ensureCmdVisible()}
-else if(e.key==='Enter'){e.preventDefault();const sel=items[_cmdSel];if(sel)cmdGo(sel.dataset.id)}
+else if(e.key==='Enter'){e.preventDefault();cmdPick(_cmdSel)}
 else if(e.key==='Escape'){e.preventDefault();closeCmd()}
 }
 function ensureCmdVisible(){
 const sel=document.querySelector('#cmd_list .cmd-item.sel');
 if(sel)sel.scrollIntoView({block:'nearest'});
 }
-function cmdGo(id){closeCmd();if(id==='__eri'){if(typeof eriShow==='function')eriShow(true);return;}go(id)}
+function cmdPick(i){
+const it=_cmdResults[i];if(!it)return;closeCmd();
+if(it.kind==='scheme'){chatOpenScheme(it.id);return;}
+if(it.kind==='eri'){if(typeof eriShow==='function')eriShow(true);return;}
+if(it.kind==='phone'){go('phone');setTimeout(()=>{const q=$('ph_q');if(q){q.value=it.ext||it.name;q.dispatchEvent(new Event('input',{bubbles:true}));}},80);return;}
+go(it.id);
+}
 
 function setupShortcuts(){
 document.addEventListener('keydown',e=>{
