@@ -3,8 +3,8 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v48';
-const APP_SHELL = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'hemopocket-v49';
+const APP_SHELL = ['/', '/index.html', '/HemoPocket_app.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -34,23 +34,29 @@ self.addEventListener('fetch', e => {
   const sameOrigin = url.origin === location.origin;
   const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 
-  // 1. HTML / navegación: network-first con fallback a cache (para que offline siga abriendo la app)
+  // 1. HTML / navegación: network-first con fallback a cache.
+  // Fallback: primero la URL exacta, luego /HemoPocket_app.html (el app shell principal),
+  // así evitamos servir la página de redirect como fallback y que cause un bucle.
   if (isHTML) {
     e.respondWith(
       fetch(req)
         .then(resp => {
           if (resp.ok) {
             const clone = resp.clone();
-            caches.open(CACHE).then(c => c.put('/', clone));
+            caches.open(CACHE).then(c => c.put(req, clone));
           }
           return resp;
         })
-        .catch(() => caches.match('/').then(r => r || caches.match(req)))
+        .catch(() =>
+          caches.match(req)
+            .then(r => r || caches.match('/HemoPocket_app.html'))
+            .then(r => r || caches.match('/'))
+        )
     );
     return;
   }
 
-  // 2. Mismo origen (CSS/JS/iconos): cache-first
+  // 2. Mismo origen (CSS/JS/iconos/PDFs): cache-first
   if (sameOrigin) {
     e.respondWith(
       caches.match(req).then(cached => {
