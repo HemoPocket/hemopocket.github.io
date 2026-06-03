@@ -4103,11 +4103,10 @@ Object.keys(GUIDES_TITLES).forEach(id=>{VIEWS['g_'+id]=()=>guidesView(id)});
 const DEFAULT_UPDATE_URL='https://gist.githubusercontent.com/hemopocket/bad30d214121cd913b0b1100d7b96745/raw/hemopocket.json';
 VIEWS.sync=()=>{
 const lastUpd=ls.g('lastUpdate');
-const updateUrl=ls.g('updateUrl')||DEFAULT_UPDATE_URL;
 const version=ls.g('updateVersion')||'';
 const online=navigator.onLine;
-const btnDisabled=!online||!updateUrl;
-const btnText=!updateUrl?'Configura primero la URL (abajo)':!online?'Sin Internet':'Descargar todo ahora';
+const btnDisabled=!online;
+const btnText=!online?'Sin Internet':'Descargar todo ahora';
 return `<div class="card">
 <h2>Actualizar la app</h2>
 <p class="intro"><strong>La app se actualiza sola</strong> en segundo plano (guías, contactos, equipo y PDFs) siempre que tengas Internet. <strong>Normalmente no necesitas usar este botón.</strong></p>
@@ -4122,13 +4121,10 @@ return `<div class="card">
 
 <div id="sy_status"></div>
 
-<div class="coll" style="margin-top:18px"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Configuración avanzada</span><span class="ar">▶</span></div>
+<div class="coll" style="margin-top:18px"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Opciones avanzadas</span><span class="ar">▶</span></div>
 <div class="coll-c">
-<div class="fld" style="margin-top:8px"><label class="lbl">URL del archivo de actualización (JSON)</label>
-<input type="url" id="sy_url" value="${updateUrl}" placeholder="https://..."></div>
-<div class="btns"><button class="btn btn-out btn-sm" onclick="saveUpdateUrl()">Guardar URL</button></div>
-
-<h3 style="margin-top:18px;color:var(--er)">Borrar datos</h3>
+<h3 style="margin-top:8px;color:var(--er)">Borrar datos</h3>
+<p style="font-size:12px;color:var(--mut);margin-bottom:8px">Borra todas las guías y PDFs descargados de este dispositivo. Se volverán a descargar solos cuando haya Internet.</p>
 <div class="btns"><button class="btn btn-er btn-sm" onclick="clearAll()">Borrar todo</button></div>
 </div></div>
 
@@ -4137,17 +4133,8 @@ return `<div class="card">
 
 VIEWS.sync_post=()=>{};
 
-function saveUpdateUrl(){
-const url=$('sy_url').value.trim();
-ls.s('updateUrl',url);
-toast('✓ URL guardada');
-go('sync');
-}
-
 async function syncAll(silent){
-const url=$('sy_url')?.value.trim()||DEFAULT_UPDATE_URL;
-if(!url){if(!silent)toast('Configura primero la URL');return}
-ls.s('updateUrl',url);
+const url=DEFAULT_UPDATE_URL;
 
 const status=$('sy_status');
 const setS=(cls,html)=>{const s=$('sy_status');if(s)s.innerHTML=`<div class="alert ${cls}" style="margin-top:14px">${html}</div>`};
