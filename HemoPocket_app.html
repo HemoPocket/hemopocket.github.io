@@ -3679,6 +3679,7 @@ $('vw_title').textContent=data.name;
 window._currentPDF={blob:pdfBlob,name:data.name,url:url};
 const container=$('vw_pages');
 window._vwContainer=container;_vwZoom=1;{const _zl=$('vw_zlabel');if(_zl)_zl.textContent='100%';}
+vwSetupPinch(container);
 container.innerHTML='<div class="viewer-loading">⏳ Cargando visor PDF...</div>';
 const ok=await ensurePDFJSLoaded();
 if(!ok||!window.pdfjsLib){
@@ -3770,6 +3771,31 @@ function vwSetZoom(z){
 }
 function vwZoom(dir){vwSetZoom(_vwZoom+dir*0.25);}
 function vwZoomReset(){vwSetZoom(1);}
+// Pinch-zoom con dos dedos (el viewport global desactiva el pinch nativo, así que lo gestionamos aquí)
+let _pinch=null,_pinchRAF=0;
+function vwDist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
+function vwApplyPinch(c){
+  if(!_pinch)return;
+  const cx=c.scrollLeft+_pinch.mx,cy=c.scrollTop+_pinch.my,prev=_vwZoom;
+  vwSetZoom(Math.max(0.5,Math.min(3,_pinch.z0*(_pinch.nd/_pinch.d0))));
+  const s=_vwZoom/prev;
+  c.scrollLeft=cx*s-_pinch.mx;c.scrollTop=cy*s-_pinch.my;
+}
+function vwSetupPinch(c){
+  c.addEventListener('touchstart',e=>{if(e.touches.length===2){_pinch={d0:vwDist(e.touches)||1,z0:_vwZoom,mx:0,my:0,nd:1};}},{passive:true});
+  c.addEventListener('touchmove',e=>{
+    if(e.touches.length!==2||!_pinch)return;
+    e.preventDefault();
+    const r=c.getBoundingClientRect();
+    _pinch.mx=(e.touches[0].clientX+e.touches[1].clientX)/2-r.left;
+    _pinch.my=(e.touches[0].clientY+e.touches[1].clientY)/2-r.top;
+    _pinch.nd=vwDist(e.touches);
+    if(!_pinchRAF)_pinchRAF=requestAnimationFrame(()=>{_pinchRAF=0;vwApplyPinch(c);});
+  },{passive:false});
+  const end=e=>{if(e.touches.length<2)_pinch=null;};
+  c.addEventListener('touchend',end,{passive:true});
+  c.addEventListener('touchcancel',end,{passive:true});
+}
 
 // === CONVERSIÓN DE OPIOIDES (MME) ===
 const OPIO_FACT={
