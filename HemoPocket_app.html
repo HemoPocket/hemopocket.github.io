@@ -350,11 +350,11 @@ body{font-size:13px}
 <button class="install-bar-x" onclick="hpInstallDismiss()" aria-label="Descartar">✕</button>
 </div>
 <div id="content"></div>
-<footer class="app-footer">
-© 2026 <strong>Busnego B, M.T.</strong><br>
-<span class="footer-org">Servicio de Hematología y Hemoterapia · HUNSC</span>
-<span class="footer-legal">Aviso legal: esta aplicación es una guía de apoyo a la decisión clínica. No sustituye el juicio del facultativo responsable. Verifica siempre dosis, indicaciones y protocolos con la documentación oficial vigente.</span>
-<span class="footer-uso">Uso interno del servicio.</span>
+<footer class="app-footer" style="text-align:center; padding:0.8rem; font-size:0.75rem; color:#666; border-top:1px solid #eee; margin-top:1rem;">
+  © 2026 Busnego Barreto, M.T. — Desarrollada de forma independiente por profesional sanitaria.
+  Herramienta de apoyo clínico. No sustituye protocolos oficiales.
+  <br>
+  <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
 </footer>
 </main>
 </div>
@@ -4113,7 +4113,6 @@ return `<div class="card">
 <div class="btns"><button class="btn btn-er btn-sm" onclick="clearAll()">Borrar todo</button></div>
 </div></div>
 
-<div class="alert b" style="margin-top:18px;font-size:13px;line-height:1.6"><strong>Créditos</strong><br>M.T. Busnego Barreto<br>Servicio de Hematología y Hemoterapia<br>Hospital Universitario Nuestra Señora de Candelaria (HUNSC)</div>
 </div>`;
 };
 
@@ -8305,6 +8304,62 @@ if(document.readyState!=='loading')init();
     if(_hpUpdating){ try{ sessionStorage.setItem('hp_justUpdated','1'); }catch(e){} window.location.reload(); }
   });
 })();
+</script>
+<div id="modal-aviso-legal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true">
+  <div style="background:white; border-radius:12px; padding:1.5rem; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
+    <button onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;" aria-label="Cerrar">✕</button>
+
+    <h2 style="color:#c41e3a; margin-bottom:1rem; font-size:1.1rem;">⚖️ Aviso Legal — HemoPocket</h2>
+
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Autoría y titularidad</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">HemoPocket es una aplicación desarrollada de forma independiente por <strong>María Teresa Busnego Barreto</strong>, facultativa especialista en Hematología y Hemoterapia. Constituye un proyecto personal de innovación clínica, no vinculado a ningún encargo institucional. No es un producto oficial del Hospital Universitario Nuestra Señora de Candelaria ni del Servicio Canario de la Salud.</p>
+
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Propiedad intelectual</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">El diseño, desarrollo, estructura y código de HemoPocket son propiedad exclusiva de la autora, protegidos por el Real Decreto Legislativo 1/1996 (Ley de Propiedad Intelectual). Queda prohibida su reproducción, distribución o explotación comercial sin autorización expresa y escrita de la autora.</p>
+
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Revisión de contenido clínico</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Los contenidos clínicos han sido revisados por profesionales del Servicio de Hematología y Hemoterapia del HUNSC, quienes participan a título personal como <strong>revisores clínicos</strong>. Su participación se limita a la validación del contenido y no implica coautoría sobre la aplicación ni vinculación institucional de la misma.</p>
+    <ul style="font-size:0.85rem; line-height:1.8; color:#333; padding-left:1.2rem;">
+      <li>Dra. Ana Oliva — FEA Hematología</li>
+      <li>Dra. Silvia Martín — FEA Hematología</li>
+      <li>Dr. Carlos Quintero — FEA Hematología</li>
+      <li>Dra. Isabel Peris Fernaud — FEA Banco de Sangre</li>
+      <li>Dr. Alexander Figueroa — FEA Banco de Sangre</li>
+      <li>Dra. Laura Francisca Ávila Idrovo — FEA Banco de Sangre</li>
+    </ul>
+
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Fuentes y actualización</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">El contenido se basa en guías clínicas de organismos reconocidos (ELN, ESMO, NCCN, SEHH y otros) y en literatura científica de acceso público. La autora se compromete a mantener el contenido actualizado, si bien no garantiza la concordancia en tiempo real con las últimas publicaciones. El profesional sanitario es responsable de verificar la vigencia de la información antes de aplicarla.</p>
+
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Limitación de responsabilidad</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Esta herramienta es un apoyo a la decisión clínica. No sustituye el juicio del facultativo responsable, los protocolos oficiales del centro, ni la ficha técnica de los medicamentos. La autora no asume responsabilidad por decisiones clínicas derivadas del uso de esta aplicación.</p>
+
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Uso permitido</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">De uso libre para profesionales sanitarios. Queda expresamente prohibido el uso comercial o la redistribución del código sin autorización expresa de la autora.</p>
+
+    <p style="margin-top:1.5rem; font-size:0.75rem; color:#999; text-align:center;">© 2026 Busnego Barreto, M.T. · HemoPocket</p>
+  </div>
+</div>
+<script>
+function abrirAvisoLegal() {
+  const m = document.getElementById('modal-aviso-legal');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarAvisoLegal() {
+  const m = document.getElementById('modal-aviso-legal');
+  m.style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') cerrarAvisoLegal();
+});
+document.addEventListener('DOMContentLoaded', function() {
+  const m = document.getElementById('modal-aviso-legal');
+  if (m) m.addEventListener('click', function(e) {
+    if (e.target === this) cerrarAvisoLegal();
+  });
+});
 </script>
 </body>
 </html>
