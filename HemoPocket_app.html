@@ -374,7 +374,10 @@ body{font-size:13px}
 .viewer-card{padding:0;display:flex;flex-direction:column;height:calc(100vh - 90px);min-height:500px;margin-bottom:0;overflow:hidden}
 .viewer-header{flex:0 0 auto;padding:8px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;background:var(--card)}
 .viewer-header .title{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
-.viewer-pages{flex:1;overflow-y:auto;background:#525659;padding:14px 8px;-webkit-overflow-scrolling:touch}
+.viewer-pages{flex:1;overflow-y:auto;overflow-x:auto;background:#525659;padding:14px 8px;-webkit-overflow-scrolling:touch}
+.viewer-header .vw-z{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;font-size:19px;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
+.viewer-header .vw-z:active{transform:scale(.9)}
+.viewer-header .vw-zlbl{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--mut);min-width:40px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;user-select:none}
 .viewer-pages canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;max-width:100%;height:auto}
 .viewer-page-placeholder{width:100%;max-width:900px;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:300px}
 .viewer-loading{padding:30px;text-align:center;color:var(--mut)}
@@ -3627,10 +3630,14 @@ a.click();
 toast('⬇️ Descargado');
 }
 
+let _vwZoom=1;
 VIEWS.viewer=()=>`<div class="card viewer-card">
 <div class="viewer-header">
 <button class="btn btn-out btn-sm" onclick="viewerBack()">← Volver</button>
 <span class="title" id="vw_title">Cargando...</span>
+<button class="vw-z" onclick="vwZoom(-1)" title="Alejar" aria-label="Alejar">−</button>
+<span class="vw-zlbl" id="vw_zlabel" onclick="vwZoomReset()" title="Ajustar">100%</span>
+<button class="vw-z" onclick="vwZoom(1)" title="Acercar" aria-label="Acercar">+</button>
 <button class="btn btn-out btn-sm" onclick="downloadCurrentPDF()" title="Descargar PDF">⬇️</button>
 </div>
 <div class="viewer-pages" id="vw_pages">
@@ -3671,6 +3678,7 @@ const url=URL.createObjectURL(pdfBlob);
 $('vw_title').textContent=data.name;
 window._currentPDF={blob:pdfBlob,name:data.name,url:url};
 const container=$('vw_pages');
+window._vwContainer=container;_vwZoom=1;{const _zl=$('vw_zlabel');if(_zl)_zl.textContent='100%';}
 container.innerHTML='<div class="viewer-loading">⏳ Cargando visor PDF...</div>';
 const ok=await ensurePDFJSLoaded();
 if(!ok||!window.pdfjsLib){
@@ -3700,19 +3708,25 @@ target.dataset.rendered='1';
 try{
 const page=await pdf.getPage(pageNum);
 const natural=page.getViewport({scale:1});
-// Anchura CSS real disponible (con padding del contenedor); cap a 900px
-const containerCssWidth=Math.min((container.clientWidth||360)-16,900);
-const cssHeight=containerCssWidth*(natural.height/natural.width);
-// Oversampling para máxima nitidez en pantallas Retina/iPhone
+const ratio=natural.height/natural.width;
+target.dataset.ratio=ratio;
+// Anchura base disponible (con padding del contenedor); cap a 900px. El zoom amplía solo el tamaño CSS.
+const baseW=Math.min((container.clientWidth||360)-16,900);
+const cssWidth=baseW*_vwZoom;
+const cssHeight=cssWidth*ratio;
+// Oversampling para máxima nitidez en pantallas Retina/iPhone (buffer constante, independiente del zoom)
 // Renderizamos 2× los píxeles físicos del dispositivo (cap a 4× para no abusar)
-const renderScale=Math.min((containerCssWidth/natural.width)*dpr*2,4);
+const renderScale=Math.min((baseW/natural.width)*dpr*2,4);
 const viewport=page.getViewport({scale:renderScale});
 const canvas=document.createElement('canvas');
 canvas.width=Math.floor(viewport.width);
 canvas.height=Math.floor(viewport.height);
 // Tamaño CSS explícito → el navegador hace downsample limpio del buffer al display
-canvas.style.width=containerCssWidth+'px';
+canvas.style.width=cssWidth+'px';
 canvas.style.height=cssHeight+'px';
+canvas.style.maxWidth='none';
+target.style.width=cssWidth+'px';
+target.style.maxWidth='none';
 target.innerHTML='';
 target.style.aspectRatio='';
 target.style.minHeight='';
@@ -3738,6 +3752,24 @@ for(let i=1;i<placeholders.length;i++)observer.observe(placeholders[i]);
 container.innerHTML=`<div class="viewer-error">No se pudo renderizar el PDF.<br><strong>Error:</strong> <code style="font-size:11px">${e.message}</code><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="retryViewer()">Reintentar</button><button class="btn btn-out" onclick="downloadCurrentPDF()">Descargar PDF</button></div></div>`;
 }
 };
+
+// Zoom del visor PDF (reescala el tamaño CSS sobre el buffer de alta resolución ya renderizado)
+function vwSetZoom(z){
+  _vwZoom=Math.max(0.5,Math.min(3,Math.round(z*100)/100));
+  const c=window._vwContainer||$('vw_pages');
+  if(c){
+    const baseW=Math.min((c.clientWidth||360)-16,900);
+    const w=baseW*_vwZoom;
+    c.querySelectorAll('.viewer-page-placeholder').forEach(p=>{
+      p.style.width=w+'px';p.style.maxWidth='none';
+      const cv=p.querySelector('canvas');
+      if(cv){const r=parseFloat(p.dataset.ratio)||1.414;cv.style.width=w+'px';cv.style.height=(w*r)+'px';cv.style.maxWidth='none';}
+    });
+  }
+  const lbl=$('vw_zlabel');if(lbl)lbl.textContent=Math.round(_vwZoom*100)+'%';
+}
+function vwZoom(dir){vwSetZoom(_vwZoom+dir*0.25);}
+function vwZoomReset(){vwSetZoom(1);}
 
 // === CONVERSIÓN DE OPIOIDES (MME) ===
 const OPIO_FACT={
