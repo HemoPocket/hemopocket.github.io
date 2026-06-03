@@ -408,6 +408,11 @@ body{font-size:13px}
 #chatPanel .chat-inputrow input:focus{border-color:#0d9488;outline:none}
 #chatPanel .chat-inputrow button{width:42px;height:42px;flex:0 0 42px;border:none;border-radius:50%;background:linear-gradient(135deg,#0d9488,#0b5e63);color:#fff;font-size:16px;cursor:pointer;transition:transform .12s ease}
 #chatPanel .chat-inputrow button:active{transform:scale(.92)}
+/* Móvil: el chat ocupa toda la pantalla y se ajusta al área visible (sobre el teclado) vía visualViewport */
+@media(max-width:600px){
+#chatPanel{right:0;left:0;top:0;bottom:auto;width:100%;height:100dvh;max-height:none;border-radius:0;border:none}
+#chatPanel .chat-inputrow{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+}
 .eri-greet{position:fixed;right:84px;bottom:30px;width:max-content;max-width:calc(100vw - 110px);white-space:nowrap;background:var(--card);color:var(--txt);font-size:13px;font-weight:600;line-height:1.4;padding:10px 14px;border-radius:14px;border-bottom-right-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.2);border:1px solid var(--bd);z-index:1199;opacity:0;transform:translateX(10px) scale(.9);transform-origin:right bottom;transition:opacity .32s ease,transform .32s cubic-bezier(.2,1.3,.4,1);pointer-events:none}
 .eri-greet.show{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
 .eri-greet b{color:var(--c1)}
@@ -5426,8 +5431,26 @@ function chatInit(){
   }
   const inp=$('chat_input');if(inp)inp.focus();
 }
-function openChat(){const p=$('chatPanel'),f=$('chatFab');if(!p)return;p.classList.add('open');p.setAttribute('aria-hidden','false');if(f)f.classList.remove('pulse');const g=$('eriGreet');if(g)g.classList.remove('show');if(!_chatInited){_chatInited=true;chatInit();}else{const inp=$('chat_input');if(inp)inp.focus();}}
-function closeChat(){const p=$('chatPanel');if(!p)return;p.classList.remove('open');p.setAttribute('aria-hidden','true');const f=$('chatFab');if(f)f.classList.add('pulse');}
+function eriSyncViewport(){
+  const p=$('chatPanel');
+  if(!p||!p.classList.contains('open'))return;
+  const vv=window.visualViewport;
+  // Solo en móvil (panel a pantalla completa) y con soporte de visualViewport.
+  if(window.innerWidth>600||!vv){p.style.height='';p.style.top='';return;}
+  // Ajusta el panel exactamente al área visible (descontando el teclado).
+  p.style.height=vv.height+'px';
+  p.style.top=vv.offsetTop+'px';
+  const log=$('chat_log');if(log)log.scrollTop=log.scrollHeight;
+}
+function eriBindViewport(){
+  const vv=window.visualViewport;
+  if(!vv||vv._eriBound)return;
+  vv._eriBound=true;
+  vv.addEventListener('resize',eriSyncViewport);
+  vv.addEventListener('scroll',eriSyncViewport);
+}
+function openChat(){const p=$('chatPanel'),f=$('chatFab');if(!p)return;p.classList.add('open');p.setAttribute('aria-hidden','false');if(f)f.classList.remove('pulse');const g=$('eriGreet');if(g)g.classList.remove('show');eriBindViewport();eriSyncViewport();if(!_chatInited){_chatInited=true;chatInit();}else{const inp=$('chat_input');if(inp)inp.focus();}}
+function closeChat(){const p=$('chatPanel');if(!p)return;p.classList.remove('open');p.setAttribute('aria-hidden','true');p.style.height='';p.style.top='';const f=$('chatFab');if(f)f.classList.add('pulse');}
 function eriGreetShow(){const g=$('eriGreet'),p=$('chatPanel');if(!g||(p&&p.classList.contains('open'))||eriIsHidden())return;if(typeof eriPlaceGreet==='function')eriPlaceGreet();g.classList.add('show');clearTimeout(window._eriGreetT);window._eriGreetT=setTimeout(function(){g.classList.remove('show');},8000);}
 // === PWA INSTALL ===
 const _hpIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
