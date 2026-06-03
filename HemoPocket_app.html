@@ -3461,7 +3461,7 @@ VIEWS.viewer=()=>`<div class="card viewer-card">
 
 VIEWS.viewer_post=async(params)=>{
 _viewerParams=params;
-if(!params||!params.key){
+if(!params||(!params.key&&!params.url)){
 $('vw_title').textContent='Sin PDF';
 $('vw_pages').innerHTML='<div class="viewer-error">No se ha especificado un PDF.</div>';
 return;
