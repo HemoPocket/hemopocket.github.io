@@ -7410,14 +7410,14 @@ const DICT=[
 {a:'Cadenas ligeras lambda',u:'mg/l',c:'proteinograma',k:'num',pats:['cadenas ligeras libres lambda','cadena ligera lambda','lambda libre','\\blambda\\b']},
 {a:'Glucosa',u:'mg/dl',c:'bioquimica',k:'num',pats:['glucemia','glucosa']},
 {a:'Urea',u:'mg/dl',c:'bioquimica',k:'num',pats:['urea']},
-{a:'Creatinina',u:'mg/dl',c:'bioquimica',k:'num',pats:['creatinina']},
+{a:'Cr',u:'mg/dl',c:'bioquimica',k:'num',pats:['creatinina']},
 {a:'FGe',u:'ml/min',c:'bioquimica',k:'num',pats:['filtrado glomerular estimado','filtrado glomerular','\\bfge\\b','\\bckd-epi\\b','\\bmdrd\\b']},
 {a:'Sodio',u:'mEq/l',c:'bioquimica',k:'num',pats:['sodio','\\bna\\b']},
-{a:'Potasio',u:'mEq/l',c:'bioquimica',k:'num',pats:['potasio','\\bk\\b']},
+{a:'K',u:'mEq/l',c:'bioquimica',k:'num',pats:['potasio','\\bk\\b']},
 {a:'Cloro',u:'mEq/l',c:'bioquimica',k:'num',pats:['cloruro','cloro','\\bcl\\b']},
-{a:'Calcio',u:'mg/dl',c:'bioquimica',k:'num',pats:['calcio total','calcio']},
+{a:'Ca',u:'mg/dl',c:'bioquimica',k:'num',pats:['calcio total','calcio']},
 {a:'Fósforo',u:'mg/dl',c:'bioquimica',k:'num',pats:['fosfato inorganico','fosforo inorganico','fosforo','fosfato']},
-{a:'Magnesio',u:'mg/dl',c:'bioquimica',k:'num',pats:['magnesio']},
+{a:'Mg',u:'mg/dl',c:'bioquimica',k:'num',pats:['magnesio']},
 {a:'Ácido úrico',u:'mg/dl',c:'bioquimica',k:'num',pats:['acido urico','urato']},
 {a:'Proteínas totales',u:'g/dl',c:'bioquimica',k:'num',pats:['proteinas totales']},
 {a:'Albúmina',u:'g/dl',c:'bioquimica',k:'num',pats:['albumina']},
@@ -7426,7 +7426,7 @@ const DICT=[
 {a:'AST (GOT)',u:'U/l',c:'bioquimica',k:'num',pats:['aspartato aminotransferasa','\\bast\\b','\\bgot\\b']},
 {a:'ALT (GPT)',u:'U/l',c:'bioquimica',k:'num',pats:['alanina aminotransferasa','\\balt\\b','\\bgpt\\b']},
 {a:'GGT',u:'U/l',c:'bioquimica',k:'num',pats:['gamma[ -]?glutamil ?transferasa','gamma glutamil','\\bggt\\b']},
-{a:'Fosfatasa alcalina',u:'U/l',c:'bioquimica',k:'num',pats:['fosfatasa alcalina','\\bfal\\b']},
+{a:'FA',u:'U/l',c:'bioquimica',k:'num',pats:['fosfatasa alcalina','\\bfal\\b']},
 {a:'LDH',u:'U/l',c:'bioquimica',k:'num',pats:['lactato deshidrogenasa','lactico deshidrogenasa','\\bldh\\b']},
 {a:'CK',u:'U/l',c:'bioquimica',k:'num',pats:['creatin ?kinasa','creatin ?cinasa','creatina quinasa','creatina kinasa','creatina cinasa','creatinfosfo[kq]uinasa','\\bcpk\\b','\\bck\\b']},
 {a:'Osmolalidad',u:'mOsm/kg',c:'bioquimica',k:'num',pats:['osmolalidad calculada','osmolaridad calculada','osmolalidad','osmolaridad']},
@@ -7490,78 +7490,127 @@ function RXtranscribe(raw){
     chunks=raw.split(/,(?=\s*[A-Za-zÁÉÍÓÚ][a-zA-ZÁÉÍÓÚáéíóú]{3,}\s+\d)/);
   }
   const capFirst=s=>{s=s.trim();return s?s.charAt(0).toUpperCase()+s.slice(1):s;};
-  const fixUnits=s=>s
-      .replace(/\bMG\b/gi,'mg').replace(/\bMCG\b/gi,'mcg').replace(/\bµG\b/gi,'µg')
-      .replace(/\bG\b/g,'g').replace(/\bML\b/gi,'ml')
-      .replace(/\bui\b/g,'UI').replace(/\bUI\b/g,'UI')
-      .replace(/\s+/g,' ').trim();
-  // diccionario de vías -> forma canónica
+  // diccionario de vías -> forma canónica (se eliminan TODAS las menciones de la vía del texto)
   const ROUTES=[
-    [/\bv[ií]a\s+oral\b|\boral\b|\bv\.?\s*o\.?\b/i,'vía oral'],
-    [/\bv[ií]a\s+sublingual\b|\bsublingual\b|\bs\.?\s*l\.?\b/i,'vía sublingual'],
-    [/\bv[ií]a\s+intravenos[ao]\b|\bintravenos[ao]\b|\bendovenos[ao]\b|\bi\.?\s*v\.?\b/i,'vía intravenosa'],
-    [/\bv[ií]a\s+intramuscular\b|\bintramuscular\b|\bi\.?\s*m\.?\b/i,'vía intramuscular'],
-    [/\bv[ií]a\s+subcut[aá]ne[ao]\b|\bsubcut[aá]ne[ao]\b|\bs\.?\s*c\.?\b/i,'subcutánea'],
-    [/\bv[ií]a\s+t[oó]pic[ao]\b|\bt[oó]pic[ao]\b/i,'vía tópica'],
-    [/\bv[ií]a\s+inhalatoria\b|\binhalad[ao]\b|\binhalatoria\b/i,'vía inhalatoria'],
-    [/\bnebulizad[ao]\b/i,'nebulizada'],
-    [/\bv[ií]a\s+rectal\b|\brectal\b/i,'vía rectal'],
-    [/\bv[ií]a\s+oft[aá]lmic[ao]\b|\boft[aá]lmic[ao]\b/i,'vía oftálmica'],
-    [/\bv[ií]a\s+[oó]tic[ao]\b|\b[oó]tic[ao]\b/i,'vía ótica'],
-    [/\bv[ií]a\s+nasal\b|\bnasal\b/i,'vía nasal'],
-    [/\bv[ií]a\s+transd[eé]rmic[ao]\b|\btransd[eé]rmic[ao]\b/i,'vía transdérmica'],
-    [/\bv[ií]a\s+epidural\b|\bepidural\b/i,'vía epidural'],
-    [/\bv[ií]a\s+intratecal\b|\bintratecal\b/i,'vía intratecal']
+    [/v[ií]a\s+sublingual|\bsublingual\b|\bs\.?\s*l\.?\b/i,'vía sublingual'],
+    [/v[ií]a\s+intravenos[ao]s?|\bintravenos[ao]s?\b|\bendovenos[ao]s?\b|\bi\.?\s*v\.?\b/i,'vía intravenosa'],
+    [/v[ií]a\s+intramuscular(?:es)?|\bintramuscular(?:es)?\b|\bi\.?\s*m\.?\b/i,'vía intramuscular'],
+    [/v[ií]a\s+subcut[aá]ne[ao]s?|\bsubcut[aá]ne[ao]s?\b|\bs\.?\s*c\.?\b/i,'subcutánea'],
+    [/v[ií]a\s+t[oó]pic[ao]s?|\bt[oó]pic[ao]s?\b/i,'vía tópica'],
+    [/v[ií]a\s+inhalatoria|\binhalad[ao]s?\b|\binhalatoria\b/i,'vía inhalatoria'],
+    [/\bnebulizad[ao]s?\b/i,'nebulizada'],
+    [/v[ií]a\s+rectal(?:es)?|\brectal(?:es)?\b/i,'vía rectal'],
+    [/v[ií]a\s+oft[aá]lmic[ao]s?|\boft[aá]lmic[ao]s?\b/i,'vía oftálmica'],
+    [/v[ií]a\s+[oó]tic[ao]s?|\b[oó]tic[ao]s?\b/i,'vía ótica'],
+    [/v[ií]a\s+nasal(?:es)?|\bnasal(?:es)?\b/i,'vía nasal'],
+    [/v[ií]a\s+transd[eé]rmic[ao]s?|\btransd[eé]rmic[ao]s?\b/i,'vía transdérmica'],
+    [/v[ií]a\s+epidural(?:es)?|\bepidural(?:es)?\b/i,'vía epidural'],
+    [/v[ií]a\s+intratecal(?:es)?|\bintratecal(?:es)?\b/i,'vía intratecal'],
+    [/v[ií]a\s+oral(?:es)?|\boral(?:es)?\b|\bv\.?\s*o\.?\b/i,'vía oral']
   ];
-  // frecuencia
-  const FREQ=/\b(cada\s+\d+\s*(?:h(?:oras?)?|d[ií]as?|min(?:utos)?|semanas?|sem)\b.*?|c\/\s*\d+\s*h\b|\/\s*\d+\s*h\b|\d+\s*veces?\s+al\s+d[ií]a|una\s+vez\s+al\s+d[ií]a|al\s+d[ií]a|diari[ao]|en\s+ayunas|por\s+la\s+noche|por\s+la\s+ma[ñn]ana|si\s+precisa|s\.?\s*o\.?\s*s\.?)\b/i;
+  // formas farmacéuticas (regex base) + normalización singular/plural con tildes
+  const FORM=/(\d+(?:[.,]\d+)?)?\s*\b(comprimidos?|comp\b|c[aá]psulas?|caps\b|tabletas?|grageas?|inyecci[oó]n(?:es)?|jeringuillas?|jeringas?|amp(?:ollas?)?|vial(?:es)?|sobres?|parches?|gotas?|pulsaci[oó]n(?:es)?|inhalaci[oó]n(?:es)?|aplicaci[oó]n(?:es)?|supositorios?|[oó]vulos?|nebulizaci[oó]n(?:es)?|ml\b|unidad(?:es)?|frascos?|envases?|cajas?)\b/gi;
+  const FORM_NOUN=[
+    [/^comp/,'comprimido','comprimidos'],
+    [/^c[aá]ps|^caps/,'cápsula','cápsulas'],
+    [/^tablet/,'comprimido','comprimidos'],
+    [/^gragea/,'gragea','grageas'],
+    [/^inyecc/,'inyección','inyecciones'],
+    [/^jering/,'jeringa','jeringas'],
+    [/^amp/,'ampolla','ampollas'],
+    [/^vial/,'vial','viales'],
+    [/^sobre/,'sobre','sobres'],
+    [/^parche/,'parche','parches'],
+    [/^gota/,'gota','gotas'],
+    [/^pulsaci/,'pulsación','pulsaciones'],
+    [/^inhalaci/,'inhalación','inhalaciones'],
+    [/^aplicaci/,'aplicación','aplicaciones'],
+    [/^suposit/,'supositorio','supositorios'],
+    [/^[oó]vulo/,'óvulo','óvulos'],
+    [/^nebuliz/,'nebulización','nebulizaciones'],
+    [/^ml/,'ml','ml'],
+    [/^unidad/,'unidad','unidades'],
+    [/^frasco/,'frasco','frascos'],
+    [/^envase/,'envase','envases'],
+    [/^caja/,'caja','cajas']
+  ];
+  const normForm=(numRaw,nounRaw)=>{
+    const qty=(numRaw||'').trim();
+    const n=qty?parseFloat(qty.replace(',','.')):null;
+    const noun=nounRaw.toLowerCase();
+    let word=noun;
+    for(const [re,sing,plur] of FORM_NOUN){ if(re.test(noun)){ word=(n!==null&&n===1)?sing:plur; break; } }
+    return (qty?qty+' ':'')+word;
+  };
+  // tildes para nombres de principio activo frecuentes que suelen venir sin acentuar
+  const ACC={acido:'ácido',folico:'fólico',acetilsalicilico:'acetilsalicílico',tranexamico:'tranexámico',
+    ascorbico:'ascórbico',ursodesoxicolico:'ursodesoxicólico',zoledronico:'zoledrónico',ibandronico:'ibandrónico',
+    risedronico:'risedrónico',alendronico:'alendrónico',micofenolico:'micofenólico',clavulanico:'clavulánico'};
 
   const out=[];
   for(let c of chunks){
-    c=c.replace(/[–]/g,'-').trim().replace(/^[\-•*\.\d\)\s]+(?=[A-Za-zÁÉÍÓÚ])/,'');
+    c=c.replace(/[–—]/g,'-').trim().replace(/^[\-•*\.\d\)\s]+(?=[A-Za-zÁÉÍÓÚ])/,'');
     if(!c||c.length<2) continue;
 
-    // 1) extraer la VÍA (una sola vez) y quitarla del texto
+    // 1) VÍA: detectar la canónica y eliminar TODAS sus menciones (caja + pauta)
     let route='';
     for(const [re,canon] of ROUTES){
-      if(re.test(c)){route=canon;c=c.replace(re,' ');break;}
+      if(re.test(c)){ route=canon; c=c.replace(new RegExp(re.source,'gi'),' '); break; }
     }
-    // 2) extraer la FRECUENCIA y quitarla
+    c=c.replace(/\bv[ií]a\b/gi,' '); // quitar "vía" huérfano
+
+    // 2) FRECUENCIA
+    c=c.replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*h\b/gi,' cada $1 h');
     let freq='';
-    const fm=c.match(FREQ);
-    if(fm){freq=fm[0].trim();c=c.replace(fm[0],' ');}
-    // limpiar separadores sobrantes
-    c=c.replace(/\s+-\s+/g,' ').replace(/\s+/g,' ').trim();
+    const pm=c.match(/\bcada\s+(\d+)\s*([a-záéíóúñ]+)/i); // periódica: cada N <unidad> (tolera erratas tipo "hotas")
+    if(pm){
+      const n=parseInt(pm[1],10), u=pm[2].toLowerCase();
+      if(/^h/.test(u)) freq=(n===1)?'cada hora':('cada '+n+'h');
+      else if(/^sem/.test(u)) freq=(n===1)?'semanal':('cada '+n+' semanas');
+      else if(/^mes/.test(u)) freq=(n===1)?'mensual':('cada '+n+' meses');
+      else if(/^min/.test(u)) freq='cada '+n+' min';
+      else if(/^d/.test(u)) freq=(n===1)?'diario':('cada '+n+' días');
+      else freq='cada '+n+' '+u;
+      c=c.replace(pm[0],' ');
+    } else {
+      const FREQ=/\b(\d+\s*veces?\s+al\s+d[ií]a|una\s+vez\s+al\s+d[ií]a|al\s+d[ií]a|diari[ao]|en\s+ayunas|por\s+la\s+noche|por\s+la\s+ma[ñn]ana|antes\s+de\s+(?:dormir|acostarse)|si\s+precisa|s\.?\s*o\.?\s*s\.?)\b/i;
+      const fm=c.match(FREQ);
+      if(fm){ freq=fm[0].toLowerCase().replace(/\s+/g,' ').replace(/\bdia\b/g,'día').trim(); c=c.replace(fm[0],' '); }
+    }
+    // "si precisa" / SOS (PRN): conservarlo aunque haya frecuencia periódica
+    const PRN=/\bsi\s+precisa\b|\bs\.?\s*o\.?\s*s\.?\b/i;
+    if(PRN.test(c)){ freq=(freq?freq+' ':'')+'si precisa'; c=c.replace(new RegExp(PRN.source,'gi'),' '); }
 
-    // 3) lo que queda: nombre+dosis [+ forma farmacéutica]
-    // separar forma farmacéutica (comprimido, cápsula, inyección, ml, sobre, ampolla, parche, vial, gota...)
-    let form='';
-    const FORM=/\b(\d+(?:[.,]\d+)?\s*)?(comprimidos?|comp\b|capsulas?|cápsulas?|caps\b|tabletas?|grageas?|inyecci[oó]n(?:es)?|jeringuillas?|jeringas?|amp(?:ollas?)?|viales?|sobres?|parches?|gotas?|pulsaciones?|inhalaciones?|aplicaciones?|supositorios?|[oó]vulos?|nebulizaci[oó]n(?:es)?|ml\b|unidades?|frascos?|envases?|cajas?)\b/gi;
-    const fmAll=[...c.matchAll(FORM)];
-    if(fmAll.length){
-      // Si aparece más de una forma (p.ej. "60 COMPRIMIDOS - 1 COMPRIMIDO"), se asume que la
-      // primera es la cantidad de la caja y la última es la pauta posológica → usar la última.
-      const last=fmAll[fmAll.length-1];
-      form=last[0].trim();
-      c=c.replace(FORM,' ').replace(/\s+/g,' ').trim();
-      // limpiar guiones sobrantes que queden al eliminar la cantidad de caja
-      c=c.replace(/\s+-\s+/g,' ').replace(/^[-\s]+|[-\s]+$/g,'').replace(/\s+/g,' ').trim();
+    // 3) DOSIS: primer número+unidad → separa nombre (antes) de la pauta (después)
+    const dm=c.match(/(\d+(?:[.,]\d+)?)\s*(mg\/ml|mcg\/ml|µg\/ml|mg|mcg|µg|g|ml|ui|u\.?\s*i\.?|%)\b/i);
+    let dose='';
+    let namePart=c;
+    let doseEnd=0;
+    if(dm){
+      let unit=dm[2].toLowerCase().replace(/\s+/g,'');
+      if(/^u\.?i\.?$/.test(unit)) unit='UI';
+      dose=dm[1]+' '+unit;
+      namePart=c.slice(0,dm.index);
+      doseEnd=dm.index+dm[0].length;
     }
 
-    let nameDose=fixUnits(c).replace(/\s*[;:]\s*/g,' ').replace(/\s+,\s*|\s*,\s+/g,' ').replace(/\s+/g,' ').trim();
-    nameDose=nameDose.replace(/[\s,]+$/,'').trim();
-    nameDose=capFirst(nameDose.toLowerCase());
-    // recolocar unidades en minúscula correctamente
-    nameDose=nameDose.replace(/\bui\b/g,'UI');
-    form=form?fixUnits(form).toLowerCase():'';
-    freq=freq?freq.toLowerCase()
-        .replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 horas')
-        .replace(/\/\s*(\d+)\s*h\b/gi,'cada $1 horas')
-        .replace(/\bcada\s+(\d+)\s*h\b/gi,'cada $1 horas')
-        .replace(/\s+/g,' ').trim():'';
+    // 4) FORMA: la pauta posológica (la última forma que va DESPUÉS de la dosis)
+    let form='';
+    const forms=[...c.matchAll(FORM)].filter(m=>m.index>=doseEnd);
+    if(forms.length){ const last=forms[forms.length-1]; form=normForm(last[1],last[2]); }
 
-    // ensamblar: forma + vía + frecuencia
-    let tail=[form,route,freq].filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/[\s,\-]+$/,'').trim();
+    // 5) NOMBRE: limpiar, reordenar "X ácido"→"ácido X" y acentuar términos conocidos
+    namePart=namePart.replace(FORM,' ').replace(/[.,;:()\-]+/g,' ').replace(/\s+/g,' ').trim();
+    let toks=namePart.toLowerCase().split(/\s+/).filter(Boolean);
+    const ai=toks.findIndex(t=>/^[áa]cido$/.test(t));
+    if(ai>0){ toks.splice(ai,1); toks.unshift('acido'); }
+    toks=toks.map(t=>ACC[t]||t);
+    const nm=capFirst(toks.join(' '));
+    if(!nm&&!dose) continue;
+    const nameDose=(nm+(dose?' '+dose:'')).trim();
+
+    // 6) ensamblar: forma + vía + frecuencia
+    const tail=[form,route,freq].filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/[\s,\-]+$/,'').trim();
     out.push(tail?`${nameDose}: ${tail}`:nameDose);
   }
   return out.join('\n');
