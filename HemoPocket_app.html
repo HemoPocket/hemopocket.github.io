@@ -257,6 +257,10 @@ body.view-home .app-footer{padding-bottom:18px}
 .home-hint{max-width:520px;margin:12px auto 0;font-size:12px;color:var(--mut);text-align:center;line-height:1.5;padding:0 10px}
 .home-hint b{color:var(--wn)}
 @media(max-width:380px){.home-tiles{grid-template-columns:1fr 1fr}}
+/* ── Checklist de protocolo más escaneable ── */
+.rv-checklist{padding-left:18px;margin:7px 0 0;list-style:disc}
+.rv-checklist li{margin:6px 0;line-height:1.45}
+.rv-note{display:block;font-size:11.5px;opacity:.78;margin-top:1px}
 [data-t="dark"] .home-tagline{color:var(--c2l)}
 .home-sec-h{font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;letter-spacing:.6px;margin-bottom:4px}
 .home-hint{margin-top:18px;text-align:center;font-size:11.5px;color:var(--mut)}
@@ -6638,13 +6642,13 @@ VIEWS.reversion=()=>`<div class="card">
 <p class="intro">Selecciona anticoagulante y gravedad para obtener el protocolo de reversión.</p>
 
 <div class="alert r"><strong>⚠️ Medidas iniciales en TODO sangrado mayor</strong>
-<ul style="padding-left:20px;margin-top:4px">
+<ul class="rv-checklist">
 <li><strong>Suspender</strong> el anticoagulante.</li>
-<li>Hemostasia mecánica/quirúrgica/endoscópica si procede.</li>
-<li>Estabilización hemodinámica (cristaloides, transfusión guiada).</li>
-<li><strong>Ácido tranexámico (TXA)</strong> 1 g IV en 10 min, repetir a las 8 h (CRASH-2). <em>Evitar en hematuria macroscópica</em> (riesgo de coágulos en vía urinaria).</li>
-<li>Mantener fibrinógeno &gt; 1.5–2 g/L (concentrado de fibrinógeno o crioprecipitado), plaquetas &gt; 50 ×10⁹/L (&gt; 100 si SNC).</li>
-<li>Carbón activado si ingesta de ACOD &lt; 2–4 h.</li>
+<li><strong>Hemostasia</strong> mecánica/quirúrgica/endoscópica si procede.</li>
+<li><strong>Estabilización hemodinámica</strong> (cristaloides, transfusión guiada).</li>
+<li><strong>Ácido tranexámico (TXA)</strong> 1 g IV en 10 min, repetir a las 8 h.<small class="rv-note">CRASH-2. Evitar en hematuria macroscópica (riesgo de coágulos en vía urinaria).</small></li>
+<li><strong>Fibrinógeno</strong> &gt; 1.5–2 g/L (concentrado de fibrinógeno o crioprecipitado); <strong>plaquetas</strong> &gt; 50 ×10⁹/L (&gt; 100 si SNC).</li>
+<li><strong>Carbón activado</strong> si ingesta de ACOD &lt; 2–4 h.</li>
 </ul>
 </div>
 
