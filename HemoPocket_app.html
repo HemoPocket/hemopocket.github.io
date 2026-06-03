@@ -176,6 +176,7 @@ body.view-home .app-footer{padding-bottom:18px}
 .res.hi{background:rgba(220,38,38,.1);border-left-color:var(--er)}
 .res-h{font-size:15px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .res-s{font-size:13px;color:var(--mut);margin-top:4px}
+.res-txt{font-size:13.5px;line-height:1.5;margin:2px 0 5px;color:var(--txt)}
 .score{display:inline-block;padding:3px 10px;border-radius:12px;background:var(--c2);color:#fff;font-weight:600;font-size:12px}
 .ref{font-size:11px;color:var(--mut);margin-top:14px;padding-top:10px;border-top:1px solid var(--bd);font-style:italic;line-height:1.4}
 .ref a{color:var(--c2);word-break:break-all}
@@ -909,7 +910,8 @@ const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[cfg.range
 const el=$(`${id}_res`);
 el.style.display='block';
 el.className='res '+(range.cls||'');
-el.innerHTML=`<div class="res-h"><span class="score">${total} pts</span><span>${range.label}</span></div>${range.info||''}`;
+const pcName=stripHTML(cfg.title).split(/\s[–—-]\s/)[0].trim();
+el.innerHTML=`<div class="res-h"><span class="score">${total} pts</span><span>${range.label}</span></div><div class="res-txt">${pcName}: <b>${total} ${total===1?'punto':'puntos'}</b> → ${stripHTML(range.label)}.</div>${range.info||''}`;
 }
 
 function copyPC(id){
