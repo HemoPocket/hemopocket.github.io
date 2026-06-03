@@ -110,6 +110,8 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .cmd-grp{padding:9px 16px 3px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700}
 .cmd-nm{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cmd-ic{font-size:13px;flex-shrink:0;width:18px;text-align:center}
+mark{background:rgba(196,30,58,.16);color:inherit;border-radius:3px;padding:0 1px;font-weight:600}
+[data-t="dark"] mark{background:rgba(248,113,133,.22)}
 .app-footer{margin-top:24px;padding:14px 12px 82px;border-top:1px solid var(--bd);font-size:10px;color:var(--mut);text-align:center;line-height:1.55}
 .app-footer .footer-org{display:block;margin-top:1px}
 .app-footer .footer-legal{display:block;font-style:italic;text-wrap:balance;max-width:540px;margin:6px auto 0}
@@ -4974,6 +4976,8 @@ const CHAT_SYN={
   bacteriemia:'neutropenia febril sepsis'
 };
 function chatNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñ\s]/g,' ').replace(/\s+/g,' ').trim();}
+// resalta los términos buscados (q en minúsculas) dentro de un texto, ya escapado a HTML
+function hlMark(text,q){const esc=chatEsc(text);if(!q)return esc;const toks=q.split(/\s+/).filter(t=>t.length>=2).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));if(!toks.length)return esc;try{return esc.replace(new RegExp('('+toks.join('|')+')','gi'),'<mark>$1</mark>');}catch(e){return esc;}}
 function chatTokens(s){return chatNorm(s).split(' ').filter(t=>t.length>=2);}
 function chatEsc(s){return (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function chatExpand(tokens){const out=[],seen=new Set();tokens.forEach(t=>{if(!seen.has(t)){seen.add(t);out.push({t,w:1});}if(CHAT_SYN[t])CHAT_SYN[t].split(' ').forEach(s=>{if(s&&!seen.has(s)){seen.add(s);out.push({t:s,w:.5});}});});return out;}
@@ -5729,7 +5733,7 @@ for(const [svc,items] of HOSP_DIR){
       right=`<button class="dir-ext-btn" onclick="event.stopPropagation();copy('${s}')" title="Copiar ${s}">${s}</button><span class="dir-int-badge">interna</span>`;
     }
     inner+=`<div class="dir-row">
-      <div class="dir-main"><div class="dir-name">${d==='—'?'·':d.replace(/\n/g,' ')}</div>${l?`<div class="dir-sub">${l}</div>`:''}</div>
+      <div class="dir-main"><div class="dir-name">${d==='—'?'·':hlMark(d.replace(/\n/g,' '),q)}</div>${l?`<div class="dir-sub">${hlMark(l,q)}</div>`:''}</div>
       <div class="dir-right">${right}</div>
     </div>`;
   }
@@ -8184,7 +8188,12 @@ return m;
 };
 setTimeout(cleanELN,100);
 renderMenu();
-go('home');
+(function deepLink(){   // atajos del icono PWA / enlaces #vista
+  const h=(location.hash||'').replace(/^#/,'').trim();
+  if(h==='buscar'||h==='__cmd'){go('home');setTimeout(()=>{try{openCmd()}catch(e){}},150);return;}
+  if(h && (h==='phone'||getAll().some(x=>x.id===h))){go(h);return;}
+  go('home');
+})();
 updateSyncInd();
 setupShortcuts();
 // Actualiza indicador de sync ante cambios de conectividad
@@ -8203,7 +8212,7 @@ if(document.visibilityState==='visible')setTimeout(autoCheckUpdate,500);
 }
 
 // === COMMAND PALETTE + SHORTCUTS (búsqueda global) ===
-let _cmdSel=0, _cmdIndex=null, _cmdResults=[];
+let _cmdSel=0, _cmdIndex=null, _cmdResults=[], _cmdQ='';
 const CMD_ICON={tool:'🧮',phone:'📞',scheme:'💊',eri:'💬'};
 function openCmd(){
 const bg=$('cmd_bg');if(!bg)return;
@@ -8240,11 +8249,11 @@ function cmdRow(it,i){
 const icon=CMD_ICON[it.kind]||'•';
 const right = it.kind==='phone' ? `<span class="sec">📞 ${chatEsc(it.ext||it.phone||'')}</span>` : `<span class="sec">${chatEsc(it.sec||'')}</span>`;
 const nu=(it.kind==='tool'&&it._new&&typeof isRecentlyNew==='function'&&isRecentlyNew(it._new))?' <span class="tag-new">nuevo</span>':'';
-return `<div class="cmd-item ${i===_cmdSel?'sel':''}" onclick="cmdPick(${i})" onmouseenter="_cmdSel=${i};refreshCmdSel()"><span class="cmd-nm"><span class="cmd-ic">${icon}</span>${chatEsc(it.name)}${nu}</span>${right}</div>`;
+return `<div class="cmd-item ${i===_cmdSel?'sel':''}" onclick="cmdPick(${i})" onmouseenter="_cmdSel=${i};refreshCmdSel()"><span class="cmd-nm"><span class="cmd-ic">${icon}</span>${hlMark(it.name,_cmdQ)}${nu}</span>${right}</div>`;
 }
 function renderCmd(){
 if(!_cmdIndex)_cmdIndex=cmdBuildIndex();
-const raw=chatNorm($('cmd_in').value||'');
+const raw=chatNorm($('cmd_in').value||'');_cmdQ=($('cmd_in').value||'').toLowerCase().trim();
 const qtokens=raw?raw.split(' ').filter(Boolean):[];
 const list=$('cmd_list');_cmdResults=[];
 if(!qtokens.length){   // estado vacío: recientes + favoritos
