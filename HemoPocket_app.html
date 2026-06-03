@@ -8319,13 +8319,13 @@ if(document.readyState!=='loading')init();
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Revisión de contenido clínico</h3>
     <p style="font-size:0.85rem; line-height:1.6; color:#333;">Los contenidos clínicos han sido revisados por profesionales del Servicio de Hematología y Hemoterapia del HUNSC, quienes participan a título personal como <strong>revisores clínicos</strong>. Su participación se limita a la validación del contenido y no implica coautoría sobre la aplicación ni vinculación institucional de la misma.</p>
-    <ul style="font-size:0.85rem; line-height:1.8; color:#333; padding-left:1.2rem;">
-      <li>Dra. Ana Oliva — FEA Hematología</li>
-      <li>Dra. Silvia Martín — FEA Hematología</li>
-      <li>Dr. Carlos Quintero — FEA Hematología</li>
-      <li>Dra. Isabel Peris Fernaud — FEA Banco de Sangre</li>
-      <li>Dr. Alexander Figueroa — FEA Banco de Sangre</li>
-      <li>Dra. Laura Francisca Ávila Idrovo — FEA Banco de Sangre</li>
+    <ul id="aviso-revisores" style="font-size:0.85rem; line-height:1.8; color:#333; padding-left:1.2rem;">
+      <li>Dra. Ana Oliva — Leucemias agudas</li>
+      <li>Dra. Silvia Martín — Leucemias agudas</li>
+      <li>Dra. Isabel Peris Fernaud — Banco de Sangre</li>
+      <li>Dr. Alexander Figueroa — Banco de Sangre</li>
+      <li>Dra. Laura Francisca Ávila Idrovo — Banco de Sangre</li>
+      <li>Dr. Carlos Quintero — Trombosis / Hemostasia</li>
     </ul>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Fuentes y actualización</h3>
@@ -8341,7 +8341,36 @@ if(document.readyState!=='loading')init();
   </div>
 </div>
 <script>
+function poblarRevisoresAviso() {
+  // Genera la lista de revisores a partir de los mismos datos que la vista "Equipo",
+  // así siempre refleja el equipo real (sincronizado), tenga las personas que tenga.
+  var ul = document.getElementById('aviso-revisores');
+  if (!ul || typeof getAllCollaborators !== 'function') return;
+  var all;
+  try { all = getAllCollaborators(); } catch (e) { return; }
+  if (!all) return;
+  var map = new Map();
+  Object.keys(all).forEach(function (id) {
+    (all[id] || []).forEach(function (c) {
+      var name = (c.n || c.name || '').trim();
+      if (!name) return;
+      if (/busnego/i.test(name)) return; // la autora ya está acreditada arriba
+      var role = (c.r || c.role || '').trim();
+      if (!map.has(name)) map.set(name, new Set());
+      if (role) map.get(name).add(role);
+    });
+  });
+  if (!map.size) return; // sin datos: dejamos el listado estático por defecto
+  var items = [];
+  map.forEach(function (roles, name) {
+    var r = Array.from(roles).join(' · ');
+    items.push(r ? '<li><strong>' + name + '</strong> — ' + r + '</li>'
+                 : '<li><strong>' + name + '</strong></li>');
+  });
+  ul.innerHTML = items.join('');
+}
 function abrirAvisoLegal() {
+  poblarRevisoresAviso();
   const m = document.getElementById('modal-aviso-legal');
   m.style.display = 'flex';
   document.body.style.overflow = 'hidden';
