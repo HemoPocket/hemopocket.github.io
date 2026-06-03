@@ -530,8 +530,8 @@ const MENU=[
 {id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
-{h:'LIBRO AZUL DE QT',o:1,items:[
-{id:'libroazul',name:'Libro azul de QT',kw:'libro azul pautas quimioterapia qt protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
+{h:'PAUTAS DE QT SEHH',o:1,items:[
+{id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
 ]},
 {h:'NEUTROPENIA FEBRIL',items:[
 {id:'nf',name:'Algoritmo de neutropenia febril',kw:'neutropenia febril neutropenico neutropenica fiebre sepsis septico septica shock shock septico septico en neutropenico bacteriemia foco infeccioso infeccion paciente neutropenico bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
@@ -666,7 +666,7 @@ function filterMenu(v){renderMenu(v)}
 
 function go(id, params) {
     if (id === 'chat') { closeSb(); openChat(); return; }
-    if (id === 'libroazul') { closeSb(); openPDFurl('guias/LibroAzul_QT.pdf','Libro azul de QT'); return; }
+    if (id === 'libroazul') { closeSb(); openPDFurl('guias/LibroAzul_QT.pdf','Pautas de QT SEHH'); return; }
     S.view = id;
     window.location.hash = id;
     document.title = "HemoPocket"; 
