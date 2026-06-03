@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v47';
+const CACHE = 'hemopocket-v48';
 const APP_SHELL = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
