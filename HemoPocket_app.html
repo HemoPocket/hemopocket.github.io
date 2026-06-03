@@ -8320,12 +8320,26 @@ if(document.readyState!=='loading')init();
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Revisión de contenido clínico</h3>
     <p style="font-size:0.85rem; line-height:1.6; color:#333;">Los contenidos clínicos han sido revisados por profesionales del Servicio de Hematología y Hemoterapia del HUNSC, quienes participan a título personal como <strong>revisores clínicos</strong>. Su participación se limita a la validación del contenido y no implica coautoría sobre la aplicación ni vinculación institucional de la misma.</p>
     <ul id="aviso-revisores" style="font-size:0.85rem; line-height:1.8; color:#333; padding-left:1.2rem;">
-      <li>Dra. Ana Oliva — Leucemias agudas</li>
-      <li>Dra. Silvia Martín — Leucemias agudas</li>
+      <li>Dra. Kevin García Roulston — Neutropenia febril e infecciones</li>
+      <li>Dra. Carmen Rodríguez Esteban — Otras urgencias hematológicas</li>
+      <li>Dr. Tomás Moreno — Otras urgencias hematológicas</li>
+      <li>Dr. Mario Ríos — Trombosis y Hemostasia</li>
+      <li>Dra. Minerva Montalvo — Trombosis y Hemostasia</li>
+      <li>Dr. Carlos Quintero — Trombosis y Hemostasia</li>
       <li>Dra. Isabel Peris Fernaud — Banco de Sangre</li>
       <li>Dr. Alexander Figueroa — Banco de Sangre</li>
       <li>Dra. Laura Francisca Ávila Idrovo — Banco de Sangre</li>
-      <li>Dr. Carlos Quintero — Trombosis / Hemostasia</li>
+      <li>Dra. Ana Sánchez Quintana — Terapia celular · Mieloma y Gammapatías</li>
+      <li>Dr. Jorge De Ramos — Terapia celular · Linfoma</li>
+      <li>Dra. Elena Herrero — Citopenias</li>
+      <li>Dra. Cristina Notario — Citopenias</li>
+      <li>Dra. Ana Oliva — Leucemias agudas</li>
+      <li>Dra. Silvia Martín — Leucemias agudas</li>
+      <li>Dra. Carmen Marrero — Patología mieloide crónica · Linfoma · LLC</li>
+      <li>Dra. Nuria Hernanz — Patología mieloide crónica · LLC</li>
+      <li>Dr. Pablo Ríos Rull — Mieloma y Gammapatías</li>
+      <li>Dra. Patricia Hernández — Linfoma</li>
+      <li>Dr. Héctor González Méndez — Hematología pediátrica</li>
     </ul>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Fuentes y actualización</h3>
@@ -8356,6 +8370,8 @@ function poblarRevisoresAviso() {
       if (!name) return;
       if (/busnego/i.test(name)) return; // la autora ya está acreditada arriba
       var role = (c.r || c.role || '').trim();
+      // Si no hay rol explícito, usamos el área (título de sección) como contexto.
+      if (!role && typeof GUIDES_TITLES !== 'undefined' && GUIDES_TITLES[id]) role = GUIDES_TITLES[id];
       if (!map.has(name)) map.set(name, new Set());
       if (role) map.get(name).add(role);
     });
