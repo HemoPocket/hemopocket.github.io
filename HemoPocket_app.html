@@ -5059,11 +5059,28 @@ const QT_SCHEMES = {
     ]
   },
   'EPCORITAMAB': {
-    label: 'Epcoritamab (CD20×CD3) – step-up C1 SC',
+    label: 'Epcoritamab (CD20×CD3) – step-up C1 SC · LBDCG',
     drugs: [
       {name:'Epcoritamab – step-up dosis 1', dose:'0,16 mg', route:'SC', days:[1]},
       {name:'Epcoritamab – step-up dosis 2', dose:'0,8 mg',  route:'SC', days:[8]},
       {name:'Epcoritamab – dosis terapéutica', dose:'48 mg', route:'SC', days:[15]}
+    ],
+    notes:[
+      'Esquema de escalada (step-up) del ciclo 1 para <strong>linfoma B difuso de célula grande (LBDCG)</strong>: 2 dosis escalonadas (D1 y D8) y primera dosis completa en D15.',
+      'Para <strong>linfoma folicular</strong> usar el esquema «Epcoritamab · Linfoma folicular», con 3 dosis escalonadas y dosis completa en D22.'
+    ]
+  },
+  'EPCORITAMAB-FL': {
+    label: 'Epcoritamab (CD20×CD3) – step-up C1 SC · Linfoma folicular',
+    drugs: [
+      {name:'Epcoritamab – dosis escalonada 1', dose:'0,16 mg', route:'SC', days:[1]},
+      {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
+      {name:'Epcoritamab – dosis escalonada 3', dose:'3 mg',    route:'SC', days:[15]},
+      {name:'Epcoritamab – primera dosis completa', dose:'48 mg', route:'SC', days:[22]}
+    ],
+    notes:[
+      'Esquema de escalada (step-up) del ciclo 1 para <strong>linfoma folicular</strong>: 3 dosis escalonadas (D1, D8 y D15) y primera dosis completa en D22.',
+      'Para <strong>LBDCG</strong> usar el esquema «Epcoritamab · LBDCG», con 2 dosis escalonadas y dosis completa en D15.'
     ]
   },
   'MOSUNETUZUMAB': {
@@ -5346,7 +5363,7 @@ const QT_SCHEMES = {
 };
 
 const QT_GROUPS = [
-  {label:'Linfoma B',               keys:['R-CHOP','R-MINI-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
+  {label:'Linfoma B',               keys:['R-CHOP','R-MINI-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','EPCORITAMAB-FL','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
