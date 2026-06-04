@@ -3841,7 +3841,7 @@ tram_iv:{n:'Tramadol IV/SC',f:0.2,unit:'mg'},
 cod:{n:'Codeína oral',f:0.15,unit:'mg'},
 tap:{n:'Tapentadol oral',f:0.4,unit:'mg'},
 fent_td:{n:'Fentanilo transdérmico',f:2.4,unit:'µg/h',td:true},
-fent_iv:{n:'Fentanilo IV/SC',f:0.3,unit:'µg'},
+fent_iv:{n:'Fentanilo IV/SC',f:0.1,unit:'µg'},
 bup_td:{n:'Buprenorfina transdérmica',f:0.6,unit:'µg/h',td:true}
 };
 function metadonaFactor(mme){
@@ -3894,6 +3894,7 @@ return `<div class="card">
 <tr><td>Codeína oral</td><td>×0.15</td><td>240 mg/día = 36 MME</td></tr>
 <tr><td>Tapentadol oral</td><td>×0.4</td><td>200 mg/día = 80 MME</td></tr>
 <tr><td>Fentanilo transdérmico</td><td>µg/h × 2.4</td><td>parche 25 µg/h = 60 MME/día</td></tr>
+<tr><td>Fentanilo IV/SC</td><td>µg/día × 0.1</td><td>450 µg/día IV ≈ parche 19 µg/h (mismo fármaco)</td></tr>
 <tr><td>Buprenorfina transdérmica</td><td>µg/h × 0.6</td><td>parche 35 µg/h = 21 MME/día</td></tr>
 <tr><td>Metadona oral</td><td>variable (×4 a ×12)</td><td>según MME total — iniciar bajo</td></tr>
 </table>
@@ -3930,8 +3931,10 @@ if(to==='fent_iv')toUnit='µg/día IV/SC';
 toName=conf.n;
 toFactor=`×1/${conf.f}`;
 }
-// Paso 3: aplicar reducción por tolerancia cruzada (solo si rotamos)
-const isRotation=from!==to;
+// Paso 3: reducción por tolerancia cruzada SOLO al rotar a un opioide DISTINTO
+// (un cambio de vía del mismo fármaco —p. ej. fentanilo IV→parche— no lleva reducción)
+const baseDrug=k=>k.split('_')[0];
+const isRotation=baseDrug(from)!==baseDrug(to);
 const reducedDose=isRotation?toDose*(1-red):toDose;
 const reductionTxt=isRotation&&red>0?` (con reducción del ${(red*100).toFixed(0)}% por tolerancia cruzada incompleta)`:'';
 // Clasificación de riesgo
