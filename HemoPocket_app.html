@@ -508,7 +508,7 @@ body{font-size:13px}
 #chatPanel{right:0;left:0;top:0;bottom:auto;width:100%;height:100dvh;max-height:none;border-radius:0;border:none}
 #chatPanel .chat-inputrow{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 /* Asistente de QT: fuente más pequeña en móvil para que las opciones largas no salten de línea */
-#qt_scheme{font-size:12px!important}
+#qt_scheme{font-size:11px!important}
 }
 @media(max-width:360px){
 #qt_scheme{font-size:11px!important}
@@ -2347,15 +2347,11 @@ VIEWS.crcl=()=>`<div class="card">
 <h3>Recomendaciones clave en oncohematología</h3>
 <div class="alert b">
 <ul style="padding-left:20px;line-height:1.7">
-<li><strong>Cockcroft-Gault</strong> sigue siendo el <strong>estándar para ajuste de dosis</strong> de fármacos oncohematológicos en la mayoría de fichas técnicas (carboplatino, melfalán, lenalidomida, capecitabina, citarabina dosis altas, etc.).</li>
 <li><strong>Peso a usar en C-G</strong>:
 <ul><li>IMC &lt; 18.5 (caquexia): <strong>peso ideal (IBW)</strong> para evitar sobreestimar.</li>
 <li>IMC 18.5–29.9: <strong>peso real</strong>.</li>
 <li>IMC ≥ 30 (obesidad): <strong>peso ajustado (ABW)</strong> — fórmula = IBW + 0.4 × (peso real − IBW).</li></ul></li>
 <li><strong>Creatinina baja artefacto</strong> (caquexia/sarcopenia, paciente oncológico avanzado): NO redondear a 1.0 mg/dL; el C-G sobreestima. Valorar GFR medido (24 h, iothalamato, cistatina C) en decisiones críticas.</li>
-<li><strong>Calvert (carboplatino)</strong>: capar GFR a <strong>125 mL/min</strong> (FDA 2010). La calculadora muestra el valor capado.</li>
-<li><strong>CKD-EPI 2021</strong>: más preciso en GFR normal-alto; usar como referencia general. NO sustituye a C-G en cálculo de dosis de quimio (la mayoría de ensayos clínicos usaron C-G).</li>
-<li><strong>Daratumumab / SC, lenalidomida, bortezomib, brentuximab</strong>: ajuste por C-G según ficha técnica.</li>
 </ul>
 </div>
 
@@ -2520,37 +2516,17 @@ copy(txt);}
 
 VIEWS.bsa=()=>`<div class="card">
 <h2>Superficie corporal — paciente oncohematológico</h2>
-<p class="intro">Calcula la BSA por las dos fórmulas más usadas en oncología (<strong>Mosteller</strong> y <strong>DuBois</strong>) y, opcionalmente, la <strong>dosis de carboplatino</strong> según la fórmula de Calvert. Recordatorio sobre <strong>capping</strong> en pacientes obesos.</p>
+<p class="intro">Calcula la BSA por las dos fórmulas más usadas en oncología (<strong>Mosteller</strong> y <strong>DuBois</strong>).</p>
 <div class="row">
 <div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="bs_h" value="${S.p.height||''}" oninput="calcBSA()"></div>
 <div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.1" id="bs_w" value="${S.p.weight||''}" oninput="calcBSA()"></div>
-</div>
-
-<div class="calc-box" style="margin-top:14px">
-<div style="font-size:12.5px;font-weight:600;margin-bottom:8px;color:var(--c2)">Calvert opcional (carboplatino)</div>
-<p style="font-size:12px;color:var(--mut);margin-bottom:8px"><strong>Dosis (mg) = AUC × (GFR + 25)</strong>. El GFR se capa a un máximo de <strong>125 mL/min</strong> (FDA 2010) para evitar sobredosificación. Cockcroft-Gault recomendado para el GFR (calc. CrCl en esta app).</p>
-<div class="row2">
-<div class="fld"><label class="lbl">AUC objetivo (mg·min/mL)</label><input type="number" step="0.5" id="bs_auc" placeholder="ej: 5" oninput="calcBSA()"></div>
-<div class="fld"><label class="lbl">GFR / CrCl (mL/min)</label><input type="number" id="bs_gfr" placeholder="ej: 95" oninput="calcBSA()"></div>
-</div>
 </div>
 
 <div class="btns"><button class="btn" onclick="calcBSA()">Calcular</button>
 <button class="btn btn-out btn-sm" onclick="copyBSA()">Copiar</button></div>
 <div id="bs_res" class="res" style="display:none"></div>
 
-<h3>Capping y consideraciones clínicas</h3>
-<div class="alert b">
-<ul style="padding-left:20px;line-height:1.7">
-<li><strong>ASCO 2012 / 2021</strong>: dosis plenas según BSA con peso real en quimioterapia citotóxica de pacientes obesos, salvo toxicidad demostrada (NO capping rutinario).</li>
-<li><strong>Capping histórico a 2.0 m²</strong>: algunos protocolos antiguos lo aplicaban. Hoy <strong>desaconsejado</strong> en general — perpetúa infradosificación en obesos.</li>
-<li><strong>Capping del GFR a 125 mL/min en Calvert</strong>: <strong>sí recomendado</strong> (FDA 2010, Calvert 1989). Evita sobredosis de carboplatino cuando se sobreestima la función renal.</li>
-<li><strong>BSA en hemoderivados</strong>: dosis de células CD34+ se expresan por kg de receptor, no por BSA.</li>
-<li><strong>DuBois vs Mosteller</strong>: diferencias clínicamente irrelevantes (&lt;3% en adultos). Esta app usa <strong>DuBois &amp; DuBois</strong> como fórmula de referencia para dosificar quimioterapia; Mosteller se muestra como alternativa equivalente.</li>
-</ul>
-</div>
-
-<div class="ref">Mosteller RD. N Engl J Med. 1987;317(17):1098. DuBois D, DuBois EF. Arch Intern Med. 1916;17:863-871. Calvert AH et al. J Clin Oncol. 1989;7(11):1748-1756. FDA Pharmacology Toxicology Subcommittee 2010 (carboplatino — capping a 125 mL/min). Griggs JJ et al. ASCO chemotherapy dosing in obesity. J Clin Oncol. 2012 y actualización 2021.</div>
+<div class="ref">Mosteller RD. N Engl J Med. 1987;317(17):1098. DuBois D, DuBois EF. Arch Intern Med. 1916;17:863-871.</div>
 </div>`;
 VIEWS.bsa_post=()=>{if($('bs_h')?.value&&$('bs_w')?.value)calcBSA()};
 
@@ -2559,38 +2535,19 @@ const h=n($('bs_h').value),w=n($('bs_w').value);
 if(!h||!w){$('bs_res').style.display='none';return}
 const bsaMost=Math.sqrt((h*w)/3600);
 const bsaDuBois=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725);
-const auc=n($('bs_auc').value),gfr=n($('bs_gfr').value);
-let calvHtml='';
-if(auc!==null&&gfr!==null&&auc>0&&gfr>0){
-const gfrCap=Math.min(gfr,125);
-const calvertDose=auc*(gfrCap+25);
-const capped=gfr>125;
-calvHtml=`<div class="res-s" style="margin-top:10px;border-top:1px solid var(--bd);padding-top:8px">
-<strong>Calvert — carboplatino:</strong> AUC ${auc} × (${gfrCap}${capped?'<sup>*</sup>':''} + 25) = <span style="font-size:15px;font-weight:700;color:var(--c1)">${calvertDose.toFixed(0)} mg</span><br>
-${capped?'<small><sup>*</sup> GFR capado a 125 mL/min según FDA 2010.</small>':''}
-</div>`;
-}
 const el=$('bs_res');el.style.display='block';el.className='res in';
 el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(2)} m²</span><span>BSA DuBois</span></div>
 <div class="res-s" style="margin-top:6px">
 <strong>DuBois:</strong> 0.007184 × peso<sup>0.425</sup> × talla<sup>0.725</sup> = ${bsaDuBois.toFixed(3)} m²<br>
 <strong>Mosteller:</strong> √(${h} × ${w} / 3600) = ${bsaMost.toFixed(3)} m²<br>
 <small>Diferencia ${(Math.abs(bsaMost-bsaDuBois)/bsaMost*100).toFixed(1)}% — clínicamente irrelevante.</small>
-</div>
-${calvHtml}`;
-window._bsaData={h,w,bsaMost,bsaDuBois,auc,gfr};
+</div>`;
+window._bsaData={h,w,bsaMost,bsaDuBois};
 }
 function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}
-let calvTxt='';
-if(d.auc&&d.gfr){
-const gfrCap=Math.min(d.gfr,125);
-const dose=d.auc*(gfrCap+25);
-const capped=d.gfr>125;
-calvTxt=` Aplicando la fórmula de Calvert con AUC objetivo de ${d.auc} mg·min/mL y GFR de ${d.gfr}${capped?` mL/min (capado a 125 mL/min según FDA 2010)`:' mL/min'}, la dosis calculada de carboplatino es de ${dose.toFixed(0)} mg.`;
-}
 const txt=`Superficie corporal — paciente oncohematológico
 ─────────────────────────────────────────────
-${patientHeader()}Con talla de ${d.h} cm y peso de ${d.w} kg, la superficie corporal calculada por la fórmula de DuBois & DuBois es de ${d.bsaDuBois.toFixed(2)} m² (Mosteller: ${d.bsaMost.toFixed(2)} m²). Se utiliza DuBois como fórmula de referencia en dosificación de quimioterapia citotóxica.${calvTxt}
+${patientHeader()}Con talla de ${d.h} cm y peso de ${d.w} kg, la superficie corporal calculada por la fórmula de DuBois & DuBois es de ${d.bsaDuBois.toFixed(2)} m² (Mosteller: ${d.bsaMost.toFixed(2)} m²). Se utiliza DuBois como fórmula de referencia en dosificación de quimioterapia citotóxica.
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);}
