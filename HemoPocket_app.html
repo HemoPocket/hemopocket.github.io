@@ -4767,11 +4767,21 @@ const QT_SCHEMES = {
       {name:'Lenalidomida',    dose:'25 mg',                route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
       {name:'Dexametasona',    dose:'20 mg',                route:'VO/IV', days:[1,2,8,9,15,16,22,23]}
     ]
-  },  'LENALIDOMIDA-DEXAMETASONA': {
-    label: 'Lenalidomida + Dexametasona (cada 28 días)',
+  },
+  'ISA-KD': {
+    label: 'IsaKd – Isatuximab + Carfilzomib + Dexametasona · MM en recaída (IKEMA) (cada 28 días)',
     drugs: [
-      {name:'Lenalidomida',  dose:'25 mg',      route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
-      {name:'Dexametasona',  dose:'40 mg',      route:'VO', days:[1,8,15,22]}
+      {name:'Isatuximab (C1: días 1,8,15,22; ciclos siguientes: días 1 y 15)', dose:'10 mg/kg', route:'IV', days:[1,8,15,22]},
+      {name:'Carfilzomib (escalada en C1: 20 mg/m² días 1-2; resto 56 mg/m²)', dose:'56 mg/m²', route:'IV', days:[1,2,8,9,15,16]},
+      {name:'Dexametasona (20 mg/día; 10 mg/día si >70 años)', dose:'20 mg/día', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
+    ],
+    premed: [
+      'Premedicación isatuximab (1 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650-1000 mg VO. Valorar montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.'
+    ],
+    notes: [
+      'Fenotipar hematíes antes de iniciar el tratamiento con isatuximab.',
+      'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.',
+      'Previo al inicio de carfilzomib: valoración cardiológica (ECG, ecocardiograma). Confirmar el buen control de la tensión arterial antes y durante las primeras semanas de tratamiento.'
     ]
   },
   // ── LEUCEMIA LINFÁTICA CRÓNICA ────────────────────────────────────────
@@ -5093,7 +5103,7 @@ const QT_SCHEMES = {
 
 const QT_GROUPS = [
   {label:'Linfoma B',               keys:['R-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
-  {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','LENALIDOMIDA-DEXAMETASONA','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
+  {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
   {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','CBF-AML','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ATRA-ATO','VEN-AZA','VYXEOS']},
