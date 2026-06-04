@@ -4624,19 +4624,17 @@ const HOSP_DIR=[["ADMISIÓN",[["ACTIVIDAD QUIRÚRGICA","EDIF. TRAUMA PL. 1","922
 const QT_SCHEMES = {
   // ── LINFOMA ──────────────────────────────────────────────────────────
   'R-CHOP': {
+    r1split:true,
     label: 'R-CHOP – planta (cada 21 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
-      {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV', days:[2]},
-      {name:'Doxorubicina',  dose:'50 mg/m²',  route:'IV', days:[2]},
-      {name:'Vincristina',   dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[2]},
+      {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV', days:[1]},
+      {name:'Doxorubicina',  dose:'50 mg/m²',  route:'IV', days:[1]},
+      {name:'Vincristina',   dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[1]},
       {name:'Prednisona',    dose:'60 mg/m²',  route:'VO/IV', days:[1,2,3,4,5]}
     ],
     premed: [
       'Velocidad de infusión de rituximab (ml/h, subir cada 30 min): 12 → 24 → 36 → 48 → 60 → 72 → 84 → 96.'
-    ],
-    notes: [
-      'En planta: el rituximab (1ª infusión, lenta) se administra el día 1 y el resto (ciclofosfamida, doxorubicina, vincristina) el día 2, porque la primera infusión de rituximab suele prolongarse al día siguiente.'
     ]
   },
   'CHOP': {
@@ -4649,19 +4647,19 @@ const QT_SCHEMES = {
     ]
   },
   'R-MINI-CHOP': {
+    r1split:true,
     label: 'R-mini-CHOP – planta (LBDCG >80 años, cada 21 días)',
     kw: 'minichop anciano mayor 80 linfoma b difuso celulas grandes atenuado gela',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
-      {name:'Ciclofosfamida',dose:'400 mg/m²', route:'IV', days:[2]},
-      {name:'Doxorubicina (Adriamicina)', dose:'25 mg/m²', route:'IV', days:[2]},
-      {name:'Vincristina',   dose:'1 mg',      route:'IV', days:[2]},
+      {name:'Ciclofosfamida',dose:'400 mg/m²', route:'IV', days:[1]},
+      {name:'Doxorubicina (Adriamicina)', dose:'25 mg/m²', route:'IV', days:[1]},
+      {name:'Vincristina',   dose:'1 mg',      route:'IV', days:[1]},
       {name:'Prednisona',    dose:'40 mg/m²',  route:'IV/VO', days:[1,2,3,4,5]}
     ],
     premed: [
     ],
     notes: [
-      'En planta: el rituximab se administra el día 1 y el resto (ciclofosfamida, doxorubicina, vincristina) el día 2, porque la primera infusión de rituximab suele prolongarse al día siguiente.',
       'Régimen atenuado para pacientes mayores de 80 años con linfoma B difuso de células grandes.'
     ]
   },
@@ -4696,6 +4694,7 @@ const QT_SCHEMES = {
     ]
   },
   'R-EPOCH': {
+    r1split:true,
     label: 'R-DA-EPOCH (dose-adjusted) (cada 21 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
@@ -4708,20 +4707,22 @@ const QT_SCHEMES = {
     premed: [
     ],
     notes: [
-      'Día 1: administrar el rituximab en primer lugar; iniciar la infusión continua de los 3 fármacos (etopósido, vincristina, doxorubicina) inmediatamente después de finalizar el rituximab.',
-      'Prednisona 120 mg/m²/día dividida en 2 dosis (VO o IV); el día 1 administrarla antes del rituximab.',
+      'Desde el ciclo 2: administrar el rituximab en primer lugar e iniciar la infusión continua de los 3 fármacos (etopósido, vincristina, doxorubicina) inmediatamente después de finalizar el rituximab el mismo día 1.',
+      'Prednisona 120 mg/m²/día dividida en 2 dosis (VO o IV); administrarla antes del rituximab.',
       'Ciclofosfamida (día 5) inmediatamente después de finalizar la infusión continua de los 3 fármacos.',
       'Dose-adjusted (DA): ajustar las dosis de etopósido, doxorubicina y ciclofosfamida en los ciclos siguientes según el nadir de neutrófilos/plaquetas del ciclo previo.'
     ]
   },
   'R-BENDAMUSTINA': {
+    r1split:true,
     label: 'R-Bendamustina (cada 28 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
-      {name:'Bendamustina',  dose:'90 mg/m²',  route:'IV', days:[2,3]}
+      {name:'Bendamustina',  dose:'90 mg/m²',  route:'IV', days:[1,2]}
     ]
   },
   'R-CVP': {
+    r1split:true,
     label: 'R-CVP (cada 21 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
@@ -4731,6 +4732,7 @@ const QT_SCHEMES = {
     ]
   },
   'R-DHAP': {
+    r1split:true,
     label: 'R-DHAP (rescate, cada 21 días)',
     kw: 'linfoma rescate recaida refractario salvage segunda linea recaido',
     drugs: [
@@ -4749,6 +4751,7 @@ const QT_SCHEMES = {
     ]
   },
   'R-ICE': {
+    r1split:true,
     label: 'R-ICE (rescate, cada 21 días)',
     kw: 'linfoma rescate recaida refractario salvage segunda linea recaido',
     drugs: [
@@ -4775,6 +4778,7 @@ const QT_SCHEMES = {
     ]
   },
   'POLA-BR': {
+    r1split:true,
     label: 'Pola-BR – Polatuzumab + Rituximab + Bendamustina · LBDCG en recaída/refractario (cada 21 días, 6 ciclos)',
     drugs: [
       {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
@@ -4791,6 +4795,7 @@ const QT_SCHEMES = {
     ]
   },
   'POLA-R-CHP': {
+    r1split:true,
     label: 'Pola-R-CHP – Polatuzumab + R-CHP · LBDCG no tratado previamente (POLARIX) (cada 21 días, 6 ciclos)',
     drugs: [
       {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
@@ -6503,7 +6508,11 @@ function fmtDrugLine(drug,dateStr){
 const lines=[];const relLines=[];
 const bsaNote=bsa>0?' · SC: '+bsa.toFixed(2)+' m²':'';
 const _ce=scheme.conditioning?null:qtDrugsForCycle(scheme,cycle);
-const drugsList=_ce?_ce.drugs:scheme.drugs;
+let drugsList=_ce?_ce.drugs:scheme.drugs;
+// Ciclo 1 con rituximab: la 1.ª infusión es lenta → rituximab el día 1 y el resto de la QT desde el día 2.
+if(cycle===1&&scheme.r1split){
+  drugsList=drugsList.map(d=>/rituximab/i.test(d.name)?d:Object.assign({},d,{days:d.days.map(x=>x+1)}));
+}
 if(scheme.conditioning){
   const infDrug=scheme.drugs.find(d=>d.name.toLowerCase().includes('infusi'));
   const d0Day=infDrug?infDrug.days[0]:null;
@@ -6553,6 +6562,7 @@ if(_pm)_pm.value=_pmList.join('\n');
 if(_pmw)_pmw.style.display='';
 // Notas (solo lectura) + esquema en días del ciclo
 const _nt=$('qt_notes');let _nh='';
+if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1:</strong> rituximab el día +1 y el resto de la quimioterapia desde el día +2 (la 1.ª infusión de rituximab es lenta). Desde el ciclo 2, todo el día +1.</div>';
 const _cyc=(scheme.label||'').match(/(\d+)\s*días/);
 const _cycTxt=_cyc?' · ciclo de '+_cyc[1]+' días':'';
 if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)'+_cycTxt+'</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
