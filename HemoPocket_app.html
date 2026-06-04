@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HemoPocket">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/svg+xml" href="./icon.svg?v=44">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=44">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png?v=45">
 <link rel="manifest" href="./manifest.json">
 <!-- Open Graph / vista previa con logo al compartir el enlace -->
 <meta property="og:type" content="website">
@@ -394,7 +394,7 @@ body{font-size:13px}
 @media(max-width:768px){.viewer-card{height:calc(100vh - 70px)}.viewer-pages{padding:8px 4px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="./icon.svg?v=44">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=44">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png?v=45">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HemoPocket">
@@ -3429,15 +3429,12 @@ farmacia:[{n:'Jorge Esquivel',r:'Farmacéutico'}]
 };
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
-const stored=ls.g('collaborators');
-if(!stored)return DEFAULT_COLLABORATORS;
-const all=Object.assign({},stored);
-const th=(all.th||[]).slice();
-if(!th.some(c=>(c.n||c.name||'').includes('Carlos Quintero'))){
-th.splice(Math.min(2,th.length),0,{n:'Dr. Carlos Quintero',r:''});
-all.th=th;
-}
-return all;
+// El equipo se mantiene en el código (DEFAULT_COLLABORATORS) y es la fuente
+// autoritativa: así siempre está al día tras actualizar la app, aunque la
+// sincronización remota traiga datos antiguos. Se conservan secciones extra
+// que pudieran venir de la sincronización y no estén en el código.
+const stored=ls.g('collaborators')||{};
+return Object.assign({},stored,DEFAULT_COLLABORATORS);
 }
 function renderCollaboratorsBlock(id){
 const list=getCollaborators(id);
