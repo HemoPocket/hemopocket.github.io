@@ -5056,6 +5056,10 @@ const QT_SCHEMES = {
       {name:'Glofitamab – step-up dosis 1', dose:'2,5 mg', route:'IV', days:[8]},
       {name:'Glofitamab – step-up dosis 2', dose:'10 mg',  route:'IV', days:[15]},
       {name:'Glofitamab – dosis terapéutica (C1 D15; C2+ D1)', dose:'30 mg', route:'IV', days:[22]}
+    ],
+    premed: [
+      'Premedicación para reducir el síndrome de liberación de citocinas (SLC), al menos 1 h antes de cada infusión de glofitamab: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV).',
+      'Obligatoria con todas las dosis del ciclo 1 (escaladas y 1ª dosis de 30 mg). En ciclos posteriores mantener antipirético y antihistamínico; el corticoide puede omitirse si no hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
     ]
   },
   'EPCORITAMAB': {
@@ -5064,6 +5068,10 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – step-up dosis 1', dose:'0,16 mg', route:'SC', days:[1]},
       {name:'Epcoritamab – step-up dosis 2', dose:'0,8 mg',  route:'SC', days:[8]},
       {name:'Epcoritamab – dosis terapéutica', dose:'48 mg', route:'SC', days:[15]}
+    ],
+    premed:[
+      'Premedicación del ciclo 1 para reducir el SLC, 30-120 min antes de cada dosis semanal de epcoritamab: corticoide (prednisolona 100 mg, o dexametasona 15 mg, VO/IV) + antihistamínico (difenhidramina 50 mg VO/IV) + antipirético (paracetamol 650-1000 mg VO).',
+      'El corticoide se mantiene además los 3 días siguientes a cada dosis semanal del ciclo 1. En ciclos posteriores se mantiene el corticoide; antihistamínico y antipirético solo si hubo SLC previo.'
     ],
     notes:[
       'Esquema de escalada (step-up) del ciclo 1 para <strong>linfoma B difuso de célula grande (LBDCG)</strong>: 2 dosis escalonadas (D1 y D8) y primera dosis completa en D15.',
@@ -5078,6 +5086,10 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – dosis escalonada 3', dose:'3 mg',    route:'SC', days:[15]},
       {name:'Epcoritamab – primera dosis completa', dose:'48 mg', route:'SC', days:[22]}
     ],
+    premed:[
+      'Premedicación del ciclo 1 para reducir el SLC, 30-120 min antes de cada dosis semanal de epcoritamab: corticoide (prednisolona 100 mg, o dexametasona 15 mg, VO/IV) + antihistamínico (difenhidramina 50 mg VO/IV) + antipirético (paracetamol 650-1000 mg VO).',
+      'El corticoide se mantiene además los 3 días siguientes a cada dosis semanal del ciclo 1. En ciclos posteriores se mantiene el corticoide; antihistamínico y antipirético solo si hubo SLC previo.'
+    ],
     notes:[
       'Esquema de escalada (step-up) del ciclo 1 para <strong>linfoma folicular</strong>: 3 dosis escalonadas (D1, D8 y D15) y primera dosis completa en D22.',
       'Para <strong>LBDCG</strong> usar el esquema «Epcoritamab · LBDCG», con 2 dosis escalonadas y dosis completa en D15.'
@@ -5089,6 +5101,10 @@ const QT_SCHEMES = {
       {name:'Mosunetuzumab – step-up dosis 1', dose:'1 mg',  route:'IV', days:[1]},
       {name:'Mosunetuzumab – step-up dosis 2', dose:'2 mg',  route:'IV', days:[8]},
       {name:'Mosunetuzumab – dosis terapéutica C1', dose:'60 mg', route:'IV', days:[15]}
+    ],
+    premed: [
+      'Premedicación para reducir el SLC, al menos durante los ciclos 1 y 2: corticoide (dexametasona 20 mg IV o metilprednisolona 80 mg IV) completado ≥1 h antes + antihistamínico (difenhidramina 50-100 mg VO/IV ≥30 min antes) + antipirético (paracetamol 500-1000 mg VO ≥30 min antes).',
+      'A partir del ciclo 3 la premedicación se mantiene solo en pacientes que presentaron SLC con la dosis previa.'
     ]
   },
   // ── LINFOMA – COMBINADOS ──────────────────────────────────────────────
@@ -5099,6 +5115,10 @@ const QT_SCHEMES = {
       {name:'Glofitamab (C1 step-up: 2,5 mg D1 / 10 mg D8 / 30 mg D15; C2–12: 30 mg D1)', dose:'30 mg', route:'IV', days:[1,8,15]},
       {name:'Gemcitabina (desde ciclo 2)', dose:'1000 mg/m²', route:'IV', days:[1,2]},
       {name:'Oxaliplatino (desde ciclo 2)', dose:'100 mg/m²', route:'IV', days:[1]}
+    ],
+    premed: [
+      'Premedicación del glofitamab para reducir el SLC, al menos 1 h antes de la infusión: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV). Obligatoria en las dosis escaladas y la 1ª dosis plena.',
+      'Profilaxis antiemética para GemOx (desde el ciclo 2): antagonista 5-HT3 (ondansetrón/granisetrón) + dexametasona.'
     ]
   },
   'HYPERCVAD-A': {
