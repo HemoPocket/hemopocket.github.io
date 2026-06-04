@@ -3866,7 +3866,7 @@ return `<div class="card">
 <div class="row">
 <div class="fld"><label class="lbl">Opioide actual</label>
 <select id="op_from" onchange="calcOpio()">${optsFrom}</select></div>
-<div class="fld"><label class="lbl">Dosis actual</label><input type="number" step="0.01" id="op_dose" placeholder="mg/día (o µg/h si parche)" oninput="calcOpio()"></div>
+<div class="fld"><label class="lbl">Dosis actual <span id="op_unit" style="font-weight:400;color:var(--mut);font-size:11px"></span></label><input type="number" step="0.01" id="op_dose" placeholder="introduce la dosis" oninput="calcOpio()"></div>
 <div class="fld"><label class="lbl">Rotar a</label>
 <select id="op_to" onchange="calcOpio()">${optsTo}</select></div>
 <div class="fld"><label class="lbl">Reducción por tolerancia cruzada</label>
@@ -3905,6 +3905,10 @@ return `<div class="card">
 
 function calcOpio(){
 const from=$('op_from').value,to=$('op_to').value,dose=n($('op_dose').value),red=parseFloat($('op_red').value);
+// Unidad esperada según el opioide de origen (ayuda a no confundir mg/día con µg/h)
+const _fc=from==='meta_vo'?{unit:'mg'}:OPIO_FACT[from];
+const _uh=(_fc&&_fc.td)?'µg/h':(from==='fent_iv'?'µg/día (IV/SC)':((from.endsWith('_iv')||from.endsWith('_sc'))?'mg/día (IV/SC)':'mg/día'));
+const _ue=$('op_unit');if(_ue)_ue.textContent='· en '+_uh;
 if(dose==null||dose<=0){$('op_res').style.display='none';return}
 // Paso 1: calcular MME del opioide actual
 let mme;
