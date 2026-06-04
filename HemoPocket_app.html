@@ -4525,7 +4525,7 @@ VIEWS.atb_dur=()=>`<div class="card">
 Object.keys(GUIDES_TITLES).forEach(id=>{VIEWS['g_'+id]=()=>guidesView(id)});
 
 // === SINCRONIZACIÓN ===
-const DEFAULT_UPDATE_URL='https://gist.githubusercontent.com/hemopocket/bad30d214121cd913b0b1100d7b96745/raw/hemopocket.json';
+const DEFAULT_UPDATE_URL='https://raw.githubusercontent.com/hemopocket/hemopocket.github.io/main/hemopocket.json';
 VIEWS.sync=()=>{
 const lastUpd=ls.g('lastUpdate');
 const version=ls.g('updateVersion')||'';
