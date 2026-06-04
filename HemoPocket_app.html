@@ -732,7 +732,9 @@ const MENU=[
 {id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
 ]},
 {h:'CITODIAGNÓSTICO',items:[
-{id:'citodx',name:'Tubos para estudios',kw:'citodiagnostico citogenetica cariotipo citometria flujo inmunofenotipo fish biologia molecular ngs tubos muestras edta heparina litio citrato medula osea aspirado que pedir estudios',new:'2026-06-04'}
+{id:'citodx',name:'Tubos para estudios',kw:'citodiagnostico citogenetica cariotipo citometria flujo inmunofenotipo fish biologia molecular ngs tubos muestras edta heparina litio citrato medula osea aspirado que pedir estudios',new:'2026-06-04'},
+{id:'citomol',name:'Seguimiento molecular / EMR',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
+{id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'}
 ]},
 {h:'EQUIPO Y SINCRONIZACIÓN',items:[
 {id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
@@ -2022,6 +2024,121 @@ VIEWS.citodx=()=>{
   </div>`;
   return h;
 };
+
+// === CITODIAGNÓSTICO · Seguimiento molecular / EMR ===
+VIEWS.citomol=()=>`<div class="card">
+<h2>🔬 Seguimiento molecular / EMR</h2>
+<p class="intro">Qué seguir por biología molecular o EMR (citometría) según la patología, y cuándo. Marco ELN-MRD 2021 y protocolos PETHEMA; confirma el calendario con el protocolo vigente.</p>
+
+<div class="coll open">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · NPM1 mutada</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<p><strong>PCR cuantitativa de NPM1</strong> (transcrito mutado).</p>
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>Médula ósea (MO):</strong> a los <strong>3, 12 y 24 meses</strong> tras finalizar el tratamiento.</li>
+<li><strong>Sangre periférica (SP):</strong> <strong>cada 3 meses</strong> tras finalizar el tratamiento y hasta los <strong>2 años</strong> desde el fin del tratamiento.</li>
+<li><strong>Fin del tratamiento</strong> = recuperación de la neutropenia tras el último ciclo.</li>
+</ul>
+<p class="small muted" style="margin-top:6px">Recaída molecular = reaparición o ascenso significativo del transcrito en dos determinaciones; obliga a actuar. Ver <strong>protocolo PETHEMA LMA-NPM1</strong>.</p>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · core-binding factor (CBF)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<p><strong>PCR del transcrito de fusión</strong>: RUNX1::RUNX1T1 [t(8;21)] o CBFB::MYH11 [inv(16)/t(16;16)].</p>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Monitorización seriada en <strong>MO y SP</strong> tras el tratamiento (aproximadamente cada 3 meses durante ~2 años).</li>
+<li>Una reducción &lt; 3 log o un <strong>ascenso de la EMR</strong> predice la recaída.</li>
+</ul>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Leucemia promielocítica aguda (LPA · PML::RARA)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<p><strong>PCR de PML::RARA.</strong></p>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Tras la consolidación: si es <strong>negativa</strong>, en bajo riesgo no precisa más monitorización.</li>
+<li>En <strong>alto riesgo</strong>: MO (o SP) <strong>cada 3 meses durante 2-3 años</strong>.</li>
+<li>Recaída molecular (2 PCR positivas consecutivas) → iniciar tratamiento.</li>
+</ul>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · sin marcador molecular específico (FLT3-ITD u otros)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>FLT3-ITD</strong>: poco fiable como EMR aislada; valorar EMR por NGS (si disponible) o por citometría.</li>
+<li><strong>EMR por citometría de flujo</strong> (LAIP/diferente-de-normal) en MO tras inducción y consolidación.</li>
+<li><strong>WT1</strong>: marcador inespecífico, solo si no hay otro marcador.</li>
+</ul>
+<p class="small muted" style="margin-top:6px">Marco general ELN-MRD 2021: EMR molecular en SP tras 2 ciclos, en MO al final de la consolidación y en MO cada 3 meses durante 24 meses.</p>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Otras patologías con EMR estandarizada</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>LLA:</strong> EMR por <strong>citometría de flujo</strong> y/o molecular (reordenamientos Ig/TCR; BCR::ABL1 si Ph+) en los puntos del protocolo (fin de inducción, fin de consolidación, etc.).</li>
+<li><strong>LMC:</strong> <strong>BCR::ABL1</strong> cuantitativo (escala internacional) cada 3 meses hasta la RMM, luego cada 3-6 meses. Objetivos: ≤ 10 % a los 3 meses, ≤ 1 % a los 6 meses, ≤ 0,1 % (RMM) a los 12 meses.</li>
+<li><strong>Mieloma:</strong> EMR por <strong>citometría de nueva generación (NGF/EuroFlow)</strong> o NGS (sensibilidad 10⁻⁵–10⁻⁶) en MO tras la inducción, tras el TPH y en mantenimiento.</li>
+<li><strong>LLC:</strong> EMR por citometría (EMR indetectable &lt; 10⁻⁴) tras venetoclax de duración fija.</li>
+</ul>
+</div></div>
+<div class="ref">Heuser M, et al. 2021 Update on MRD in AML: consensus document from the ELN MRD Working Party. Blood. 2021;138(26):2753-2767. Protocolos PETHEMA (LMA-NPM1, LMA-CBF, LPA, LAL). Hochhaus A, et al. ELN 2020 (LMC). Kumar S, et al. IMWG (EMR en mieloma).</div>
+</div>`;
+
+// === CITODIAGNÓSTICO · Clasificación LMA (ICC/OMS) y linfomas ===
+VIEWS.citoclas=()=>`<div class="card">
+<h2>🗂️ Clasificación LMA (ICC / OMS) y linfomas</h2>
+<p class="intro">Resumen de las clasificaciones actuales (2022): leucemia mieloide aguda por ICC y OMS 5ª ed., y neoplasias linfoides (OMS 5ª ed. / ICC).</p>
+
+<div class="coll open">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA — ICC vs OMS 2022: diferencias clave</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<table class="tbl"><tr><th></th><th>OMS 5ª ed. (WHO 2022)</th><th>ICC 2022</th></tr>
+<tr><td><strong>Umbral de blastos</strong></td><td>Sin umbral para la LMA con alteración genética definitoria (salvo AML-MR, definida por diferenciación, BCR::ABL1 y CEBPA → ≥ 20 %)</td><td>Requiere <strong>≥ 10 %</strong> de blastos; categoría intermedia <strong>«MDS/AML» (10-19 %)</strong></td></tr>
+<tr><td><strong>NPM1 con blastos &lt; 10 %</strong></td><td>«LMA con NPM1»</td><td>«SMD con NPM1 mutado»</td></tr>
+<tr><td><strong>TP53 mutado</strong></td><td>No es entidad propia</td><td><strong>Entidad propia</strong> (≥ 20 % blastos y VAF &gt; 10 %; categoría combinada SMD/LMA)</td></tr>
+<tr><td><strong>LMA relacionada con mielodisplasia (AML-MR)</strong></td><td colspan="2">Definida por <strong>citogenética</strong> o por <strong>mutaciones</strong> (ASXL1, BCOR, EZH2, RUNX1, SF3B1, SRSF2, STAG2, U2AF1, ZRSR2), no por la morfología</td></tr>
+</table>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA con alteración genética definitoria</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<ul style="padding-left:20px;line-height:1.7">
+<li>LPA con <strong>PML::RARA</strong>.</li>
+<li>LMA con <strong>RUNX1::RUNX1T1</strong> [t(8;21)].</li>
+<li>LMA con <strong>CBFB::MYH11</strong> [inv(16)/t(16;16)].</li>
+<li>LMA con <strong>DEK::NUP214</strong>; con <strong>RBM15::MRTFA</strong>; con <strong>BCR::ABL1</strong> (≥ 20 % blastos).</li>
+<li>LMA con reordenamiento de <strong>KMT2A</strong>, de <strong>MECOM</strong> o de <strong>NUP98</strong>.</li>
+<li>LMA con <strong>NPM1 mutado</strong>.</li>
+<li>LMA con <strong>CEBPA</strong> mutado (bZIP; OMS exige ≥ 20 % blastos).</li>
+<li>LMA <strong>relacionada con mielodisplasia (AML-MR)</strong>.</li>
+<li>LMA con <strong>TP53 mutado</strong> (solo ICC).</li>
+<li><strong>OMS — LMA definida por diferenciación</strong> (la antigua «LMA NOS»): mínima diferenciación, sin/ con maduración, mielomonocítica, monocítica, eritroide, megacarioblástica.</li>
+</ul>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Linfomas — clasificación OMS 5ª ed. / ICC 2022</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<p><strong>Neoplasias B maduras:</strong></p>
+<ul style="padding-left:20px;line-height:1.6;margin:4px 0">
+<li>Linfocitosis B monoclonal (MBL) · <strong>LLC/SLL</strong> · tricoleucemia · linfomas/leucemias B esplénicos.</li>
+<li>Linfoma <strong>linfoplasmocítico</strong> / Waldenström.</li>
+<li>Linfomas de la <strong>zona marginal</strong> (MALT extranodal, nodal, esplénico).</li>
+<li><strong>Linfoma folicular</strong> (clásico y variantes).</li>
+<li><strong>Linfoma del manto</strong> (+ neoplasia in situ y variante leucémica no nodal).</li>
+<li><strong>Linfomas B de células grandes:</strong> LBDCG NOS; <strong>linfoma B de alto grado con reordenamientos de MYC y BCL2</strong> (doble hit); LBCG de alto grado NOS; B mediastínico primario; rico en T/histiocitos; primario del SNC; cutáneo tipo pierna; intravascular; ALK+; plasmablástico; de cavidades.</li>
+<li><strong>Linfoma de Burkitt.</strong></li>
+</ul>
+<p style="margin-top:6px"><strong>Neoplasias T/NK maduras:</strong> T-PLL, LGL-T, ATLL, NK/T extranodal, asociado a enteropatía, hepatoesplénico, micosis fungoide/Sézary, cutáneos T primarios, <strong>linfoma T periférico NOS</strong>, <strong>linfoma T nodal con fenotipo T-folicular helper</strong> (incluye el antiguo angioinmunoblástico), <strong>linfoma anaplásico de células grandes</strong> (ALK+, ALK−, asociado a implante mamario).</p>
+<p style="margin-top:6px"><strong>Linfoma de Hodgkin:</strong> clásico (esclerosis nodular, celularidad mixta, rico en linfocitos, depleción linfocítica) y <strong>linfoma B con predominio linfocítico nodular</strong> (antes «Hodgkin de predominio linfocítico nodular», renombrado en la OMS 5ª ed.).</p>
+<div class="alert b" style="margin-top:8px;font-size:12px"><strong>Cambios destacados 2022:</strong> el angioinmunoblástico pasa a «linfoma T nodal tipo TFH»; el doble-hit MYC/BCL2 es categoría definida (se retira la categoría específica MYC/BCL6); el LPLN de Hodgkin se renombra como linfoma B con predominio linfocítico nodular.</div>
+</div></div>
+<div class="ref">Khoury JD, et al. WHO Classification of Haematolymphoid Tumours, 5ª ed., 2022. Arber DA, et al. International Consensus Classification (ICC) of myeloid and lymphoid neoplasms. Blood. 2022;140(11):1200-1228. Alaggio R, et al. WHO 5th ed. lymphoid neoplasms. Leukemia. 2022.</div>
+</div>`;
 
 // === LLC: criterios diagnósticos y de tratamiento ===
 VIEWS.llc_dx=()=>`<div class="card">
