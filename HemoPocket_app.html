@@ -6565,7 +6565,14 @@ if($('qt_out'))$('qt_out').value=lines.join('\n');
 // Premedicación → recuadro copiable aparte (ondansetrón general + premed de rituximab si aplica + premed específica del esquema)
 const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
 const _pmList=[];
-if(!scheme.noAntiemetic)_pmList.push('Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.');
+if(scheme.conditioning){
+  _pmList.push('Profilaxis antiemética del acondicionamiento:');
+  _pmList.push('– Netupitant/palonosetrón 300/0,5 mg VO (dosis única), el 1.er día del acondicionamiento.');
+  _pmList.push('– Dexametasona 12 mg IV/VO (dosis única) el 1.er día; después 8 mg/día el 2.º y 3.er día desde el inicio del acondicionamiento.');
+  _pmList.push('– Ondansetrón (antagonista 5-HT3) 8 mg IV/8 h fijo el 2.º y 3.er día desde el inicio del acondicionamiento; después si precisa.');
+}else if(!scheme.noAntiemetic){
+  _pmList.push('Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.');
+}
 if(drugsList.some(d=>/rituximab/i.test(d.name)))
   _pmList.push('Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg + metilprednisolona (o el corticoide del esquema el día correspondiente), 30 min antes de iniciar la infusión.');
 _pmList.push(...(scheme.premed||[]));
