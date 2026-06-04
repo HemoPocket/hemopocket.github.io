@@ -4593,6 +4593,54 @@ const QT_SCHEMES = {
       {name:'Prednisona',    dose:'60 mg/m²',  route:'VO', days:[1,2,3,4,5]}
     ]
   },
+  'R-MINI-CHOP': {
+    label: 'R-mini-CHOP – planta (LBDCG >80 años, cada 21 días)',
+    kw: 'minichop anciano mayor 80 linfoma b difuso celulas grandes atenuado gela',
+    drugs: [
+      {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
+      {name:'Ciclofosfamida',dose:'400 mg/m²', route:'IV', days:[2]},
+      {name:'Doxorubicina (Adriamicina)', dose:'25 mg/m²', route:'IV', days:[2]},
+      {name:'Vincristina',   dose:'1 mg',      route:'IV', days:[2]},
+      {name:'Prednisona',    dose:'40 mg/m²',  route:'IV/VO', days:[1,2,3,4,5]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'En planta: el rituximab se administra el día 1 y el resto (ciclofosfamida, doxorubicina, vincristina) el día 2, porque la primera infusión de rituximab suele prolongarse al día siguiente.',
+      'Régimen atenuado para pacientes mayores de 80 años con linfoma B difuso de células grandes.'
+    ]
+  },
+  'ICE': {
+    label: 'ICE – Ifosfamida + Carboplatino + Etopósido (rescate, cada 21 días)',
+    kw: 'linfoma rescate hodgkin ice ifosfamida carboplatino etoposido movilizacion recaida',
+    drugs: [
+      {name:'Etopósido',    dose:'100 mg/m²', route:'IV (1 h)', days:[1,2,3]},
+      {name:'Carboplatino', dose:'AUC 5 → 5 × (25 + CrCl), máx 800 mg', route:'IV (1 h)', days:[2]},
+      {name:'Ifosfamida',   dose:'5000 mg/m²', route:'IV infusión continua 24h', days:[2]},
+      {name:'MESNA',        dose:'5000 mg/m²', route:'IV (con la ifosfamida)', days:[2]}
+    ],
+    notes: [
+      'G-CSF 300 µg/día desde el día +6 hasta neutrófilos > 1.000/µL.',
+      'Carboplatino: dosis optimizada para AUC 5 = 5 × (25 + CrCl), máximo 800 mg.',
+      'Hasta 3 ciclos cada 21-28 días previo a auto-TPH.'
+    ]
+  },
+  'BV-AVD': {
+    label: 'Brentuximab vedotina + AVD – Hodgkin avanzado (ECHELON-1, cada 28 días)',
+    kw: 'hodgkin brentuximab vedotina avd adcetris adriamicina vinblastina dacarbacina echelon estadio iii iv',
+    drugs: [
+      {name:'Brentuximab vedotina (iniciar 1 h después del AVD)', dose:'1,2 mg/kg (máx 120 mg)', route:'IV 30 min', days:[1,15]},
+      {name:'Adriamicina (doxorubicina)', dose:'25 mg/m²', route:'IV', days:[1,15]},
+      {name:'Vinblastina', dose:'6 mg/m²', route:'IV', days:[1,15]},
+      {name:'Dacarbacina', dose:'375 mg/m²', route:'IV', days:[1,15]}
+    ],
+    notes: [
+      'Hasta un máximo de 6 ciclos.',
+      'Premedicación: ondansetrón 8 mg IV 30 min antes; añadir paracetamol 1 g IV si reacción previa.',
+      'Profilaxis con filgrastim (G-CSF) 300 µg desde el primer ciclo, con independencia de la edad.'
+    ]
+  },
   'R-EPOCH': {
     label: 'R-DA-EPOCH (dose-adjusted) (cada 21 días)',
     drugs: [
@@ -5137,11 +5185,20 @@ const QT_SCHEMES = {
     ]
   },  // ── MIELOMA – BIESPECÍFICOS ───────────────────────────────────────────
   'TECLISTAMAB': {
-    label: 'Teclistamab (BCMA×CD3) – step-up SC',
+    label: 'Teclistamab (BCMA×CD3) – step-up SC (MAJESTEC)',
     drugs: [
-      {name:'Teclistamab – step-up dosis 1', dose:'0,06 mg/kg', route:'SC', days:[1]},
-      {name:'Teclistamab – step-up dosis 2', dose:'0,3 mg/kg',  route:'SC', days:[4]},
-      {name:'Teclistamab – dosis terapéutica (QW; Q2W tras RC/MBRP ≥6 sem)', dose:'1,5 mg/kg', route:'SC', days:[8]}
+      {name:'Teclistamab – escalada dosis 1', dose:'0,06 mg/kg', route:'SC', days:[1]},
+      {name:'Teclistamab – escalada dosis 2 (2-7 días tras dosis 1)', dose:'0,3 mg/kg', route:'SC', days:[3]},
+      {name:'Teclistamab – 1ª dosis de mantenimiento (2-7 días tras dosis 2)', dose:'1,5 mg/kg', route:'SC', days:[5]},
+      {name:'Teclistamab – mantenimiento semanal', dose:'1,5 mg/kg', route:'SC', days:[12,19,26]}
+    ],
+    premed: [
+      'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente VO/IV) + antipirético (paracetamol 650-1000 mg VO/IV). Considerar también en retrasos y en pacientes que hayan presentado SLC.'
+    ],
+    notes: [
+      'Dosis según peso actual, vía subcutánea. Dejar ≥5 días entre las dosis de mantenimiento semanales.',
+      'En pacientes con respuesta completa o mejor durante ≥6 meses, considerar reducir a 1,5 mg/kg cada 2 semanas.',
+      'Indicación: MM en recaída/refractario tras ≥3 líneas (incluido inmunomodulador, inhibidor del proteasoma y anti-CD38). Mantener hasta progresión o toxicidad inaceptable.'
     ]
   },
   'TALQUETAMAB': {
@@ -5222,13 +5279,13 @@ const QT_SCHEMES = {
 };
 
 const QT_GROUPS = [
-  {label:'Linfoma B',               keys:['R-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
+  {label:'Linfoma B',               keys:['R-CHOP','R-MINI-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
   {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','AIDA','VEN-AZA','VYXEOS']},
   {label:'Aplasia medular',         keys:['APLASIA-IST']},
-  {label:'Linfoma de Hodgkin',      keys:['ABVD','BEACOPP-ESC']},
+  {label:'Linfoma de Hodgkin',      keys:['ABVD','BV-AVD','BEACOPP-ESC']},
   {label:'Acondicionamiento TASPE – Mieloma/Amiloidosis', keys:['MELFALAN-200','MELFALAN-140','MELFALAN-200-AMI']},
   {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM']},
   {label:'Acondicionamiento TASPE – LMA',     keys:['BEA']}
