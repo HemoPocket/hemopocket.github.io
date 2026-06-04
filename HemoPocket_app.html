@@ -4689,12 +4689,23 @@ const QT_SCHEMES = {
     ]
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
   'DaraVRD': {
-    label: 'Dara-VRD – Daratumumab + Bortezomib + Lenalidomida + Dexametasona (cada 21 días)',
+    label: 'Dara-VRd – Daratumumab + Bortezomib + Lenalidomida + Dexametasona · MM candidato a TPH (PERSEUS) (cada 28 días)',
     drugs: [
-      {name:'Daratumumab',   dose:'16 mg/kg',   route:'IV/SC', days:[1,8,15]},
+      {name:'Daratumumab (C1-C2: días 1,8,15,22; C3-C6: días 1 y 15)', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
       {name:'Bortezomib',    dose:'1,3 mg/m²',  route:'SC', days:[1,4,8,11]},
-      {name:'Lenalidomida',  dose:'25 mg',       route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]},
-      {name:'Dexametasona',  dose:'20 mg',       route:'VO', days:[1,2,4,5,8,9,11,12]}
+      {name:'Lenalidomida',  dose:'25 mg/día',  route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
+      {name:'Dexametasona',  dose:'40 mg/día',  route:'VO', days:[1,2,3,4,9,10,11,12]}
+    ],
+    premed: [
+      'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.',
+      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No es necesaria si recibe un corticoide de base (p. ej. dexametasona o prednisona) el día siguiente.',
+      'El día que la dexametasona coincida con daratumumab, administrarla dividida en 2 días (p. ej. 40 mg → 20 mg el día de daratumumab y 20 mg al día siguiente).'
+    ],
+    notes: [
+      '4 ciclos de inducción + 2 ciclos de consolidación, cada 28 días.',
+      'Realizar fenotipo eritrocitario previo al inicio del tratamiento con daratumumab.',
+      'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.',
+      'No aprobado en Ficha Técnica.'
     ]
   },
 
@@ -5778,6 +5789,7 @@ function qtUpdateBSA(){
   }
   qtCalc();
 }
+function qtFmtRelDays(days){if(!days||!days.length)return '';const s=[...days].sort((a,b)=>a-b);const out=[];let st=s[0],pv=s[0];for(let i=1;i<s.length;i++){if(s[i]===pv+1){pv=s[i];}else{out.push(st===pv?'+'+st:'+'+st+' a +'+pv);st=s[i];pv=s[i];}}out.push(st===pv?'+'+st:'+'+st+' a +'+pv);return out.join(', ');}
 function qtCalc(){
 const key=$('qt_scheme')?.value;
 const d1str=$('qt_d1')?.value;
@@ -5838,12 +5850,22 @@ if(scheme.conditioning){
   scheme.drugs.forEach(drug=>{
     const ranges=groupDays(drug.days);
     const strs=ranges.map(r=>{
-      if(r.s.day===r.e.day) return qtFmtDate(r.s.date)+' (día +'+r.s.day+')';
-      return 'del '+qtFmtDate(r.s.date)+' al '+qtFmtDate(r.e.date)+' (días +'+r.s.day+'–+'+r.e.day+')';
+      if(r.s.day===r.e.day) return qtFmtDate(r.s.date);
+      return 'del '+qtFmtDate(r.s.date)+' al '+qtFmtDate(r.e.date);
     });
     lines.push(fmtDrugLine(drug,strs.join(', ')));
   });
+  // Esquema en días del ciclo (referencia rápida de la estructura)
+  lines.push('');
+  lines.push('Esquema (días del ciclo):');
+  scheme.drugs.forEach(drug=>{
+    const rd=qtFmtRelDays(drug.days);
+    lines.push('* '+drug.name+(rd?': día '+rd:''));
+  });
 }
+// Premedicación y notas (si el esquema las define)
+if(scheme.premed&&scheme.premed.length){lines.push('');lines.push('Premedicación:');scheme.premed.forEach(p=>lines.push('* '+p));}
+if(scheme.notes&&scheme.notes.length){lines.push('');lines.push('Notas:');scheme.notes.forEach(p=>lines.push('* '+p));}
 const txt=lines.join('\n');
 if($('qt_out'))$('qt_out').value=txt;
 wrap.style.display='';
