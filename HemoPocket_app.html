@@ -2519,7 +2519,7 @@ copy(txt);}
 
 VIEWS.bsa=()=>`<div class="card">
 <h2>Superficie corporal — paciente oncohematológico</h2>
-<p class="intro">Calcula la BSA por las dos fórmulas más usadas en oncología (<strong>Mosteller</strong> y <strong>DuBois</strong>).</p>
+<p class="intro">Superficie corporal por la fórmula de <strong>DuBois &amp; DuBois</strong>, de referencia en la dosificación de quimioterapia.</p>
 <div class="row">
 <div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="bs_h" value="${S.p.height||''}" oninput="calcBSA()"></div>
 <div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.1" id="bs_w" value="${S.p.weight||''}" oninput="calcBSA()"></div>
@@ -2539,18 +2539,13 @@ if(!h||!w){$('bs_res').style.display='none';return}
 const bsaMost=Math.sqrt((h*w)/3600);
 const bsaDuBois=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725);
 const el=$('bs_res');el.style.display='block';el.className='res in';
-el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(2)} m²</span><span>BSA DuBois</span></div>
-<div class="res-s" style="margin-top:6px">
-<strong>DuBois:</strong> 0.007184 × peso<sup>0.425</sup> × talla<sup>0.725</sup> = ${bsaDuBois.toFixed(3)} m²<br>
-<strong>Mosteller:</strong> √(${h} × ${w} / 3600) = ${bsaMost.toFixed(3)} m²<br>
-<small>Diferencia ${(Math.abs(bsaMost-bsaDuBois)/bsaMost*100).toFixed(1)}% — clínicamente irrelevante.</small>
-</div>`;
+el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(2)} m²</span><span>BSA (DuBois)</span></div>`;
 window._bsaData={h,w,bsaMost,bsaDuBois};
 }
 function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}
 const txt=`Superficie corporal — paciente oncohematológico
 ─────────────────────────────────────────────
-${patientHeader()}Con talla de ${d.h} cm y peso de ${d.w} kg, la superficie corporal calculada por la fórmula de DuBois & DuBois es de ${d.bsaDuBois.toFixed(2)} m² (Mosteller: ${d.bsaMost.toFixed(2)} m²). Se utiliza DuBois como fórmula de referencia en dosificación de quimioterapia citotóxica.
+${patientHeader()}Con talla de ${d.h} cm y peso de ${d.w} kg, la superficie corporal calculada por la fórmula de DuBois & DuBois es de ${d.bsaDuBois.toFixed(2)} m², de referencia en la dosificación de quimioterapia citotóxica.
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);}
@@ -3887,21 +3882,8 @@ optsTo+=`<option value="${k}">${OPIO_FACT[k].n}</option>`;
 optsFrom+=`<option value="meta_vo">Metadona oral</option>`;
 optsTo+=`<option value="meta_vo">Metadona oral</option>`;
 return `<div class="card">
-<h2>Conversión de opioides (MME oral)</h2>
-<p class="intro">Convierte cualquier opioide a equivalente de morfina oral (MME/día) y entre opioides. Aplica automáticamente una <strong>reducción del 25–50%</strong> por tolerancia cruzada incompleta al rotar a un opioide distinto. Para fentanilo y buprenorfina transdérmicos, la dosis se introduce en <strong>µg/h</strong>; el resto en <strong>mg/día</strong>.</p>
-
-<div class="coll open">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>¿Qué es el MME y cómo se usa esta calculadora?</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<p style="margin:6px 0"><strong>MME = miligramos equivalentes de morfina</strong> oral al día (del inglés <em>Morphine Milligram Equivalents</em>). Es una unidad común para <strong>comparar la potencia de distintos opioides</strong>: cada opioide se convierte a la cantidad de morfina oral que produciría el mismo efecto. Por ejemplo, 20 mg/día de oxicodona oral ≈ 30 MME (la misma analgesia que 30 mg de morfina oral).</p>
-<p style="margin:6px 0"><strong>¿Para qué sirve?</strong></p>
-<ul style="padding-left:20px;line-height:1.7;margin:4px 0">
-<li><strong>Estimar el riesgo</strong>: a más MME/día, mayor riesgo de sedación y depresión respiratoria → &lt; 50 bajo · 50–90 vigilancia · ≥ 90 alto (valorar naloxona y revisar la indicación).</li>
-<li><strong>Rotar de opioide con seguridad</strong>: pasa la dosis actual a MME y, desde ahí, a la dosis equivalente del nuevo opioide, aplicando una reducción por <em>tolerancia cruzada</em> (el organismo no tolera por igual el fármaco nuevo, por eso se baja un 25–50%).</li>
-</ul>
-<p style="margin:6px 0"><strong>Cómo usarla:</strong> elige el <strong>opioide actual</strong> y su <strong>dosis</strong> y verás los MME/día. Si además eliges un opioide en <strong>«Rotar a»</strong>, te calcula la dosis equivalente con la reducción seleccionada.</p>
-</div>
-</div>
+<h2>Conversión de opioides (MME)</h2>
+<p class="intro">Pasa un opioide a equivalente de morfina oral (MME/día) y calcula la dosis al rotar a otro. <strong>MME</strong> = mg/día de morfina oral equivalentes. En transdérmicos (fentanilo, buprenorfina) la dosis va en µg/h; el resto en mg/día.</p>
 
 <div class="row">
 <div class="fld"><label class="lbl">Opioide actual</label>
@@ -3920,9 +3902,9 @@ return `<div class="card">
 <div id="op_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn" onclick="calcOpio()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyOpio()">Copiar evolución</button></div>
 
-<div class="alert y" style="margin-top:14px;font-size:12.5px"><strong>Avisos clave:</strong> (1) MME &gt;50/día = riesgo significativo de sobredosis; &gt;90/día = muy alto riesgo, valorar naloxona y reducción. (2) Metadona tiene <strong>tolerancia cruzada parcial</strong> y conversión NO lineal: a mayor dosis de morfina, mayor potencia relativa de metadona; iniciar siempre en consulta especializada. (3) Buprenorfina y fentanilo TD tienen perfiles complejos; la rotación debe ser supervisada. (4) Dosis de rescate: 10–15% de la dosis diaria de fondo cada 4 h (oral) o cada 1 h (IV).</div>
-
-<h3>Tabla rápida de equivalencias (a MME oral)</h3>
+<div class="coll" style="margin-top:14px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Tabla de equivalencias y avisos</span><span class="ar">▶</span></div>
+<div class="coll-c">
 <table class="tbl">
 <tr><th>Opioide</th><th>Factor a MME oral</th><th>Ejemplo práctico</th></tr>
 <tr><td>Morfina oral</td><td>×1</td><td>30 mg/día = 30 MME</td></tr>
@@ -3938,6 +3920,9 @@ return `<div class="card">
 <tr><td>Buprenorfina transdérmica</td><td>µg/h × 0.6</td><td>parche 35 µg/h = 21 MME/día</td></tr>
 <tr><td>Metadona oral</td><td>variable (×4 a ×12)</td><td>según MME total — iniciar bajo</td></tr>
 </table>
+<div class="alert y" style="margin-top:10px;font-size:12.5px"><strong>Avisos:</strong> MME ≥ 50/día riesgo significativo, ≥ 90/día muy alto (valorar naloxona). Metadona: conversión no lineal, iniciar en consulta especializada. Buprenorfina y fentanilo transdérmicos: rotación supervisada. Rescate: 10–15% de la dosis diaria cada 4 h (oral) o cada 1 h (IV).</div>
+</div>
+</div>
 
 <div class="ref">CDC Clinical Practice Guideline for Prescribing Opioids for Pain. MMWR Recomm Rep. 2022;71(3):1-95. American Pain Society / AAHPM. SECPAL Guía de Cuidados Paliativos 2021. Mercadante S, Caraceni A. Conversion ratios for opioid switching in the treatment of cancer pain. Palliat Med. 2011;25(5):504-515.</div>
 </div>`;
