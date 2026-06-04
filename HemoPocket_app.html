@@ -4704,10 +4704,17 @@ const QT_SCHEMES = {
     ]
   },
   'R2': {
-    label: 'R² – Rituximab + Lenalidomida linfoma indolente (cada 28 días)',
+    label: 'R² – Rituximab + Lenalidomida · linfoma indolente (cada 28 días, hasta 12 ciclos)',
     drugs: [
-      {name:'Rituximab (C1: días 1,8,15,22; C2+: día 1)', dose:'375 mg/m²', route:'IV/SC', days:[1]},
-      {name:'Lenalidomida',    dose:'20 mg',                route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+      {name:'Rituximab',    dose:'375 mg/m²', route:'IV/SC', days:[1,8,15,22]},
+      {name:'Lenalidomida', dose:'20 mg',     route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+    ],
+    notes: [
+      'Esquema mostrado: ciclo 1. Rituximab 375 mg/m² los días 1, 8, 15 y 22.',
+      'Ciclos 2 a 5: rituximab 375 mg/m² el día 1 (no se administra rituximab en los ciclos 6–12).',
+      'Lenalidomida 20 mg/día por vía oral los días 1–21 de ciclos de 28 días, hasta un máximo de 12 ciclos.',
+      'No iniciar lenalidomida si el RAN es < 1 × 10⁹/L y/o las plaquetas < 50 × 10⁹/L, salvo que sea secundario a infiltración de la médula ósea por el linfoma.',
+      'Etapas de reducción de dosis de lenalidomida (días 1–21, cada 28 días): dosis inicial 20 mg/día · nivel −1: 15 mg/día · nivel −2: 10 mg/día · nivel −3: 5 mg/día.'
     ]
   },
   'MATRIX': {
@@ -4729,14 +4736,23 @@ const QT_SCHEMES = {
     ]
   },
   'MTX-RCHOP': {
-    label: 'MTX-R-CHOP – R-CHOP + Metotrexato día 15 (cada 21 días)',
+    label: 'MTX-R-CHOP – Metotrexato (día 1) + R-CHOP (día 2) (cada 21 días)',
     drugs: [
-      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
-      {name:'Ciclofosfamida',  dose:'750 mg/m²',            route:'IV', days:[1]},
-      {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[1]},
-      {name:'Vincristina',     dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[1]},
-      {name:'Prednisona',      dose:'60 mg/m²',             route:'VO', days:[1,2,3,4,5]},
-      {name:'Metotrexato',     dose:'3500 mg/m² IC 24h',    route:'IV', days:[15]}
+      {name:'Metotrexato',     dose:'3500 mg/m² IC 4h',     route:'IV', days:[1]},
+      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[2]},
+      {name:'Ciclofosfamida',  dose:'750 mg/m²',            route:'IV', days:[2]},
+      {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[2]},
+      {name:'Vincristina',     dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[2]},
+      {name:'Prednisona',      dose:'60 mg/m²',             route:'VO', days:[2,3,4,5,6]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'El metotrexato se administra el día 1 en infusión de 4 h; el R-CHOP se inicia el día 2. (Antes se administraba el MTX el día 15, pero por toxicidad y retrasos del R-CHOP se prefiere intercalarlo de forma precoz.)',
+      'Rescate con folinato cálcico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
+      'Hidratación y alcalinización urinaria antes y durante el metotrexato (pH urinario ≥ 7); monitorizar niveles séricos de MTX.',
+      'Referencia: Wilson MR, et al. Timing of high-dose methotrexate CNS prophylaxis in DLBCL: a multicenter international analysis of 1384 patients. Blood. 2022;139(16):2499-2511.'
     ]
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
   'DaraVRD': {
@@ -5062,8 +5078,8 @@ const QT_SCHEMES = {
       'Obligatoria con todas las dosis del ciclo 1 (escaladas y 1ª dosis de 30 mg). En ciclos posteriores mantener antipirético y antihistamínico; el corticoide puede omitirse si no hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
     ],
     notes: [
-      'Ciclos de 21 días. <strong>Ciclo 1</strong>: obinutuzumab 1000 mg (D1) y escalada de glofitamab 2,5 mg (D8) y 10 mg (D15).',
-      'La <strong>1ª dosis plena de 30 mg</strong> se administra el <strong>día 1 del ciclo 2</strong> (mostrada aquí como día 22); se mantienen 30 mg el día 1 de los ciclos 3–12.'
+      'Ciclos de 21 días. Ciclo 1: obinutuzumab 1000 mg (D1) y escalada de glofitamab 2,5 mg (D8) y 10 mg (D15).',
+      'La 1ª dosis plena de 30 mg se administra el día 1 del ciclo 2 (mostrada aquí como día 22); se mantienen 30 mg el día 1 de los ciclos 3–12.'
     ]
   },
   'EPCORITAMAB': {
@@ -5078,8 +5094,8 @@ const QT_SCHEMES = {
       'El corticoide se mantiene además los 3 días siguientes a cada dosis semanal del ciclo 1. En ciclos posteriores se mantiene el corticoide; antihistamínico y antipirético solo si hubo SLC previo.'
     ],
     notes:[
-      'Esquema de escalada (step-up) del ciclo 1 para <strong>linfoma B difuso de célula grande (LBDCG)</strong>: 2 dosis escalonadas (D1 y D8) y primera dosis completa en D15.',
-      'Para <strong>linfoma folicular</strong> usar el esquema «Epcoritamab · Linfoma folicular», con 3 dosis escalonadas y dosis completa en D22.'
+      'Esquema de escalada (step-up) del ciclo 1 para linfoma B difuso de célula grande (LBDCG): 2 dosis escalonadas (D1 y D8) y primera dosis completa en D15.',
+      'Para linfoma folicular usar el esquema «Epcoritamab · Linfoma folicular», con 3 dosis escalonadas y dosis completa en D22.'
     ]
   },
   'EPCORITAMAB-FL': {
@@ -5095,8 +5111,8 @@ const QT_SCHEMES = {
       'El corticoide se mantiene además los 3 días siguientes a cada dosis semanal del ciclo 1. En ciclos posteriores se mantiene el corticoide; antihistamínico y antipirético solo si hubo SLC previo.'
     ],
     notes:[
-      'Esquema de escalada (step-up) del ciclo 1 para <strong>linfoma folicular</strong>: 3 dosis escalonadas (D1, D8 y D15) y primera dosis completa en D22.',
-      'Para <strong>LBDCG</strong> usar el esquema «Epcoritamab · LBDCG», con 2 dosis escalonadas y dosis completa en D15.'
+      'Esquema de escalada (step-up) del ciclo 1 para linfoma folicular: 3 dosis escalonadas (D1, D8 y D15) y primera dosis completa en D22.',
+      'Para LBDCG usar el esquema «Epcoritamab · LBDCG», con 2 dosis escalonadas y dosis completa en D15.'
     ]
   },
   'MOSUNETUZUMAB': {
@@ -5127,9 +5143,9 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Esquema STARGLO en ciclos de 21 días, hasta 12 ciclos: 8 de glofitamab + GemOx y 4 de glofitamab en monoterapia.',
-      '<strong>Ciclo 1</strong> (mostrado): obinutuzumab 1000 mg D1 (pretratamiento) · GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el <strong>día 2</strong> · escalada de glofitamab 2,5 mg D8 y 10 mg D15.',
-      '<strong>Ciclos 2–8</strong>: glofitamab 30 mg + GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el <strong>día 1</strong>.',
-      '<strong>Ciclos 9–12</strong>: glofitamab 30 mg en monoterapia el día 1.'
+      'Ciclo 1 (mostrado): obinutuzumab 1000 mg D1 (pretratamiento) · GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el día 2 · escalada de glofitamab 2,5 mg D8 y 10 mg D15.',
+      'Ciclos 2–8: glofitamab 30 mg + GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el día 1.',
+      'Ciclos 9–12: glofitamab 30 mg en monoterapia el día 1.'
     ]
   },
   'HYPERCVAD-A': {
