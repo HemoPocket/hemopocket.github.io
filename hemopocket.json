@@ -1,12 +1,11 @@
 {
-  "version": "2026.06.04-repo3",
+  "version": "2026.06.04-repo4",
   "updatedAt": "2026-06-04",
   "note": "Fuente de actualización de HemoPocket (equipo/contactos/guías). Migrado el contenido completo del Gist al repo. Para añadir/quitar guías: subir el PDF a guias/ y editar este archivo + bump version.",
   "collaborators": {
     "inf": [
       {
-        "n": "Dra. M.T. Busnego Barreto",
-        "r": "Autora y revisora"
+        "n": "Dra. M.T. Busnego Barreto"
       },
       {
         "n": "Dr. Kevin García Roulston"
@@ -14,8 +13,7 @@
     ],
     "uh": [
       {
-        "n": "Dra. M.T. Busnego Barreto",
-        "r": "Autora y revisora"
+        "n": "Dra. M.T. Busnego Barreto"
       },
       {
         "n": "Dra. Carmen Rodríguez Esteban"
@@ -34,16 +32,13 @@
     ],
     "bs": [
       {
-        "n": "Dra. Isabel Peris Fernaud",
-        "r": "Adjunta · Banco de Sangre"
+        "n": "Dra. Isabel Peris Fernaud"
       },
       {
-        "n": "Dr. Alexander Figueroa",
-        "r": "Adjunto · Banco de Sangre"
+        "n": "Dr. Alexander Figueroa"
       },
       {
-        "n": "Dra. Laura Francisca Ávila Idrovo",
-        "r": "Adjunta · Banco de Sangre"
+        "n": "Dra. Laura Francisca Ávila Idrovo"
       }
     ],
     "lf": [
@@ -75,16 +70,13 @@
     ],
     "leuc_ag": [
       {
-        "n": "Dra. M.T. Busnego Barreto",
-        "r": "Autora y revisora"
+        "n": "Dra. M.T. Busnego Barreto"
       },
       {
-        "n": "Dra. Ana Oliva",
-        "r": "Adjunta · Leucemias agudas"
+        "n": "Dra. Ana Oliva"
       },
       {
-        "n": "Dra. Silvia Martín",
-        "r": "Adjunta · Leucemias agudas"
+        "n": "Dra. Silvia Martín"
       }
     ],
     "mieloide": [
@@ -116,8 +108,7 @@
         "n": "Dr. Jorge De Ramos"
       },
       {
-        "n": "Dra. M.T. Busnego Barreto",
-        "r": "Autora y revisora"
+        "n": "Dra. M.T. Busnego Barreto"
       }
     ],
     "farmacia": [
