@@ -1,5 +1,5 @@
 {
-  "version": "2026.06.04-repo1",
+  "version": "2026.06.04-repo2",
   "updatedAt": "2026-06-04",
   "note": "Fuente de actualización de HemoPocket (guías/estructura). Editar este archivo en el repo para añadir/quitar guías PDF; subir el bump de version para que todos los dispositivos sincronicen.",
   "subtypes": {
@@ -10,7 +10,7 @@
         "pdfs": [
           {
             "name": "Guía Linfoma Folicular GELTAMO",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/Folicular.pdf"
+            "url": "guias/Folicular.pdf"
           }
         ]
       },
@@ -25,7 +25,7 @@
         "pdfs": [
           {
             "name": "Guía Linfoma del Manto GELTAMO",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/LCM.pdf"
+            "url": "guias/LCM.pdf"
           }
         ]
       },
@@ -35,7 +35,7 @@
         "pdfs": [
           {
             "name": "Guía Linfoma Hodgkin GELTAMO",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/Hodgkin.pdf"
+            "url": "guias/Hodgkin.pdf"
           }
         ]
       },
@@ -55,7 +55,7 @@
         "pdfs": [
           {
             "name": "Guía Linfoma T-NK GELTAMO",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/Linfoma_T_NK_2024.pdf"
+            "url": "guias/Linfoma_T_NK_2024.pdf"
           }
         ]
       },
@@ -75,7 +75,7 @@
         "pdfs": [
           {
             "name": "Guía profilaxis SNC LDCGB GELTAMO",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/Profilaxis_SNC.pdf"
+            "url": "guias/Profilaxis_SNC.pdf"
           }
         ]
       }
@@ -244,11 +244,11 @@
         "pdfs": [
           {
             "name": "AcBs HUNSC 2025",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/Biespecificos.pdf"
+            "url": "guias/Biespecificos.pdf"
           },
           {
             "name": "AcBs GELTAMO",
-            "url": "https://raw.githubusercontent.com/hemopocket/guias/main/Biespec%C3%ADficos_GELTAMO.pdf"
+            "url": "guias/Biespecificos_GELTAMO.pdf"
           }
         ]
       },
