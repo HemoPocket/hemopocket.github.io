@@ -5052,14 +5052,18 @@ const QT_SCHEMES = {
   'GLOFITAMAB': {
     label: 'Glofitamab (CD20×CD3) – step-up C1 (21 días)',
     drugs: [
-      {name:'Obinutuzumab (pretratamiento, 7 días antes de Glofitamab)', dose:'1000 mg', route:'IV', days:[1]},
-      {name:'Glofitamab – step-up dosis 1', dose:'2,5 mg', route:'IV', days:[8]},
-      {name:'Glofitamab – step-up dosis 2', dose:'10 mg',  route:'IV', days:[15]},
-      {name:'Glofitamab – dosis terapéutica (C1 D15; C2+ D1)', dose:'30 mg', route:'IV', days:[22]}
+      {name:'Obinutuzumab (pretratamiento)', dose:'1000 mg', route:'IV', days:[1]},
+      {name:'Glofitamab – dosis escalonada 1', dose:'2,5 mg', route:'IV', days:[8]},
+      {name:'Glofitamab – dosis escalonada 2', dose:'10 mg',  route:'IV', days:[15]},
+      {name:'Glofitamab – 1ª dosis plena (ciclo 2, día 1)', dose:'30 mg', route:'IV', days:[22]}
     ],
     premed: [
       'Premedicación para reducir el síndrome de liberación de citocinas (SLC), al menos 1 h antes de cada infusión de glofitamab: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV).',
       'Obligatoria con todas las dosis del ciclo 1 (escaladas y 1ª dosis de 30 mg). En ciclos posteriores mantener antipirético y antihistamínico; el corticoide puede omitirse si no hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
+    ],
+    notes: [
+      'Ciclos de 21 días. <strong>Ciclo 1</strong>: obinutuzumab 1000 mg (D1) y escalada de glofitamab 2,5 mg (D8) y 10 mg (D15).',
+      'La <strong>1ª dosis plena de 30 mg</strong> se administra el <strong>día 1 del ciclo 2</strong> (mostrada aquí como día 22); se mantienen 30 mg el día 1 de los ciclos 3–12.'
     ]
   },
   'EPCORITAMAB': {
@@ -5111,14 +5115,21 @@ const QT_SCHEMES = {
   'GLOFITAMAB-GEMOX': {
     label: 'Glofitamab + GemOx – STARGLO (cada 21 días, 12 ciclos)',
     drugs: [
-      {name:'Obinutuzumab (pretratamiento D-7 solo ciclo 1)', dose:'1000 mg', route:'IV', days:[1]},
-      {name:'Glofitamab (C1 step-up: 2,5 mg D1 / 10 mg D8 / 30 mg D15; C2–12: 30 mg D1)', dose:'30 mg', route:'IV', days:[1,8,15]},
-      {name:'Gemcitabina (desde ciclo 2)', dose:'1000 mg/m²', route:'IV', days:[1,2]},
-      {name:'Oxaliplatino (desde ciclo 2)', dose:'100 mg/m²', route:'IV', days:[1]}
+      {name:'Obinutuzumab (pretratamiento)', dose:'1000 mg', route:'IV', days:[1]},
+      {name:'Gemcitabina', dose:'1000 mg/m²', route:'IV', days:[2]},
+      {name:'Oxaliplatino', dose:'100 mg/m²', route:'IV', days:[2]},
+      {name:'Glofitamab – dosis escalonada 1', dose:'2,5 mg', route:'IV', days:[8]},
+      {name:'Glofitamab – dosis escalonada 2', dose:'10 mg',  route:'IV', days:[15]}
     ],
     premed: [
       'Premedicación del glofitamab para reducir el SLC, al menos 1 h antes de la infusión: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV). Obligatoria en las dosis escaladas y la 1ª dosis plena.',
-      'Profilaxis antiemética para GemOx (desde el ciclo 2): antagonista 5-HT3 (ondansetrón/granisetrón) + dexametasona.'
+      'Profilaxis antiemética los días de GemOx (gemcitabina + oxaliplatino): antagonista 5-HT3 (ondansetrón/granisetrón) + dexametasona.'
+    ],
+    notes: [
+      'Esquema STARGLO en ciclos de 21 días, hasta 12 ciclos: 8 de glofitamab + GemOx y 4 de glofitamab en monoterapia.',
+      '<strong>Ciclo 1</strong> (mostrado): obinutuzumab 1000 mg D1 (pretratamiento) · GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el <strong>día 2</strong> · escalada de glofitamab 2,5 mg D8 y 10 mg D15.',
+      '<strong>Ciclos 2–8</strong>: glofitamab 30 mg + GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el <strong>día 1</strong>.',
+      '<strong>Ciclos 9–12</strong>: glofitamab 30 mg en monoterapia el día 1.'
     ]
   },
   'HYPERCVAD-A': {
