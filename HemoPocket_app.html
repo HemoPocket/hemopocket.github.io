@@ -4705,6 +4705,11 @@ const QT_SCHEMES = {
       {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[1]},
       {name:'Prednisona',      dose:'100 mg',               route:'VO', days:[1,2,3,4,5]}
     ],
+    cycles: [
+      {from:7,to:8, label:'ciclos 7–8 (rituximab en monoterapia)', drugs:[
+        {name:'Rituximab', dose:'375 mg/m²', route:'IV/SC', days:[1]}
+      ]}
+    ],
     premed: [
       'Premedicación de polatuzumab vedotina (antes de la infusión, en todos los ciclos): antihistamínico (dexclorfeniramina 5 mg IV o difenhidramina) + antipirético (paracetamol 650-1000 mg).',
     ],
@@ -4719,6 +4724,15 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Rituximab',    dose:'375 mg/m²', route:'IV/SC', days:[1,8,15,22]},
       {name:'Lenalidomida', dose:'20 mg',     route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+    ],
+    cycles: [
+      {from:2,to:5, label:'ciclos 2–5 (rituximab día 1)', drugs:[
+        {name:'Rituximab',    dose:'375 mg/m²', route:'IV/SC', days:[1]},
+        {name:'Lenalidomida', dose:'20 mg',     route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+      ]},
+      {from:6,to:12, label:'ciclos 6–12 (solo lenalidomida)', drugs:[
+        {name:'Lenalidomida', dose:'20 mg',     route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+      ]}
     ],
     notes: [
       'Esquema mostrado: ciclo 1. Rituximab 375 mg/m² los días 1, 8, 15 y 22.',
@@ -4766,11 +4780,20 @@ const QT_SCHEMES = {
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
   'DaraVRD': {
     label: 'Dara-VRd – Daratumumab + Bortezomib + Lenalidomida + Dexametasona · MM candidato a TPH (PERSEUS) (cada 28 días)',
+    noAntiemetic: true,
     drugs: [
-      {name:'Daratumumab (C1-C2: días 1,8,15,22; C3-C6: días 1 y 15)', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
+      {name:'Daratumumab', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
       {name:'Bortezomib',    dose:'1,3 mg/m²',  route:'SC', days:[1,4,8,11]},
       {name:'Lenalidomida',  dose:'25 mg/día',  route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
       {name:'Dexametasona',  dose:'40 mg/día',  route:'VO', days:[1,2,3,4,9,10,11,12]}
+    ],
+    cycles: [
+      {from:3,to:6, label:'ciclos 3–6 (daratumumab días 1 y 15)', drugs:[
+        {name:'Daratumumab', dose:'1800 mg', route:'SC', days:[1,15]},
+        {name:'Bortezomib',    dose:'1,3 mg/m²',  route:'SC', days:[1,4,8,11]},
+        {name:'Lenalidomida',  dose:'25 mg/día',  route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
+        {name:'Dexametasona',  dose:'40 mg/día',  route:'VO', days:[1,2,3,4,9,10,11,12]}
+      ]}
     ],
     premed: [
       'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.',
@@ -4786,6 +4809,7 @@ const QT_SCHEMES = {
 
   'DARA-CYBORDEX': {
     label: 'Dara-CyBorDex – Daratumumab + Ciclofosfamida + Bortezomib + Dexametasona · Amiloidosis AL (cada 28 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Daratumumab (C1-2: días 1,8,15,22; C3-6: días 1 y 15; C7+: día 1)', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
       {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,8,15,22]},
@@ -4807,6 +4831,7 @@ const QT_SCHEMES = {
   },
   'DVCD': {
     label: 'DVCd – Daratumumab + Bortezomib + Ciclofosfamida + Dexametasona · MM (LYRA) (cada 28 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Daratumumab — 1800 mg SC o 16 mg/kg IV (C1-2: días 1,8,15,22; C3-6: días 1 y 15; C7-8: día 1)', dose:'1800 mg', route:'SC/IV', days:[1,8,15,22]},
       {name:'Bortezomib',     dose:'1,5 mg/m²', route:'SC', days:[1,8,15]},
@@ -4824,6 +4849,7 @@ const QT_SCHEMES = {
   },
   'ISATUXIMAB-VRD': {
     label: 'Isa-VRd – Isatuximab + Bortezomib + Lenalidomida + Dexametasona · MM no candidato a TPH (IMROZ) · inducción (ciclos de 42 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Isatuximab',      dose:'10 mg/kg',             route:'IV', days:[1,8,15,22,29]},
       {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,4,8,11,22,25,29,32]},
@@ -4843,10 +4869,19 @@ const QT_SCHEMES = {
   'ISA-KD': {
     label: 'IsaKd – Isatuximab + Carfilzomib + Dexametasona · MM en recaída (IKEMA) (cada 28 días)',
     drugs: [
-      {name:'Isatuximab (C1: días 1,8,15,22; ciclos siguientes: días 1 y 15)', dose:'10 mg/kg', route:'IV', days:[1,8,15,22]},
-      {name:'Carfilzomib (escalada en C1: 20 mg/m² días 1-2; resto 56 mg/m²)', dose:'56 mg/m²', route:'IV', days:[1,2,8,9,15,16]},
-      {name:'Dexametasona (20 mg/día; 10 mg/día si >70 años)', dose:'20 mg/día', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
+      {name:'Isatuximab', dose:'10 mg/kg', route:'IV', days:[1,8,15,22]},
+      {name:'Carfilzomib (escalada)', dose:'20 mg/m²', route:'IV', days:[1,2]},
+      {name:'Carfilzomib', dose:'56 mg/m²', route:'IV', days:[8,9,15,16]},
+      {name:'Dexametasona (20 mg; 10 mg si >70 años)', dose:'20 mg', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
     ],
+    cycles: [
+      {from:2, label:'ciclos siguientes (isatuximab días 1 y 15)', drugs:[
+        {name:'Isatuximab', dose:'10 mg/kg', route:'IV', days:[1,15]},
+        {name:'Carfilzomib', dose:'56 mg/m²', route:'IV', days:[1,2,8,9,15,16]},
+        {name:'Dexametasona (20 mg; 10 mg si >70 años)', dose:'20 mg', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
+      ]}
+    ],
+    noAntiemetic: true,
     premed: [
       'Premedicación de isatuximab (15-60 min antes): dexametasona 20 mg IV/VO (corticoide del propio esquema) + paracetamol 650-1000 mg VO/IV + antihistamínico H1 (dexclorfeniramina 5 mg IV o difenhidramina 25-50 mg, VO/IV) + anti-H2 (ranitidina o equivalente). Valorar montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.'
     ],
@@ -4860,8 +4895,17 @@ const QT_SCHEMES = {
   'OBJ-VENETOCLAX': {
     label: 'Obinutuzumab + Venetoclax – CLL14 (cada 28 días, 12 ciclos)',
     drugs: [
-      {name:'Obinutuzumab (C1: 100 mg D1, 900 mg D1 o D2, 1000 mg D8 y D15; ciclos 2-6: 1000 mg D1)', dose:'1000 mg', route:'IV', days:[1,2,8,15]},
-      {name:'Venetoclax (rampa de 5 sem. 20→50→100→200→400 mg/día desde el día 22 del C1; después 400 mg/día hasta el final del C12)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      {name:'Obinutuzumab (100 mg D1, 900 mg D1 o D2, 1000 mg D8 y D15)', dose:'1000 mg', route:'IV', days:[1,2,8,15]},
+      {name:'Venetoclax (rampa de 5 sem. 20→50→100→200→400 mg/día desde el día 22 del C1)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+    ],
+    cycles: [
+      {from:2,to:6, label:'ciclos 2–6 (obinutuzumab día 1 + venetoclax)', drugs:[
+        {name:'Obinutuzumab', dose:'1000 mg', route:'IV', days:[1]},
+        {name:'Venetoclax (la rampa se completa el día 28 del ciclo 2; después 400 mg/día continuo)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      ]},
+      {from:7,to:12, label:'ciclos 7–12 (venetoclax en monoterapia)', drugs:[
+        {name:'Venetoclax', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      ]}
     ],
     notes: [
       '12 ciclos de 28 días: 6 ciclos en combinación con obinutuzumab + 6 ciclos de venetoclax en monoterapia.',
@@ -4872,8 +4916,17 @@ const QT_SCHEMES = {
   'R-VENETOCLAX': {
     label: 'Rituximab + Venetoclax – MURANO (cada 28 días, 6 ciclos R; venetoclax 24 meses)',
     drugs: [
-      {name:'Rituximab (ciclo 1: 375 mg/m²; ciclos 2–6: 500 mg/m²)', dose:'375–500 mg/m²', route:'IV', days:[1]},
+      {name:'Rituximab', dose:'375 mg/m²', route:'IV', days:[1]},
       {name:'Venetoclax (rampa 5 semanas previa: 20→50→100→200→400 mg/d; luego 400 mg/d continuo)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+    ],
+    cycles: [
+      {from:2,to:6, label:'ciclos 2–6 (rituximab 500 mg/m²)', drugs:[
+        {name:'Rituximab', dose:'500 mg/m²', route:'IV', days:[1]},
+        {name:'Venetoclax', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      ]},
+      {from:7, label:'tras el ciclo 6 (venetoclax en monoterapia hasta 24 meses)', drugs:[
+        {name:'Venetoclax', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      ]}
     ],
     premed: [
     ],
@@ -5088,8 +5141,12 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Obinutuzumab (pretratamiento)', dose:'1000 mg', route:'IV', days:[1]},
       {name:'Glofitamab – dosis escalonada 1', dose:'2,5 mg', route:'IV', days:[8]},
-      {name:'Glofitamab – dosis escalonada 2', dose:'10 mg',  route:'IV', days:[15]},
-      {name:'Glofitamab – 1ª dosis plena (ciclo 2, día 1)', dose:'30 mg', route:'IV', days:[22]}
+      {name:'Glofitamab – dosis escalonada 2', dose:'10 mg',  route:'IV', days:[15]}
+    ],
+    cycles: [
+      {from:2, label:'ciclos 2–12 (dosis plena)', drugs:[
+        {name:'Glofitamab', dose:'30 mg', route:'IV', days:[1]}
+      ]}
     ],
     premed: [
       'Premedicación para reducir el síndrome de liberación de citocinas (SLC), al menos 1 h antes de cada infusión de glofitamab: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV).',
@@ -5157,6 +5214,16 @@ const QT_SCHEMES = {
       {name:'Oxaliplatino', dose:'100 mg/m²', route:'IV', days:[2]},
       {name:'Glofitamab – dosis escalonada 1', dose:'2,5 mg', route:'IV', days:[8]},
       {name:'Glofitamab – dosis escalonada 2', dose:'10 mg',  route:'IV', days:[15]}
+    ],
+    cycles: [
+      {from:2,to:8, label:'ciclos 2–8 (glofitamab 30 mg + GemOx, día 1)', drugs:[
+        {name:'Glofitamab', dose:'30 mg', route:'IV', days:[1]},
+        {name:'Gemcitabina', dose:'1000 mg/m²', route:'IV', days:[1]},
+        {name:'Oxaliplatino', dose:'100 mg/m²', route:'IV', days:[1]}
+      ]},
+      {from:9, label:'ciclos 9–12 (glofitamab en monoterapia)', drugs:[
+        {name:'Glofitamab', dose:'30 mg', route:'IV', days:[1]}
+      ]}
     ],
     premed: [
       'Premedicación del glofitamab para reducir el SLC, al menos 1 h antes de la infusión: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV). Obligatoria en las dosis escaladas y la 1ª dosis plena.',
@@ -5253,15 +5320,16 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Talquetamab – escalada dosis 1', dose:'0,01 mg/kg', route:'SC', days:[1]},
       {name:'Talquetamab – escalada dosis 2 (2-4 días tras la 1ª)', dose:'0,06 mg/kg', route:'SC', days:[3]},
-      {name:'Talquetamab – 1ª dosis plena (pauta semanal)', dose:'0,4 mg/kg', route:'SC', days:[5]},
-      {name:'Talquetamab – mantenimiento semanal', dose:'0,4 mg/kg', route:'SC', days:[12,19,26]}
+      {name:'Talquetamab – escalada dosis 3 (2-4 días tras la 2ª)', dose:'0,4 mg/kg', route:'SC', days:[5]},
+      {name:'Talquetamab – 1ª dosis plena (pauta quincenal)', dose:'0,8 mg/kg', route:'SC', days:[7]},
+      {name:'Talquetamab – mantenimiento cada 2 semanas', dose:'0,8 mg/kg', route:'SC', days:[21]}
     ],
     premed: [
       'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg).'
     ],
     notes: [
-      'Pauta SEMANAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 mg/kg (d5); después 0,4 mg/kg una vez por semana (mínimo 6 días entre dosis).',
-      'Pauta QUINCENAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 (d5) → 0,8 mg/kg (d7); después 0,8 mg/kg cada 2 semanas (mínimo 12 días entre dosis).',
+      'Esquema por defecto = pauta QUINCENAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 (d5) → 0,8 mg/kg (d7); después 0,8 mg/kg cada 2 semanas (mínimo 12 días entre dosis).',
+      'Pauta alternativa SEMANAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 mg/kg (d5); después 0,4 mg/kg una vez por semana (mínimo 6 días entre dosis).',
       'Cada escalada puede administrarse 2-4 días después de la anterior (hasta 7 días para permitir la resolución de reacciones). Dosis según peso actual.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.'
     ]
@@ -6200,6 +6268,14 @@ function qtUpdateBSA(){
   qtCalc();
 }
 function qtFmtRelDays(days){if(!days||!days.length)return '';const s=[...days].sort((a,b)=>a-b);const out=[];let st=s[0],pv=s[0];for(let i=1;i<s.length;i++){if(s[i]===pv+1){pv=s[i];}else{out.push(st===pv?'+'+st:'+'+st+' a +'+pv);st=s[i];pv=s[i];}}out.push(st===pv?'+'+st:'+'+st+' a +'+pv);return out.join(', ');}
+// Devuelve la definición de ciclo aplicable (drugs + label) si el esquema varía por ciclo; si no, null.
+function qtDrugsForCycle(scheme,cycle){
+  if(Array.isArray(scheme.cycles)){
+    const e=scheme.cycles.find(c=>cycle>=(c.from||1)&&cycle<=(c.to||Infinity));
+    if(e&&e.drugs)return e;
+  }
+  return null;
+}
 function qtCalc(){
 const key=$('qt_scheme')?.value;
 const d1str=$('qt_d1')?.value;
@@ -6235,6 +6311,8 @@ function fmtDrugLine(drug,dateStr){
 }
 const lines=[];const relLines=[];
 const bsaNote=bsa>0?' · SC: '+bsa.toFixed(2)+' m²':'';
+const _ce=scheme.conditioning?null:qtDrugsForCycle(scheme,cycle);
+const drugsList=_ce?_ce.drugs:scheme.drugs;
 if(scheme.conditioning){
   const infDrug=scheme.drugs.find(d=>d.name.toLowerCase().includes('infusi'));
   const d0Day=infDrug?infDrug.days[0]:null;
@@ -6256,8 +6334,8 @@ if(scheme.conditioning){
     }
   });
 } else {
-  lines.push(cycle+'º ciclo '+key+':'+bsaNote);
-  scheme.drugs.forEach(drug=>{
+  lines.push(cycle+'º ciclo '+key+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
+  drugsList.forEach(drug=>{
     const ranges=groupDays(drug.days);
     const strs=ranges.map(r=>{
       if(r.s.day===r.e.day) return qtFmtDate(r.s.date);
@@ -6266,7 +6344,7 @@ if(scheme.conditioning){
     lines.push(fmtDrugLine(drug,strs.join(', ')));
   });
   // Esquema en días del ciclo → bloque de notas (solo lectura)
-  scheme.drugs.forEach(drug=>{
+  drugsList.forEach(drug=>{
     const rd=qtFmtRelDays(drug.days);
     relLines.push(drug.name+(rd?': día '+rd:''));
   });
@@ -6277,7 +6355,7 @@ if($('qt_out'))$('qt_out').value=lines.join('\n');
 const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
 const _pmList=[];
 if(!scheme.noAntiemetic)_pmList.push('Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.');
-if(scheme.drugs.some(d=>/rituximab/i.test(d.name)))
+if(drugsList.some(d=>/rituximab/i.test(d.name)))
   _pmList.push('Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg + metilprednisolona (o el corticoide del esquema el día correspondiente), 30 min antes de iniciar la infusión.');
 _pmList.push(...(scheme.premed||[]));
 if(_pm)_pm.value=_pmList.join('\n');
