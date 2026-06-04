@@ -4904,9 +4904,40 @@ const QT_SCHEMES = {
     ]
   },
   'HiDAC': {
-    label: 'HiDAC – Citarabina altas dosis (consolidación LMA)',
+    label: 'ARA-C AD / HiDAC – Citarabina altas dosis (consolidación LMA, 1-4 ciclos)',
     drugs: [
-      {name:'Citarabina',    dose:'3 g/m²/12h', route:'IV', days:[1,3,5]}
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3]}
+    ],
+    notes: [
+      'En pacientes ≥60 años, reducir a 1500 mg/m²/12 h con la misma pauta de administración.',
+      'Hidratación + profilaxis del síndrome de lisis tumoral según riesgo; rasburicasa en pacientes con SLT hasta su resolución.',
+      'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6-12 h. Protección gástrica: omeprazol 20-40 mg (o pantoprazol 40 mg IV) o ranitidina 300 mg/día.',
+      'Profilaxis antifúngica anti-Aspergillus (voriconazol 200 mg/12 h o posaconazol 300 mg/24 h) desde el ingreso hasta PMN > 500. Descontaminación intestinal: ciprofloxacino 500 mg/12 h VO.',
+      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis.'
+    ]
+  },
+  'ARAC-AD-MIDO': {
+    label: 'ARA-C AD + Midostaurin – consolidación LMA FLT3+ (1-4 ciclos)',
+    drugs: [
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3]},
+      {name:'Midostaurin', dose:'50 mg/12h', route:'VO', days:[8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+    ],
+    notes: [
+      'En pacientes ≥60 años, reducir ARA-C a 1500 mg/m²/12 h con la misma pauta.',
+      'Continuar midostaurin en consolidación solo si se utilizó en la inducción (FLT3+). Ajustar al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (voriconazol, posaconazol).',
+      'Soporte: hidratación, profilaxis de SLT, antiemético, protección gástrica, profilaxis antifúngica anti-Aspergillus y descontaminación intestinal (ciprofloxacino 500 mg/12 h).'
+    ]
+  },
+  'CPX-351-CONSOL': {
+    label: 'CPX-351 (Vyxeos) – consolidación LMA (1 ciclo)',
+    drugs: [
+      {name:'Daunorrubicina/Citarabina liposomal (CPX-351)', dose:'29/65 mg/m² (= 65 U/m²)', route:'IV 90 min', days:[1,3]}
+    ],
+    notes: [
+      'Hidratación vigorosa (suero glucosalino/fisiológico ≥2 L/m²/día); cautela con el balance hídrico.',
+      'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6-12 h. Protección gástrica (omeprazol 20 mg o pantoprazol 40 mg).',
+      'Profilaxis antifúngica anti-Aspergillus desde el ingreso hasta PMN > 500; descontaminación intestinal (ciprofloxacino 500 mg/12 h).',
+      'Puede administrarse de forma semiambulatoria: ingreso para la quimioterapia y seguimiento de la fase de aplasia en hospital de día/consultas externas.'
     ]
   },
   'ATRA-ATO': {
@@ -5110,7 +5141,7 @@ const QT_GROUPS = [
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
-  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','CBF-AML','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ATRA-ATO','VEN-AZA','VYXEOS']},
+  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','CBF-AML','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','VEN-AZA','VYXEOS']},
   {label:'Linfoma de Hodgkin',      keys:['ABVD','BEACOPP-ESC']},
   {label:'Acondicionamiento TASPE – Mieloma/Amiloidosis', keys:['MELFALAN-200','MELFALAN-140','MELFALAN-200-AMI']},
   {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM']},
@@ -5154,9 +5185,15 @@ ${selOpts}
 </div>
 <div id="qt_bsa" style="font-size:13px;padding:6px 2px 2px;min-height:18px;color:var(--mut)">Introduce peso y talla para calcular la dosis</div>
 <div id="qt_out_wrap" style="display:none">
-<div class="fld" style="margin-top:6px"><label class="lbl">Resultado (editable)</label>
-<textarea id="qt_out" style="min-height:200px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7"></textarea></div>
-<div class="btns"><button class="btn btn-g" onclick="qtCopy()">📋 Copiar resultado</button></div>
+<div class="fld" style="margin-top:6px"><label class="lbl">Esquema de tratamiento (editable)</label>
+<textarea id="qt_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7"></textarea></div>
+<div class="btns"><button class="btn btn-g" onclick="qtCopy('qt_out')">📋 Copiar esquema</button></div>
+<div id="qt_premed_wrap" style="display:none">
+<div class="fld" style="margin-top:12px"><label class="lbl">Premedicación (editable)</label>
+<textarea id="qt_premed" style="min-height:80px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7"></textarea></div>
+<div class="btns"><button class="btn btn-g" onclick="qtCopy('qt_premed')">📋 Copiar premedicación</button></div>
+</div>
+<div id="qt_notes" style="display:none;margin-top:14px;font-size:12.5px;line-height:1.5"></div>
 </div>
 <div id="qt_info" style="margin-top:16px"></div>
 </div>`;
@@ -5904,7 +5941,7 @@ function fmtDrugLine(drug,dateStr){
   }
   return '* '+drug.name+' '+drug.dose+' '+drug.route+': '+dateStr;
 }
-const lines=[];
+const lines=[];const relLines=[];
 const bsaNote=bsa>0?' · SC: '+bsa.toFixed(2)+' m²':'';
 if(scheme.conditioning){
   const infDrug=scheme.drugs.find(d=>d.name.toLowerCase().includes('infusi'));
@@ -5936,26 +5973,30 @@ if(scheme.conditioning){
     });
     lines.push(fmtDrugLine(drug,strs.join(', ')));
   });
-  // Esquema en días del ciclo (referencia rápida de la estructura)
-  lines.push('');
-  lines.push('Esquema (días del ciclo):');
+  // Esquema en días del ciclo → bloque de notas (solo lectura)
   scheme.drugs.forEach(drug=>{
     const rd=qtFmtRelDays(drug.days);
-    lines.push('* '+drug.name+(rd?': día '+rd:''));
+    relLines.push(drug.name+(rd?': día '+rd:''));
   });
 }
-// Premedicación y notas (si el esquema las define)
-if(scheme.premed&&scheme.premed.length){lines.push('');lines.push('Premedicación:');scheme.premed.forEach(p=>lines.push('* '+p));}
-if(scheme.notes&&scheme.notes.length){lines.push('');lines.push('Notas:');scheme.notes.forEach(p=>lines.push('* '+p));}
-const txt=lines.join('\n');
-if($('qt_out'))$('qt_out').value=txt;
+// Esquema (calendario) → recuadro copiable
+if($('qt_out'))$('qt_out').value=lines.join('\n');
+// Premedicación → recuadro copiable aparte
+const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
+if(scheme.premed&&scheme.premed.length){if(_pm)_pm.value=scheme.premed.join('\n\n');if(_pmw)_pmw.style.display='';}
+else{if(_pm)_pm.value='';if(_pmw)_pmw.style.display='none';}
+// Notas (solo lectura) + esquema en días del ciclo
+const _nt=$('qt_notes');let _nh='';
+if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
+if(scheme.notes&&scheme.notes.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Notas</div><ul style="margin:0;padding-left:18px;color:var(--mut)">'+scheme.notes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
+if(_nt){_nt.innerHTML=_nh;_nt.style.display=_nh?'':'none';}
 wrap.style.display='';
 info.innerHTML='';
 }
 
-function qtCopy(){
-const v=$('qt_out')?.value;
-if(!v||!v.trim()){toast('Calcula primero');return;}
+function qtCopy(id){
+const v=$(id||'qt_out')?.value;
+if(!v||!v.trim()){toast('Nada que copiar');return;}
 copy(v);
 }
 
