@@ -622,9 +622,6 @@ const MENU=[
 {id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
-{h:'PAUTAS DE QT SEHH',o:1,items:[
-{id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
-]},
 {h:'NEUTROPENIA FEBRIL',items:[
 {id:'nf',name:'Algoritmo de neutropenia febril',kw:'neutropenia febril neutropenico neutropenica fiebre sepsis septico septica shock shock septico septico en neutropenico bacteriemia foco infeccioso infeccion paciente neutropenico bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
 {id:'atb',name:'Sensibilidad antibiótica',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam ceftolozano tazobactam ceftarolina meropenem cefepime piperacilina vancomicina daptomicina linezolid colistina amikacina'},
@@ -645,14 +642,12 @@ const MENU=[
 {id:'wells',name:'Wells (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
 {id:'hb',name:'HAS-BLED',kw:'hasbled sangrado anticoagulacion fa'},
 {id:'isthbat',name:'ISTH-BAT (escala de sangrado)',kw:'isth bat bleeding assessment tool escala sangrado hemorragia diatesis hemorragica von willebrand trombopatia bleeding score epistaxis menorragia cutaneo',new:'2026-06-04'},
-{id:'hbpm',name:'Dosis HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa',new:'2026-05-11'},
-{id:'coag_alt',name:'Alteración pruebas coagulación',kw:'tp ttpa alargado alteracion pruebas basicas coagulacion test mezclas factores algoritmo'},
+{id:'coag_alt',name:'Alteración de la coagulación y patrones (TP/TTPa/TT)',kw:'tp ttpa tt alargado prolongado alteracion pruebas basicas coagulacion test mezclas factores algoritmo patron diagnostico diferencial reptilase anti xa heparina urgencias coagulopatia',new:'2026-06-04'},
 {id:'bridging',name:'Bridging perioperatorio',kw:'bridging perioperatorio anticoagulacion cirugia avk acod hbpm puente suspension apixaban rivaroxaban dabigatran edoxaban warfarina sintrom acenocumarol operar operacion intervencion quirurgica preoperatorio postoperatorio procedimiento suspender reiniciar'},
 {id:'reversion',name:'Reversión anticoagulación',kw:'reversion revertir anticoagulacion sangrado antidoto idarucizumab praxbind dabigatran andexanet apixaban rivaroxaban edoxaban acod aco directo ccp octaplex protamina heparina vitamina k sintrom acenocumarol warfarina'},
 {id:'rotem',name:'Interpretación ROTEM',kw:'rotem tromboelastometria extem intem fibtem aptem heptem patron interpretacion'},
 {id:'hemof_urg',name:'Hemofilia/EvW urgencias',kw:'hemofilia urgencia evw von willebrand factor viii ix sangrado vital snc inhibidor desmopresina rfviia feiba emicizumab'},
 {id:'hemof_adq',name:'Hemofilia adquirida',kw:'hemofilia adquirida inhibidor fviii autoanticuerpo ttpa test mezclas bypass agente rfviia feiba emicizumab inhibidor',new:'2026-05-29'},
-{id:'diagno_coag',name:'Diagnóstico diferencial coagulación',kw:'diagnostico diferencial coagulacion patron tp ttpa tt tabla algoritmo urgencias coagulopatia',new:'2026-05-29'},
 {id:'agrego',name:'Patrones Agregometría Óptica',kw:'agregometria optica born trombopatia patron diagnostico glanzmann bernard soulier evw pool storage adp colageno ristocetina',new:'2026-05-29'},
 {id:'ptt_tto',name:'Tratamiento PTT aguda',kw:'ptt ttp tratamiento recambio plasmatico caplacizumab rituximab corticoides plasma fresco congelado refractariedad exacerbacion recaida',new:'2026-05-29'},
 {id:'g_th',name:'Guías clínicas',kw:'guias clinicas trombosis hemostasia tev fa hit hemofilia protocolo pdf'}
@@ -718,6 +713,9 @@ const MENU=[
 ]},
 {h:'HEMATOLOGÍA PEDIÁTRICA',items:[
 {id:'g_ped',name:'Guías clínicas',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
+]},
+{h:'PAUTAS DE QT SEHH',o:1,items:[
+{id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
 ]},
 {h:'EQUIPO Y SINCRONIZACIÓN',items:[
 {id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
@@ -2026,131 +2024,6 @@ ranges:[
 ],
 ref:'Pisters R, et al. A novel user-friendly score (HAS-BLED) to assess 1-year risk of major bleeding in patients with atrial fibrillation. Chest. 2010;138(5):1093-1100.'
 });
-
-// === HBPM (Heparina de Bajo Peso Molecular) ===
-VIEWS.hbpm=()=>`<div class="card">
-<h2>Dosis de HBPM</h2>
-<p class="intro">Calculadora de dosis de heparina de bajo peso molecular con ajuste por <strong>indicación</strong>, <strong>peso real</strong>, <strong>aclaramiento de creatinina</strong> y <strong>obesidad/IMC</strong>. Comprueba siempre la dosis con la ficha técnica del fármaco en uso.</p>
-<div class="row">
-<div class="fld"><label class="lbl">HBPM</label>
-<select id="hb_drug" onchange="calcHBPM()">
-<option value="enox">Enoxaparina (Clexane®)</option>
-<option value="bemi">Bemiparina (Hibor®)</option>
-<option value="tinz">Tinzaparina (Innohep®)</option>
-<option value="dalt">Dalteparina (Fragmin®)</option>
-<option value="nadr">Nadroparina (Fraxiparina®)</option>
-</select></div>
-<div class="fld"><label class="lbl">Indicación</label>
-<select id="hb_ind" onchange="calcHBPM()">
-<option value="prof_med">Profilaxis · médico hospitalizado</option>
-<option value="prof_qx">Profilaxis · quirúrgica (alto riesgo)</option>
-<option value="trat">Tratamiento · TVP / TEP / TEV en cáncer</option>
-<option value="trat_fa">Tratamiento · FA con CV o puente</option>
-</select></div>
-<div class="fld"><label class="lbl">Peso real (kg)</label><input type="number" step="0.5" id="hb_wt" value="${S.p.weight||''}" oninput="calcHBPM()"></div>
-<div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="hb_ht" value="${S.p.height||''}" oninput="calcHBPM()"></div>
-<div class="fld"><label class="lbl">Sexo</label>
-<select id="hb_sx" onchange="calcHBPM()"><option value="M" ${S.p.sex==='M'?'selected':''}>Hombre</option><option value="F" ${S.p.sex==='F'?'selected':''}>Mujer</option></select></div>
-<div class="fld"><label class="lbl">Edad (años)</label><input type="number" id="hb_age" value="${S.p.age||''}" oninput="calcHBPM()"></div>
-<div class="fld"><label class="lbl">Creatinina (mg/dL)</label><input type="number" step="0.01" id="hb_cr" value="${S.p.creatinine||''}" oninput="calcHBPM()"></div>
-</div>
-<div id="hb_res" class="res" style="display:none"></div>
-<div class="btns"><button class="btn" onclick="calcHBPM()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyHBPM()">Copiar evolución</button></div>
-<div class="alert y" style="margin-top:14px;font-size:12.5px"><strong>Avisos:</strong> en <strong>CrCl &lt; 30 mL/min</strong> se prefiere HNF IV o HBPM con ajuste y monitorización por anti-Xa (objetivo 0.6–1.0 UI/mL a las 4h en tratamiento, 0.2–0.5 UI/mL en profilaxis). En <strong>obesidad mórbida (IMC ≥ 40)</strong> medir anti-Xa para confirmar dosis adecuada. <strong>Tinzaparina</strong> tiene perfil más favorable en insuficiencia renal moderada.</div>
-<div class="ref">ASH 2018-2021 guidelines on VTE. Lim W, et al. Meta-analysis: low-molecular-weight heparin and bleeding in patients with severe renal insufficiency. Ann Intern Med. 2006. Ficha técnica AEMPS de enoxaparina, bemiparina, tinzaparina y dalteparina.</div>
-</div>`;
-
-function calcHBPM(){
-const drug=$('hb_drug').value;
-const ind=$('hb_ind').value;
-const wt=n($('hb_wt').value);
-const ht=n($('hb_ht').value);
-const sx=$('hb_sx').value;
-const age=n($('hb_age').value);
-const cr=n($('hb_cr').value);
-if(!wt){$('hb_res').style.display='none';return}
-let crcl=null;
-if(age&&cr){
-crcl=((140-age)*wt)/(72*cr);
-if(sx==='F')crcl*=0.85;
-}
-let imc=null;
-if(ht){imc=wt/Math.pow(ht/100,2)}
-// Catálogo de dosis
-const DRUGS={
-enox:{n:'Enoxaparina',prof:'40 mg/24h SC',profQx:'40 mg/24h SC (iniciar 12h pre-cirugía)',trat:'1 mg/kg/12h SC <em>o</em> 1.5 mg/kg/24h SC',profIR:'20 mg/24h SC (CrCl <30)',tratIR:'1 mg/kg/24h SC (CrCl <30)',pres:'jeringas 20-40-60-80-100 mg (10 mg/0.1 mL)'},
-bemi:{n:'Bemiparina',prof:'3500 UI/24h SC',profQx:'3500 UI/24h SC (iniciar 2-6h post-cirugía)',trat:'115 UI/kg/24h SC',profIR:'2500 UI/24h SC (CrCl <30)',tratIR:'85 UI/kg/24h SC (CrCl <30) con anti-Xa',pres:'jeringas 2500/3500/5000/7500/10000/12500 UI'},
-tinz:{n:'Tinzaparina',prof:'4500 UI/24h SC',profQx:'4500 UI/24h SC (iniciar 12h pre-cirugía)',trat:'175 UI/kg/24h SC',profIR:'3500-4500 UI/24h SC (preferible HBPM en IR)',tratIR:'175 UI/kg/24h SC (sin ajuste hasta CrCl ≥20)',pres:'jeringas 3500-4500-10000-14000-18000 UI'},
-dalt:{n:'Dalteparina',prof:'5000 UI/24h SC',profQx:'5000 UI/24h SC',trat:'200 UI/kg/24h SC (máx 18000 UI; alternativa 100 UI/kg/12h)',profIR:'2500 UI/24h SC (CrCl <30) con anti-Xa',tratIR:'200 UI/kg/24h SC con anti-Xa (CrCl <30)',pres:'jeringas 2500-5000-7500-10000-12500-15000-18000 UI'},
-nadr:{n:'Nadroparina',prof:'0.3 mL (2850 UI)/24h SC',profQx:'2850 UI/24h SC (alto riesgo según peso)',trat:'85.5 UI/kg/12h SC (≈ 0.1 mL/10 kg/12h)',profIR:'reducir 25-33% (CrCl <30)',tratIR:'reducir 25-33% (CrCl <30) con anti-Xa',pres:'jeringas 2850-3800-5700-7600-9500-11400-15200-19000 UI'}
-};
-const d=DRUGS[drug];
-const isIR=crcl!==null&&crcl<30;
-const isMod=crcl!==null&&crcl>=30&&crcl<50;
-const isObese=imc!==null&&imc>=40;
-let dose='',doseRaw='';
-let warn=[];
-if(ind==='prof_med'||ind==='prof_qx'){
-const base=ind==='prof_qx'?d.profQx:d.prof;
-dose=isIR?d.profIR:base;
-doseRaw=isIR?d.profIR:base;
-if(isIR)warn.push('CrCl <30: dosis profiláctica reducida; monitorizar anti-Xa si tratamiento >7 días.');
-if(isObese)warn.push('IMC ≥40: considerar profilaxis intensificada (enoxaparina 40 mg/12h o 0.5 mg/kg/24h en TEV alto riesgo) y anti-Xa.');
-}else{
-const base=d.trat;
-if(isIR){dose=d.tratIR;warn.push('CrCl <30: ajuste obligado. Tinzaparina o HNF IV son alternativas razonables. Monitorizar anti-Xa.')}
-else dose=base;
-// Cálculo numérico por peso para enoxaparina y tinzaparina
-if(drug==='enox'){
-const mgDia=isIR?1*wt:1.5*wt;
-const mg12h=1*wt;
-doseRaw=isIR?`${mgDia.toFixed(0)} mg/24h SC`:`${mg12h.toFixed(0)} mg/12h SC <em>o</em> ${mgDia.toFixed(0)} mg/24h SC`;
-}else if(drug==='tinz'){
-const ui=175*wt;
-doseRaw=`${Math.round(ui)} UI/24h SC`;
-}else if(drug==='bemi'){
-const ui=isIR?85*wt:115*wt;
-doseRaw=`${Math.round(ui)} UI/24h SC${isIR?' (ajustado)':''}`;
-}else if(drug==='dalt'){
-const ui=Math.min(200*wt,18000);
-doseRaw=`${Math.round(ui)} UI/24h SC${200*wt>18000?' (tope 18000 UI)':''}`;
-}else if(drug==='nadr'){
-const ui12=85.5*wt;
-doseRaw=`${Math.round(ui12)} UI/12h SC${isIR?' (reducir 25-33%)':''}`;
-}else doseRaw=dose;
-if(isObese)warn.push('IMC ≥40: medir anti-Xa pico (4h post-dosis); objetivo 0.6–1.0 UI/mL si 1 mg/kg/12h.');
-if(isMod&&drug==='enox')warn.push('CrCl 30-50: precaución; considerar anti-Xa especialmente si peso extremo.');
-}
-const crclTxt=crcl!==null?`<strong>CrCl (Cockcroft-Gault):</strong> ${crcl.toFixed(0)} mL/min`:'<strong>CrCl:</strong> no calculado (faltan edad o creatinina)';
-const imcTxt=imc!==null?` · <strong>IMC:</strong> ${imc.toFixed(1)} kg/m²`:'';
-const cls=isIR?'hi':(isMod||isObese?'md':'lo');
-const wHtml=warn.length?`<div class="res-s" style="margin-top:10px"><strong>⚠️ Avisos:</strong><ul style="padding-left:18px;margin-top:4px;line-height:1.6">${warn.map(w=>`<li>${w}</li>`).join('')}</ul></div>`:'';
-const el=$('hb_res');el.style.display='block';el.className='res '+cls;
-el.innerHTML=`<div class="res-h"><span class="score">${d.n}</span><span>${({prof_med:'Profilaxis médica',prof_qx:'Profilaxis quirúrgica',trat:'Tratamiento',trat_fa:'Tratamiento (FA)'})[ind]}</span></div>
-<div class="res-s" style="font-size:14px;margin-top:8px"><strong>Dosis sugerida:</strong> ${doseRaw||dose}</div>
-<div class="res-s" style="margin-top:8px">${crclTxt}${imcTxt}</div>
-<div class="res-s" style="margin-top:4px"><small>Pauta de referencia: ${dose}. Presentaciones: ${d.pres}.</small></div>
-${wHtml}`;
-window._hbpmData={drug:d.n,ind,wt,ht,sx,age,cr,crcl,imc,dose:doseRaw||dose,baseDose:dose,warn};
-}
-function copyHBPM(){
-const d=window._hbpmData;if(!d){toast('Calcula primero');return}
-const indTxt={prof_med:'profilaxis de ETEV en paciente médico hospitalizado',prof_qx:'profilaxis quirúrgica de ETEV',trat:'tratamiento de enfermedad tromboembólica venosa',trat_fa:'anticoagulación por fibrilación auricular / puente'}[d.ind];
-const sexTxt=d.sx==='F'?'mujer':'hombre';
-const crclTxt=d.crcl!==null?`con aclaramiento de creatinina estimado por Cockcroft-Gault de ${d.crcl.toFixed(0)} mL/min`:'sin datos suficientes para estimar aclaramiento';
-const imcTxt=d.imc!==null?` e índice de masa corporal de ${d.imc.toFixed(1)} kg/m²`:'';
-const warnTxt=d.warn.length?`\n\nConsideraciones: ${d.warn.join(' ')}`:'';
-const txt=`Anticoagulación con heparina de bajo peso molecular — ${indTxt}
-─────────────────────────────────────────────
-Paciente ${sexTxt}${d.age?` de ${d.age} años`:''}, peso ${d.wt} kg${d.ht?', talla '+d.ht+' cm':''}${imcTxt}, ${crclTxt}.
-
-Se pauta ${d.drug} a dosis de ${d.dose.replace(/<[^>]*>/g,'')} por vía subcutánea.${warnTxt}
-
-Pauta de referencia para la indicación: ${d.baseDose.replace(/<[^>]*>/g,'')}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
 
 // === DIFERENCIAL MAT (microangiopatía trombótica) ===
 VIEWS.tma_dif=()=>`<div class="card">
@@ -6049,14 +5922,6 @@ function chatRiskIntent(q){
     hint=`La <strong>LMA core-binding factor</strong> —inv(16)/t(16;16) (CBFB::MYH11) y t(8;21) (RUNX1::RUNX1T1)— es <strong style="color:var(--c1)">riesgo Favorable</strong> por ELN 2022 (salvo otros factores adversos). Abre el ELN para confirmar con el resto del cariotipo/mutaciones.`;
   return chatRouteCard(dz.view,'📊',dz.score,hint,dz.alt);
 }
-const HEP_RX=/\b(hbpm|heparina|enoxaparina|bemiparina|tinzaparina|dalteparina|nadroparina|clexane|hibor|innohep|fragmin|fraxiparina)\b/;
-const HEP_DOSE=/dosis|dosific|calcul|ajust|profila|anticoagul|terapeutic|tratamiento|\bpeso\b|\bunidades\b|\bui\b|\bmg\b|\bkg\b/;
-function chatHepIntent(q){
-  const nq=chatNorm(q);
-  if(!HEP_RX.test(nq)||!HEP_DOSE.test(nq))return null;
-  if(/trombocitopenia|plaquetopenia|\bhit\b|\b4t\b|inducida por heparina|reversion|revertir|antidoto|protamina|sangrado/.test(nq))return null; // HIT/reversión van por búsqueda
-  return chatRouteCard('hbpm','💉','Dosis HBPM','Calcula la dosis de heparina de bajo peso molecular (profiláctica o terapéutica) según peso y función renal.',[]);
-}
 // === Enrutamiento perioperatorio: anticoagulado + cirugía/procedimiento → Bridging ===
 const ORAL_AC_RX=/\b(anticoagula\w*|apixaban|rivaroxaban|dabigatran|edoxaban|warfarina|acenocumarol|sintrom|acods?|avk|aco)\b/;
 const SURG_RX=/\b(opera\w*|cirugia\w*|quirurgic\w*|intervencion\w*|preoperatori\w*|postoperatori\w*|perioperatori\w*|procedimiento\w*|endoscopia|colonoscopia|gastroscopia|biopsia|extraccion dental|implante)\b/;
@@ -6103,7 +5968,7 @@ function chatTransfusionIntent(q){
 // ¿La consulta pide una ACTITUD terapéutica / manejo de caso / diagnóstico? → Eri remite a la guía SIN emitir juicio (lead neutro, nunca "claro/sí").
 const THERAPY_RX=/\b(puedo|podria|podriamos|debo|debe|debemos|deberia|deberiamos|podemos|conviene|procede|toca|hay que|se puede)\b[^?]{0,40}\b(transfund\w*|trasfund\w*|trasfu\w*|anticoagul\w*|dar(le|les)?|administr\w*|pautar|poner|ponerle|iniciar|empezar|comenzar|suspender|retirar|parar|tratar|profilax\w*|premedic\w*)\b|\b(esta|estaria) indicad|indicacion de (transfu|trasfu|anticoagul|tratar|dar|poner|profilax)|\b(transfundo|trasfundo|le doy|le pongo|le pauto|le administro)\b|\b(tratamiento|tratar|diagnostico|diagnosticar|que actitud|actitud a seguir|actitud terapeutica|conducta a seguir|que hago|que hacer)\b|como (lo |la |le )?(trato|tratar|manejo|manejar|trataria|manejaria)/;
 function chatIsTherapyQ(nq){return (THERAPY_RX.test(nq)||CASE_RX.test(nq))&&!PHONE_Q_RX.test(nq);}
-function chatIntent(q){return chatRiskIntent(q)||chatBridgeIntent(q)||chatHepIntent(q)||chatQtcIntent(q)||chatPttIntent(q)||chatCrsIntent(q)||chatTransfusionIntent(q);}
+function chatIntent(q){return chatRiskIntent(q)||chatBridgeIntent(q)||chatQtcIntent(q)||chatPttIntent(q)||chatCrsIntent(q)||chatTransfusionIntent(q);}
 function chatSend(preset){
   const inp=$('chat_input');
   const q=((preset!=null?preset:(inp?inp.value:''))||'').trim();
@@ -7019,6 +6884,61 @@ return `<div class="card">
 </div>
 </div>
 
+<div class="coll">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Tabla resumen de patrones (TP / TTPa / TT)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<table class="tbl" style="min-width:560px">
+<thead><tr><th>TP</th><th>TTPa</th><th>TT</th><th>Diagnóstico orientativo</th></tr></thead>
+<tbody>
+<tr style="background:rgba(22,163,74,.07)">
+  <td><strong>Normal</strong></td><td><strong>Normal</strong></td><td><strong>Normal</strong></td>
+  <td>Coagulación conservada.<br><em>Si sangrado:</em> cuantificar FXIII, FvW y función plaquetaria</td>
+</tr>
+<tr style="background:rgba(245,158,11,.08)">
+  <td><strong>↑ Aumentado</strong></td><td>Normal</td><td>Normal</td>
+  <td>· Anticoagulantes orales (AVK)<br>· Déficit <strong>factor VII</strong><br>· Déficit moderado de factores vía extrínseca: II, V, VII, X</td>
+</tr>
+<tr style="background:rgba(245,158,11,.08)">
+  <td>Normal</td><td><strong>↑ Aumentado</strong></td><td>Normal</td>
+  <td>· <strong>Heparina</strong> (HNF/HBPM) o ACOD anti-IIa (dabigatrán)<br>· Anticoagulante lúpico<br>· Alt. vía intrínseca: FVIII, IX, XI, XII, precalicreína, cininógeno<br>· Enfermedad de von Willebrand<br>· Inhibidor específico</td>
+</tr>
+<tr style="background:rgba(245,158,11,.08)">
+  <td><strong>↑ Aumentado</strong></td><td><strong>↑ Aumentado</strong></td><td>Normal</td>
+  <td>· Déficit aislado FII, FV, FX (vía común) o inhibidor específico<br>· Déficit de vitamina K<br>· Anticoagulantes orales / ACOD anti-Xa<br>· Síndrome hemorrágico del recién nacido</td>
+</tr>
+<tr style="background:rgba(220,38,38,.08)">
+  <td><strong>↑ Aumentado</strong></td><td><strong>↑ Aumentado</strong></td><td><strong>↑ Aumentado</strong></td>
+  <td>· <strong>CID</strong> (coagulación intravascular diseminada)<br>· <strong>Hepatopatía avanzada</strong><br>· Disfibrinogenemia / hiperfibrinolisis<br>· Déficits de vía común (FII, FV, FX)<br>· Heparina a dosis altas + ACOD anti-IIa</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>📌 Detección de heparina (TTPa+TT → Reptilase / anti-Xa)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<ol style="padding-left:18px;line-height:1.8;font-size:13px">
+  <li>TTPa R&gt;1.4 con TP normal → <strong>realizar TT</strong></li>
+  <li>TT R&gt;1.3 → realizar <strong>Tiempo de Reptilase (TR)</strong>:
+    <ul style="padding-left:16px">
+      <li>TR corregido → muestra con <strong>heparina o fármaco anti-IIa</strong></li>
+      <li>TR alargado → alteraciones del fibrinógeno / vía común</li>
+    </ul>
+  </li>
+  <li>TT normal → realizar <strong>anti-Xa</strong>:
+    <ul style="padding-left:16px">
+      <li>Anti-Xa &gt; 0.2 → <strong>presencia de heparina</strong> (HBPM/HNF)</li>
+      <li>Anti-Xa &lt; 0.2 → no heparina → Test de mezclas:<br>
+        — Corrige → déficit factorial<br>
+        — No corrige → inhibidor contra vía intrínseca
+      </li>
+    </ul>
+  </li>
+</ol>
+</div>
+</div>
+
 <div id="ca_steps" style="margin-top:14px">
 <div class="step" id="ca_s1">
 <div class="step-h"><span class="step-n">1</span>¿Qué está alterado?</div>
@@ -7033,7 +6953,7 @@ return `<div class="card">
 </div>
 
 <div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="go('coag_alt')">Reiniciar</button></div>
-<div class="ref">Hoffbrand AV, Higgs DR, Keeling DM, Mehta AB. Postgraduate Haematology, 7th ed., Wiley-Blackwell, 2016. Bonar RA et al. The investigation of prolonged APTT and PT. Pathology. 2017;49(5):529-535. BSH Guidelines on the investigation and management of antiphospholipid syndrome (Br J Haematol, 2012).</div>
+<div class="ref">Hoffbrand AV, Higgs DR, Keeling DM, Mehta AB. Postgraduate Haematology, 7th ed., Wiley-Blackwell, 2016. Bonar RA et al. The investigation of prolonged APTT and PT. Pathology. 2017;49(5):529-535. BSH Guidelines on the investigation and management of antiphospholipid syndrome (Br J Haematol, 2012). Algoritmos diagnósticos de coagulación en urgencias. Servicio de Hematología HUNSC. ISTH Guidelines on Laboratory Diagnosis of Coagulopathies.</div>
 </div>`;
 };
 
@@ -7070,6 +6990,7 @@ html=`<div class="step" id="ca_s2"><div class="step-h"><span class="step-n">2</s
 <tr><td><strong>Corrige</strong></td><td>Déficit de factor</td><td>Dosificar FVIII, FIX, FXI (y FXII si los demás normales).</td></tr>
 <tr><td><strong>NO corrige</strong></td><td>Inhibidor presente</td><td>DRVVT + anticoagulante lúpico; anti-FVIII (hemofilia adquirida); heparina (TT, dRVVT con/sin protamina).</td></tr>
 </table>
+<div class="alert y" style="margin-top:8px;font-size:12.5px"><strong>Urgencia del test de mezclas:</strong> con <strong>clínica hemorrágica</strong> → realizarlo de inmediato en urgencias. <strong>Sin sangrado</strong> → puede diferirse al laboratorio ordinario; si no corrige y no sangra, sospechar <strong>anticoagulante lúpico</strong> (paradójicamente trombótico) o déficit de <strong>FXII</strong> (no hemorrágico).</div>
 <h3>Causas frecuentes</h3>
 <ul style="padding-left:20px;line-height:1.7">
 <li><strong>Heparina</strong> (no fraccionada): muy frecuente; <strong>TT prolongado</strong>, anti-Xa elevado.</li>
@@ -7863,100 +7784,8 @@ out.innerHTML=`<div class="alert g" style="padding:10px;margin:0"><strong>${ui} 
 // === NUEVOS MÓDULOS COAGULACIÓN ===
 
 // ─── DIAGNÓSTICO DIFERENCIAL COAGULACIÓN ────────────────────────────
-VIEWS.diagno_coag=()=>`<div class="card">
-<h2>🔬 Diagnóstico diferencial — Patrones de coagulación</h2>
-<p class="intro">Tabla de orientación rápida según combinación de TP, TTPa y TT. Siempre descartar primero muestra contaminada con heparina (TT muy largo) o mal recogida.</p>
-
-<div style="overflow-x:auto;margin-bottom:14px">
-<table class="tbl" style="min-width:560px">
-<thead><tr><th>TP</th><th>TTPa</th><th>TT</th><th>Diagnóstico orientativo</th></tr></thead>
-<tbody>
-<tr style="background:rgba(22,163,74,.07)">
-  <td><strong>Normal</strong></td><td><strong>Normal</strong></td><td><strong>Normal</strong></td>
-  <td>Coagulación conservada.<br><em>Si sangrado:</em> cuantificar FXIII, FvW y función plaquetaria</td>
-</tr>
-<tr style="background:rgba(245,158,11,.08)">
-  <td><strong>↑ Aumentado</strong></td><td>Normal</td><td>Normal</td>
-  <td>· Anticoagulantes orales (AVK)<br>· Déficit <strong>factor VII</strong><br>· Déficit moderado de factores vía extrínseca: II, V, VII, X</td>
-</tr>
-<tr style="background:rgba(245,158,11,.08)">
-  <td>Normal</td><td><strong>↑ Aumentado</strong></td><td>Normal</td>
-  <td>· <strong>Heparina</strong> (HNF/HBPM) o ACOD anti-IIa (dabigatrán)<br>· Anticoagulante lúpico<br>· Alt. vía intrínseca: FVIII, IX, XI, XII, precalicreína, cininógeno<br>· Enfermedad de von Willebrand<br>· Inhibidor específico</td>
-</tr>
-<tr style="background:rgba(245,158,11,.08)">
-  <td><strong>↑ Aumentado</strong></td><td><strong>↑ Aumentado</strong></td><td>Normal</td>
-  <td>· Déficit aislado FII, FV, FX (vía común) o inhibidor específico<br>· Déficit de vitamina K<br>· Anticoagulantes orales / ACOD anti-Xa<br>· Síndrome hemorrágico del recién nacido</td>
-</tr>
-<tr style="background:rgba(220,38,38,.08)">
-  <td><strong>↑ Aumentado</strong></td><td><strong>↑ Aumentado</strong></td><td><strong>↑ Aumentado</strong></td>
-  <td>· <strong>CID</strong> (coagulación intravascular diseminada)<br>· <strong>Hepatopatía avanzada</strong><br>· Disfibrinogenemia / hiperfibrinolisis<br>· Déficits de vía común (FII, FV, FX)<br>· Heparina a dosis altas + ACOD anti-IIa</td>
-</tr>
-</tbody>
-</table>
-</div>
-
-<div class="coll">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>📌 Algoritmo TTPA alargado (con/sin clínica)</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<div class="alert b" style="margin-bottom:10px">
-<strong>TTPA R &gt; 1.4 con clínica hemorrágica</strong><br>
-<em>Test de mezclas (1:1) inmediato en urgencias:</em>
-<ul style="padding-left:18px;margin-top:4px;line-height:1.7">
-  <li><strong>No corrige →</strong> Inhibidor: anti-FVIII/FIX/FXI (hemofilia adquirida) · HNF/HBPM · Dabigatrán</li>
-  <li><strong>Corrige →</strong> Déficit de factor de vía intrínseca (FVIII, FIX, FXI) · EvW grave</li>
-</ul>
-</div>
-<div class="alert b">
-<strong>TTPA R &gt; 1.4 SIN clínica hemorrágica</strong><br>
-<em>Test de mezclas puede diferirse a laboratorio ordinario (24 h):</em>
-<ul style="padding-left:18px;margin-top:4px;line-height:1.7">
-  <li><strong>No corrige →</strong> Anticoagulante lúpico (paradójicamente <em>trombótico</em>) · Déficit FXII (no hemorrágico)</li>
-  <li><strong>Corrige →</strong> Déficit factores de contacto (FXII, precalicreína, cininógeno)</li>
-</ul>
-</div>
-</div>
-</div>
-
-<div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>📌 Algoritmo TTPA+TT alargados (detección heparina)</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<ol style="padding-left:18px;line-height:1.8;font-size:13px">
-  <li>TTPa R&gt;1.4 con TP normal → <strong>realizar TT</strong></li>
-  <li>TT R&gt;1.3 → realizar <strong>Tiempo de Reptilase (TR)</strong>:
-    <ul style="padding-left:16px">
-      <li>TR corregido → muestra con <strong>heparina o fármaco anti-IIa</strong></li>
-      <li>TR alargado → alteraciones del fibrinógeno / vía común</li>
-    </ul>
-  </li>
-  <li>TT normal → realizar <strong>anti-Xa</strong>:
-    <ul style="padding-left:16px">
-      <li>Anti-Xa &gt; 0.2 → <strong>presencia de heparina</strong> (HBPM/HNF)</li>
-      <li>Anti-Xa &lt; 0.2 → no heparina → Test de mezclas:<br>
-        — Corrige → déficit factorial<br>
-        — No corrige → inhibidor contra vía intrínseca
-      </li>
-    </ul>
-  </li>
-</ol>
-</div>
-</div>
-
-<div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>📌 TP alargado aislado</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<p style="font-size:13px;margin-bottom:8px">Causas frecuentes: <strong>déficit vitamina K, hepatopatía, anticoagulantes anti-Xa/AVK, déficit FVII.</strong></p>
-<p style="font-size:13px">Si se descartan estas causas → <strong>test de mezcla</strong>:
-<ul style="padding-left:18px;font-size:13px;margin-top:4px;line-height:1.6">
-  <li>Corrige → déficit de FVII, FV, FX o FII</li>
-  <li>No corrige → anticuerpo específico contra factores de vía extrínseca (raro)</li>
-</ul>
-</p>
-<div class="alert y" style="margin-top:8px;font-size:12.5px"><strong>⚠️ Sangrado con coagulación NORMAL:</strong> No descarta: trombopatía · EvW leve · déficit FXIII · alteraciones de función plaquetaria</div>
-</div>
-</div>
-
-<div class="ref">Algoritmos diagnósticos de coagulación en urgencias. Servicio de Hematología HUNSC. Harrison's Hematology. Kasper et al. ISTH Guidelines on Laboratory Diagnosis of Coagulopathies.</div>
-</div>`;
+// Fusionado en coag_alt (alteración de la coagulación y patrones). Alias por compatibilidad con enlaces antiguos.
+VIEWS.diagno_coag=()=>VIEWS.coag_alt();
 
 // ─── HEMOFILIA ADQUIRIDA ────────────────────────────────────────────
 VIEWS.hemof_adq=()=>`<div class="card">
