@@ -688,6 +688,8 @@ const MENU=[
 {id:'g_leuc_ag',name:'Guías clínicas',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
 ]},
 {h:'PATOLOGÍA MIELOIDE CRÓNICA',items:[
+{sub:1,name:'Criterios NMP'},
+{id:'nmp_dx',name:'PV / MF / LMC: diagnóstico y tratamiento',kw:'nmp neoplasia mieloproliferativa policitemia vera pv mielofibrosis mf lmc leucemia mieloide cronica criterios diagnostico tratamiento oms who 2022 jak2 calr mpl bcr abl filadelfia flebotomia hidroxiurea ruxolitinib itk tki propeginterferon eln',new:'2026-06-04'},
 {sub:1,name:'SMD'},
 {id:'ipssr',name:'IPSS-R',kw:'ipssr smd mielodisplasico'},
 {id:'ipssm',name:'IPSS-M (info)',kw:'ipssm smd mielodisplasico'},
@@ -718,6 +720,7 @@ const MENU=[
 {id:'g_lf',name:'Guías clínicas',kw:'guias clinicas linfoma protocolo pdf folicular difuso manto hodgkin marginal burkitt'}
 ]},
 {h:'Leucemia linfática crónica',items:[
+{id:'llc_dx',name:'Criterios diagnóstico y tratamiento',kw:'llc cll criterios diagnostico tratamiento iwcll sll linfoma linfocitico mbl linfocitosis b monoclonal indicaciones enfermedad activa watch and wait btk venetoclax tp53 ighv del17p',new:'2026-06-04'},
 {id:'cllipi',name:'CLL-IPI',kw:'cll ipi llc leucemia linfocitica cronica'},
 {id:'binet_rai',name:'Estadiaje Binet / Rai',kw:'binet rai estadiaje estadio llc leucemia linfatica cronica areas linfoides anemia trombopenia',new:'2026-06-03'},
 {id:'g_llc',name:'Guías clínicas',kw:'guias clinicas llc tricoleucemia waldenstrom protocolo pdf'}
@@ -2019,6 +2022,103 @@ VIEWS.citodx=()=>{
   </div>`;
   return h;
 };
+
+// === LLC: criterios diagnósticos y de tratamiento ===
+VIEWS.llc_dx=()=>`<div class="card">
+<h2>LLC — criterios diagnósticos y de tratamiento</h2>
+<p class="intro">Leucemia linfática crónica y linfoma linfocítico de células pequeñas (SLL). Criterios iwCLL 2018 y enfoque terapéutico actual.</p>
+
+<h3>Diagnóstico (iwCLL 2018)</h3>
+<table class="tbl">
+<tr><th>Entidad</th><th>Linfocitos B clonales en sangre</th><th>Adenopatías / organomegalia / citopenias</th></tr>
+<tr><td><strong>LLC</strong></td><td>≥ 5 × 10⁹/L (mantenidos ≥ 3 meses); linfocitos maduros + sombras de Gümprecht</td><td>Pueden estar presentes o no</td></tr>
+<tr><td><strong>SLL</strong> (linfoma linfocítico)</td><td>&lt; 5 × 10⁹/L</td><td>Adenopatías/esplenomegalia SIN citopenia por infiltración medular; <strong>diagnóstico por biopsia ganglionar</strong></td></tr>
+<tr><td><strong>MBL</strong> (linfocitosis B monoclonal)</td><td>&lt; 5 × 10⁹/L</td><td>NINGUNA (sin adenopatías, organomegalia, citopenias ni síntomas)</td></tr>
+</table>
+<div class="alert b" style="margin-top:8px;font-size:12.5px"><strong>Clave LLC vs SLL:</strong> es la misma enfermedad; la diferencia es la <strong>expresión leucémica</strong> (≥ 5 × 10⁹/L linfocitos B clonales = LLC). El SLL se confirma con biopsia ganglionar. La MBL progresa a LLC que requiere tratamiento a ~1-2 %/año.</div>
+
+<h3>Inmunofenotipo (citometría)</h3>
+<p>Población B clonal (restricción κ/λ) <strong>CD5+, CD19+, CD23+</strong>, CD20 débil, sIg débil, CD79b/CD22 débil, FMC7 negativo (score de Matutes/Moreau 4-5/5). Diferenciar del <strong>linfoma del manto</strong> (CD5+ pero <strong>CD23−, ciclina D1+, t(11;14)</strong>).</p>
+
+<h3>Estudio inicial</h3>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Hemograma con frotis, inmunofenotipo, bioquímica con LDH y β2-microglobulina, inmunoglobulinas, Coombs directo.</li>
+<li>FISH (del13q, +12, del11q/ATM, <strong>del17p</strong>), <strong>TP53</strong> (mutación) e <strong>IGHV</strong> (estado mutacional) antes de iniciar tratamiento.</li>
+<li>Serologías VHB/VHC/VIH. Estadiaje Binet/Rai (calculadora en la app).</li>
+</ul>
+
+<h3>Indicaciones de tratamiento — enfermedad activa (iwCLL 2018)</h3>
+<p>Solo se trata la enfermedad <strong>activa/sintomática</strong> (≥ 1 criterio). El estadio precoz asintomático: <strong>vigilancia</strong> («watch & wait»).</p>
+<ol style="padding-left:20px;line-height:1.7">
+<li>Insuficiencia medular progresiva: anemia (Hb &lt; 10 g/dL) y/o trombopenia (&lt; 100 × 10⁹/L).</li>
+<li>Esplenomegalia masiva (≥ 6 cm bajo el reborde costal), progresiva o sintomática.</li>
+<li>Adenopatías masivas (≥ 10 cm), progresivas o sintomáticas.</li>
+<li>Linfocitosis progresiva: incremento ≥ 50 % en 2 meses, o tiempo de duplicación &lt; 6 meses (si linfocitos &gt; 30 × 10⁹/L).</li>
+<li>Citopenia autoinmune (AHAI/PTI) con mala respuesta a corticoides.</li>
+<li>Afectación extranodal sintomática.</li>
+<li>Síntomas B: pérdida de peso ≥ 10 % en 6 meses, astenia importante (ECOG ≥ 2), fiebre &gt; 38 °C ≥ 2 semanas o sudoración nocturna ≥ 1 mes sin infección.</li>
+</ol>
+<div class="alert y" style="margin-top:8px;font-size:12.5px"><strong>NO</strong> son indicación por sí solos: la cifra alta de linfocitos, la hipogammaglobulinemia, la paraproteína ni el estadio.</div>
+
+<h3>Enfoque terapéutico actual</h3>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Guiado por <strong>TP53/del17p</strong>, <strong>IGHV</strong> y comorbilidad (CIRS, aclaramiento). La inmunoquimioterapia (FCR/BR) está prácticamente abandonada.</li>
+<li><strong>Inhibidores de BTK</strong> (acalabrutinib, zanubrutinib, ibrutinib) de forma continua, o <strong>venetoclax + obinutuzumab</strong> a duración fija (12 ciclos).</li>
+<li><strong>del17p / TP53 mutado</strong>: BTKi o esquemas con venetoclax (evitar inmunoquimioterapia).</li>
+<li>Recaída: cambiar de diana (venetoclax ± rituximab tras BTKi, o BTKi tras venetoclax); valorar pirtobrutinib o CAR-T en refractarios.</li>
+</ul>
+<div class="ref">Hallek M, et al. iwCLL guidelines for diagnosis, indications for treatment, response assessment, and supportive management of CLL. Blood. 2018;131(25):2745-2760. ESMO Clinical Practice Guidelines (CLL). SEHH/GELLC.</div>
+</div>`;
+
+// === NMP: PV / MF / LMC — criterios diagnósticos y de tratamiento ===
+VIEWS.nmp_dx=()=>`<div class="card">
+<h2>NMP — criterios diagnósticos y de tratamiento</h2>
+<p class="intro">Neoplasias mieloproliferativas Ph− (policitemia vera, mielofibrosis) y Ph+ (leucemia mieloide crónica). Criterios OMS 2022 y recomendaciones ELN.</p>
+
+<div class="coll open">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Policitemia vera (PV)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<h4 style="margin:4px 0 6px">Diagnóstico (OMS 2022)</h4>
+<p><strong>Criterios mayores:</strong> (1) Hb &gt; 16,5 g/dL (♂) / &gt; 16,0 (♀), o Hto &gt; 49 % (♂) / &gt; 48 % (♀), o masa eritrocitaria aumentada. (2) Biopsia de médula ósea: hipercelularidad con panmielosis y megacariocitos maduros pleomórficos. (3) Mutación <strong>JAK2 V617F</strong> o de JAK2 exón 12. <strong>Criterio menor:</strong> EPO sérica disminuida.</p>
+<p>Se diagnostica con los <strong>3 criterios mayores</strong>, o con los <strong>2 primeros mayores + el menor</strong> (la biopsia puede obviarse si Hb/Hto muy elevados con JAK2+ y EPO baja).</p>
+<h4 style="margin:10px 0 6px">Tratamiento</h4>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Todos: <strong>flebotomías</strong> con objetivo de <strong>Hto &lt; 45 %</strong> + <strong>AAS a dosis baja</strong> (100 mg/día), y control de factores de riesgo cardiovascular.</li>
+<li><strong>Alto riesgo</strong> (edad ≥ 60 años o trombosis previa), o mala tolerancia a las flebotomías / progresión: <strong>citorreducción</strong> — hidroxiurea o ropeginterferón alfa-2b en 1ª línea; ruxolitinib si resistencia/intolerancia a hidroxiurea.</li>
+</ul>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Mielofibrosis primaria (MF)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<h4 style="margin:4px 0 6px">Diagnóstico — MF manifiesta (OMS 2022): 3 mayores + ≥ 1 menor</h4>
+<p><strong>Mayores:</strong> (1) proliferación y atipia megacariocítica con <strong>fibrosis reticulínica/colágena grado 2-3</strong>; (2) no cumple criterios OMS de TE, PV, LMC, SMD ni otra neoplasia mieloide; (3) <strong>JAK2, CALR o MPL</strong> (u otro marcador clonal, o ausencia de fibrosis reactiva). <strong>Menores</strong> (confirmados en 2 determinaciones): anemia no atribuible a otra causa, leucocitos ≥ 11 × 10⁹/L, esplenomegalia palpable, LDH elevada, leucoeritroblastosis.</p>
+<p>La <strong>MF prefibrótica</strong>: fibrosis grado &lt; 2 con médula hipercelular y atipia megacariocítica + ≥ 1 criterio menor.</p>
+<h4 style="margin:10px 0 6px">Tratamiento</h4>
+<ul style="padding-left:20px;line-height:1.7">
+<li>Estratificar riesgo: IPSS/DIPSS/DIPSS-plus y MIPSS70(+) (calculadoras en la app).</li>
+<li><strong>Inhibidores de JAK</strong> (ruxolitinib; fedratinib, momelotinib o pacritinib según anemia/plaquetas) para la esplenomegalia sintomática y los síntomas constitucionales.</li>
+<li><strong>Alo-TPH</strong>: único tratamiento curativo; indicado en riesgo intermedio-2/alto si el paciente es candidato.</li>
+<li>Soporte de la anemia: transfusiones, agentes estimulantes de la eritropoyesis, danazol; momelotinib si predomina la anemia.</li>
+</ul>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Leucemia mieloide crónica (LMC)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<h4 style="margin:4px 0 6px">Diagnóstico</h4>
+<p>Cromosoma <strong>Filadelfia t(9;22)(q34;q11)</strong> / reordenamiento <strong>BCR::ABL1</strong> (típicamente p210). Confirmar con citogenética + FISH y RT-PCR cuantitativa (escala internacional, IS). Cuadro: leucocitosis con desviación izquierda, basofilia y esplenomegalia.</p>
+<h4 style="margin:10px 0 6px">Fases (ELN 2020)</h4>
+<p><strong>Crónica</strong> (la mayoría al diagnóstico). <strong>Acelerada:</strong> blastos 10-19 %, basófilos ≥ 20 %, trombopenia/trombocitosis persistente, evolución clonal o esplenomegalia/leucocitosis en aumento pese al tratamiento. <strong>Crisis blástica:</strong> ≥ 20 % blastos o proliferación blástica extramedular.</p>
+<h4 style="margin:10px 0 6px">Tratamiento</h4>
+<ul style="padding-left:20px;line-height:1.7">
+<li><strong>Inhibidores de tirosina cinasa (ITK)</strong>: 1ª línea imatinib o un ITK de 2ª generación (dasatinib, nilotinib, bosutinib) según el riesgo (ELTS), la comorbilidad y el perfil de toxicidad. <strong>Ponatinib</strong> para la mutación <strong>T315I</strong>; <strong>asciminib</strong> (inhibidor STAMP) en resistencia/intolerancia.</li>
+<li><strong>Objetivos de respuesta (ELN 2020, BCR::ABL1 IS):</strong> ≤ 10 % a los 3 meses, ≤ 1 % a los 6 meses y <strong>≤ 0,1 % (respuesta molecular mayor)</strong> a los 12 meses.</li>
+<li>Tras una respuesta molecular profunda mantenida, valorar la <strong>suspensión del ITK</strong> (remisión libre de tratamiento) en pacientes seleccionados, con monitorización molecular estrecha.</li>
+</ul>
+</div></div>
+<div class="ref">WHO Classification of Haematolymphoid Tumours, 5ª ed., 2022. Arber DA, et al. International Consensus Classification (ICC), 2022. Barbui T, et al. / ELN — manejo de las NMP Ph−. Hochhaus A, et al. European LeukemiaNet 2020 recommendations for treating CML. SEHH.</div>
+</div>`;
 
 function renderWells(){
 const t=$('wl_t').value;
