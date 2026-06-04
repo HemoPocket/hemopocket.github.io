@@ -4813,8 +4813,13 @@ const QT_SCHEMES = {
   'OBJ-VENETOCLAX': {
     label: 'Obinutuzumab + Venetoclax – CLL14 (cada 28 días, 12 ciclos)',
     drugs: [
-      {name:'Obinutuzumab (ciclo 1: 100mg D1, 900mg D2, 1000mg D8 y D15; ciclos 2–6: 1000mg D1)', dose:'1000 mg', route:'IV', days:[1,2,8,15]},
-      {name:'Venetoclax (rampa 5 semanas: 20→50→100→200→400 mg/d desde sem 1 ciclo 1; luego 400 mg/d continuo)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      {name:'Obinutuzumab (C1: 100 mg D1, 900 mg D1 o D2, 1000 mg D8 y D15; ciclos 2-6: 1000 mg D1)', dose:'1000 mg', route:'IV', days:[1,2,8,15]},
+      {name:'Venetoclax (rampa de 5 sem. 20→50→100→200→400 mg/día desde el día 22 del C1; después 400 mg/día hasta el final del C12)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+    ],
+    notes: [
+      '12 ciclos de 28 días: 6 ciclos en combinación con obinutuzumab + 6 ciclos de venetoclax en monoterapia.',
+      'Rampa de venetoclax: comienza el día 22 del ciclo 1 y continúa hasta el día 28 del ciclo 2 (20 → 50 → 100 → 200 → 400 mg/día, una semana por escalón). Dosis plena de 400 mg/día desde el día 1 del ciclo 3 hasta el último día del ciclo 12.',
+      'Valorar riesgo y aplicar profilaxis/monitorización del síndrome de lisis tumoral en cada escalón de la rampa de venetoclax.'
     ]
   },
   'R-VENETOCLAX': {
@@ -4974,69 +4979,6 @@ const QT_SCHEMES = {
     ]
   },
 
-  // ── LINFOMA B – RESCATE / LINFOMA SNC / INDOLENTE ─────────────────
-  'GEMOX': {
-    label: 'GEMOX – Gemcitabina + Oxaliplatino (cada 14 días)',
-    drugs: [
-      {name:'Gemcitabina',     dose:'1000 mg/m²',           route:'IV 30 min', days:[1]},
-      {name:'Oxaliplatino',    dose:'100 mg/m²',            route:'IV 2h', days:[1]}
-    ]
-  },
-  'POLA-BR': {
-    label: 'Pola-BR – Polatuzumab + Rituximab + Bendamustina (cada 21 días)',
-    drugs: [
-      {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
-      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
-      {name:'Bendamustina',    dose:'90 mg/m²',             route:'IV', days:[1,2]}
-    ]
-  },
-  'POLA-R-ICE': {
-    label: 'Pola-R-ICE – rescate (cada 21 días)',
-    kw: 'linfoma rescate recaida refractario salvage segunda linea recaido',
-    drugs: [
-      {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
-      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV', days:[1]},
-      {name:'Etopósido',       dose:'100 mg/m²',            route:'IV', days:[1,2,3]},
-      {name:'Carboplatino',    dose:'AUC 5 (máx 800 mg)',   route:'IV', days:[2]},
-      {name:'Ifosfamida',      dose:'5000 mg/m² IC 24h',    route:'IV', days:[2]}
-    ]
-  },
-  'R2': {
-    label: 'R² – Rituximab + Lenalidomida linfoma indolente (cada 28 días)',
-    drugs: [
-      {name:'Rituximab (C1: días 1,8,15,22; C2+: día 1)', dose:'375 mg/m²', route:'IV/SC', days:[1]},
-      {name:'Lenalidomida',    dose:'20 mg',                route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
-    ]
-  },
-  'MATRIX': {
-    label: 'MATRIX – Linfoma primario SNC (cada 21 días)',
-    drugs: [
-      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV', days:[1,5]},
-      {name:'Metotrexato',     dose:'3500 mg/m² IC 2h',     route:'IV', days:[1]},
-      {name:'Citarabina',      dose:'2000 mg/m²/12h',       route:'IV 3h', days:[2,3]},
-      {name:'Tiotepa',         dose:'30 mg/m²',             route:'IV', days:[4]}
-    ],
-    premed: [
-      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
-    ],
-    notes: [
-      'Hidratación: suero glucosalino 4 L/día + suero bicarbonatado 1/6 M 2 L/día.',
-      'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
-      'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6–8 h.',
-      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.'
-    ]
-  },
-  'MTX-RCHOP': {
-    label: 'MTX-R-CHOP – R-CHOP + Metotrexato día 15 (cada 21 días)',
-    drugs: [
-      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
-      {name:'Ciclofosfamida',  dose:'750 mg/m²',            route:'IV', days:[1]},
-      {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[1]},
-      {name:'Vincristina',     dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[1]},
-      {name:'Prednisona',      dose:'60 mg/m²',             route:'VO', days:[1,2,3,4,5]},
-      {name:'Metotrexato',     dose:'3500 mg/m² IC 24h',    route:'IV', days:[15]}
-    ]
-  },
   'VEN-AZA': {
     label: 'Ven-Aza – Venetoclax + Azacitidina – LMA no candidato QT intensiva (cada 28 días)',
     drugs: [
