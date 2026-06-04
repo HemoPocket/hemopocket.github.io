@@ -507,6 +507,11 @@ body{font-size:13px}
 @media(max-width:600px){
 #chatPanel{right:0;left:0;top:0;bottom:auto;width:100%;height:100dvh;max-height:none;border-radius:0;border:none}
 #chatPanel .chat-inputrow{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+/* Asistente de QT: fuente más pequeña en móvil para que las opciones largas no salten de línea */
+#qt_scheme{font-size:12px!important}
+}
+@media(max-width:360px){
+#qt_scheme{font-size:11px!important}
 }
 .eri-greet{position:fixed;right:84px;bottom:30px;width:max-content;max-width:calc(100vw - 110px);white-space:nowrap;background:var(--card);color:var(--txt);font-size:13px;font-weight:600;line-height:1.4;padding:10px 14px;border-radius:14px;border-bottom-right-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.2);border:1px solid var(--bd);z-index:1199;opacity:0;transform:translateX(10px) scale(.9);transform-origin:right bottom;transition:opacity .32s ease,transform .32s cubic-bezier(.2,1.3,.4,1);pointer-events:none}
 .eri-greet.show{opacity:1;transform:none;pointer-events:auto;cursor:pointer}
