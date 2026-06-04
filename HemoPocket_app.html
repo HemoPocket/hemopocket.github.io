@@ -7468,6 +7468,44 @@ VIEWS.rotem=()=>`<div class="card">
 <tr><td><strong>ML</strong> (Maximum Lysis, %)</td><td>&lt; 15%</td><td>&lt; 15%</td><td>&lt; 15%</td><td>Lisis a los 60 min. &gt; 15%: hiperfibrinolisis.</td></tr>
 </table>
 
+<h3 style="margin-top:16px">Algoritmo interactivo de manejo de la coagulopatía</h3>
+<p class="intro" style="margin-top:-2px">Elige el escenario y responde cada paso: te guía la actitud a seguir (orden: hiperfibrinolisis → fibrina → trombina → plaquetas).</p>
+<div id="rca_steps">
+<div class="step" id="rca_s1">
+<div class="step-h"><span class="step-n">1</span>Escenario clínico</div>
+<div style="display:grid;grid-template-columns:1fr;gap:8px">
+<button class="btn btn-out" onclick="rcaScn('cir')">🔪 Cirugía urgente o programada</button>
+<button class="btn btn-out" onclick="rcaScn('trauma')">🚑 Politraumático grave</button>
+<button class="btn btn-out" onclick="rcaScn('obst')">🤰 Hemorragia obstétrica</button>
+</div>
+<div id="rca_o1"></div>
+</div>
+<div class="step locked" id="rca_s2">
+<div class="step-h"><span class="step-n lock">2</span>¿Hiperfibrinolisis?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: ML &gt;15%; A5 EXTEM &lt;25 mm, A10 APTEM−A10 EXTEM &gt;3,5 mm o TC FIBTEM &gt;600 s. (Convencionales: no es posible monitorizarla.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(2,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(2,'no')">No</button></div>
+<div id="rca_o2"></div>
+</div>
+<div class="step locked" id="rca_s3">
+<div class="step-h"><span class="step-n lock">3</span>¿Déficit de fibrina?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: A10 EXTEM ≤40 mm + A10 FIBTEM ≤7 mm. (Convencional: fibrinógeno &lt;1,5–2 g/dL.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(3,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(3,'no')">No</button></div>
+<div id="rca_o3"></div>
+</div>
+<div class="step locked" id="rca_s4">
+<div class="step-h"><span class="step-n lock">4</span>¿Déficit de síntesis de trombina?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: TC EXTEM &gt;80 s (tras corregir el fibrinógeno). (Convencional: TP y TTPa &gt;1,5 ratio.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(4,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(4,'no')">No</button></div>
+<div id="rca_o4"></div>
+</div>
+<div class="step locked" id="rca_s5">
+<div class="step-h"><span class="step-n lock">5</span>¿Déficit de plaquetas?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: A10 EXTEM ≤40 mm + A10 FIBTEM &gt;7 mm. (Convencional: plaquetas <span id="rca_p5">&lt; 50.000/µL</span>.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(5,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(5,'no')">No</button></div>
+<div id="rca_o5"></div>
+</div>
+</div>
+
 <h3>Indicaciones de hemocomponentes y fármacos hemostáticos</h3>
 <p class="small muted" style="margin-top:-2px"><strong>La administración profiláctica (sin sangrado) de hemocomponentes o fármacos prohemostáticos NO se recomienda.</strong></p>
 
@@ -7513,54 +7551,6 @@ VIEWS.rotem=()=>`<div class="card">
 <div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>8 · Factor VII recombinante activado</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
 <li>Uso COMPASIVO; no sustituye a ningún tratamiento con hemocomponentes/hemostáticos ni a un procedimiento invasivo. Requiere consentimiento informado. <strong>Dosis: 90 µg/kg</strong>.</li>
 </ul></div></div>
-
-<h3 style="margin-top:16px">Algoritmo interactivo de manejo de la coagulopatía</h3>
-<p class="intro" style="margin-top:-2px">Elige el escenario y responde cada paso: te guía la actitud a seguir (orden: hiperfibrinolisis → fibrina → trombina → plaquetas).</p>
-<div id="rca_steps">
-<div class="step" id="rca_s1">
-<div class="step-h"><span class="step-n">1</span>Escenario clínico</div>
-<div style="display:grid;grid-template-columns:1fr;gap:8px">
-<button class="btn btn-out" onclick="rcaScn('cir')">🔪 Cirugía urgente o programada</button>
-<button class="btn btn-out" onclick="rcaScn('trauma')">🚑 Politraumático grave</button>
-<button class="btn btn-out" onclick="rcaScn('obst')">🤰 Hemorragia obstétrica</button>
-</div>
-<div id="rca_o1"></div>
-</div>
-<div class="step locked" id="rca_s2">
-<div class="step-h"><span class="step-n lock">2</span>¿Hiperfibrinolisis?</div>
-<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: ML &gt;15%; A5 EXTEM &lt;25 mm, A10 APTEM−A10 EXTEM &gt;3,5 mm o TC FIBTEM &gt;600 s. (Convencionales: no es posible monitorizarla.)</p>
-<div class="row2"><button class="btn btn-2" onclick="rcaStep(2,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(2,'no')">No</button></div>
-<div id="rca_o2"></div>
-</div>
-<div class="step locked" id="rca_s3">
-<div class="step-h"><span class="step-n lock">3</span>¿Déficit de fibrina?</div>
-<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: A10 EXTEM ≤40 mm + A10 FIBTEM ≤7 mm. (Convencional: fibrinógeno &lt;1,5–2 g/dL.)</p>
-<div class="row2"><button class="btn btn-2" onclick="rcaStep(3,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(3,'no')">No</button></div>
-<div id="rca_o3"></div>
-</div>
-<div class="step locked" id="rca_s4">
-<div class="step-h"><span class="step-n lock">4</span>¿Déficit de síntesis de trombina?</div>
-<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: TC EXTEM &gt;80 s (tras corregir el fibrinógeno). (Convencional: TP y TTPa &gt;1,5 ratio.)</p>
-<div class="row2"><button class="btn btn-2" onclick="rcaStep(4,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(4,'no')">No</button></div>
-<div id="rca_o4"></div>
-</div>
-<div class="step locked" id="rca_s5">
-<div class="step-h"><span class="step-n lock">5</span>¿Déficit de plaquetas?</div>
-<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: A10 EXTEM ≤40 mm + A10 FIBTEM &gt;7 mm. (Convencional: plaquetas <span id="rca_p5">&lt; 50.000/µL</span>.)</p>
-<div class="row2"><button class="btn btn-2" onclick="rcaStep(5,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(5,'no')">No</button></div>
-<div id="rca_o5"></div>
-</div>
-</div>
-
-<h3>🎯 Objetivos terapéuticos guiados por ROTEM (sangrado masivo)</h3>
-<table class="tbl">
-<tr><th>Diana</th><th>Producto</th><th>Dosis</th></tr>
-<tr><td>EXTEM CT &gt; 80 s</td><td>PFC o CCP</td><td>PFC 15–20 mL/kg · CCP 20–30 UI/kg</td></tr>
-<tr><td>FIBTEM A10 &lt; 7–10 mm</td><td>Fibrinógeno / crioprecipitado</td><td>25–50 mg/kg · 1 U/10 kg</td></tr>
-<tr><td>EXTEM A10 &lt; 40 mm con FIBTEM normal</td><td>Plaquetas</td><td>1 pool de aféresis adultos</td></tr>
-<tr><td>EXTEM ML &gt; 15% (APTEM corrige)</td><td>TXA</td><td>1 g IV en 10 min, repetir a las 8 h</td></tr>
-<tr><td>INTEM CT prolongado, HEPTEM corrige</td><td>Protamina</td><td>25–50 mg IV</td></tr>
-</table>
 
 <div class="ref">Görlinger K et al. Reduction of fresh frozen plasma requirements by perioperative point-of-care coagulation management with early calculated goal-directed therapy. Anesthesiology. 2011;115(6):1179-91. Schöchl H et al. Goal-directed coagulation management of major trauma patients using thromboelastometry. Crit Care. 2010;14:R55. Wikkelsø A et al. Thromboelastography (TEG) or thromboelastometry (ROTEM) in patients with severe bleeding (Cochrane Review). 2017. NICE DG13: Detecting, managing and monitoring haemostasis (2014).</div>
 </div>`;
