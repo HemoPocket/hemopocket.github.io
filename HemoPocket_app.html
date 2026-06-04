@@ -4877,6 +4877,32 @@ const QT_SCHEMES = {
       'No se recomienda punción lumbar de despistaje al diagnóstico, salvo signos o síntomas de infiltración meníngea.'
     ]
   },
+  'CBF-CONSOL': {
+    label: 'Consolidación CBF (ARA-C AD + Gemtuzumab) – LMA CBF (3 ciclos)',
+    drugs: [
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3]},
+      {name:'Gemtuzumab ozogamicin', dose:'3 mg/m² (máx 4,5 mg)', route:'IV 2h', days:[1]}
+    ],
+    notes: [
+      'ARA-C en días 1,2,3 o 1,3,5 según el ciclo. En pacientes ≥60 años, reducir ARA-C a 1500 mg/m²/12 h.',
+      'Gemtuzumab puede asociar mayor riesgo hemorrágico y trombopenia más prolongada: vigilancia estrecha y soporte transfusional.',
+      'La consolidación puede administrarse de forma ambulatoria según la política del centro.'
+    ]
+  },
+  'FLAG-IDA-R': {
+    label: 'FLAG-Ida – recaída/refractario FLT3− (1 ciclo)',
+    drugs: [
+      {name:'Fludarabina', dose:'30 mg/m²', route:'IV 30 min', days:[1,2,3,4]},
+      {name:'Citarabina (ARA-C) — 4 h tras fludarabina', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4]},
+      {name:'Idarubicina — 4 h tras ARA-C', dose:'10 mg/m²', route:'IV 15 min', days:[1,2,3]},
+      {name:'G-CSF (días 1-4; solo d1 si leucocitos >10.000/µL; no administrar si >25.000/µL)', dose:'5 µg/kg/día', route:'SC', days:[1,2,3,4]}
+    ],
+    notes: [
+      'Orden de administración: fludarabina primero; la citarabina 4 h tras finalizar la fludarabina; la idarubicina 4 h tras finalizar la citarabina.',
+      'En pacientes ≥60 años: reducir ARA-C a 1000 mg/m² e idarubicina a 8 mg/m², con la misma pauta.',
+      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.'
+    ]
+  },
   'IA-3+7': {
     label: 'IA 3+7 – Idarubicina + Citarabina (inducción LMA)',
     drugs: [
@@ -5047,10 +5073,17 @@ const QT_SCHEMES = {
   },
 
   'VEN-AZA': {
-    label: 'Ven-Aza – Venetoclax + Azacitidina – LMA no candidato QT intensiva (cada 28 días)',
+    label: 'Ven-Aza – Venetoclax + Azacitidina – LMA no candidato a QT intensiva (cada 28 días)',
     drugs: [
-      {name:'Azacitidina',     dose:'75 mg/m²',             route:'SC/IV', days:[1,2,3,4,5,6,7]},
-      {name:'Venetoclax (ramp-up C1: 100mg D1 → 200mg D2 → 400mg D3+)', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      {name:'Azacitidina',     dose:'75 mg/m²',             route:'SC', days:[1,2,3,4,5,6,7]},
+      {name:'Venetoclax (ramp-up C1: 100 mg D1 → 200 mg D2 → 400 mg D3-21)', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+    ],
+    notes: [
+      'Venetoclax: PETHEMA recomienda 14-21 días/ciclo; la ficha técnica contempla 28 días de administración continua. En un 2.º ciclo de inducción no se repite la escalada de dosis.',
+      'Ajuste de venetoclax con inhibidores de CYP3A: reducir al 50% con inhibidor potente y al 75% con moderado.',
+      'Aspirado de médula ósea el día 14; si MLFS (morphologic leukemia-free state), RC o RCi, se aconseja retirar el venetoclax.',
+      'Azacitidina: 7 días seguidos o pauta 5-0-2. Ciclos cada ≥28 días (hasta 42-56 días si mala tolerancia o neutropenia prolongada); administrar hasta progresión mientras haya buena tolerancia.',
+      'Pacientes NO frágiles (ECOG <3, sin deterioro por la LMA). Ingreso inicial 7-14 días en el 1.er ciclo, o control en hospital de día/domiciliario cada 48-72 h las 2 primeras semanas. Requiere disponer de UCI.'
     ]
   },
   'VYXEOS': {
@@ -5136,6 +5169,15 @@ const QT_SCHEMES = {
       {name:'Etopósido (3ª de 3 subdosis seguidas)',            dose:'6 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
       {name:'Citarabina (AraC)',                     dose:'3 g/m²/12h',    route:'IV 3h', days:[7,8]},
       {name:'Infusión de progenitores hematopoyéticos', dose:'—',          route:'IV', days:[10]}
+    ],
+    notes: [
+      'Asociar profilaxis antiemética.',
+      'Profilaxis de la neurotoxicidad por busulfán con terapia anticonvulsivante que incluya benzodiacepinas o fenitoína.',
+      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
+      'Profilaxis de neumonía por Pneumocystis (cotrimoxazol) si fludarabina previa; suspender 3-4 meses tras la última dosis de fludarabina.',
+      'G-CSF a partir del día +7 para facilitar la recuperación hematopoyética.',
+      'Profilaxis antibiótica y antifúngica a criterio del centro.',
+      'Etopósido 20 mg/kg/día: por estabilidad, se prepara en 3 subdosis seguidas (7 + 7 + 6 mg/kg) en 1000 mL de SF cada una.'
     ]
   }
 };
@@ -5145,7 +5187,7 @@ const QT_GROUPS = [
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
-  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','CBF-AML','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','VEN-AZA','VYXEOS']},
+  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','VEN-AZA','VYXEOS']},
   {label:'Linfoma de Hodgkin',      keys:['ABVD','BEACOPP-ESC']},
   {label:'Acondicionamiento TASPE – Mieloma/Amiloidosis', keys:['MELFALAN-200','MELFALAN-140','MELFALAN-200-AMI']},
   {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM']},
