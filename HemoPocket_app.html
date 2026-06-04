@@ -4597,7 +4597,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Hasta un máximo de 6 ciclos.',
-      'Premedicación: ondansetrón 8 mg IV 30 min antes; añadir paracetamol 1 g IV si reacción previa.',
+      'Premedicación adicional: paracetamol 1 g IV si hubo reacción infusional previa.',
       'Profilaxis con filgrastim (G-CSF) 300 µg desde el primer ciclo, con independencia de la edad.'
     ]
   },
@@ -4724,8 +4724,7 @@ const QT_SCHEMES = {
       'Esquema mostrado: ciclo 1. Rituximab 375 mg/m² los días 1, 8, 15 y 22.',
       'Ciclos 2 a 5: rituximab 375 mg/m² el día 1 (no se administra rituximab en los ciclos 6–12).',
       'Lenalidomida 20 mg/día por vía oral los días 1–21 de ciclos de 28 días, hasta un máximo de 12 ciclos.',
-      'No iniciar lenalidomida si el RAN es < 1 × 10⁹/L y/o las plaquetas < 50 × 10⁹/L, salvo que sea secundario a infiltración de la médula ósea por el linfoma.',
-      'Etapas de reducción de dosis de lenalidomida (días 1–21, cada 28 días): dosis inicial 20 mg/día · nivel −1: 15 mg/día · nivel −2: 10 mg/día · nivel −3: 5 mg/día.'
+      'No iniciar lenalidomida si el RAN es < 1 × 10⁹/L y/o las plaquetas < 50 × 10⁹/L, salvo que sea secundario a infiltración de la médula ósea por el linfoma.'
     ]
   },
   'MATRIX': {
@@ -4759,6 +4758,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'El metotrexato se administra el día 1 en infusión de 4 h; el R-CHOP se inicia el día 2. (Antes se administraba el MTX el día 15, pero por toxicidad y retrasos del R-CHOP se prefiere intercalarlo de forma precoz.)',
+      'Metotrexato 3500 mg/m² IV en 4 horas: se recomienda iniciar a las 18:00 h y anotar la hora exacta de inicio en notas (necesaria para programar los niveles de MTX y el rescate con folinato).',
       'Rescate con folinato cálcico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
       'Hidratación y alcalinización urinaria antes y durante el metotrexato (pH urinario ≥ 7); monitorizar niveles séricos de MTX.',
       'Referencia: Wilson MR, et al. Timing of high-dose methotrexate CNS prophylaxis in DLBCL: a multicenter international analysis of 1384 patients. Blood. 2022;139(16):2499-2511.'
@@ -5084,6 +5084,7 @@ const QT_SCHEMES = {
   // ── LINFOMA – BIESPECÍFICOS ───────────────────────────────────────────
   'GLOFITAMAB': {
     label: 'Glofitamab (CD20×CD3) – step-up C1 (21 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Obinutuzumab (pretratamiento)', dose:'1000 mg', route:'IV', days:[1]},
       {name:'Glofitamab – dosis escalonada 1', dose:'2,5 mg', route:'IV', days:[8]},
@@ -5101,6 +5102,7 @@ const QT_SCHEMES = {
   },
   'EPCORITAMAB': {
     label: 'Epcoritamab (CD20×CD3) – step-up C1 SC · LBDCG (cada 28 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Epcoritamab – step-up dosis 1', dose:'0,16 mg', route:'SC', days:[1]},
       {name:'Epcoritamab – step-up dosis 2', dose:'0,8 mg',  route:'SC', days:[8]},
@@ -5117,6 +5119,7 @@ const QT_SCHEMES = {
   },
   'EPCORITAMAB-FL': {
     label: 'Epcoritamab (CD20×CD3) – step-up C1 SC · Linfoma folicular (cada 28 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Epcoritamab – dosis escalonada 1', dose:'0,16 mg', route:'SC', days:[1]},
       {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
@@ -5134,6 +5137,7 @@ const QT_SCHEMES = {
   },
   'MOSUNETUZUMAB': {
     label: 'Mosunetuzumab (CD20×CD3) – step-up C1 IV (21 días)',
+    noAntiemetic: true,
     drugs: [
       {name:'Mosunetuzumab – step-up dosis 1', dose:'1 mg',  route:'IV', days:[1]},
       {name:'Mosunetuzumab – step-up dosis 2', dose:'2 mg',  route:'IV', days:[8]},
@@ -5226,6 +5230,7 @@ const QT_SCHEMES = {
   },  // ── MIELOMA – BIESPECÍFICOS ───────────────────────────────────────────
   'TECLISTAMAB': {
     label: 'Teclistamab (BCMA×CD3) – step-up SC (MAJESTEC)',
+    noAntiemetic: true,
     drugs: [
       {name:'Teclistamab – escalada dosis 1', dose:'0,06 mg/kg', route:'SC', days:[1]},
       {name:'Teclistamab – escalada dosis 2 (2-7 días tras dosis 1)', dose:'0,3 mg/kg', route:'SC', days:[3]},
@@ -5238,11 +5243,13 @@ const QT_SCHEMES = {
     notes: [
       'Dosis según peso actual, vía subcutánea. Dejar ≥5 días entre las dosis de mantenimiento semanales.',
       'En pacientes con respuesta completa o mejor durante ≥6 meses, considerar reducir a 1,5 mg/kg cada 2 semanas.',
-      'Indicación: MM en recaída/refractario tras ≥3 líneas (incluido inmunomodulador, inhibidor del proteasoma y anti-CD38). Mantener hasta progresión o toxicidad inaceptable.'
+      'Indicación: MM en recaída/refractario tras ≥3 líneas (incluido inmunomodulador, inhibidor del proteasoma y anti-CD38). Mantener hasta progresión o toxicidad inaceptable.',
+      'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.'
     ]
   },
   'TALQUETAMAB': {
     label: 'Talquetamab (GPRC5D×CD3) – step-up SC (MonumenTAL-1)',
+    noAntiemetic: true,
     drugs: [
       {name:'Talquetamab – escalada dosis 1', dose:'0,01 mg/kg', route:'SC', days:[1]},
       {name:'Talquetamab – escalada dosis 2 (2-4 días tras la 1ª)', dose:'0,06 mg/kg', route:'SC', days:[3]},
@@ -5255,11 +5262,13 @@ const QT_SCHEMES = {
     notes: [
       'Pauta SEMANAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 mg/kg (d5); después 0,4 mg/kg una vez por semana (mínimo 6 días entre dosis).',
       'Pauta QUINCENAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 (d5) → 0,8 mg/kg (d7); después 0,8 mg/kg cada 2 semanas (mínimo 12 días entre dosis).',
-      'Cada escalada puede administrarse 2-4 días después de la anterior (hasta 7 días para permitir la resolución de reacciones). Dosis según peso actual.'
+      'Cada escalada puede administrarse 2-4 días después de la anterior (hasta 7 días para permitir la resolución de reacciones). Dosis según peso actual.',
+      'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.'
     ]
   },
   'ELRANATAMAB': {
     label: 'Elranatamab (BCMA×CD3) – step-up SC (MagnetisMM-3)',
+    noAntiemetic: true,
     drugs: [
       {name:'Elranatamab – escalada dosis 1', dose:'12 mg', route:'SC', days:[1]},
       {name:'Elranatamab – escalada dosis 2 (2-4 días tras la 1ª, con CRS/ICAN resuelto)', dose:'32 mg', route:'SC', days:[4]},
@@ -5270,7 +5279,8 @@ const QT_SCHEMES = {
       'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg). Considerar también en retrasos y en pacientes que hayan presentado SLC.'
     ],
     notes: [
-      'Dosis fija SC. Mantener 76 mg semanal hasta progresión o toxicidad inaceptable; valorar paso a cada 2 semanas según ficha técnica/respuesta.'
+      'Dosis fija SC. Mantener 76 mg semanal hasta progresión o toxicidad inaceptable; valorar paso a cada 2 semanas según ficha técnica/respuesta.',
+      'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.'
     ]
   },
   // ── LEUCEMIA LINFOBLÁSTICA AGUDA (LAL) ─────────────────────────────────
@@ -6265,7 +6275,8 @@ if(scheme.conditioning){
 if($('qt_out'))$('qt_out').value=lines.join('\n');
 // Premedicación → recuadro copiable aparte (ondansetrón general + premed de rituximab si aplica + premed específica del esquema)
 const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
-const _pmList=['Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.'];
+const _pmList=[];
+if(!scheme.noAntiemetic)_pmList.push('Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.');
 if(scheme.drugs.some(d=>/rituximab/i.test(d.name)))
   _pmList.push('Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg + metilprednisolona (o el corticoide del esquema el día correspondiente), 30 min antes de iniciar la infusión.');
 _pmList.push(...(scheme.premed||[]));
