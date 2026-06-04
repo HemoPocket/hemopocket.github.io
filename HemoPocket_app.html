@@ -4685,22 +4685,39 @@ const QT_SCHEMES = {
     ]
   },
   'POLA-BR': {
-    label: 'Pola-BR – Polatuzumab + Rituximab + Bendamustina (cada 21 días)',
+    label: 'Pola-BR – Polatuzumab + Rituximab + Bendamustina · LBDCG en recaída/refractario (cada 21 días, 6 ciclos)',
     drugs: [
       {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
       {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
       {name:'Bendamustina',    dose:'90 mg/m²',             route:'IV', days:[1,2]}
+    ],
+    premed: [
+      'Premedicación de polatuzumab vedotina (antes de la infusión, en todos los ciclos): antihistamínico (dexclorfeniramina 5 mg IV o difenhidramina) + antipirético (paracetamol 650-1000 mg).',
+      'Premedicación de rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'Indicación: LBDCG en recaída o refractario. 6 ciclos de 21 días. Polatuzumab, bendamustina y rituximab pueden administrarse en cualquier orden el día 1 (bendamustina los días 1 y 2).',
+      'No exceder una dosis total de 240 mg de polatuzumab por ciclo (experiencia clínica limitada por encima de esa dosis).',
+      'Profilaxis antiemética para la bendamustina y profilaxis de infecciones (PJP, antiviral) según protocolo.'
     ]
   },
-  'POLA-R-ICE': {
-    label: 'Pola-R-ICE – rescate (cada 21 días)',
-    kw: 'linfoma rescate recaida refractario salvage segunda linea recaido',
+  'POLA-R-CHP': {
+    label: 'Pola-R-CHP – Polatuzumab + R-CHP · LBDCG no tratado previamente (POLARIX) (cada 21 días, 6 ciclos)',
     drugs: [
       {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
-      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV', days:[1]},
-      {name:'Etopósido',       dose:'100 mg/m²',            route:'IV', days:[1,2,3]},
-      {name:'Carboplatino',    dose:'AUC 5 (máx 800 mg)',   route:'IV', days:[2]},
-      {name:'Ifosfamida',      dose:'5000 mg/m² IC 24h',    route:'IV', days:[2]}
+      {name:'Rituximab',       dose:'375 mg/m²',            route:'IV/SC', days:[1]},
+      {name:'Ciclofosfamida',  dose:'750 mg/m²',            route:'IV', days:[1]},
+      {name:'Doxorrubicina',   dose:'50 mg/m²',             route:'IV', days:[1]},
+      {name:'Prednisona',      dose:'100 mg',               route:'VO', days:[1,2,3,4,5]}
+    ],
+    premed: [
+      'Premedicación de polatuzumab vedotina (antes de la infusión, en todos los ciclos): antihistamínico (dexclorfeniramina 5 mg IV o difenhidramina) + antipirético (paracetamol 650-1000 mg).',
+      'Premedicación de rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'Indicación: LBDCG no tratado previamente. 6 ciclos de 21 días; el polatuzumab sustituye a la vincristina del R-CHOP.',
+      'Polatuzumab, rituximab, ciclofosfamida y doxorrubicina pueden administrarse en cualquier orden el día 1 tras la prednisona; la prednisona se administra los días 1-5 de cada ciclo.',
+      'En los ciclos 7 y 8 se administra rituximab en monoterapia (375 mg/m² el día 1).'
     ]
   },
   'R2': {
@@ -4814,12 +4831,21 @@ const QT_SCHEMES = {
     ]
   },
   'ISATUXIMAB-VRD': {
-    label: 'Isa-VRD – Isatuximab + Bortezomib + Lenalidomida + Dexametasona (cada 28 días)',
+    label: 'Isa-VRd – Isatuximab + Bortezomib + Lenalidomida + Dexametasona · MM no candidato a TPH (IMROZ) · inducción (ciclos de 42 días)',
     drugs: [
-      {name:'Isatuximab (C1: días 1,8,15,22; C2+: días 1,15)', dose:'10 mg/kg', route:'IV', days:[1]},
-      {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,8,15]},
-      {name:'Lenalidomida',    dose:'25 mg',                route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
-      {name:'Dexametasona',    dose:'20 mg',                route:'VO/IV', days:[1,2,8,9,15,16,22,23]}
+      {name:'Isatuximab',      dose:'10 mg/kg',             route:'IV', days:[1,8,15,22,29]},
+      {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,4,8,11,22,25,29,32]},
+      {name:'Lenalidomida',    dose:'25 mg',                route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,22,23,24,25,26,27,28,29,30,31,32,33,34,35]},
+      {name:'Dexametasona',    dose:'20 mg',                route:'IV/VO', days:[1,2,4,5,8,9,11,12,15,22,23,25,26,29,30,32,33]}
+    ],
+    premed: [
+      'Premedicación de isatuximab (15-60 min antes): dexametasona 20 mg IV/VO (corticoide del propio esquema) + paracetamol 650-1000 mg VO/IV + antihistamínico H1 (difenhidramina 25-50 mg, o dexclorfeniramina 5 mg, VO/IV) + anti-H2 (ranitidina o equivalente). Valorar montelukast 10 mg VO si broncoespasmo/EPOC.'
+    ],
+    notes: [
+      'Esquema mostrado: ciclo 1 de inducción (42 días). En el ciclo 1 el isatuximab es semanal (días 1, 8, 15, 22 y 29).',
+      'Inducción (ciclos 1-4, 42 días): en los ciclos 2-4 el isatuximab pasa a cada 2 semanas (días 1, 15 y 29). Bortezomib 1,3 mg/m² SC días 1, 4, 8, 11, 22, 25, 29 y 32; lenalidomida 25 mg/día días 1-14 y 22-35; dexametasona 20 mg días 1, 2, 4, 5, 8, 9, 11, 12, 15, 22, 23, 25, 26, 29, 30, 32 y 33.',
+      'Continuación (desde el ciclo 5, ciclos de 28 días): isatuximab + lenalidomida + dexametasona, sin bortezomib; isatuximab cada 2 semanas (días 1 y 15) hasta el ciclo 17 y después solo el día 1 desde el ciclo 18.',
+      'Dexametasona 20 mg/día también en pacientes ≥ 75 años. Fenotipar hematíes antes de iniciar isatuximab y realizar despistaje de VHB.'
     ]
   },
   'ISA-KD': {
@@ -4830,7 +4856,7 @@ const QT_SCHEMES = {
       {name:'Dexametasona (20 mg/día; 10 mg/día si >70 años)', dose:'20 mg/día', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
     ],
     premed: [
-      'Premedicación isatuximab (1 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650-1000 mg VO. Valorar montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.'
+      'Premedicación de isatuximab (15-60 min antes): dexametasona 20 mg IV/VO (corticoide del propio esquema) + paracetamol 650-1000 mg VO/IV + antihistamínico H1 (dexclorfeniramina 5 mg IV o difenhidramina 25-50 mg, VO/IV) + anti-H2 (ranitidina o equivalente). Valorar montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.'
     ],
     notes: [
       'Fenotipar hematíes antes de iniciar el tratamiento con isatuximab.',
@@ -5410,7 +5436,7 @@ const QT_SCHEMES = {
 };
 
 const QT_GROUPS = [
-  {label:'Linfoma B',               keys:['R-CHOP','R-MINI-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','EPCORITAMAB-FL','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
+  {label:'Linfoma B',               keys:['R-CHOP','R-MINI-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','ICE','GEMOX','POLA-BR','POLA-R-CHP','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','EPCORITAMAB-FL','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
