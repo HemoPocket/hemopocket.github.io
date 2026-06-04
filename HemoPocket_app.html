@@ -5233,6 +5233,83 @@ const QT_SCHEMES = {
       'Dosis fija SC. Mantener 76 mg semanal hasta progresión o toxicidad inaceptable; valorar paso a cada 2 semanas según ficha técnica/respuesta.'
     ]
   },
+  // ── LEUCEMIA LINFOBLÁSTICA AGUDA (LAL) ─────────────────────────────────
+  'LAL-PREFASE': {
+    label: 'LAL adulto Ph− — Prefase (PETHEMA LAL 2019)',
+    kw: 'leucemia aguda linfoblastica lla lal adulto prefase pethema 2019 ph negativo prednisona',
+    drugs: [
+      {name:'Prednisona', dose:'60 mg/m²', route:'IV/VO', days:[1,2,3,4,5]},
+      {name:'Triple intratecal (MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg)', dose:'—', route:'Intratecal', days:[1]}
+    ],
+    notes: [
+      'Prefase: prednisona los 5 días previos a la inducción (días -5 a -1); triple intratecal el día -5.',
+      'La triple intratecal del día 1 de la inducción se omite si la de la prefase se administró en menos de 7 días antes.'
+    ]
+  },
+  'LAL-INDUCCION': {
+    label: 'LAL adulto Ph− — Inducción-1 (PETHEMA LAL 2019)',
+    kw: 'leucemia aguda linfoblastica lla lal adulto induccion pethema vincristina daunorubicina asparaginasa',
+    drugs: [
+      {name:'Vincristina', dose:'1,5 mg/m² (máx 2 mg)', route:'IV', days:[1,8,15,22]},
+      {name:'Daunorubicina', dose:'45 mg/m²', route:'IV', days:[1,2,3]},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV 2h', days:[15,29]},
+      {name:'Prednisona (60 d1-14 → 30 d15-21 → 15 d22-28)', dose:'60→30→15 mg/m²', route:'IV/VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
+      {name:'Triple intratecal (MTX 12 + ARA-C 30 + hidrocortisona 20)', dose:'—', route:'Intratecal', days:[1,22]}
+    ],
+    notes: [
+      'La PEG-asparaginasa del día 15 debe separarse ≥12 h de la vincristina.',
+      'Reducir PEG-asparaginasa a 500 UI/m² si: >50 años, IMC >30, hepatopatía/esteatosis/fibrosis o alteración de pruebas hepáticas. Si toxicidad hepática grado >2 (transaminasas >3-5× o bilirrubina >3 mg/dL), suprimir la dosis del día 29.',
+      'Si hipersensibilidad/inactivación silente: sustituir por asparaginasa de Erwinia 25.000 UI/m², 3 dosis/semana × 2 semanas (6 dosis); reducir a la mitad en >50 años.',
+      'El día que coincida con la PEG-asparaginasa, la prednisona debe ser de 80-100 mg.'
+    ]
+  },
+  'INOTUZUMAB-LAL': {
+    label: 'Inotuzumab ozogamicina — LAL B (1-2 ciclos)',
+    kw: 'inotuzumab ozogamicina lal lla recaida refractario cd22 besponsa',
+    drugs: [
+      {name:'Inotuzumab ozogamicina (C1: 0,8 mg/m² d1; 0,5 mg/m² d8 y d15; total 1,8 mg/m²)', dose:'0,8 – 0,5 – 0,5 mg/m²', route:'IV', days:[1,8,15]},
+      {name:'Triple intratecal (MTX 12 + ARA-C 30 + hidrocortisona 20) — profilaxis SNC', dose:'—', route:'Intratecal', days:[8]}
+    ],
+    notes: [
+      'Ciclo 1: dosis total 1,8 mg/m² repartida en 0,8 mg/m² (d1) + 0,5 mg/m² (d8 y d15).',
+      'Si RC citológica y EMR <0,01%: pasar a consolidación-1 y alo-TPH precoz. Si RC con EMR ≥0,01%: 2.º ciclo de InO a dosis reducidas (1,5 mg/m²: 0,5 d1, d8 y d15) + alo-TPH precoz.',
+      'Si no RC citológica: 2.º ciclo a dosis completas (1,8 mg/m²). Si tras el 2.º ciclo no hay RC, excluir del protocolo.',
+      'Profilaxis del SNC: triple intratecal el día 8.'
+    ]
+  },
+  'LAL-CONSOL-1': {
+    label: 'LAL adulto Ph− — Consolidación, 1.er bloque (PETHEMA LAL 2019)',
+    kw: 'leucemia linfoblastica lla lal consolidacion primer bloque metotrexato altas dosis',
+    drugs: [
+      {name:'Vincristina', dose:'1,5 mg/m² (máx 2 mg)', route:'IV', days:[1,8]},
+      {name:'Metotrexato (LAL-B: 3000 mg/m²; LAL-T: 5000 mg/m²)', dose:'3000 mg/m²', route:'IV infusión continua 24h', days:[1]},
+      {name:'PEG-asparaginasa de E. coli', dose:'1500 UI/m²', route:'IV 3h', days:[3]},
+      {name:'Dexametasona (20 d1-5 → 10 d6 → 5 d7 → 2,5 d8)', dose:'20→2,5 mg/m²', route:'IV/VO', days:[1,2,3,4,5,6,7,8]},
+      {name:'Triple intratecal (igual que en inducción)', dose:'—', route:'Intratecal', days:[1]}
+    ],
+    notes: [
+      'En >50 años, reducir el MTX a 1,5 g/m² (ambos tipos de LAL); reducir PEG-asparaginasa a 500 UI/m² en >50 años.',
+      'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar el MTX; a las 3 h, 30 mg/m²; seguir con 30 mg cada 6 h hasta MTX sérico <0,2 µmol/L.',
+      'Hidratación con MTX: glucosalino 4 L/día + bicarbonatado 1/6 M 2 L/día (sin MTX: 2 L + 1 L).',
+      'Antiemético y protección gástrica; administrar 80-100 mg de prednisona (o dexametasona equivalente) antes de la PEG-asparaginasa.'
+    ]
+  },
+  'LAL-CONSOL-2': {
+    label: 'LAL adulto Ph− — Consolidación, 2.º bloque (PETHEMA LAL 2019)',
+    kw: 'leucemia linfoblastica lla lal consolidacion segundo bloque citarabina altas dosis',
+    drugs: [
+      {name:'Citarabina (ARA-C)', dose:'2000 mg/m²/12h', route:'IV 3h', days:[1,2]},
+      {name:'PEG-asparaginasa de E. coli', dose:'1500 UI/m²', route:'IV 3h', days:[3]},
+      {name:'Dexametasona (20 d1-5 → 10 d6 → 5 d7 → 2,5 d8)', dose:'20→2,5 mg/m²', route:'IV/VO', days:[1,2,3,4,5,6,7,8]},
+      {name:'Triple intratecal (igual que en inducción)', dose:'—', route:'Intratecal', days:[1]}
+    ],
+    notes: [
+      'En >50 años, reducir el ARA-C a la mitad; reducir PEG-asparaginasa a 500 UI/m² en >50 años.',
+      'Hidratación: glucosalino 2 L/día + bicarbonatado 1/6 M 1 L/día.',
+      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis.',
+      'Protección gástrica (omeprazol 20 mg o ranitidina 300 mg/día).'
+    ]
+  },
   // ── ACONDICIONAMIENTO TASPE ───────────────────────────────────────────
   'MELFALAN-200': {
     label: 'Melfalán 200 – TASPE mieloma',
@@ -5313,6 +5390,7 @@ const QT_GROUPS = [
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
   {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','AIDA','VEN-AZA','VYXEOS']},
   {label:'Aplasia medular',         keys:['APLASIA-IST']},
+  {label:'Leucemia linfoblástica (LAL)', keys:['LAL-PREFASE','LAL-INDUCCION','INOTUZUMAB-LAL','LAL-CONSOL-1','LAL-CONSOL-2']},
   {label:'Linfoma de Hodgkin',      keys:['ABVD','BV-AVD','BEACOPP-ESC']},
   {label:'Acondicionamiento TASPE – Mieloma/Amiloidosis', keys:['MELFALAN-200','MELFALAN-140','MELFALAN-200-AMI']},
   {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM','BCNU-TIOTEPA']},
