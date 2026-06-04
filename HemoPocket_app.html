@@ -7404,23 +7404,40 @@ $('rv_out').innerHTML=`<div class="alert ${cls}" style="margin-top:14px">${txt}<
 
 
 // ─── 4. INTERPRETACIÓN DE ROTEM ─────────────────────────────────
-const ROTEM_ALGO={
-  cir:{t:'Cirugía urgente o programada', pre:'', plt:'&lt; 50.000/µL', sev:'EXTEM A10 &lt; 25 mm (déficit severo) → 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si &lt; 50.000/µL.'},
-  trauma:{t:'Politraumático grave', pre:'Ácido tranexámico 15 mg/kg + activar el protocolo de transfusión masiva (según ABC / TASH score).', plt:'&lt; 50.000–75.000/µL', sev:'EXTEM A10 &lt; 25 mm (déficit severo) → 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si &lt; 50.000–75.000/µL.'},
-  obst:{t:'Hemorragia obstétrica', pre:'Ácido tranexámico 15 mg/kg PRECOZ. Si desprendimiento de placenta o embolia de líquido amniótico: TXA + protocolo de transfusión masiva.', plt:'&lt; 50.000–75.000/µL', extra:'Paso 5 · Considerar factor VIIa (previo a histerectomía).', sev:'EXTEM A10 &lt; 25 mm (déficit severo) → 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si &lt; 50.000–75.000/µL.'}
-};
-function rotemAlgo(s){
-  const c=ROTEM_ALGO[s];const el=$('rotem_algo_out');if(!c||!el)return;
-  const step=(n,t,conv,visco,ttto)=>`<div class="alert b" style="margin-top:8px"><strong>${n} · ${t}</strong><div style="font-size:12.5px;margin:4px 0"><strong>Convencional:</strong> ${conv}<br><strong>Viscoelásticas:</strong> ${visco}</div><strong>→ ${ttto}</strong></div>`;
-  let h='<div style="margin-top:8px;font-weight:700">'+c.t+'</div>';
-  if(c.pre)h+='<div class="alert r" style="margin-top:6px"><strong>De entrada:</strong> '+c.pre+'</div>';
-  h+=step('1','Hiperfibrinolisis','No es posible monitorizarla.','ML &gt;15%; predictores: A5 EXTEM &lt;25 mm, A10 APTEM−A10 EXTEM &gt;3,5 mm, TC FIBTEM &gt;600 s.','Ácido tranexámico.');
-  h+=step('2','Déficit de fibrina','Fibrinógeno &lt;1,5–2 g/dL.','A10 EXTEM ≤40 mm + A10 FIBTEM ≤7 mm.','Fibrinógeno.');
-  h+=step('3','Déficit de síntesis de trombina','TP y TTPa &gt;1,5 ratio (tras corregir el fibrinógeno).','TC EXTEM &gt;80 s (tras corregir el fibrinógeno).','Plasma fresco congelado (o CCP).');
-  h+=step('4','Déficit de plaquetas','Plaquetas '+c.plt+'.','A10 EXTEM ≤40 mm + A10 FIBTEM &gt;7 mm.','Plaquetas.');
-  if(c.extra)h+='<div class="alert y" style="margin-top:8px"><strong>'+c.extra+'</strong></div>';
-  h+='<div class="alert r" style="margin-top:8px">'+c.sev+'</div>';
-  el.innerHTML=h;
+const RCA={sc:null,plt:{cir:'&lt; 50.000/µL',trauma:'&lt; 50.000–75.000/µL',obst:'&lt; 50.000–75.000/µL'}};
+function rcaUnlock(n){const s=$('rca_s'+n);if(s){s.classList.remove('locked');const sn=s.querySelector('.step-n');if(sn)sn.classList.remove('lock');}}
+function rcaLock(n){const s=$('rca_s'+n);if(s){s.classList.add('locked');const sn=s.querySelector('.step-n');if(sn)sn.classList.add('lock');}const o=$('rca_o'+n);if(o)o.innerHTML='';}
+function rcaShow(n,cls,html){const o=$('rca_o'+n);if(o)o.innerHTML='<div class="alert '+cls+'" style="margin-top:8px">'+html+'</div>';}
+function rcaScn(sc){
+  RCA.sc=sc;
+  const names={cir:'Cirugía urgente o programada',trauma:'Politraumático grave',obst:'Hemorragia obstétrica'};
+  const pre={
+    cir:'Manejo escalonado guiado por ROTEM: corrige en orden (fibrinólisis → fibrina → trombina → plaquetas) y reevalúa.',
+    trauma:'<strong>De entrada:</strong> ácido tranexámico 15 mg/kg + activar el protocolo de transfusión masiva (según ABC / TASH score). Después, manejo escalonado.',
+    obst:'<strong>De entrada:</strong> ácido tranexámico 15 mg/kg PRECOZ. Si desprendimiento de placenta o embolia de líquido amniótico: TXA + protocolo de transfusión masiva. Después, manejo escalonado.'
+  };
+  rcaShow(1,(sc==='cir'?'b':'r'),'<strong>'+names[sc]+'</strong><br>'+pre[sc]);
+  [2,3,4,5].forEach(rcaLock);
+  const p5=$('rca_p5');if(p5)p5.innerHTML=RCA.plt[sc];
+  rcaUnlock(2);
+}
+function rcaStep(n,r){
+  const acts={
+    2:['Administrar <strong>ácido tranexámico</strong> (1 g IV; 15 mg/kg). Reevaluar tras la corrección.','No hay hiperfibrinolisis: pasa al siguiente paso.'],
+    3:['Administrar <strong>concentrado de fibrinógeno</strong>. Objetivo A10 FIBTEM ≥ 12 mm (≥ 15–20 mm en obstétrica). Alternativa: crioprecipitado.','Fibrina suficiente: pasa al siguiente paso.'],
+    4:['Administrar <strong>plasma fresco congelado</strong> 15–30 mL/kg (o CCP 20–30 UI/kg si TC↑ y sobrecarga de volumen).','Síntesis de trombina conservada: pasa al siguiente paso.'],
+    5:['Transfundir <strong>plaquetas</strong> (1 pool / 1 aféresis).','Plaquetas suficientes.']
+  };
+  const yes=r==='si';
+  rcaShow(n, yes?'b':'g', yes?acts[n][0]:acts[n][1]);
+  if(n<5){
+    rcaUnlock(n+1);
+  } else {
+    let extra='';
+    if(RCA.sc==='obst')extra+='<div class="alert y" style="margin-top:8px"><strong>Considerar factor VIIa</strong> (90 µg/kg, uso compasivo) previo a histerectomía si persiste el sangrado.</div>';
+    extra+='<div class="alert r" style="margin-top:8px"><strong>Déficit severo</strong> (EXTEM A10 &lt; 25 mm): 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si '+RCA.plt[RCA.sc]+'.</div>';
+    const o=$('rca_o5');if(o)o.innerHTML+=extra;
+  }
 }
 VIEWS.rotem=()=>`<div class="card">
 <h2>📊 Interpretación de ROTEM</h2>
@@ -7497,14 +7514,43 @@ VIEWS.rotem=()=>`<div class="card">
 <li>Uso COMPASIVO; no sustituye a ningún tratamiento con hemocomponentes/hemostáticos ni a un procedimiento invasivo. Requiere consentimiento informado. <strong>Dosis: 90 µg/kg</strong>.</li>
 </ul></div></div>
 
-<h3 style="margin-top:16px">Algoritmo de manejo de la coagulopatía por hemorragia</h3>
-<p class="small muted" style="margin-top:-2px">Elige el escenario para ver el manejo escalonado guiado por técnicas convencionales y viscoelásticas.</p>
-<div style="display:grid;grid-template-columns:1fr;gap:8px;margin:6px 0">
-<button class="btn btn-out" onclick="rotemAlgo('cir')">🔪 Cirugía urgente o programada</button>
-<button class="btn btn-out" onclick="rotemAlgo('trauma')">🚑 Politraumático grave</button>
-<button class="btn btn-out" onclick="rotemAlgo('obst')">🤰 Hemorragia obstétrica</button>
+<h3 style="margin-top:16px">Algoritmo interactivo de manejo de la coagulopatía</h3>
+<p class="intro" style="margin-top:-2px">Elige el escenario y responde cada paso: te guía la actitud a seguir (orden: hiperfibrinolisis → fibrina → trombina → plaquetas).</p>
+<div id="rca_steps">
+<div class="step" id="rca_s1">
+<div class="step-h"><span class="step-n">1</span>Escenario clínico</div>
+<div style="display:grid;grid-template-columns:1fr;gap:8px">
+<button class="btn btn-out" onclick="rcaScn('cir')">🔪 Cirugía urgente o programada</button>
+<button class="btn btn-out" onclick="rcaScn('trauma')">🚑 Politraumático grave</button>
+<button class="btn btn-out" onclick="rcaScn('obst')">🤰 Hemorragia obstétrica</button>
 </div>
-<div id="rotem_algo_out"></div>
+<div id="rca_o1"></div>
+</div>
+<div class="step locked" id="rca_s2">
+<div class="step-h"><span class="step-n lock">2</span>¿Hiperfibrinolisis?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: ML &gt;15%; A5 EXTEM &lt;25 mm, A10 APTEM−A10 EXTEM &gt;3,5 mm o TC FIBTEM &gt;600 s. (Convencionales: no es posible monitorizarla.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(2,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(2,'no')">No</button></div>
+<div id="rca_o2"></div>
+</div>
+<div class="step locked" id="rca_s3">
+<div class="step-h"><span class="step-n lock">3</span>¿Déficit de fibrina?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: A10 EXTEM ≤40 mm + A10 FIBTEM ≤7 mm. (Convencional: fibrinógeno &lt;1,5–2 g/dL.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(3,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(3,'no')">No</button></div>
+<div id="rca_o3"></div>
+</div>
+<div class="step locked" id="rca_s4">
+<div class="step-h"><span class="step-n lock">4</span>¿Déficit de síntesis de trombina?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: TC EXTEM &gt;80 s (tras corregir el fibrinógeno). (Convencional: TP y TTPa &gt;1,5 ratio.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(4,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(4,'no')">No</button></div>
+<div id="rca_o4"></div>
+</div>
+<div class="step locked" id="rca_s5">
+<div class="step-h"><span class="step-n lock">5</span>¿Déficit de plaquetas?</div>
+<p style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Viscoelásticas: A10 EXTEM ≤40 mm + A10 FIBTEM &gt;7 mm. (Convencional: plaquetas <span id="rca_p5">&lt; 50.000/µL</span>.)</p>
+<div class="row2"><button class="btn btn-2" onclick="rcaStep(5,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(5,'no')">No</button></div>
+<div id="rca_o5"></div>
+</div>
+</div>
 
 <h3>🎯 Objetivos terapéuticos guiados por ROTEM (sangrado masivo)</h3>
 <table class="tbl">
