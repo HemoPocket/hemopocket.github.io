@@ -4568,13 +4568,20 @@ const HOSP_DIR=[["ADMISIÓN",[["ACTIVIDAD QUIRÚRGICA","EDIF. TRAUMA PL. 1","922
 const QT_SCHEMES = {
   // ── LINFOMA ──────────────────────────────────────────────────────────
   'R-CHOP': {
-    label: 'R-CHOP (cada 21 días)',
+    label: 'R-CHOP – planta (cada 21 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
       {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV', days:[2]},
       {name:'Doxorubicina',  dose:'50 mg/m²',  route:'IV', days:[2]},
       {name:'Vincristina',   dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[2]},
-      {name:'Prednisona',    dose:'60 mg/m²',  route:'VO', days:[1,2,3,4,5]}
+      {name:'Prednisona',    dose:'60 mg/m²',  route:'VO/IV', days:[1,2,3,4,5]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión. Se aprovecha el corticoide del día del ciclo (prednisona/metilprednisolona) como premedicación.',
+      'Velocidad de infusión de rituximab (ml/h, subir cada 30 min): 12 → 24 → 36 → 48 → 60 → 72 → 84 → 96.'
+    ],
+    notes: [
+      'En planta: el rituximab (1ª infusión, lenta) se administra el día 1 y el resto (ciclofosfamida, doxorubicina, vincristina) el día 2, porque la primera infusión de rituximab suele prolongarse al día siguiente.'
     ]
   },
   'CHOP': {
@@ -4587,14 +4594,23 @@ const QT_SCHEMES = {
     ]
   },
   'R-EPOCH': {
-    label: 'R-EPOCH (cada 21 días)',
+    label: 'R-DA-EPOCH (dose-adjusted) (cada 21 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
-      {name:'Etopósido',     dose:'50 mg/m²/día', route:'IV infusión continua 96h', days:[2,3,4,5]},
-      {name:'Doxorubicina',  dose:'10 mg/m²/día', route:'IV infusión continua 96h', days:[2,3,4,5]},
-      {name:'Vincristina',   dose:'0,4 mg/m²/día', route:'IV infusión continua 96h', days:[2,3,4,5]},
-      {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV', days:[6]},
-      {name:'Prednisona',    dose:'60 mg/m²/12h', route:'VO', days:[2,3,4,5,6]}
+      {name:'Etopósido',     dose:'50 mg/m²/día', route:'IV infusión continua 96h', days:[1,2,3,4]},
+      {name:'Doxorubicina (Adriamicina)', dose:'10 mg/m²/día', route:'IV infusión continua 96h', days:[1,2,3,4]},
+      {name:'Vincristina',   dose:'0,4 mg/m²/día', route:'IV infusión continua 96h', days:[1,2,3,4]},
+      {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV (1 h)', days:[5]},
+      {name:'Prednisona',    dose:'120 mg/m²/día (dividida en 2 dosis)', route:'VO/IV', days:[1,2,3,4,5]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'Día 1: administrar el rituximab en primer lugar; iniciar la infusión continua de los 3 fármacos (etopósido, vincristina, doxorubicina) inmediatamente después de finalizar el rituximab.',
+      'Prednisona 120 mg/m²/día dividida en 2 dosis (VO o IV); el día 1 administrarla antes del rituximab.',
+      'Ciclofosfamida (día 5) inmediatamente después de finalizar la infusión continua de los 3 fármacos.',
+      'Dose-adjusted (DA): ajustar las dosis de etopósido, doxorubicina y ciclofosfamida en los ciclos siguientes según el nadir de neutrófilos/plaquetas del ciclo previo.'
     ]
   },
   'R-BENDAMUSTINA': {
