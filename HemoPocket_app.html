@@ -4971,11 +4971,50 @@ const QT_SCHEMES = {
     ]
   },
   'ATRA-ATO': {
-    label: 'ATRA + ATO (LPA / promielocítica · M3, 1ª línea)',
+    label: 'ATRA + ATO (LPA / promielocítica · M3, riesgo bajo-intermedio)',
     kw: 'leucemia promielocitica aguda lpa apl m3 lma promielocitica tretinoina trioxido arsenico riesgo bajo intermedio',
     drugs: [
-      {name:'ATRA (tretinoína)', dose:'45 mg/m²/día repartido en 2 dosis', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
-      {name:'Trióxido de arsénico (ATO)', dose:'0,15 mg/kg', route:'IV', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
+      {name:'ATRA (tretinoína) — 25 mg/m² si <20 años', dose:'45 mg/m²/día (en 2 tomas)', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
+      {name:'Trióxido de arsénico (ATO)', dose:'0,15 mg/kg', route:'IV 2h', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
+      {name:'Prednisona (profilaxis del síndrome de diferenciación)', dose:'0,5 mg/kg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
+    ],
+    notes: [
+      'Indicación: LPA de riesgo bajo-intermedio (leucocitos ≤10×10⁹/L), edad ≥70 años o cardiopatía (FEVI <50%)/contraindicación a antraciclinas.',
+      'Mantener ATRA y ATO hasta la RC (mínimo recomendable 28 días) o hasta un máximo de 60 días si persisten promielocitos atípicos en médula; descartar toxicidad medular antes de prolongar.',
+      'ATO: vigilar QTc (contraindicado/evitar si QTc >500 ms) e iones (K, Mg). Hidratación no excesiva (máx 1,5 L/m²/día). Bajo riesgo de SLT: considerar alopurinol 300 mg/día en citorreducción (días 1-8).',
+      'Síndrome de diferenciación: ante sospecha, iniciar dexametasona 10 mg/12 h IV hasta su resolución; en SD severo suspender temporalmente el ATRA.',
+      'Soporte: plaquetas para mantener >30×10⁹/L (>50×10⁹/L si riesgo de hemorragia grave) y Hb >9 g/dL; corregir coagulopatía (fibrinógeno >150 mg/dL, Quick >60%). No usar heparina ni antifibrinolíticos como profilaxis. QT triple intratecal solo si infiltración del SNC.'
+    ]
+  },
+  'AIDA': {
+    label: 'AIDA (LPA alto riesgo o contraindicación a ATO)',
+    kw: 'leucemia promielocitica lpa apl m3 aida atra idarubicina alto riesgo induccion',
+    drugs: [
+      {name:'ATRA (tretinoína) — desde el día 1 hasta la RC; 25 mg/m² si <20 años', dose:'45 mg/m²/día (en 2 tomas)', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
+      {name:'Idarubicina (60-69 años: solo días 1,3,5)', dose:'12 mg/m²', route:'IV 10 min', days:[1,3,5,7]},
+      {name:'Prednisona (profilaxis del síndrome de diferenciación)', dose:'0,5 mg/kg/día', route:'IV', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
+    ],
+    notes: [
+      'Indicación: LPA de alto riesgo (leucocitos >10×10⁹/L) y edad <70 años, o contraindicación al ATO (p. ej. QTc >500 ms).',
+      'ATRA desde el día 1 hasta la RC. En pacientes de 60-69 años, la idarubicina se administra solo en 3 dosis (días 1, 3 y 5).',
+      'Reducir la idarubicina al 75% si hepatotoxicidad (bilirrubina >3 mg/dL o >80 µmol/L).',
+      'Síndrome de diferenciación: ante sospecha, dexametasona 10 mg/12 h IV hasta su resolución.',
+      'Soporte: plaquetas >30×10⁹/L (>50×10⁹/L si riesgo de hemorragia grave) y Hb >9 g/dL; corregir coagulopatía (fibrinógeno >150 mg/dL, Quick >60%); no heparina ni antifibrinolíticos profilácticos. Antiemético: granisetrón u ondansetrón IV. QT triple intratecal solo si infiltración del SNC.'
+    ]
+  },
+  'APLASIA-IST': {
+    label: 'Aplasia medular grave — IST (ATG + ciclosporina + eltrombopag)',
+    drugs: [
+      {name:'ATG de conejo (Timoglobulina) — infusión muy lenta (12-18 h)', dose:'3,5-3,75 mg/kg/día', route:'IV', days:[1,2,3,4,5]},
+      {name:'Metilprednisolona (5 mg/kg d1, 2 mg/kg d2, 1 mg/kg d3-5)', dose:'5→1 mg/kg/día', route:'IV', days:[1,2,3,4,5]},
+      {name:'Prednisona (a días alternos, 10 dosis)', dose:'0,5 mg/kg/48h', route:'VO', days:[7,9,11,13,15,17,19,21,23,25]},
+      {name:'Ciclosporina A — desde el día 1, ajuste por niveles valle', dose:'1,5 mg/kg/12h', route:'IV/VO', days:[1]},
+      {name:'Eltrombopag — desde el día 1, al menos hasta el día +180', dose:'150 mg/día', route:'VO', days:[1]}
+    ],
+    notes: [
+      'Ciclosporina A: mantener desde el día 1 hasta 12 meses tras alcanzar la RC (luego descenso lento). Niveles valle objetivo: adultos 200±50 ng/ml; niños 150±25 ng/ml.',
+      'Eltrombopag 150 mg/día (ajustar según etnia/hepatopatía); mantener al menos hasta el día +180.',
+      'La metilprednisolona y la prednisona se administran como profilaxis de la enfermedad del suero por la ATG.'
     ]
   },
   // ── HODGKIN ──────────────────────────────────────────────────────────
@@ -5187,7 +5226,8 @@ const QT_GROUPS = [
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
-  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','VEN-AZA','VYXEOS']},
+  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','AIDA','VEN-AZA','VYXEOS']},
+  {label:'Aplasia medular',         keys:['APLASIA-IST']},
   {label:'Linfoma de Hodgkin',      keys:['ABVD','BEACOPP-ESC']},
   {label:'Acondicionamiento TASPE – Mieloma/Amiloidosis', keys:['MELFALAN-200','MELFALAN-140','MELFALAN-200-AMI']},
   {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM']},
