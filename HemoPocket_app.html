@@ -202,6 +202,8 @@ body.view-home .app-footer{padding-bottom:18px}
 .step.locked{opacity:.5;pointer-events:none}
 .step.locked .step-n{background:var(--bd);color:var(--mut)}
 .tbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px}
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;margin:8px 0}
+.tbl-scroll>.tbl{margin:0;min-width:max-content}
 .tbl th,.tbl td{padding:8px 9px;border:1px solid var(--bd);text-align:left;vertical-align:top}
 .tbl th{background:var(--bg2);font-weight:600;font-size:12px}
 .coll{margin-bottom:8px;border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden}
@@ -756,6 +758,19 @@ function toggleFav(id){const i=S.favs.indexOf(id);if(i>=0)S.favs.splice(i,1);els
 function homeFav(id){toggleFav(id);if(S.view==='home')$('content').innerHTML=homeView();}
 function filterMenu(v){renderMenu(v)}
 
+// Envuelve toda tabla .tbl en un contenedor con scroll horizontal (evita que se corten en móvil)
+function wrapTbls(root){
+  try{
+    (root||document).querySelectorAll('table.tbl').forEach(t=>{
+      const p=t.parentElement;
+      if(!p) return;
+      if(p.classList.contains('tbl-scroll')) return;          // ya envuelta
+      if((p.style&&/auto|scroll/.test(p.style.overflowX||''))) return; // ya tiene scroll propio
+      const w=document.createElement('div'); w.className='tbl-scroll';
+      t.replaceWith(w); w.appendChild(t);
+    });
+  }catch(e){}
+}
 function go(id, params) {
     if (id === 'chat') { closeSb(); openChat(); return; }
     if (id === 'libroazul') { closeSb(); openPDFurl('guias/LibroAzul_QT.pdf','Pautas de QT SEHH'); return; }
@@ -772,6 +787,7 @@ function go(id, params) {
     
     const v = VIEWS[id];
     $('content').innerHTML = v ? v(params) : homeView();
+    if (typeof wrapTbls==='function') wrapTbls($('content'));
     if (VIEWS[id + '_post']) VIEWS[id + '_post'](params);
     document.body.classList.toggle('view-home', !!document.querySelector('#content .home-screen'));
     const _ew = $('eriWrap');
@@ -8764,6 +8780,8 @@ renderMenu();
 updateSyncInd();
 setupShortcuts();
 setupBackToTop();
+// Reenvuelve en scroll horizontal las tablas que aparezcan dinámicamente (algoritmos, etc.)
+try{const _c=$('content');if(_c&&window.MutationObserver){let _tt;new MutationObserver(()=>{clearTimeout(_tt);_tt=setTimeout(()=>wrapTbls(_c),60);}).observe(_c,{childList:true,subtree:true});}}catch(e){}
 // Actualiza indicador de sync ante cambios de conectividad
 window.addEventListener('online',updateSyncInd);
 window.addEventListener('offline',updateSyncInd);
