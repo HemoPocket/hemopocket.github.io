@@ -4937,7 +4937,7 @@ const QT_SCHEMES = {
     ]
   },
   'FLAG-IDA-R': {
-    label: 'FLAG-Ida – recaída/refractario FLT3− (1 ciclo)',
+    label: 'FLAG-Ida – recaída/refractario (1 ciclo)',
     drugs: [
       {name:'Fludarabina', dose:'30 mg/m²', route:'IV 30 min', days:[1,2,3,4]},
       {name:'Citarabina (ARA-C) — 4 h tras fludarabina', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4]},
@@ -4970,14 +4970,6 @@ const QT_SCHEMES = {
     notes: [
       'Midostaurin desde el día 8 (es razonable iniciarlo hasta el día 11; en ese caso se finaliza el día 24).',
       'Ajustar midostaurin al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (p. ej. voriconazol, posaconazol).'
-    ]
-  },
-  'GO-IA': {
-    label: 'GO + IA 3+7 – inducción LMA CD33+ (ALFA-0701)',
-    drugs: [
-      {name:'Gemtuzumab ozogamicin', dose:'3 mg/m² (máx 4,5 mg)', route:'IV', days:[1,4,7]},
-      {name:'Idarubicina',           dose:'12 mg/m²',              route:'IV', days:[1,2,3]},
-      {name:'Citarabina',            dose:'200 mg/m²',             route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]}
     ]
   },
   'HiDAC': {
@@ -5072,6 +5064,9 @@ const QT_SCHEMES = {
       {name:'Bleomicina',    dose:'10 U/m²',  route:'IV', days:[1,15]},
       {name:'Vinblastina',   dose:'6 mg/m²',  route:'IV', days:[1,15]},
       {name:'Dacarbazina',   dose:'375 mg/m²',route:'IV', days:[1,15]}
+    ],
+    notes: [
+      'Entre 2 y 6 ciclos según el estadio de la enfermedad.'
     ]
   },
   'BEACOPP-ESC': {
@@ -5080,10 +5075,15 @@ const QT_SCHEMES = {
       {name:'Bleomicina',    dose:'10 U/m²',  route:'IV', days:[8]},
       {name:'Etopósido',     dose:'200 mg/m²',route:'IV', days:[1,2,3]},
       {name:'Doxorubicina',  dose:'35 mg/m²', route:'IV', days:[1]},
-      {name:'Ciclofosfamida',dose:'1250 mg/m²',route:'IV', days:[1]},
+      {name:'Ciclofosfamida',dose:'1200 mg/m²',route:'IV', days:[1]},
+      {name:'MESNA (0, 4 y 8 h tras la ciclofosfamida)', dose:'600 mg/m²', route:'VO/IV', days:[1]},
       {name:'Vincristina',   dose:'1,4 mg/m² (máx 2 mg)', route:'IV', days:[8]},
       {name:'Procarbazina',  dose:'100 mg/m²',route:'VO', days:[1,2,3,4,5,6,7]},
       {name:'Prednisona',    dose:'40 mg/m²', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
+    ],
+    notes: [
+      'De 3 a 8 ciclos.',
+      'G-CSF a partir del día 8.'
     ]
   },
   // ── LINFOMA – BIESPECÍFICOS ───────────────────────────────────────────
@@ -5388,7 +5388,7 @@ const QT_GROUPS = [
   {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
-  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','AIDA','VEN-AZA','VYXEOS']},
+  {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','FLAG-IDA-R','CBF-AML','CBF-CONSOL','IA-3+7','IA-MIDOSTAURIN','HiDAC','ARAC-AD-MIDO','CPX-351-CONSOL','ATRA-ATO','AIDA','VEN-AZA','VYXEOS']},
   {label:'Aplasia medular',         keys:['APLASIA-IST']},
   {label:'Leucemia linfoblástica (LAL)', keys:['LAL-PREFASE','LAL-INDUCCION','INOTUZUMAB-LAL','LAL-CONSOL-1','LAL-CONSOL-2']},
   {label:'Linfoma de Hodgkin',      keys:['ABVD','BV-AVD','BEACOPP-ESC']},
