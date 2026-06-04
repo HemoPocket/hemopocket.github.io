@@ -2560,11 +2560,11 @@ VIEWS.cacorr=()=>`<div class="card">
 <div class="fld"><label class="lbl">Calcio total medido (mg/dL)</label><input type="number" step="0.01" id="cac_ca" oninput="calcCaCorr()"></div>
 <div class="fld"><label class="lbl">Modo de corrección</label>
 <select id="cac_mode" onchange="cacToggleMode();calcCaCorr()">
-<option value="alb">Por albúmina (Payne) — recomendado</option>
 <option value="prot">Por proteínas totales</option>
+<option value="alb">Por albúmina (Payne)</option>
 </select></div>
-<div class="fld" id="cac_alb_fld"><label class="lbl">Albúmina (g/dL)</label><input type="number" step="0.01" id="cac_alb" placeholder="ej: 3.2" oninput="calcCaCorr()"></div>
-<div class="fld" id="cac_prot_fld" style="display:none"><label class="lbl">Proteínas totales (g/dL)</label><input type="number" step="0.01" id="cac_prot" placeholder="ej: 8.5" oninput="calcCaCorr()"></div>
+<div class="fld" id="cac_prot_fld"><label class="lbl">Proteínas totales (g/dL)</label><input type="number" step="0.01" id="cac_prot" placeholder="ej: 8.5" oninput="calcCaCorr()"></div>
+<div class="fld" id="cac_alb_fld" style="display:none"><label class="lbl">Albúmina (g/dL)</label><input type="number" step="0.01" id="cac_alb" placeholder="ej: 3.2" oninput="calcCaCorr()"></div>
 </div>
 <div id="cac_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn" onclick="calcCaCorr()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyCaCorr()">Copiar evolución</button></div>
@@ -3886,6 +3886,19 @@ optsTo+=`<option value="meta_vo">Metadona oral</option>`;
 return `<div class="card">
 <h2>Conversión de opioides (MME oral)</h2>
 <p class="intro">Convierte cualquier opioide a equivalente de morfina oral (MME/día) y entre opioides. Aplica automáticamente una <strong>reducción del 25–50%</strong> por tolerancia cruzada incompleta al rotar a un opioide distinto. Para fentanilo y buprenorfina transdérmicos, la dosis se introduce en <strong>µg/h</strong>; el resto en <strong>mg/día</strong>.</p>
+
+<div class="coll open">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>¿Qué es el MME y cómo se usa esta calculadora?</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<p style="margin:6px 0"><strong>MME = miligramos equivalentes de morfina</strong> oral al día (del inglés <em>Morphine Milligram Equivalents</em>). Es una unidad común para <strong>comparar la potencia de distintos opioides</strong>: cada opioide se convierte a la cantidad de morfina oral que produciría el mismo efecto. Por ejemplo, 20 mg/día de oxicodona oral ≈ 30 MME (la misma analgesia que 30 mg de morfina oral).</p>
+<p style="margin:6px 0"><strong>¿Para qué sirve?</strong></p>
+<ul style="padding-left:20px;line-height:1.7;margin:4px 0">
+<li><strong>Estimar el riesgo</strong>: a más MME/día, mayor riesgo de sedación y depresión respiratoria → &lt; 50 bajo · 50–90 vigilancia · ≥ 90 alto (valorar naloxona y revisar la indicación).</li>
+<li><strong>Rotar de opioide con seguridad</strong>: pasa la dosis actual a MME y, desde ahí, a la dosis equivalente del nuevo opioide, aplicando una reducción por <em>tolerancia cruzada</em> (el organismo no tolera por igual el fármaco nuevo, por eso se baja un 25–50%).</li>
+</ul>
+<p style="margin:6px 0"><strong>Cómo usarla:</strong> elige el <strong>opioide actual</strong> y su <strong>dosis</strong> y verás los MME/día. Si además eliges un opioide en <strong>«Rotar a»</strong>, te calcula la dosis equivalente con la reducción seleccionada.</p>
+</div>
+</div>
 
 <div class="row">
 <div class="fld"><label class="lbl">Opioide actual</label>
