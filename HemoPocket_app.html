@@ -4764,7 +4764,11 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Realizar fenotipo eritrocitario previo al inicio del tratamiento con daratumumab.',
-      'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.'
+      'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.',
+      'Dexametasona: en >70 años, bajo peso (IMC <18,5 kg/m²), hipervolemia, diabetes mal controlada o intolerancia a esteroides, valorar reducir a 20 mg/día.',
+      'Bortezomib — profilaxis de virus herpes simple: aciclovir 800 mg/día.',
+      'Bortezomib — suplementación: Hidroxil (B12/B6/B1) 1 comprimido VO al día; favorecer alimentos ricos en magnesio y quinina (manzana, plátano, tónica, bíter).',
+      'Bortezomib — reducción de dosis por neuropatía: grado 1 sin dolor → no modificar; grado 1 con dolor o grado 2 → reducir a 1 mg/m²/día; grado 2 con dolor o grado 3 → interrumpir hasta resolución y reiniciar a 0,7 mg/m²/día con una única administración semanal; grado 4 → suspender definitivamente.'
     ]
   },
   'DVCD': {
@@ -5981,10 +5985,11 @@ if(scheme.conditioning){
 }
 // Esquema (calendario) → recuadro copiable
 if($('qt_out'))$('qt_out').value=lines.join('\n');
-// Premedicación → recuadro copiable aparte
+// Premedicación → recuadro copiable aparte (ondansetrón general + premed específica del esquema)
 const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
-if(scheme.premed&&scheme.premed.length){if(_pm)_pm.value=scheme.premed.join('\n\n');if(_pmw)_pmw.style.display='';}
-else{if(_pm)_pm.value='';if(_pmw)_pmw.style.display='none';}
+const _pmList=['Antiemético: ondansetrón 8 mg IV antes de la quimioterapia.'].concat(scheme.premed||[]);
+if(_pm)_pm.value=_pmList.join('\n\n');
+if(_pmw)_pmw.style.display='';
 // Notas (solo lectura) + esquema en días del ciclo
 const _nt=$('qt_notes');let _nh='';
 if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
