@@ -7286,7 +7286,7 @@ VIEWS.reversion=()=>`<div class="card">
 
 <div id="rv_out"></div>
 
-<div class="ref">Frontera JA et al. Guideline for Reversal of Antithrombotics in Intracranial Hemorrhage. Neurocrit Care. 2016;24(1):6-46. Tomaselli GF et al. ACC Expert Consensus Decision Pathway on Management of Bleeding in Patients on Oral Anticoagulants. J Am Coll Cardiol. 2020;76(5):594-622. Connolly SJ et al. ANNEXA-4 (andexanet alfa). NEJM. 2019;380:1326-1335. Pollack CV et al. RE-VERSE AD (idarucizumab). NEJM. 2017;377:431-441.</div>
+<div class="ref">Frontera JA et al. Guideline for Reversal of Antithrombotics in Intracranial Hemorrhage. Neurocrit Care. 2016;24(1):6-46. Tomaselli GF et al. ACC Expert Consensus Decision Pathway on Management of Bleeding in Patients on Oral Anticoagulants. J Am Coll Cardiol. 2020;76(5):594-622. Pollack CV et al. RE-VERSE AD (idarucizumab). NEJM. 2017;377:431-441.</div>
 </div>`;
 
 const RV={
@@ -7334,23 +7334,15 @@ cr:`<strong>Dabigatrán + sangrado crítico/vital</strong>
 antixa:{
 ma:`<strong>Anti-Xa (apixabán / rivaroxabán / edoxabán) + sangrado mayor</strong>
 <ul style="padding-left:20px;margin-top:6px;line-height:1.7">
-<li><strong>CCP 4F 50 UI/kg</strong> (máx. 5000 UI) — primera línea en muchos centros por disponibilidad.</li>
-<li><strong>Andexanet alfa (Ondexxya®)</strong> si disponible: bolo + perfusión (dosis baja o alta según fármaco y tiempo desde última dosis):
-<table class="tbl" style="margin-top:6px">
-<tr><th>Pauta</th><th>Indicación</th></tr>
-<tr><td><strong>Baja</strong>: 400 mg bolo + 480 mg en 2 h</td><td>Apixabán &lt; 5 mg, rivaroxabán &lt; 10 mg, o &gt; 8 h desde última dosis</td></tr>
-<tr><td><strong>Alta</strong>: 800 mg bolo + 960 mg en 2 h</td><td>Apixabán &gt; 5 mg, rivaroxabán &gt; 10 mg, &lt; 8 h desde última dosis</td></tr>
-</table>
-</li>
+<li><strong>CCP 4F 50 UI/kg</strong> (máx. 5000 UI) — primera línea.</li>
 <li>Carbón activado si ingesta &lt; 2–4 h.</li>
 <li>Anti-Xa específico para monitorizar.</li>
 </ul>`,
 cr:`<strong>Anti-Xa + sangrado crítico/vital</strong>
 <ul style="padding-left:20px;margin-top:6px;line-height:1.7">
-<li><strong>Andexanet alfa</strong> a dosis alta (800 mg bolo + 960 mg perfusión 2 h) si disponible y &lt; 8 h desde última dosis (ANNEXA-4).</li>
-<li>Si no disponible: <strong>CCP 4F 50 UI/kg</strong>.</li>
+<li><strong>CCP 4F 50 UI/kg</strong>.</li>
 <li>Plaquetas &gt; 100 ×10⁹/L si SNC; fibrinógeno &gt; 2 g/L; TXA 1 g IV.</li>
-<li>Atención: tras andexanet alfa hay un <strong>"rebote" pro-trombótico</strong>; reanudar anticoagulación en cuanto sea posible.</li>
+<li>Carbón activado si ingesta reciente (&lt; 2–4 h).</li>
 </ul>`
 },
 hnf:{
@@ -7412,6 +7404,24 @@ $('rv_out').innerHTML=`<div class="alert ${cls}" style="margin-top:14px">${txt}<
 
 
 // ─── 4. INTERPRETACIÓN DE ROTEM ─────────────────────────────────
+const ROTEM_ALGO={
+  cir:{t:'Cirugía urgente o programada', pre:'', plt:'&lt; 50.000/µL', sev:'EXTEM A10 &lt; 25 mm (déficit severo) → 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si &lt; 50.000/µL.'},
+  trauma:{t:'Politraumático grave', pre:'Ácido tranexámico 15 mg/kg + activar el protocolo de transfusión masiva (según ABC / TASH score).', plt:'&lt; 50.000–75.000/µL', sev:'EXTEM A10 &lt; 25 mm (déficit severo) → 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si &lt; 50.000–75.000/µL.'},
+  obst:{t:'Hemorragia obstétrica', pre:'Ácido tranexámico 15 mg/kg PRECOZ. Si desprendimiento de placenta o embolia de líquido amniótico: TXA + protocolo de transfusión masiva.', plt:'&lt; 50.000–75.000/µL', extra:'Paso 5 · Considerar factor VIIa (previo a histerectomía).', sev:'EXTEM A10 &lt; 25 mm (déficit severo) → 1 g de ácido tranexámico + 5 g de fibrinógeno + PFC o CCP (si TC↑) + plaquetas si &lt; 50.000–75.000/µL.'}
+};
+function rotemAlgo(s){
+  const c=ROTEM_ALGO[s];const el=$('rotem_algo_out');if(!c||!el)return;
+  const step=(n,t,conv,visco,ttto)=>`<div class="alert b" style="margin-top:8px"><strong>${n} · ${t}</strong><div style="font-size:12.5px;margin:4px 0"><strong>Convencional:</strong> ${conv}<br><strong>Viscoelásticas:</strong> ${visco}</div><strong>→ ${ttto}</strong></div>`;
+  let h='<div style="margin-top:8px;font-weight:700">'+c.t+'</div>';
+  if(c.pre)h+='<div class="alert r" style="margin-top:6px"><strong>De entrada:</strong> '+c.pre+'</div>';
+  h+=step('1','Hiperfibrinolisis','No es posible monitorizarla.','ML &gt;15%; predictores: A5 EXTEM &lt;25 mm, A10 APTEM−A10 EXTEM &gt;3,5 mm, TC FIBTEM &gt;600 s.','Ácido tranexámico.');
+  h+=step('2','Déficit de fibrina','Fibrinógeno &lt;1,5–2 g/dL.','A10 EXTEM ≤40 mm + A10 FIBTEM ≤7 mm.','Fibrinógeno.');
+  h+=step('3','Déficit de síntesis de trombina','TP y TTPa &gt;1,5 ratio (tras corregir el fibrinógeno).','TC EXTEM &gt;80 s (tras corregir el fibrinógeno).','Plasma fresco congelado (o CCP).');
+  h+=step('4','Déficit de plaquetas','Plaquetas '+c.plt+'.','A10 EXTEM ≤40 mm + A10 FIBTEM &gt;7 mm.','Plaquetas.');
+  if(c.extra)h+='<div class="alert y" style="margin-top:8px"><strong>'+c.extra+'</strong></div>';
+  h+='<div class="alert r" style="margin-top:8px">'+c.sev+'</div>';
+  el.innerHTML=h;
+}
 VIEWS.rotem=()=>`<div class="card">
 <h2>📊 Interpretación de ROTEM</h2>
 <p class="intro">Tromboelastometría rotacional para guiar el manejo de la coagulopatía en sangrado activo (trauma, cirugía cardiaca, hepática, hemorragia obstétrica). Resultados disponibles en 5–10 min.</p>
@@ -7441,31 +7451,60 @@ VIEWS.rotem=()=>`<div class="card">
 <tr><td><strong>ML</strong> (Maximum Lysis, %)</td><td>&lt; 15%</td><td>&lt; 15%</td><td>&lt; 15%</td><td>Lisis a los 60 min. &gt; 15%: hiperfibrinolisis.</td></tr>
 </table>
 
-<h3>Interpretación por patrón</h3>
+<h3>Indicaciones de hemocomponentes y fármacos hemostáticos</h3>
+<p class="small muted" style="margin-top:-2px"><strong>La administración profiláctica (sin sangrado) de hemocomponentes o fármacos prohemostáticos NO se recomienda.</strong></p>
 
-<div class="alert b" style="margin-top:8px"><strong>Patrón 1: EXTEM CT prolongado · INTEM CT normal</strong>
-<p style="margin:6px 0">→ Déficit de factor de la vía extrínseca (FVII) o <strong>AVK</strong>.</p>
-<strong>Acción</strong>: PFC 15–20 mL/kg o <strong>CCP 4F 20–30 UI/kg</strong> si AVK.</div>
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>1 · Ácido tranexámico</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Empíricamente en politraumático grave y hemorragia obstétrica, y en cualquier hemorragia severa con shock/hipoperfusión.</li>
+<li>Ante hiperfibrinolisis por técnicas viscoelásticas.</li>
+<li><strong>Dosis: 15 mg/kg</strong> en 10 min (diluir en 50 mL de SF; puro no superar 1 mL/min). En PPT, tras el bolo iniciar perfusión de 1 g/8 h.</li>
+</ul></div></div>
 
-<div class="alert b"><strong>Patrón 2: INTEM CT prolongado · EXTEM CT normal</strong>
-<p style="margin:6px 0">→ <strong>Heparina</strong> (confirmar con HEPTEM: si normaliza, es heparina) o déficit de factor intrínseco.</p>
-<strong>Acción</strong>: protamina si heparina; PFC si déficit de factor.</div>
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>2 · Concentrado de fibrinógeno</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Empíricamente con el protocolo de transfusión masiva si está indicado.</li>
+<li>Guiado por laboratorio (objetivo 1,5–2 g/L) o viscoelásticas (A10 EXTEM ≤40 mm y A10 FIBTEM &lt;7 mm).</li>
+<li><strong>Cálculo</strong>: (FIBTEM objetivo − actual, mm) × (kg/140) = g; o (fibrinógeno objetivo − actual, g/L) × (kg/20) = g.</li>
+<li><strong>Dosis aprox. (peso 80 kg)</strong>: A10 FIBTEM 6–10 mm → 2 g · 2–6 mm → 3 g · &lt;2 mm → 4 g · 0 mm → 5 g.</li>
+</ul></div></div>
 
-<div class="alert b"><strong>Patrón 3: AMBOS CT prolongados (EXTEM e INTEM)</strong>
-<p style="margin:6px 0">→ Déficit de factores de vía común (II, V, X), CID o coagulopatía dilucional.</p>
-<strong>Acción</strong>: PFC 15–20 mL/kg + tratar causa subyacente.</div>
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>3 · Plasma fresco congelado (PFC)</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Si TP/TTPa &gt;1,5, TC EXTEM &gt;80 s o TC HEPTEM/TC INTEM ≥0,8, siempre tras corregir la hiperfibrinolisis y la hipofibrinogenemia, y si persiste hemorragia incontrolada.</li>
+<li><strong>Dosis: 15–30 mL/kg</strong>.</li>
+</ul></div></div>
 
-<div class="alert y"><strong>Patrón 4: EXTEM A10 / MCF baja · FIBTEM A10 / MCF baja</strong>
-<p style="margin:6px 0">→ <strong>Hipofibrinogenemia</strong> (FIBTEM A10 &lt; 7 mm sugiere fibrinógeno &lt; 1.5 g/L).</p>
-<strong>Acción</strong>: <strong>concentrado de fibrinógeno</strong> 25–50 mg/kg <em>o</em> crioprecipitado 1 unidad/10 kg. Objetivo FIBTEM A10 ≥ 12 mm (≥ 15–20 mm en hemorragia obstétrica).</div>
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>4 · CCP (concentrado de complejo protrombínico)</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Anticoagulación con AVK (Sintrom®): dosis según INR y ficha técnica.</li>
+<li>PPT con TC &gt;80 s pese a fibrinógeno normalizado y hemorragia incontrolada (alternativa al PFC).</li>
+<li>Otros escenarios (menor evidencia): coagulopatía clínica + hemorragia incontrolada con fibrinógeno casi normal y TC EXTEM prolongado, cuando no se puede esperar a descongelar plasma. <strong>Dosis: 1 vial y revalorar</strong>.</li>
+<li>ACOD (inhibidores del factor X) con hemorragia incontrolable: <strong>25–50 UI/kg</strong>.</li>
+</ul></div></div>
 
-<div class="alert y"><strong>Patrón 5: EXTEM A10 / MCF baja · FIBTEM A10 / MCF NORMAL</strong>
-<p style="margin:6px 0">→ <strong>Trombopenia</strong> o disfunción plaquetaria.</p>
-<strong>Acción</strong>: transfusión de plaquetas (objetivo &gt; 50 ×10⁹/L; &gt; 100 si SNC).</div>
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>5 · Plaquetas</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Si A10 EXTEM ≤40 mm y A10 FIBTEM &gt;7 mm y persiste la hemorragia.</li>
+<li>Empíricamente con el protocolo de transfusión masiva (administrar en último lugar). <strong>Dosis: 1 pool</strong>.</li>
+</ul></div></div>
 
-<div class="alert r"><strong>Patrón 6: EXTEM ML &gt; 15% · APTEM normaliza la lisis</strong>
-<p style="margin:6px 0">→ <strong>Hiperfibrinolisis</strong> (frecuente en trauma, cirugía cardiaca con CEC, hemorragia obstétrica, hepatopatía).</p>
-<strong>Acción</strong>: <strong>ácido tranexámico (TXA) 1 g IV</strong>, repetir a las 8 h.</div>
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>6 · Protamina</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Heparina sódica: monitorizar con TCA, viscoelásticas o TTPa. <strong>1 mg por cada 100 UI de heparina</strong> (máx 50 mg), según tiempo desde la última dosis.</li>
+<li>HBPM (menor efecto): 1 mg por cada 100 UI si administración en las 8 h previas.</li>
+</ul></div></div>
+
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>7 · Desmopresina</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Antiagregantes o sospecha de trombocitopatía (enfermedad de Von Willebrand). <strong>Dosis: 0,3 µg/kg</strong>.</li>
+</ul></div></div>
+
+<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>8 · Factor VII recombinante activado</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.6;margin:6px 0">
+<li>Uso COMPASIVO; no sustituye a ningún tratamiento con hemocomponentes/hemostáticos ni a un procedimiento invasivo. Requiere consentimiento informado. <strong>Dosis: 90 µg/kg</strong>.</li>
+</ul></div></div>
+
+<h3 style="margin-top:16px">Algoritmo de manejo de la coagulopatía por hemorragia</h3>
+<p class="small muted" style="margin-top:-2px">Elige el escenario para ver el manejo escalonado guiado por técnicas convencionales y viscoelásticas.</p>
+<div style="display:grid;grid-template-columns:1fr;gap:8px;margin:6px 0">
+<button class="btn btn-out" onclick="rotemAlgo('cir')">🔪 Cirugía urgente o programada</button>
+<button class="btn btn-out" onclick="rotemAlgo('trauma')">🚑 Politraumático grave</button>
+<button class="btn btn-out" onclick="rotemAlgo('obst')">🤰 Hemorragia obstétrica</button>
+</div>
+<div id="rotem_algo_out"></div>
 
 <h3>🎯 Objetivos terapéuticos guiados por ROTEM (sangrado masivo)</h3>
 <table class="tbl">
