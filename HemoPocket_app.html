@@ -4642,7 +4642,13 @@ VIEWS.atb_dur=()=>`<div class="card">
 Object.keys(GUIDES_TITLES).forEach(id=>{VIEWS['g_'+id]=()=>guidesView(id)});
 
 // === SINCRONIZACIÓN ===
-const DEFAULT_UPDATE_URL='https://raw.githubusercontent.com/hemopocket/hemopocket.github.io/main/hemopocket.json';
+// Fuente de actualización: MISMO origen que la app (hemopocket.json está en la raíz
+// del repo y GitHub Pages lo sirve en https://hemopocket.github.io/hemopocket.json).
+// Servirlo desde el propio origen evita CORS y, sobre todo, las redes/intranets que
+// bloquean raw.githubusercontent.com pero sí permiten el dominio de la app.
+const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
+  ? location.origin+'/hemopocket.json'
+  : 'https://hemopocket.github.io/hemopocket.json';
 VIEWS.sync=()=>{
 const lastUpd=ls.g('lastUpdate');
 const version=ls.g('updateVersion')||'';
