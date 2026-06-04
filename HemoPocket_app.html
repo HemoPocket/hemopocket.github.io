@@ -4846,32 +4846,53 @@ const QT_SCHEMES = {
     drugs: [
       {name:'G-CSF (priming, inicio día antes o día 1)', dose:'300 µg/día', route:'SC', days:[1,2,3,4,5]},
       {name:'Fludarabina', dose:'30 mg/m²', route:'IV 30 min', days:[1,2,3,4,5]},
-      {name:'Citarabina (iniciar 4h tras Fludarabina)', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4,5]},
-      {name:'Idarubicina', dose:'12 mg/m²', route:'IV', days:[1,3,5]}
+      {name:'Citarabina (iniciar 4h tras Fludarabina)', dose:'2000 mg/m²', route:'IV 3h', days:[1,2,3,4,5]},
+      {name:'Idarubicina', dose:'12 mg/m²', route:'IV 30 min', days:[1,3,5]},
+      {name:'Triple intratecal (metotrexato 12 mg + ARA-C 30 mg + hidrocortisona 20 mg)', dose:'—', route:'Intratecal', days:[7]}
+    ],
+    notes: [
+      'En pacientes mayores de 50 años, reducir la citarabina (ARA-C) a la mitad (1000 mg/m²).',
+      'Hidratación: suero glucosalino 2 L/día + suero bicarbonatado 1/6 M 1 L/día.',
+      'Antiemético: ondansetrón 8 mg IV antes de cada dosis de citostático.',
+      'Profilaxis hiperuricémica: alopurinol 300 mg/día VO.',
+      'Protección gástrica: omeprazol 20 mg/día o ranitidina 300 mg/día VO.',
+      'Mantener la hidratación y el alopurinol durante la primera semana de tratamiento, como mínimo.'
     ]
   },
   'CBF-AML': {
     label: 'IA + GO – CBF-AML PETHEMA (t(8;21) / inv(16))',
     drugs: [
-      {name:'Gemtuzumab ozogamicin (GO)', dose:'3 mg/m² (máx 4,5 mg)', route:'IV', days:[1,4,7]},
       {name:'Idarubicina',               dose:'12 mg/m²',              route:'IV', days:[1,2,3]},
       {name:'Citarabina',                dose:'200 mg/m²',             route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]},
+      {name:'Gemtuzumab ozogamicin (GO)', dose:'3 mg/m² (máx 4,5 mg)', route:'IV 2h', days:[4,7]},
       {name:'G-CSF (desde D+9 hasta recuperación)', dose:'5 µg/kg/día', route:'SC', days:[9]}
+    ],
+    notes: [
+      'Gemtuzumab: si no se dispone del resultado de CBF en el día 4, administrarlo solo el día 7.',
+      'Gemtuzumab puede asociar mayor riesgo hemorrágico y trombopenia más prolongada: vigilancia estrecha, soporte transfusional adecuado y premedicación de la infusión.',
+      'No se recomienda punción lumbar de despistaje al diagnóstico, salvo signos o síntomas de infiltración meníngea.'
     ]
   },
   'IA-3+7': {
     label: 'IA 3+7 – Idarubicina + Citarabina (inducción LMA)',
     drugs: [
-      {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV', days:[1,2,3]},
+      {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV 10 min', days:[1,2,3]},
       {name:'Citarabina',    dose:'200 mg/m²', route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]}
+    ],
+    notes: [
+      'Soporte: hidratación, profilaxis hiperuricémica (alopurinol), antiemético y profilaxis del síndrome de lisis tumoral según el riesgo.'
     ]
   },
   'IA-MIDOSTAURIN': {
     label: 'IA 3+7 + Midostaurin – inducción LMA FLT3+ (RATIFY)',
     drugs: [
-      {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV', days:[1,2,3]},
+      {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV 10 min', days:[1,2,3]},
       {name:'Citarabina',    dose:'200 mg/m²', route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]},
       {name:'Midostaurin',   dose:'50 mg/12h', route:'VO', days:[8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+    ],
+    notes: [
+      'Midostaurin desde el día 8 (es razonable iniciarlo hasta el día 11; en ese caso se finaliza el día 24).',
+      'Ajustar midostaurin al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (p. ej. voriconazol, posaconazol).'
     ]
   },
   'GO-IA': {
@@ -5001,6 +5022,11 @@ const QT_SCHEMES = {
     label: 'Vyxeos (CPX-351) – Daunorrubicina/Citarabina liposomal – LMA secundaria/t-AML',
     drugs: [
       {name:'Daunorrubicina/Citarabina liposomal (CPX-351)', dose:'44/100 mg/m² (= 100 U/m²)', route:'IV 90 min', days:[1,3,5]}
+    ],
+    notes: [
+      'Indicado en LMA secundaria a SMD/SMD-NMP o tras radio/quimio/agentes biológicos, o LMA de novo con alteraciones genéticas tipo SMD (WHO 2016) y edad ≥60 años. Excluir si mutación FLT3 (recibirían 3+7 + midostaurin).',
+      'Hidratación vigorosa (suero glucosalino/fisiológico ≥2 L/m²/día); cautela con el balance hídrico en insuficiencia renal o cardiaca (1–2 L/m²/día, valorar furosemida 20 mg/8 h).',
+      'Profilaxis del síndrome de lisis tumoral adaptada al riesgo (score de SLT); valorar rasburicasa si no es posible la hiperhidratación, aun sin factores de riesgo de SLT.'
     ]
   },  // ── MIELOMA – BIESPECÍFICOS ───────────────────────────────────────────
   'TECLISTAMAB': {
