@@ -4753,10 +4753,35 @@ const QT_SCHEMES = {
   'DARA-CYBORDEX': {
     label: 'Dara-CyBorDex – Daratumumab + Ciclofosfamida + Bortezomib + Dexametasona · Amiloidosis AL (cada 28 días)',
     drugs: [
-      {name:'Daratumumab (C1-2: días 1,8,15,22; C3-6: días 1,15; C7+: día 1)', dose:'1800 mg', route:'SC', days:[1]},
+      {name:'Daratumumab (C1-2: días 1,8,15,22; C3-6: días 1 y 15; C7+: día 1)', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
       {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,8,15,22]},
       {name:'Ciclofosfamida',  dose:'300 mg',               route:'VO', days:[1,8,15,22]},
       {name:'Dexametasona',    dose:'40 mg',                route:'VO/IV', days:[1,8,15,22]}
+    ],
+    premed: [
+      'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar si enfermedad pulmonar previa.',
+      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No necesaria si recibe un corticoide de base el día siguiente.'
+    ],
+    notes: [
+      'Realizar fenotipo eritrocitario previo al inicio del tratamiento con daratumumab.',
+      'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.'
+    ]
+  },
+  'DVCD': {
+    label: 'DVCd – Daratumumab + Bortezomib + Ciclofosfamida + Dexametasona · MM (LYRA) (cada 28 días)',
+    drugs: [
+      {name:'Daratumumab — 1800 mg SC o 16 mg/kg IV (C1-2: días 1,8,15,22; C3-6: días 1 y 15; C7-8: día 1)', dose:'1800 mg', route:'SC/IV', days:[1,8,15,22]},
+      {name:'Bortezomib',     dose:'1,5 mg/m²', route:'SC', days:[1,8,15]},
+      {name:'Ciclofosfamida', dose:'300 mg/m²', route:'VO', days:[1,8,15,22]},
+      {name:'Dexametasona',   dose:'40 mg/día', route:'IV/VO', days:[1,8,15,22]}
+    ],
+    premed: [
+      'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar si enfermedad pulmonar previa.',
+      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No necesaria si recibe un corticoide de base (p. ej. dexametasona) el día siguiente.'
+    ],
+    notes: [
+      'Realizar fenotipo eritrocitario previo al inicio del tratamiento con daratumumab.',
+      'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.'
     ]
   },
   'ISATUXIMAB-VRD': {
@@ -5103,7 +5128,7 @@ const QT_SCHEMES = {
 
 const QT_GROUPS = [
   {label:'Linfoma B',               keys:['R-CHOP','CHOP','R-EPOCH','R-BENDAMUSTINA','R-CVP','R-DHAP','R-ICE','GEMOX','POLA-BR','POLA-R-ICE','R2','MTX-RCHOP','MATRIX','GLOFITAMAB','EPCORITAMAB','MOSUNETUZUMAB','GLOFITAMAB-GEMOX','HYPERCVAD-A','HYPERCVAD-B']},
-  {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
+  {label:'Mieloma múltiple',        keys:['DaraVRD','ISATUXIMAB-VRD','ISA-KD','DVCD','TECLISTAMAB','TALQUETAMAB','ELRANATAMAB']},
   {label:'Amiloidosis AL',          keys:['DARA-CYBORDEX']},
   {label:'Leucemia linfática crónica', keys:['OBJ-VENETOCLAX','R-VENETOCLAX']},
   {label:'Leucemia aguda (LMA)',    keys:['FLAG-IDA','CBF-AML','IA-3+7','IA-MIDOSTAURIN','GO-IA','HiDAC','ATRA-ATO','VEN-AZA','VYXEOS']},
