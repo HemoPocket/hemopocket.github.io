@@ -728,6 +728,9 @@ const MENU=[
 {h:'PAUTAS DE QT SEHH',items:[
 {id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
 ]},
+{h:'CITODIAGNÓSTICO',items:[
+{id:'citodx',name:'Tubos para estudios',kw:'citodiagnostico citogenetica cariotipo citometria flujo inmunofenotipo fish biologia molecular ngs tubos muestras edta heparina litio citrato medula osea aspirado que pedir estudios',new:'2026-06-04'}
+]},
 {h:'EQUIPO Y SINCRONIZACIÓN',items:[
 {id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'}
@@ -1960,6 +1963,62 @@ VIEWS.checklist=()=>`<div class="card">
 <div id="cl_body"></div>
 </div>`;
 VIEWS.checklist_post=()=>clRenderBody();
+
+// === CITODIAGNÓSTICO: tubos/muestras para estudios ===
+const CITODX_TUBES=[
+  ['Hemograma · morfología','EDTA (tapón morado) + extensiones en porta'],
+  ['Citometría de flujo (inmunofenotipo)','EDTA (tapón morado)'],
+  ['Cariotipo (citogenética convencional)','Heparina de litio (tapón verde)'],
+  ['FISH','EDTA o heparina de litio (según panel/laboratorio)'],
+  ['Biología molecular (PCR, NGS, reordenamientos)','EDTA (tapón morado)'],
+  ['Coagulación · estudios especiales','Citrato (tapón azul)'],
+  ['Proteinograma · inmunofijación · cadenas ligeras · bioquímica','Suero (tapón con gel/seco)']
+];
+const CITODX_PATH=[
+  {t:'Mieloma múltiple y gammapatías',items:[
+    'Citometría de flujo (panel de discrasias de células plasmáticas): 1 tubo de EDTA (médula ósea).',
+    'Cariotipo: 1 tubo de heparina de litio.',
+    'FISH de mieloma (panel: del17p/TP53, t(4;14), t(14;16), +1q, etc.): aspirado de médula ósea.',
+    'Proteinograma, inmunofijación y cadenas ligeras libres: suero.'
+  ]},
+  {t:'Leucemia aguda (LMA / LLA)',items:[
+    'Morfología (aspirado): extensiones + 1 tubo de EDTA.',
+    'Citometría de flujo (inmunofenotipo): 1 tubo de EDTA.',
+    'Cariotipo: 1 tubo de heparina de litio.',
+    'Biología molecular / NGS y FISH según orientación: 1 tubo de EDTA.'
+  ]},
+  {t:'Síndromes mielodisplásicos / NMP',items:[
+    'Morfología (aspirado) + citometría de flujo: extensiones + 1 tubo de EDTA.',
+    'Cariotipo: 1 tubo de heparina de litio.',
+    'Biología molecular (panel mieloide NGS; JAK2/CALR/MPL, BCR-ABL si procede): 1 tubo de EDTA.'
+  ]},
+  {t:'Leucemia mieloide crónica',items:[
+    'BCR-ABL1 cualitativo/cuantitativo (PCR): 1 tubo de EDTA.',
+    'Cariotipo: 1 tubo de heparina de litio.'
+  ]},
+  {t:'Leucemia linfática crónica / síndrome linfoproliferativo',items:[
+    'Citometría de flujo (inmunofenotipo en sangre): 1 tubo de EDTA.',
+    'FISH (panel LLC: del13q, +12, del11q/ATM, del17p/TP53): 1 tubo de EDTA.',
+    'Estado mutacional IGHV y TP53 (NGS): 1 tubo de EDTA.',
+    'Cariotipo (con estímulo): 1 tubo de heparina de litio.'
+  ]}
+];
+VIEWS.citodx=()=>{
+  let h=`<div class="card"><h2>🧪 Citodiagnóstico — tubos para estudios</h2>
+  <p class="intro">Qué muestra/tubo solicitar para cada estudio citodiagnóstico, por patología. Guía orientativa: confirma siempre el tubo y el volumen con el protocolo de tu laboratorio.</p>
+  <div class="coll open"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Tubo según el estudio</span><span class="ar">▶</span></div><div class="coll-c">
+  <table class="tbl"><tr><th>Estudio</th><th>Muestra / tubo</th></tr>`;
+  CITODX_TUBES.forEach(r=>{h+=`<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td></tr>`;});
+  h+=`</table></div></div>`;
+  CITODX_PATH.forEach(p=>{
+    h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>${p.t}</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.7;margin:6px 0">`;
+    p.items.forEach(it=>{h+='<li>'+it+'</li>';});
+    h+=`</ul></div></div>`;
+  });
+  h+=`<div class="alert b" style="margin-top:12px;font-size:12.5px">Apartado en construcción: se irá completando con el protocolo concreto de cada patología.</div>
+  </div>`;
+  return h;
+};
 
 function renderWells(){
 const t=$('wl_t').value;
