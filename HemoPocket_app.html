@@ -3554,112 +3554,7 @@ const DEFAULT_CONTACTS=[
 // === Urología ===
 {n:'Urología - Secretaría',c:'Urología',e:'32390'}
 ];
-const DEFAULT_SUBTYPES={
-'lf':[
-{id:'fol',name:'Linfoma Folicular',pdfs:[{name:'Guía Linfoma Folicular GELTAMO',url:'guias/Folicular.pdf'}]},
-{id:'lbdcg',name:'Linfoma B Difuso de Células Grandes (LBDCG)',pdfs:[]},
-{id:'manto',name:'Linfoma del Manto',pdfs:[{name:'Guía Linfoma del Manto GELTAMO',url:'guias/LCM.pdf'}]},
-{id:'hodgkin',name:'Linfoma de Hodgkin',pdfs:[{name:'Guía Linfoma Hodgkin GELTAMO',url:'guias/Hodgkin.pdf'}]},
-{id:'marg',name:'Zona Marginal / MALT',pdfs:[]},
-{id:'burkitt',name:'Burkitt / High-grade B-cell',pdfs:[]},
-{id:'tcell',name:'Linfomas T',pdfs:[{name:'Guía Linfoma T-NK GELTAMO',url:'guias/Linfoma_T_NK_2024.pdf'}]},
-{id:'snc',name:'Linfoma primario del SNC',pdfs:[]},
-{id:'cutaneo',name:'Linfomas cutáneos',pdfs:[]},
-{id:'general',name:'Generales / Esquemas QT',pdfs:[{name:'Guía profilaxis SNC LDCGB GELTAMO',url:'guias/Profilaxis_SNC.pdf'}]}
-],
-'mm':[
-{id:'mm',name:'Mieloma Múltiple',pdfs:[]},
-{id:'amyl',name:'Amiloidosis AL',pdfs:[]},
-{id:'mgus',name:'GMSI',pdfs:[]},
-{id:'wm',name:'Macroglobulinemia de Waldenström',pdfs:[]},
-{id:'general',name:'Generales / Soporte',pdfs:[]}
-],
-'llc':[
-{id:'llc',name:'Leucemia Linfática Crónica',pdfs:[]},
-{id:'tric',name:'Tricoleucemia',pdfs:[]},
-{id:'general',name:'Generales / Soporte',pdfs:[]}
-],
-'leuc_ag':[
-{id:'lma_int',name:'LMA: QT intensiva',pdfs:[]},
-{id:'lma_bi',name:'LMA: QT de baja intensidad',pdfs:[]},
-{id:'lma_rec',name:'LMA en recaída',pdfs:[]},
-{id:'lla',name:'LLA',pdfs:[]},
-{id:'otros',name:'Otros',pdfs:[]}
-],
-'mieloide':[
-{id:'smd',name:'SMD',pdfs:[]},
-{id:'mfp',name:'Mielofibrosis / NMP',pdfs:[]},
-{id:'lmmc',name:'LMMC',pdfs:[]},
-{id:'otros',name:'Otros',pdfs:[]}
-],
-'cito':[
-{id:'pti',name:'PTI - Púrpura Trombocitopénica Inmune',pdfs:[]},
-{id:'ahai',name:'AHAI - Anemia Hemolítica Autoinmune',pdfs:[]},
-{id:'erit',name:'Eritropatología (Falciforme, Talasemias, Esferocitosis...)',pdfs:[]},
-{id:'aplasia',name:'Aplasia Medular / HPN',pdfs:[]},
-{id:'general',name:'Generales / Soporte',pdfs:[]}
-],
-'ped':[
-{id:'lla_ped',name:'LLA pediátrica',pdfs:[]},
-{id:'lma_ped',name:'LMA pediátrica',pdfs:[]},
-{id:'pti_ped',name:'PTI pediátrica',pdfs:[]},
-{id:'falc_ped',name:'Anemia Falciforme',pdfs:[]},
-{id:'aplasia_ped',name:'Aplasia Medular',pdfs:[]},
-{id:'general_ped',name:'Generales / Soporte',pdfs:[]}
-],
-'cart':[
-{id:'cart_ind',name:'CAR-T - Indicaciones y manejo',pdfs:[]},
-{id:'biesp',name:'Anticuerpos Biespecíficos',pdfs:[
-{name:'AcBs HUNSC 2025',url:'guias/Biespecificos.pdf'},
-{name:'AcBs GELTAMO',url:'guias/Biespecificos_GELTAMO.pdf'}
-]},
-{id:'otros',name:'Otros',pdfs:[]}
-],
-'th':[
-{id:'anticoag',name:'Anticoagulación',pdfs:[]},
-{id:'hit',name:'HIT',pdfs:[]},
-{id:'mat',name:'MAT (PTT / SHU)',pdfs:[]},
-{id:'cid',name:'CID',pdfs:[]},
-{id:'hemof',name:'Hemofilia y Coagulopatías',pdfs:[]},
-{id:'sav',name:'SAF / Trombofilia',pdfs:[]},
-{id:'antic',name:'Manejo perioperatorio anticoagulación',pdfs:[]},
-{id:'general',name:'Generales / Reversión',pdfs:[]}
-],
-'inf':[
-{id:'nf_protocolo',name:'Neutropenia febril — protocolos',pdfs:[]},
-{id:'ecil',name:'Guías ECIL (bacterianas y fúngicas)',pdfs:[]},
-{id:'ifi_guias',name:'IFI / Aspergilosis / Candidiasis',pdfs:[]},
-{id:'profilaxis_atb',name:'Profilaxis antimicrobiana',pdfs:[]},
-{id:'profilaxis_viral',name:'Profilaxis viral (VHS/VVZ/CMV/PJP)',pdfs:[]},
-{id:'cmv_pcr',name:'CMV / EBV / BK virus',pdfs:[]},
-{id:'tuberculosis',name:'Tuberculosis e inmunodeprimidos',pdfs:[]},
-{id:'inf_general',name:'Generales / Soporte infeccioso',pdfs:[]}
-],
-'uh':[
-{id:'leucost',name:'Leucostasis / Hiperleucocitosis',pdfs:[]},
-{id:'lisis',name:'Síndrome de lisis tumoral',pdfs:[]},
-{id:'cid_urg',name:'CID urgente',pdfs:[]},
-{id:'mat_urg',name:'MAT (PTT / SHU)',pdfs:[]},
-{id:'compr',name:'Compresión Medular / Sd. VCS',pdfs:[]},
-{id:'sangr',name:'Sangrado Mayor / Reversión',pdfs:[]},
-{id:'transf_react',name:'Reacción transfusional',pdfs:[]},
-{id:'sind_dif',name:'Síndrome de diferenciación (LPA)',pdfs:[]},
-{id:'general',name:'Generales / Soporte UCI',pdfs:[]},
-{id:'otros',name:'Otros',pdfs:[]}
-],
-'bs':[
-{id:'transf_comp',name:'Transfusión de componentes (CH / Plaquetas / PFC / Crioprecipitados)',pdfs:[]},
-{id:'inmunohem',name:'Inmunohematología (ABO/Rh, AAII, discrepancias)',pdfs:[]},
-{id:'react_transf',name:'Reacciones transfusionales y hemovigilancia',pdfs:[]},
-{id:'pbm',name:'Patient Blood Management / Optimización preoperatoria',pdfs:[]},
-{id:'aferesis',name:'Aféresis terapéutica',pdfs:[]},
-{id:'situ_esp',name:'Situaciones especiales (neonatos, embarazo, TPH, drepanocitosis)',pdfs:[]},
-{id:'transf_masiva',name:'Transfusión masiva / Hemorragia crítica',pdfs:[]},
-{id:'autoinmune',name:'AHAI y panaglutinación',pdfs:[]},
-{id:'general',name:'Generales / Procedimientos del servicio',pdfs:[]}
-]
-};
-
+const DEFAULT_SUBTYPES={"lf": [{"id": "fol", "name": "Linfoma Folicular", "pdfs": [{"name": "Guía Linfoma Folicular GELTAMO", "url": "guias/Folicular.pdf"}]}, {"id": "lbdcg", "name": "Linfoma B Difuso de Células Grandes (LBDCG)", "pdfs": [{"name": "Guía LDCGB GELTAMO 2022", "url": "guias/LCGBD.pdf"}]}, {"id": "manto", "name": "Linfoma del Manto", "pdfs": [{"name": "Guía Linfoma del Manto GELTAMO", "url": "guias/LCM.pdf"}]}, {"id": "hodgkin", "name": "Linfoma de Hodgkin", "pdfs": [{"name": "Guía Linfoma Hodgkin GELTAMO", "url": "guias/Hodgkin.pdf"}]}, {"id": "marg", "name": "Zona Marginal / MALT", "pdfs": []}, {"id": "burkitt", "name": "Burkitt / High-grade B-cell", "pdfs": [{"name": "Protocolo Burkimab", "url": "guias/BURKIMAB.pdf"}]}, {"id": "tcell", "name": "Linfomas T", "pdfs": [{"name": "Guía Linfoma T-NK GELTAMO 2024", "url": "guias/Linfoma_T_NK_2024.pdf"}]}, {"id": "snc", "name": "Linfoma primario del SNC", "pdfs": [{"name": "Guía Linfoma cerebral primario GELTAMO 2019", "url": "guias/MATRIX.pdf"}]}, {"id": "general", "name": "Generales / Otros esquemas QT", "pdfs": [{"name": "Guía profilaxis SNC LDCGB GELTAMO", "url": "guias/Profilaxis_SNC.pdf"}, {"name": "Normograma de Bleyer", "url": "guias/Bleyer.pdf"}]}], "mm": [{"id": "mm", "name": "Mieloma Múltiple", "pdfs": [{"name": "Guía MM - GEM 2025", "url": "guias/MM.pdf"}]}, {"id": "amyl", "name": "Amiloidosis AL", "pdfs": []}, {"id": "mgus", "name": "GMSI", "pdfs": []}, {"id": "wm", "name": "Macroglobulinemia de Waldenström", "pdfs": [{"name": "Guía Linfoma linfoplasmocítico/MW GELTAMO 2025", "url": "guias/MW.pdf"}]}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "llc": [{"id": "llc", "name": "Leucemia Linfática Crónica", "pdfs": [{"name": "Guía LLC GELL 2024", "url": "guias/LLC.pdf"}]}, {"id": "tric", "name": "Tricoleucemia", "pdfs": []}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "leuc_ag": [{"id": "lma_int", "name": "LMA: QT intensiva", "pdfs": [{"name": "Protocolo PETHEMA LMA FLOW 2026", "url": "guias/FLOW.pdf"}, {"name": "Protocolo PETHEMA LMA CBF 2016 (Enmienda 2019)", "url": "guias/CBF.pdf"}, {"name": "Protocolo PETHEMA LMA NPM1 2017 (Enmienda 2019)", "url": "guias/NPM1.pdf"}, {"name": "Protocolo PETHEMA LPA 2017", "url": "guias/LPA.pdf"}, {"name": "Protocolo PETHEMA LMA MIX 2021", "url": "guias/MIX.pdf"}]}, {"id": "lma_bi", "name": "LMA: QT de baja intensidad", "pdfs": [{"name": "Protocolo LMA Unfit HUNSC", "url": "guias/LMA_UNFIT_HUNSC.pdf"}, {"name": "Protocolo PETHEMA LMA PAPU 2025", "url": "guias/PAPU.pdf"}, {"name": "Protocolo LMA CETLAM", "url": "guias/LMA_CETLAM.pdf"}]}, {"id": "lma_rec", "name": "LMA en recaída", "pdfs": [{"name": "Protocolo LMA-RRon 2024", "url": "guias/LMArron.pdf"}]}, {"id": "lla", "name": "LLA", "pdfs": [{"name": "Protocolo LLA Ph negativo", "url": "guias/LAL.pdf"}, {"name": "Protocolo LLA Ph positivo", "url": "guias/LALPh.pdf"}, {"name": "Protocolo Burkimab", "url": "guias/BURKIMAB.pdf"}, {"name": "LLA en recaída", "url": "guias/LALR.pdf"}]}, {"id": "otros", "name": "Otros", "pdfs": [{"name": "Síndrome de obstrucción sinusoidal 2019", "url": "guias/EVOH.pdf"}]}], "mieloide": [{"id": "smd", "name": "SMD", "pdfs": []}, {"id": "mfp", "name": "Mielofibrosis / NMP", "pdfs": []}, {"id": "lmmc", "name": "LMMC", "pdfs": []}, {"id": "otros", "name": "Otros", "pdfs": []}], "cito": [{"id": "pti", "name": "PTI - Púrpura Trombocitopénica Inmune", "pdfs": [{"name": "Protocolo PTI HUNSC", "url": "guias/PTI_2023.pdf"}, {"name": "Guía Trombocitopenia SEHH 2025", "url": "guias/TROMBOCIT.pdf"}, {"name": "Guía PTI 2023", "url": "guias/GEPTI.pdf"}]}, {"id": "ahai", "name": "AHAI - Anemia Hemolítica Autoinmune", "pdfs": []}, {"id": "erit", "name": "Eritropatología (Falciforme, Talasemias...)", "pdfs": []}, {"id": "aplasia", "name": "Aplasia Medular / HPN", "pdfs": [{"name": "Guía AM", "url": "guias/AM.pdf"}]}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "ped": [{"id": "lla_ped", "name": "LLA pediátrica", "pdfs": []}, {"id": "lma_ped", "name": "LMA pediátrica", "pdfs": []}, {"id": "falc_ped", "name": "Anemia Falciforme", "pdfs": [{"name": "Guía Enfermedad de células falciformes SEHOP 2019", "url": "guias/Falciforme.pdf"}]}, {"id": "tal_ped", "name": "Talasemia", "pdfs": [{"name": "Guía Talasemia SEHOP 2015", "url": "guias/Talasemia.pdf"}]}, {"id": "aplasia_ped", "name": "Aplasia Medular", "pdfs": [{"name": "Guía AM", "url": "guias/AM.pdf"}]}, {"id": "general_ped", "name": "Generales / Soporte", "pdfs": []}], "cart": [{"id": "cart_ind", "name": "CAR-T - Indicaciones y manejo", "pdfs": []}, {"id": "biesp", "name": "Anticuerpos Biespecíficos", "pdfs": [{"name": "AcBs HUNSC 2025", "url": "guias/Biespecificos.pdf"}, {"name": "AcBs GELTAMO", "url": "guias/Biespecificos_GELTAMO.pdf"}]}, {"id": "taspe", "name": "TASPE - Trasplante Autólogo", "pdfs": [{"name": "Protocolo TASPE HUNSC", "url": "guias/TASPE.pdf"}, {"name": "Guía acondicionamiento GETH 2024", "url": "guias/geth.pdf"}]}, {"id": "otros", "name": "Otros", "pdfs": []}], "bs": [{"id": "transf_comp", "name": "Transfusión de componentes (CH / Plaquetas / PFC / Crioprecipitados)", "pdfs": []}, {"id": "inmunohem", "name": "Inmunohematología (ABO/Rh, AAII, discrepancias)", "pdfs": [{"name": "Inmunohematología básica y aplicada", "url": "guias/Inmunobanco.pdf"}]}, {"id": "react_transf", "name": "Reacciones transfusionales y hemovigilancia", "pdfs": [{"name": "Estándares en Hemoterapia", "url": "guias/Hemoterapia.pdf"}]}, {"id": "pbm", "name": "Patient Blood Management / Optimización preoperatoria", "pdfs": []}, {"id": "aferesis", "name": "Aféresis terapéutica", "pdfs": []}, {"id": "situ_esp", "name": "Situaciones especiales (neonatos, embarazo, TPH, drepanocitosis)", "pdfs": []}, {"id": "transf_masiva", "name": "Transfusión masiva / Hemorragia crítica", "pdfs": []}, {"id": "autoinmune", "name": "AHAI y panaglutinación", "pdfs": []}, {"id": "general", "name": "Generales / Procedimientos del servicio", "pdfs": []}], "th": [{"id": "anticoag", "name": "Anticoagulación", "pdfs": []}, {"id": "rotem", "name": "ROTEM", "pdfs": [{"name": "Protocolo ROTEM", "url": "guias/ROTEM.pdf"}]}, {"id": "ecmo", "name": "ECMO", "pdfs": [{"name": "Protocolo ECMO", "url": "guias/ECMO.pdf"}]}, {"id": "mat", "name": "MAT (PTT / SHU)", "pdfs": [{"name": "Guía PTT", "url": "guias/PTT.pdf"}]}, {"id": "cid", "name": "CID", "pdfs": []}, {"id": "hemof", "name": "Hemofilia y Coagulopatías", "pdfs": []}, {"id": "saf", "name": "SAF / Trombofilia", "pdfs": []}, {"id": "antic", "name": "Manejo perioperatorio anticoagulación", "pdfs": []}, {"id": "general", "name": "Generales / Reversión", "pdfs": []}], "inf": [{"id": "nf_protocolo", "name": "Neutropenia febril — protocolos", "pdfs": []}, {"id": "ecil", "name": "Guías ECIL (bacterianas y fúngicas)", "pdfs": []}, {"id": "ifi_guias", "name": "IFI / Aspergilosis / Candidiasis", "pdfs": []}, {"id": "profilaxis_atb", "name": "Profilaxis antimicrobiana", "pdfs": []}, {"id": "profilaxis_viral", "name": "Profilaxis viral (VHS/VVZ/CMV/PJP)", "pdfs": []}, {"id": "cmv_pcr", "name": "CMV / EBV / BK virus", "pdfs": []}, {"id": "tuberculosis", "name": "Tuberculosis e inmunodeprimidos", "pdfs": []}, {"id": "inf_general", "name": "Generales / Soporte infeccioso", "pdfs": []}], "uh": [{"id": "leucost", "name": "Leucostasis / Hiperleucocitosis", "pdfs": []}, {"id": "lisis", "name": "Síndrome de lisis tumoral", "pdfs": []}, {"id": "cid_urg", "name": "CID urgente", "pdfs": []}, {"id": "mat_urg", "name": "MAT (PTT / SHU)", "pdfs": []}, {"id": "compr", "name": "Compresión Medular / Sd. VCS", "pdfs": []}, {"id": "sangr", "name": "Sangrado Mayor / Reversión", "pdfs": []}, {"id": "sind_dif", "name": "Síndrome de diferenciación (LPA)", "pdfs": []}, {"id": "general", "name": "Generales / Soporte UCI", "pdfs": []}, {"id": "otros", "name": "Otros", "pdfs": [{"name": "Citología óptica - Woessner", "url": "guias/Citologia.pdf"}, {"name": "Pregrado de Hematología 2017", "url": "guias/Pregrado.pdf"}]}]};
 function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 // Algoritmos GELTAMO empaquetados en la app (NO dependen del Gist/sincronización):
@@ -3680,29 +3575,7 @@ if(st.id==='fol'||/folicular/.test(n))return GELTAMO_ALGOS_FOL;
 if(st.id==='lbdcg'||/difuso|lbdcg|ldcgb|c[eé]lulas grandes|dlbcl/.test(n))return GELTAMO_ALGOS_LBDCG;
 return [];
 }
-const DEFAULT_COLLABORATORS={
-inf:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-uh:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-leuc_ag:[
-{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'},
-{n:'Dra. Ana Oliva',r:'Adjunta · Leucemias agudas'},
-{n:'Dra. Silvia Martín',r:'Adjunta · Leucemias agudas'}
-],
-cart:[{n:'Dra. M.T. Busnego Barreto',r:'Autora y revisora'}],
-bs:[
-{n:'Dra. Isabel Peris Fernaud',r:'Adjunta · Banco de Sangre'},
-{n:'Dr. Alexander Figueroa',r:'Adjunto · Banco de Sangre'},
-{n:'Dra. Laura Francisca Ávila Idrovo',r:'Adjunta · Banco de Sangre'}
-],
-th:[{n:'Dr. Carlos Quintero',r:''}],
-mm:[],
-lf:[],
-llc:[],
-mieloide:[],
-cito:[],
-ped:[],
-farmacia:[{n:'Jorge Esquivel',r:'Farmacéutico'}]
-};
+const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud", "r": "Adjunta · Banco de Sangre"}, {"n": "Dr. Alexander Figueroa", "r": "Adjunto · Banco de Sangre"}, {"n": "Dra. Laura Francisca Ávila Idrovo", "r": "Adjunta · Banco de Sangre"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}, {"n": "Dra. Ana Oliva", "r": "Adjunta · Leucemias agudas"}, {"n": "Dra. Silvia Martín", "r": "Adjunta · Leucemias agudas"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto", "r": "Autora y revisora"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
 // El equipo se mantiene en el código (DEFAULT_COLLABORATORS) y es la fuente
