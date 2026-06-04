@@ -4634,9 +4634,17 @@ const QT_SCHEMES = {
     kw: 'linfoma rescate recaida refractario salvage segunda linea recaido',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
-      {name:'Dexametasona',  dose:'40 mg/día', route:'IV/VO', days:[1,2,3,4]},
-      {name:'Cisplatino',    dose:'100 mg/m²', route:'IV infusión continua 24h', days:[2]},
-      {name:'Citarabina',    dose:'2000 mg/m²/12h', route:'IV', days:[3]}
+      {name:'Cisplatino',    dose:'50 mg/m²', route:'IV infusión continua 24h', days:[1]},
+      {name:'Citarabina (ARA-C)', dose:'2000 mg/m²/12h (2 dosis)', route:'IV 2h', days:[2]},
+      {name:'Dexametasona',  dose:'40 mg/día (20 mg/12 h)', route:'IV/VO', days:[1,2,3,4]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión. Velocidad (ml/h, subir cada 30 min): 12 → 24 → 36 → 48 → 60 → 72 → 84 → 96.'
+    ],
+    notes: [
+      'Hidratación: suero glucosalino 3 L/día + suero bicarbonatado 1/6 M 1 L/día (asociar furosemida en pacientes de edad avanzada).',
+      'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6 h.',
+      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.'
     ]
   },
   'R-ICE': {
@@ -4644,9 +4652,17 @@ const QT_SCHEMES = {
     kw: 'linfoma rescate recaida refractario salvage segunda linea recaido',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
+      {name:'Etopósido',     dose:'100 mg/m²', route:'IV (1 h)', days:[1,2,3]},
+      {name:'Carboplatino',  dose:'AUC 5 → 5 × (25 + CrCl), máx 800 mg', route:'IV (1 h)', days:[2]},
       {name:'Ifosfamida',    dose:'5000 mg/m²', route:'IV infusión continua 24h', days:[2]},
-      {name:'Carboplatino',  dose:'AUC 5 (máx 800 mg)', route:'IV', days:[2]},
-      {name:'Etopósido',     dose:'100 mg/m²', route:'IV', days:[1,2,3]}
+      {name:'MESNA',         dose:'5000 mg/m²', route:'IV (con la ifosfamida)', days:[2]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'G-CSF 300 µg/día desde el día +6 hasta alcanzar neutrófilos > 1.000/µL.',
+      'Carboplatino: dosis optimizada para AUC 5 = 5 × (25 + CrCl), máximo 800 mg.'
     ]
   },
 
@@ -4691,6 +4707,15 @@ const QT_SCHEMES = {
       {name:'Metotrexato',     dose:'3500 mg/m² IC 2h',     route:'IV', days:[1]},
       {name:'Citarabina',      dose:'2000 mg/m²/12h',       route:'IV 3h', days:[2,3]},
       {name:'Tiotepa',         dose:'30 mg/m²',             route:'IV', days:[4]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'Hidratación: suero glucosalino 4 L/día + suero bicarbonatado 1/6 M 2 L/día.',
+      'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
+      'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6–8 h.',
+      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.'
     ]
   },
   'MTX-RCHOP': {
@@ -4938,6 +4963,15 @@ const QT_SCHEMES = {
       {name:'Metotrexato',     dose:'3500 mg/m² IC 2h',     route:'IV', days:[1]},
       {name:'Citarabina',      dose:'2000 mg/m²/12h',       route:'IV 3h', days:[2,3]},
       {name:'Tiotepa',         dose:'30 mg/m²',             route:'IV', days:[4]}
+    ],
+    premed: [
+      'Premedicación rituximab: 1 g de paracetamol + 1 ampolla de dexclorfeniramina 30 min antes de iniciar la infusión.'
+    ],
+    notes: [
+      'Hidratación: suero glucosalino 4 L/día + suero bicarbonatado 1/6 M 2 L/día.',
+      'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
+      'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6–8 h.',
+      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.'
     ]
   },
   'MTX-RCHOP': {
