@@ -622,6 +622,9 @@ const MENU=[
 {id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
+{h:'INGRESO',items:[
+{id:'checklist',name:'Check list ingreso',kw:'checklist check list ingreso planta verificacion taspe trasplante neutropenia febril debut lma primer ingreso hla hidratacion mtx consentimientos cribados multirresistentes',new:'2026-06-04'}
+]},
 {h:'NEUTROPENIA FEBRIL',items:[
 {id:'nf',name:'Algoritmo de neutropenia febril',kw:'neutropenia febril neutropenico neutropenica fiebre sepsis septico septica shock shock septico septico en neutropenico bacteriemia foco infeccioso infeccion paciente neutropenico bmr foco mascc protocolo algoritmo terapeutico antibiotico empirico'},
 {id:'atb',name:'Sensibilidad antibiótica',kw:'antibiotico sensibilidad espectro cobertura bacterias gram positivo negativo blee kpc cefiderocol ceftazidima avibactam aztreonam vaborbactam ceftolozano tazobactam ceftarolina meropenem cefepime piperacilina vancomicina daptomicina linezolid colistina amikacina'},
@@ -1858,6 +1861,97 @@ VIEWS.wells=()=>`<div class="card">
 <div class="ref" id="wl_ref"></div>
 </div>`;
 VIEWS.wells_post=()=>renderWells();
+
+// === CHECK LIST DE INGRESO ===
+const CL_SECTIONS=[
+  {id:'general',title:'TODOS LOS INGRESOS',icon:'⬡',items:[
+    {id:'g1',text:'Valoración al ingreso: antecedentes actualizados, último tratamiento recibido, fármacos en domicilio'},
+    {id:'g2',text:'ECOG / Performance Status basal — documentar en valoración al ingreso'},
+    {id:'g3',text:'Peso y talla (para cálculo de superficie corporal y dosis de QT)'},
+    {id:'g4',text:'Acceso venoso: documentar tipo y estado (PICC, reservorio, catéter central, vía periférica) y fecha de implantación si procede'},
+    {id:'g5',text:'Hoja A: cumplimentar e imprimir en planta'},
+    {id:'g6',text:'Orden de ingreso'},
+    {id:'g7',text:'Cribados de multirresistentes (MR)'},
+    {id:'g8',text:'Analítica de control',cond:true,sub:'Según criterio clínico'},
+    {id:'g9',text:'Profilaxis HBPM según riesgo tromboembólico',cond:true},
+    {id:'g10',text:'Profilaxis antimicrobiana según diagnóstico y protocolo del centro',cond:true,sub:'Antifúngica / antiviral / antibacteriana según indicación'},
+    {id:'g11',text:'Consentimientos informados pertinentes',cond:true,sub:'QT, trasplante, procedimientos diagnósticos según el caso'},
+    {id:'g12',text:'Pautar medicación habitual domiciliaria pertinente. Si se suspende algún fármaco, reflejarlo en la valoración al ingreso'}
+  ]},
+  {id:'primer',title:'PRIMER INGRESO',icon:'◈',items:[
+    {id:'p1',text:'Analítica basal completa'},
+    {id:'p2',text:'ECG basal'},
+    {id:'p3',text:'Rx de tórax basal'}
+  ]},
+  {id:'qt',title:'PREVISIÓN DE INICIO DE QT',icon:'◇',items:[
+    {id:'q1',text:'Hidratación estándar: SSF 2500 ml — ajustar según contexto clínico del paciente',sub:'Excepto si aplica protocolo MTX (ver abajo)'},
+    {id:'q2',text:'PROTOCOLO MTX: hiperhidratación alcalina → Bicarbonato 1/6 M 2000 ml + SSF 1000 ml',hl:true},
+    {id:'q3',text:'Profilaxis antiemética según protocolo de QT pautado',hl:true},
+    {id:'q4',text:'Si QT URGENTE: solicitar PICC urgente, ecocardiograma, AMO y prueba de imagen',hl:true,cond:true,sub:'Prueba de imagen según el caso: ecografía, TAC o PET-TC'}
+  ]},
+  {id:'taspe',title:'INGRESO PARA TRASPLANTE (TASPE)',icon:'◉',items:[
+    {id:'t1',text:'Revisar checklist de pruebas preTASPE — si falta alguna, solicitarla de forma urgente',hl:true},
+    {id:'t2',text:'Revisar Rx de tórax: ¿tiene realizada en los últimos 6 meses?',sub:'Si NO → solicitar Rx de tórax'},
+    {id:'t3',text:'ECG basal'}
+  ]},
+  {id:'nf',title:'NEUTROPENIA FEBRIL',icon:'◎',items:[
+    {id:'nf1',text:'Hemocultivos diferenciales (periférico + cada lumen de catéter)'},
+    {id:'nf2',text:'Si síntomas urinarios o paciente diabético: sistemático de orina + urocultivo',cond:true},
+    {id:'nf3',text:'Rx de tórax'},
+    {id:'nf4',text:'Cultivo de cualquier exudado o foco de supuración presente',cond:true,sub:'Solo si existe foco'}
+  ]},
+  {id:'lma',title:'DEBUT DE LMA',icon:'◆',items:[
+    {id:'lma1',text:'Iniciar hidratación: SSF'},
+    {id:'lma2',text:'Antecedentes familiares detallados: padres, hermanos, hijos — registrar edad y patologías de cada uno',hl:true},
+    {id:'lma3',text:'Extracción 1ª muestra HLA: 1 tubo de suero + 1 tubo EDTA',sub:'Petición en Drago',hl:true},
+    {id:'lma4',text:'Vigilancia de síndrome de lisis tumoral: ácido úrico, LDH, fósforo, potasio, creatinina',hl:true,sub:'Valorar rasburicasa profiláctica según riesgo'}
+  ]}
+];
+function clState(){return ls.g('checklist')||{}}
+function clOpen(){return ls.g('checklist_open')||{}}
+function clToggle(id){const s=clState();s[id]=!s[id];ls.s('checklist',s);clRenderBody();}
+function clToggleSec(id){const o=clOpen();const cur=(o[id]!==undefined)?o[id]:true;o[id]=!cur;ls.s('checklist_open',o);clRenderBody();}
+function clReset(){ls.s('checklist',{});clRenderBody();}
+function clRenderBody(){
+  const body=$('cl_body');if(!body)return;
+  const st=clState(),op=clOpen();
+  const all=CL_SECTIONS.flatMap(s=>s.items),total=all.length;
+  const done=all.filter(i=>st[i.id]).length,pct=total?Math.round(done/total*100):0;
+  const bar=$('cl_bar'),pctEl=$('cl_pct');
+  if(bar)bar.style.width=pct+'%';
+  if(pctEl)pctEl.textContent=done+'/'+total+' · '+pct+'%';
+  let h='';
+  CL_SECTIONS.forEach(sec=>{
+    const open=(op[sec.id]!==undefined)?op[sec.id]:true;
+    const sc=sec.items.filter(i=>st[i.id]).length;
+    h+='<div class="coll'+(open?' open':'')+'" style="margin-top:8px">';
+    h+='<div class="coll-h" onclick="clToggleSec(\''+sec.id+'\')"><span>'+sec.icon+' '+sec.title+' <span class="small muted">('+sc+'/'+sec.items.length+')</span></span><span class="ar">▶</span></div>';
+    h+='<div class="coll-c">';
+    sec.items.forEach(it=>{
+      const ck=!!st[it.id];
+      h+='<div class="chk-card" onclick="clToggle(\''+it.id+'\')" style="align-items:flex-start;cursor:pointer">';
+      h+='<input type="checkbox" '+(ck?'checked':'')+' style="pointer-events:none" tabindex="-1">';
+      h+='<span style="'+(ck?'opacity:.5;text-decoration:line-through':(it.hl?'font-weight:600':''))+'">';
+      if(it.cond)h+='<span style="font-size:11px;letter-spacing:.04em;color:var(--c1);margin-right:5px;text-decoration:none">[SI APLICA]</span>';
+      h+=chatEsc(it.text);
+      if(it.sub)h+='<br><span class="small muted" style="text-decoration:none">↳ '+chatEsc(it.sub)+'</span>';
+      h+='</span></div>';
+    });
+    h+='</div></div>';
+  });
+  body.innerHTML=h;
+}
+VIEWS.checklist=()=>`<div class="card">
+<h2>📋 Check list de ingreso</h2>
+<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo.</p>
+<div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
+<div style="flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;height:8px;overflow:hidden"><div id="cl_bar" style="height:100%;width:0;background:var(--c1);transition:width .35s"></div></div>
+<span id="cl_pct" class="small muted" style="white-space:nowrap"></span>
+<button class="btn btn-out btn-sm" onclick="clReset()">Reiniciar</button>
+</div>
+<div id="cl_body"></div>
+</div>`;
+VIEWS.checklist_post=()=>clRenderBody();
 
 function renderWells(){
 const t=$('wl_t').value;
@@ -4811,10 +4905,24 @@ const QT_SCHEMES = {
     label: 'Dara-CyBorDex – Daratumumab + Ciclofosfamida + Bortezomib + Dexametasona · Amiloidosis AL (cada 28 días)',
     noAntiemetic: true,
     drugs: [
-      {name:'Daratumumab (C1-2: días 1,8,15,22; C3-6: días 1 y 15; C7+: día 1)', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
+      {name:'Daratumumab',     dose:'1800 mg',              route:'SC', days:[1,8,15,22]},
       {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,8,15,22]},
       {name:'Ciclofosfamida',  dose:'300 mg',               route:'VO', days:[1,8,15,22]},
       {name:'Dexametasona',    dose:'40 mg',                route:'VO/IV', days:[1,8,15,22]}
+    ],
+    cycles: [
+      {from:3,to:6, label:'ciclos 3–6 (daratumumab días 1 y 15)', drugs:[
+        {name:'Daratumumab',     dose:'1800 mg',              route:'SC', days:[1,15]},
+        {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,8,15,22]},
+        {name:'Ciclofosfamida',  dose:'300 mg',               route:'VO', days:[1,8,15,22]},
+        {name:'Dexametasona',    dose:'40 mg',                route:'VO/IV', days:[1,8,15,22]}
+      ]},
+      {from:7, label:'ciclos 7+ (daratumumab día 1)', drugs:[
+        {name:'Daratumumab',     dose:'1800 mg',              route:'SC', days:[1]},
+        {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,8,15,22]},
+        {name:'Ciclofosfamida',  dose:'300 mg',               route:'VO', days:[1,8,15,22]},
+        {name:'Dexametasona',    dose:'40 mg',                route:'VO/IV', days:[1,8,15,22]}
+      ]}
     ],
     premed: [
       'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar si enfermedad pulmonar previa.',
@@ -4833,10 +4941,24 @@ const QT_SCHEMES = {
     label: 'DVCd – Daratumumab + Bortezomib + Ciclofosfamida + Dexametasona · MM (LYRA) (cada 28 días)',
     noAntiemetic: true,
     drugs: [
-      {name:'Daratumumab — 1800 mg SC o 16 mg/kg IV (C1-2: días 1,8,15,22; C3-6: días 1 y 15; C7-8: día 1)', dose:'1800 mg', route:'SC/IV', days:[1,8,15,22]},
+      {name:'Daratumumab (1800 mg SC o 16 mg/kg IV)', dose:'1800 mg', route:'SC/IV', days:[1,8,15,22]},
       {name:'Bortezomib',     dose:'1,5 mg/m²', route:'SC', days:[1,8,15]},
       {name:'Ciclofosfamida', dose:'300 mg/m²', route:'VO', days:[1,8,15,22]},
       {name:'Dexametasona',   dose:'40 mg/día', route:'IV/VO', days:[1,8,15,22]}
+    ],
+    cycles: [
+      {from:3,to:6, label:'ciclos 3–6 (daratumumab días 1 y 15)', drugs:[
+        {name:'Daratumumab (1800 mg SC o 16 mg/kg IV)', dose:'1800 mg', route:'SC/IV', days:[1,15]},
+        {name:'Bortezomib',     dose:'1,5 mg/m²', route:'SC', days:[1,8,15]},
+        {name:'Ciclofosfamida', dose:'300 mg/m²', route:'VO', days:[1,8,15,22]},
+        {name:'Dexametasona',   dose:'40 mg/día', route:'IV/VO', days:[1,8,15,22]}
+      ]},
+      {from:7,to:8, label:'ciclos 7–8 (daratumumab día 1)', drugs:[
+        {name:'Daratumumab (1800 mg SC o 16 mg/kg IV)', dose:'1800 mg', route:'SC/IV', days:[1]},
+        {name:'Bortezomib',     dose:'1,5 mg/m²', route:'SC', days:[1,8,15]},
+        {name:'Ciclofosfamida', dose:'300 mg/m²', route:'VO', days:[1,8,15,22]},
+        {name:'Dexametasona',   dose:'40 mg/día', route:'IV/VO', days:[1,8,15,22]}
+      ]}
     ],
     premed: [
       'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar si enfermedad pulmonar previa.',
@@ -4855,6 +4977,19 @@ const QT_SCHEMES = {
       {name:'Bortezomib',      dose:'1,3 mg/m²',            route:'SC', days:[1,4,8,11,22,25,29,32]},
       {name:'Lenalidomida',    dose:'25 mg',                route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,22,23,24,25,26,27,28,29,30,31,32,33,34,35]},
       {name:'Dexametasona',    dose:'20 mg',                route:'IV/VO', days:[1,2,4,5,8,9,11,12,15,22,23,25,26,29,30,32,33]}
+    ],
+    cycles: [
+      {from:2,to:4, label:'ciclos 2–4 (inducción, 42 días; isatuximab cada 2 semanas)', drugs:[
+        {name:'Isatuximab',   dose:'10 mg/kg', route:'IV', days:[1,15,29]},
+        {name:'Bortezomib',   dose:'1,3 mg/m²', route:'SC', days:[1,4,8,11,22,25,29,32]},
+        {name:'Lenalidomida', dose:'25 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,22,23,24,25,26,27,28,29,30,31,32,33,34,35]},
+        {name:'Dexametasona', dose:'20 mg', route:'IV/VO', days:[1,2,4,5,8,9,11,12,15,22,23,25,26,29,30,32,33]}
+      ]},
+      {from:5, label:'ciclos 5+ (continuación, 28 días; sin bortezomib)', drugs:[
+        {name:'Isatuximab',   dose:'10 mg/kg', route:'IV', days:[1,15]},
+        {name:'Lenalidomida', dose:'25 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
+        {name:'Dexametasona', dose:'20 mg', route:'IV/VO', days:[1,8,15,22]}
+      ]}
     ],
     premed: [
       'Premedicación de isatuximab (15-60 min antes): dexametasona 20 mg IV/VO (corticoide del propio esquema) + paracetamol 650-1000 mg VO/IV + antihistamínico H1 (difenhidramina 25-50 mg, o dexclorfeniramina 5 mg, VO/IV) + anti-H2 (ranitidina o equivalente). Valorar montelukast 10 mg VO si broncoespasmo/EPOC.'
@@ -5161,16 +5296,28 @@ const QT_SCHEMES = {
     label: 'Epcoritamab (CD20×CD3) – step-up C1 SC · LBDCG (cada 28 días)',
     noAntiemetic: true,
     drugs: [
-      {name:'Epcoritamab – step-up dosis 1', dose:'0,16 mg', route:'SC', days:[1]},
-      {name:'Epcoritamab – step-up dosis 2', dose:'0,8 mg',  route:'SC', days:[8]},
-      {name:'Epcoritamab – dosis terapéutica', dose:'48 mg', route:'SC', days:[15]}
+      {name:'Epcoritamab – dosis escalonada 1', dose:'0,16 mg', route:'SC', days:[1]},
+      {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
+      {name:'Epcoritamab – dosis completa', dose:'48 mg', route:'SC', days:[15,22]}
+    ],
+    cycles: [
+      {from:2,to:3, label:'ciclos 2–3 (48 mg semanal)', drugs:[
+        {name:'Epcoritamab', dose:'48 mg', route:'SC', days:[1,8,15,22]}
+      ]},
+      {from:4,to:9, label:'ciclos 4–9 (48 mg cada 2 semanas)', drugs:[
+        {name:'Epcoritamab', dose:'48 mg', route:'SC', days:[1,15]}
+      ]},
+      {from:10, label:'ciclos 10+ (48 mg cada 4 semanas)', drugs:[
+        {name:'Epcoritamab', dose:'48 mg', route:'SC', days:[1]}
+      ]}
     ],
     premed:[
       'Premedicación del ciclo 1 para reducir el SLC, 30-120 min antes de cada dosis semanal de epcoritamab: corticoide (prednisolona 100 mg, o dexametasona 15 mg, VO/IV) + antihistamínico (difenhidramina 50 mg VO/IV) + antipirético (paracetamol 650-1000 mg VO).',
       'El corticoide se mantiene además los 3 días siguientes a cada dosis semanal del ciclo 1. En ciclos posteriores se mantiene el corticoide; antihistamínico y antipirético solo si hubo SLC previo.'
     ],
     notes:[
-      'Esquema de escalada (step-up) del ciclo 1 para linfoma B difuso de célula grande (LBDCG): 2 dosis escalonadas (D1 y D8) y primera dosis completa en D15.',
+      'Linfoma B difuso de célula grande (LBDCG), ciclos de 28 días. Ciclo 1: 2 dosis escalonadas (0,16 mg D1 y 0,8 mg D8) y dosis completas de 48 mg en D15 y D22.',
+      'Ciclos 2–3: 48 mg semanal (D1, 8, 15 y 22). Ciclos 4–9: 48 mg cada 2 semanas (D1 y 15). Ciclos 10+: 48 mg cada 4 semanas (D1).',
       'Para linfoma folicular usar el esquema «Epcoritamab · Linfoma folicular», con 3 dosis escalonadas y dosis completa en D22.'
     ]
   },
@@ -5183,26 +5330,46 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – dosis escalonada 3', dose:'3 mg',    route:'SC', days:[15]},
       {name:'Epcoritamab – primera dosis completa', dose:'48 mg', route:'SC', days:[22]}
     ],
+    cycles: [
+      {from:2,to:3, label:'ciclos 2–3 (48 mg semanal)', drugs:[
+        {name:'Epcoritamab', dose:'48 mg', route:'SC', days:[1,8,15,22]}
+      ]},
+      {from:4,to:9, label:'ciclos 4–9 (48 mg cada 2 semanas)', drugs:[
+        {name:'Epcoritamab', dose:'48 mg', route:'SC', days:[1,15]}
+      ]},
+      {from:10, label:'ciclos 10+ (48 mg cada 4 semanas)', drugs:[
+        {name:'Epcoritamab', dose:'48 mg', route:'SC', days:[1]}
+      ]}
+    ],
     premed:[
       'Premedicación del ciclo 1 para reducir el SLC, 30-120 min antes de cada dosis semanal de epcoritamab: corticoide (prednisolona 100 mg, o dexametasona 15 mg, VO/IV) + antihistamínico (difenhidramina 50 mg VO/IV) + antipirético (paracetamol 650-1000 mg VO).',
       'El corticoide se mantiene además los 3 días siguientes a cada dosis semanal del ciclo 1. En ciclos posteriores se mantiene el corticoide; antihistamínico y antipirético solo si hubo SLC previo.'
     ],
     notes:[
-      'Esquema de escalada (step-up) del ciclo 1 para linfoma folicular: 3 dosis escalonadas (D1, D8 y D15) y primera dosis completa en D22.',
-      'Para LBDCG usar el esquema «Epcoritamab · LBDCG», con 2 dosis escalonadas y dosis completa en D15.'
+      'Linfoma folicular, ciclos de 28 días. Ciclo 1: 3 dosis escalonadas (0,16 mg D1, 0,8 mg D8 y 3 mg D15) y primera dosis completa de 48 mg en D22.',
+      'Ciclos 2–3: 48 mg semanal (D1, 8, 15 y 22). Ciclos 4–9: 48 mg cada 2 semanas (D1 y 15). Ciclos 10+: 48 mg cada 4 semanas (D1).',
+      'Para LBDCG usar el esquema «Epcoritamab · LBDCG».'
     ]
   },
   'MOSUNETUZUMAB': {
     label: 'Mosunetuzumab (CD20×CD3) – step-up C1 IV (21 días)',
     noAntiemetic: true,
     drugs: [
-      {name:'Mosunetuzumab – step-up dosis 1', dose:'1 mg',  route:'IV', days:[1]},
-      {name:'Mosunetuzumab – step-up dosis 2', dose:'2 mg',  route:'IV', days:[8]},
-      {name:'Mosunetuzumab – dosis terapéutica C1', dose:'60 mg', route:'IV', days:[15]}
+      {name:'Mosunetuzumab – dosis escalonada 1', dose:'1 mg',  route:'IV', days:[1]},
+      {name:'Mosunetuzumab – dosis escalonada 2', dose:'2 mg',  route:'IV', days:[8]},
+      {name:'Mosunetuzumab – dosis completa', dose:'60 mg', route:'IV', days:[15]}
+    ],
+    cycles: [
+      {from:2, label:'ciclos 2+ (60 mg el día 1)', drugs:[
+        {name:'Mosunetuzumab', dose:'60 mg', route:'IV', days:[1]}
+      ]}
     ],
     premed: [
       'Premedicación para reducir el SLC, al menos durante los ciclos 1 y 2: corticoide (dexametasona 20 mg IV o metilprednisolona 80 mg IV) completado ≥1 h antes + antihistamínico (difenhidramina 50-100 mg VO/IV ≥30 min antes) + antipirético (paracetamol 500-1000 mg VO ≥30 min antes).',
       'A partir del ciclo 3 la premedicación se mantiene solo en pacientes que presentaron SLC con la dosis previa.'
+    ],
+    notes: [
+      'Ciclos de 21 días. Ciclo 1: escalada 1 mg (D1) → 2 mg (D8) → 60 mg (D15). Ciclos 2+: 60 mg el día 1. Por defecto 8 ciclos; ampliar hasta 17 si no hay respuesta completa.'
     ]
   },
   // ── LINFOMA – COMBINADOS ──────────────────────────────────────────────
@@ -5276,6 +5443,12 @@ const QT_SCHEMES = {
       {name:'Azacitidina',     dose:'75 mg/m²',             route:'SC', days:[1,2,3,4,5,6,7]},
       {name:'Venetoclax (ramp-up C1: 100 mg D1 → 200 mg D2 → 400 mg D3-21)', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
     ],
+    cycles: [
+      {from:2, label:'ciclos 2+ (venetoclax 400 mg sin escalada)', drugs:[
+        {name:'Azacitidina', dose:'75 mg/m²', route:'SC', days:[1,2,3,4,5,6,7]},
+        {name:'Venetoclax', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+      ]}
+    ],
     notes: [
       'Venetoclax: PETHEMA recomienda 14-21 días/ciclo; la ficha técnica contempla 28 días de administración continua. En un 2.º ciclo de inducción no se repite la escalada de dosis.',
       'Ajuste de venetoclax con inhibidores de CYP3A: reducir al 50% con inhibidor potente y al 75% con moderado.',
@@ -5304,6 +5477,11 @@ const QT_SCHEMES = {
       {name:'Teclistamab – 1ª dosis de mantenimiento (2-7 días tras dosis 2)', dose:'1,5 mg/kg', route:'SC', days:[5]},
       {name:'Teclistamab – mantenimiento semanal', dose:'1,5 mg/kg', route:'SC', days:[12,19,26]}
     ],
+    cycles: [
+      {from:2, label:'ciclos 2+ (1,5 mg/kg semanal)', drugs:[
+        {name:'Teclistamab', dose:'1,5 mg/kg', route:'SC', days:[1,8,15,22]}
+      ]}
+    ],
     premed: [
       'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente VO/IV) + antipirético (paracetamol 650-1000 mg VO/IV). Considerar también en retrasos y en pacientes que hayan presentado SLC.'
     ],
@@ -5324,6 +5502,11 @@ const QT_SCHEMES = {
       {name:'Talquetamab – 1ª dosis plena (pauta quincenal)', dose:'0,8 mg/kg', route:'SC', days:[7]},
       {name:'Talquetamab – mantenimiento cada 2 semanas', dose:'0,8 mg/kg', route:'SC', days:[21]}
     ],
+    cycles: [
+      {from:2, label:'ciclos 2+ (0,8 mg/kg cada 2 semanas)', drugs:[
+        {name:'Talquetamab', dose:'0,8 mg/kg', route:'SC', days:[1,15]}
+      ]}
+    ],
     premed: [
       'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg).'
     ],
@@ -5343,11 +5526,19 @@ const QT_SCHEMES = {
       {name:'Elranatamab – 1ª dosis plena (2-4 días tras la 2ª escalada)', dose:'76 mg', route:'SC', days:[8]},
       {name:'Elranatamab – mantenimiento semanal', dose:'76 mg', route:'SC', days:[15,22]}
     ],
+    cycles: [
+      {from:2,to:6, label:'ciclos 2–6 (76 mg semanal)', drugs:[
+        {name:'Elranatamab', dose:'76 mg', route:'SC', days:[1,8,15,22]}
+      ]},
+      {from:7, label:'ciclos 7+ (76 mg cada 2 semanas)', drugs:[
+        {name:'Elranatamab', dose:'76 mg', route:'SC', days:[1,15]}
+      ]}
+    ],
     premed: [
       'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg). Considerar también en retrasos y en pacientes que hayan presentado SLC.'
     ],
     notes: [
-      'Dosis fija SC. Mantener 76 mg semanal hasta progresión o toxicidad inaceptable; valorar paso a cada 2 semanas según ficha técnica/respuesta.',
+      'Tras la escalada, 76 mg semanal hasta el ciclo 6; desde el ciclo 7 (o en respondedores ≥2 meses) pasar a 76 mg cada 2 semanas. Ciclos de 28 días.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.'
     ]
   },
