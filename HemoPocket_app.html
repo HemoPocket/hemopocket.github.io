@@ -644,6 +644,7 @@ const MENU=[
 {id:'tt',name:'4T Score',kw:'4t hit heparina trombocitopenia'},
 {id:'wells',name:'Wells (TVP/TEP)',kw:'wells tvp tep trombosis embolia'},
 {id:'hb',name:'HAS-BLED',kw:'hasbled sangrado anticoagulacion fa'},
+{id:'isthbat',name:'ISTH-BAT (escala de sangrado)',kw:'isth bat bleeding assessment tool escala sangrado hemorragia diatesis hemorragica von willebrand trombopatia bleeding score epistaxis menorragia cutaneo',new:'2026-06-04'},
 {id:'hbpm',name:'Dosis HBPM',kw:'hbpm heparina bajo peso molecular enoxaparina bemiparina tinzaparina dalteparina profilaxis tratamiento dosis ajuste obesidad insuficiencia renal crcl tev anti xa',new:'2026-05-11'},
 {id:'coag_alt',name:'Alteración pruebas coagulación',kw:'tp ttpa alargado alteracion pruebas basicas coagulacion test mezclas factores algoritmo'},
 {id:'bridging',name:'Bridging perioperatorio',kw:'bridging perioperatorio anticoagulacion cirugia avk acod hbpm puente suspension apixaban rivaroxaban dabigatran edoxaban warfarina sintrom acenocumarol operar operacion intervencion quirurgica preoperatorio postoperatorio procedimiento suspender reiniciar'},
@@ -1932,6 +1933,78 @@ La probabilidad obtenida orienta la actitud diagnóstica: en probabilidad baja s
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);}
+
+// === ISTH-BAT · Escala de sangrado (Bleeding Assessment Tool) ===
+const ISTHBAT={
+ref:'Rodeghiero F, et al. ISTH/SSC bleeding assessment tool: a standardized questionnaire and a proposal for a new bleeding score for inherited bleeding disorders. J Thromb Haemost. 2010;8(9):2063-2065. Elbatarny M, et al. Normal range of bleeding scores for the ISTH-BAT: adult and pediatric data from the merging project. Haemophilia. 2014;20(6):831-835.',
+pop:{m:{cut:4,label:'Varón adulto'},f:{cut:6,label:'Mujer adulta'},c:{cut:3,label:'Niño/a (< 18 años)'}},
+items:[
+{q:'Epistaxis',opts:[{l:'No / trivial',p:0},{l:'> 5/año o de duración > 10 min',p:1},{l:'Solo consulta médica',p:2},{l:'Taponamiento, cauterización o antifibrinolíticos',p:3},{l:'Transfusión, terapia sustitutiva (hemoderivados/rFVIIa) o desmopresina',p:4}]},
+{q:'Cutáneo (hematomas/petequias)',opts:[{l:'No / trivial',p:0},{l:'≥ 5 hematomas (> 1 cm) en zonas expuestas',p:1},{l:'Solo consulta médica',p:2},{l:'Extenso',p:3},{l:'Hematoma espontáneo que requiere transfusión',p:4}]},
+{q:'Sangrado por heridas menores',opts:[{l:'No / trivial',p:0},{l:'> 5/año o de duración > 10 min',p:1},{l:'Solo consulta médica',p:2},{l:'Hemostasia quirúrgica',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]},
+{q:'Cavidad oral (encías, mordeduras, erupción dental)',opts:[{l:'No / trivial',p:0},{l:'Presente',p:1},{l:'Solo consulta médica',p:2},{l:'Hemostasia quirúrgica o antifibrinolíticos',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]},
+{q:'Sangrado gastrointestinal',opts:[{l:'No / trivial',p:0},{l:'Presente (no por úlcera, HTP, hemorroides ni angiodisplasia)',p:1},{l:'Solo consulta médica',p:2},{l:'Hemostasia quirúrgica o antifibrinolíticos',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]},
+{q:'Hematuria',opts:[{l:'No / trivial',p:0},{l:'Presente (macroscópica)',p:1},{l:'Solo consulta médica',p:2},{l:'Hemostasia quirúrgica o ferroterapia',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]},
+{q:'Extracción dentaria',opts:[{l:'Sin sangrado en ≥ 2 extracciones',p:-1},{l:'Ninguna realizada o sin sangrado en 1 extracción',p:0},{l:'Notificado en < 25% de los procedimientos, sin intervención',p:1},{l:'Notificado en > 25% de los procedimientos, sin intervención',p:2},{l:'Resutura o taponamiento',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]},
+{q:'Cirugía',opts:[{l:'Sin sangrado en ≥ 2 cirugías',p:-1},{l:'Ninguna realizada o sin sangrado en 1 cirugía',p:0},{l:'Notificado en < 25% de los procedimientos, sin intervención',p:1},{l:'Notificado en > 25% de los procedimientos, sin intervención',p:2},{l:'Hemostasia quirúrgica o antifibrinolíticos',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]},
+{q:'Menorragia',opts:[{l:'No / trivial',p:0},{l:'Consulta / cambio de compresa > cada 2 h / coágulos e inundación / PBAC > 100',p:1},{l:'Baja > 2/año o requiere antifibrinolíticos, terapia hormonal o ferroterapia',p:2},{l:'Tratamiento combinado (antifibrinolíticos + hormonal) o desde menarquia > 12 meses',p:3},{l:'Ingreso urgente / transfusión, terapia sustitutiva, desmopresina / legrado, ablación o histerectomía',p:4}]},
+{q:'Hemorragia posparto',opts:[{l:'Sin sangrado en ≥ 2 partos',p:-1},{l:'Sin partos o sin sangrado en 1 parto',p:0},{l:'Consulta / uso de oxitocina / loquios > 6 semanas',p:1},{l:'Ferroterapia o antifibrinolíticos',p:2},{l:'Transfusión, terapia sustitutiva, desmopresina / examen bajo anestesia o balón uterino',p:3},{l:'Cuidados críticos o cirugía (histerectomía, ligadura ilíaca, embolización, suturas de B-Lynch)',p:4}]},
+{q:'Hematomas musculares',opts:[{l:'Nunca',p:0},{l:'Postraumático, sin tratamiento',p:1},{l:'Espontáneo, sin tratamiento',p:2},{l:'Espontáneo o traumático, requiere desmopresina o terapia sustitutiva',p:3},{l:'Espontáneo o traumático, requiere cirugía o transfusión',p:4}]},
+{q:'Hemartrosis',opts:[{l:'Nunca',p:0},{l:'Postraumático, sin tratamiento',p:1},{l:'Espontáneo, sin tratamiento',p:2},{l:'Espontáneo o traumático, requiere desmopresina o terapia sustitutiva',p:3},{l:'Espontáneo o traumático, requiere cirugía o transfusión',p:4}]},
+{q:'Hemorragia del SNC',opts:[{l:'Nunca',p:0},{l:'Subdural, cualquier intervención',p:3},{l:'Intracerebral, cualquier intervención',p:4}]},
+{q:'Otras hemorragias (muñón umbilical, cefalohematoma, conjuntival, circuncisión, venopunción…)',opts:[{l:'No / trivial',p:0},{l:'Presente',p:1},{l:'Solo consulta médica',p:2},{l:'Hemostasia quirúrgica o antifibrinolíticos',p:3},{l:'Transfusión, terapia sustitutiva o desmopresina',p:4}]}
+]
+};
+VIEWS.isthbat=()=>{
+let h=`<div class="card"><h2>ISTH-BAT · Escala de sangrado</h2>
+<p class="intro">Cuestionario estandarizado de la ISTH/SSC para cuantificar la diátesis hemorrágica (sospecha de enfermedad de Von Willebrand, trombopatías y otras coagulopatías leves). Puntúa el episodio <strong>más grave de toda la vida</strong> en cada categoría. Un valor elevado orienta a estudio de hemostasia dirigido.</p>
+<div class="fld"><label class="lbl">Población (umbral de anormalidad)</label>
+<select id="ib_pop" onchange="calcISTHBAT()"><option value="m">Varón adulto — anormal ≥ 4</option><option value="f">Mujer adulta — anormal ≥ 6</option><option value="c">Niño/a &lt; 18 años — anormal ≥ 3</option></select></div>`;
+ISTHBAT.items.forEach((it,i)=>{
+h+=`<div class="fld"><label class="lbl">${i+1}. ${it.q}</label>`;
+it.opts.forEach(o=>{
+h+=`<label class="chk-card"><input type="radio" name="ib_${i}" value="${o.p}" data-l="${o.l.replace(/"/g,'&quot;')}" onchange="calcISTHBAT()"><span>${o.l} <small>(${o.p>=0?'+':''}${o.p})</small></span></label>`;
+});
+h+='</div>';
+});
+h+=`<div id="ib_res" class="res" style="display:none"></div>
+<div class="btns"><button class="btn btn-out btn-sm" onclick="copyISTHBAT()">Copiar evolución</button></div>
+<div class="alert b" style="margin-top:12px;font-size:12.5px">Umbrales de anormalidad (proyecto de fusión, Elbatarny 2014): <strong>varón adulto ≥ 4</strong>, <strong>mujer adulta ≥ 6</strong>, <strong>niño/a ≥ 3</strong>. Una puntuación anormal apoya el cribado de hemostasia (TP, TTPa, fibrinógeno, FvW:Ag, FvW:RCo/actividad, FVIII, función plaquetaria).</div>
+<div class="ref">${ISTHBAT.ref}</div></div>`;
+return h;
+};
+function ibCollect(){
+let total=0,answered=0;const factors=[];
+ISTHBAT.items.forEach((it,i)=>{
+const r=document.querySelector(`#content input[name="ib_${i}"]:checked`);
+if(r){answered++;total+=+r.value;factors.push({q:it.q,val:r.dataset.l||'',pts:+r.value});}
+});
+return{total,answered,factors};
+}
+function calcISTHBAT(){
+const{total,answered}=ibCollect();
+const el=$('ib_res');if(!el)return;
+const pop=ISTHBAT.pop[$('ib_pop').value];
+const abn=total>=pop.cut;
+el.style.display='block';
+el.className='res '+(abn?'hi':'lo');
+el.innerHTML=`<div class="res-h"><span class="score">${total} pts</span><span>${abn?'Puntuación ANORMAL':'Puntuación normal'}</span></div><div class="res-txt">ISTH-BAT (${pop.label}): <b>${total} ${Math.abs(total)===1?'punto':'puntos'}</b> · umbral ≥ ${pop.cut} → <b>${abn?'anormal':'normal'}</b>.${answered<ISTHBAT.items.length?` <span style="color:var(--mut)">(${answered}/${ISTHBAT.items.length} categorías respondidas)</span>`:''}</div>${abn?'<div class="res-s">Apoya la realización de estudio de hemostasia dirigido.</div>':'<div class="res-s">No descarta un trastorno hemorrágico si la sospecha clínica es alta.</div>'}`;
+}
+function copyISTHBAT(){
+const{total,answered,factors}=ibCollect();
+if(!answered){toast('Completa al menos una categoría');return}
+const pop=ISTHBAT.pop[$('ib_pop').value];
+const abn=total>=pop.cut;
+const factsText=factors.map(f=>`${f.q.toLowerCase()}: ${stripHTML(f.val)} (${f.pts>=0?'+':''}${f.pts})`).join('; ');
+const txt=`Escala de sangrado ISTH-BAT
+─────────────────────────────────────────────
+${patientHeader()}Se aplica la escala de sangrado ISTH-BAT (${pop.label}). Categorías valoradas: ${factsText}.
+
+Puntuación total: ${total} (umbral de anormalidad ≥ ${pop.cut}). Resultado: ${abn?'ANORMAL — apoya la realización de un estudio de hemostasia dirigido':'normal — no descarta un trastorno hemorrágico si la sospecha clínica es alta'}.
+
+[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
+copy(txt);
+}
 
 VIEWS.hb=()=>pointCalc({
 id:'hb',title:'HAS-BLED',
@@ -7442,6 +7515,20 @@ function rcaStep(n,r){
 VIEWS.rotem=()=>`<div class="card">
 <h2>📊 Interpretación de ROTEM</h2>
 <p class="intro">Tromboelastometría rotacional para guiar el manejo de la coagulopatía en sangrado activo (trauma, cirugía cardiaca, hepática, hemorragia obstétrica). Resultados disponibles en 5–10 min.</p>
+
+<div class="coll open">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>🖥️ Visor ROTEM — accesos</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<table class="tbl">
+<tr><th>Acceso</th><th>Dato</th></tr>
+<tr><td><strong>Usuario</strong></td><td>HEMATO</td></tr>
+<tr><td><strong>Contraseña</strong></td><td>Candelaria1234@ &nbsp;<em>o</em>&nbsp; Hemato1234@</td></tr>
+<tr><td><strong>Tiempo real</strong> (GEMweb)</td><td><a href="https://10.137.248.176" target="_blank" rel="noopener">https://10.137.248.176</a></td></tr>
+<tr><td><strong>Tras la medición</strong></td><td><a href="https://10.137.51.170" target="_blank" rel="noopener">https://10.137.51.170</a></td></tr>
+</table>
+<p class="small muted" style="margin:6px 0 0">Visualización del visor ROTEM en la red del hospital. Abre los enlaces conectado a la red interna.</p>
+</div>
+</div>
 
 <div class="coll open">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>¿Qué mide cada test?</span><span class="ar">▶</span></div>
