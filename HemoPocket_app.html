@@ -3464,7 +3464,8 @@ lf:[],
 llc:[],
 mieloide:[],
 cito:[],
-ped:[]
+ped:[],
+farmacia:[{n:'Jorge Esquivel',r:'Farmacéutico'}]
 };
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
@@ -3515,6 +3516,11 @@ h+='<div class="team-empty">Sin colaboradores asignados todavía.</div>';
 }
 h+='</div>';
 });
+// Servicio de Farmacia (apartado propio, debajo de Hematología pediátrica)
+const farm=all['farmacia']&&all['farmacia'].length?all['farmacia']:[{n:'Jorge Esquivel',r:'Farmacéutico'}];
+h+='<div class="team-card"><h3>Servicio de Farmacia</h3><ul class="collabs-list">';
+farm.forEach(c=>{const name=c.n||c.name||'';const role=c.r||c.role||'';h+=role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;});
+h+='</ul></div>';
 h+='</div>';
 return h;
 };
@@ -4625,7 +4631,7 @@ const QT_SCHEMES = {
   // ── LINFOMA ──────────────────────────────────────────────────────────
   'R-CHOP': {
     r1split:true,
-    label: 'R-CHOP – planta (cada 21 días)',
+    label: 'R-CHOP (cada 21 días)',
     drugs: [
       {name:'Rituximab',     dose:'375 mg/m²', route:'IV', days:[1]},
       {name:'Ciclofosfamida',dose:'750 mg/m²', route:'IV', days:[1]},
