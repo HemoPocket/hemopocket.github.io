@@ -5202,19 +5202,35 @@ const QT_SCHEMES = {
     ]
   },
   'TALQUETAMAB': {
-    label: 'Talquetamab (GPRC5D×CD3) – step-up SC',
+    label: 'Talquetamab (GPRC5D×CD3) – step-up SC (MonumenTAL-1)',
     drugs: [
-      {name:'Talquetamab – step-up dosis 1', dose:'0,01 mg/kg', route:'SC', days:[1]},
-      {name:'Talquetamab – step-up dosis 2', dose:'0,06 mg/kg', route:'SC', days:[4]},
-      {name:'Talquetamab – dosis terapéutica (0,4 mg/kg QW o 0,8 mg/kg Q2W)', dose:'0,4 mg/kg', route:'SC', days:[7]}
+      {name:'Talquetamab – escalada dosis 1', dose:'0,01 mg/kg', route:'SC', days:[1]},
+      {name:'Talquetamab – escalada dosis 2 (2-4 días tras la 1ª)', dose:'0,06 mg/kg', route:'SC', days:[3]},
+      {name:'Talquetamab – 1ª dosis plena (pauta semanal)', dose:'0,4 mg/kg', route:'SC', days:[5]},
+      {name:'Talquetamab – mantenimiento semanal', dose:'0,4 mg/kg', route:'SC', days:[12,19,26]}
+    ],
+    premed: [
+      'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg).'
+    ],
+    notes: [
+      'Pauta SEMANAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 mg/kg (d5); después 0,4 mg/kg una vez por semana (mínimo 6 días entre dosis).',
+      'Pauta QUINCENAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 (d5) → 0,8 mg/kg (d7); después 0,8 mg/kg cada 2 semanas (mínimo 12 días entre dosis).',
+      'Cada escalada puede administrarse 2-4 días después de la anterior (hasta 7 días para permitir la resolución de reacciones). Dosis según peso actual.'
     ]
   },
   'ELRANATAMAB': {
-    label: 'Elranatamab (BCMA×CD3) – step-up SC',
+    label: 'Elranatamab (BCMA×CD3) – step-up SC (MagnetisMM-3)',
     drugs: [
-      {name:'Elranatamab – step-up dosis 1', dose:'12 mg', route:'SC', days:[1]},
-      {name:'Elranatamab – step-up dosis 2', dose:'32 mg', route:'SC', days:[4]},
-      {name:'Elranatamab – dosis terapéutica (QW; Q2W tras RC/MBRP ≥6 sem)', dose:'76 mg', route:'SC', days:[8]}
+      {name:'Elranatamab – escalada dosis 1', dose:'12 mg', route:'SC', days:[1]},
+      {name:'Elranatamab – escalada dosis 2 (2-4 días tras la 1ª, con CRS/ICAN resuelto)', dose:'32 mg', route:'SC', days:[4]},
+      {name:'Elranatamab – 1ª dosis plena (2-4 días tras la 2ª escalada)', dose:'76 mg', route:'SC', days:[8]},
+      {name:'Elranatamab – mantenimiento semanal', dose:'76 mg', route:'SC', days:[15,22]}
+    ],
+    premed: [
+      'Premedicación 1-3 h antes de cada dosis de la escalada (reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg). Considerar también en retrasos y en pacientes que hayan presentado SLC.'
+    ],
+    notes: [
+      'Dosis fija SC. Mantener 76 mg semanal hasta progresión o toxicidad inaceptable; valorar paso a cada 2 semanas según ficha técnica/respuesta.'
     ]
   },
   // ── ACONDICIONAMIENTO TASPE ───────────────────────────────────────────
@@ -5254,6 +5270,18 @@ const QT_SCHEMES = {
       {name:'Infusión de progenitores hematopoyéticos', dose:'—',          route:'IV', days:[7]}
     ]
   },
+  'BCNU-TIOTEPA': {
+    label: 'BCNU + Tiotepa – acondicionamiento TASPE (linfoma cerebral primario)',
+    conditioning: true,
+    drugs: [
+      {name:'BCNU (carmustina)', dose:'400 mg/m²', route:'IV 2h · 500 mL SF', days:[1]},
+      {name:'Tiotepa',           dose:'5 mg/kg',   route:'IV 2h · 500 mL SF', days:[2,3]},
+      {name:'Infusión de progenitores hematopoyéticos', dose:'—', route:'IV', days:[7]}
+    ],
+    notes: [
+      'Esquema GELTAMO 2019 para linfoma cerebral primario en inmunocompetentes. BCNU día -6; tiotepa días -5 y -4; descanso días -3 a -1; infusión día 0.'
+    ]
+  },
   'BEA': {
     label: 'BEA – acondicionamiento TASPE LMA',
     conditioning: true,
@@ -5269,7 +5297,7 @@ const QT_SCHEMES = {
     notes: [
       'Asociar profilaxis antiemética.',
       'Profilaxis de la neurotoxicidad por busulfán con terapia anticonvulsivante que incluya benzodiacepinas o fenitoína.',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
+      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos. En pacientes ≥60 años, reducir la citarabina a 1,5 g/m²/12 h.',
       'Profilaxis de neumonía por Pneumocystis (cotrimoxazol) si fludarabina previa; suspender 3-4 meses tras la última dosis de fludarabina.',
       'G-CSF a partir del día +7 para facilitar la recuperación hematopoyética.',
       'Profilaxis antibiótica y antifúngica a criterio del centro.',
@@ -5287,7 +5315,7 @@ const QT_GROUPS = [
   {label:'Aplasia medular',         keys:['APLASIA-IST']},
   {label:'Linfoma de Hodgkin',      keys:['ABVD','BV-AVD','BEACOPP-ESC']},
   {label:'Acondicionamiento TASPE – Mieloma/Amiloidosis', keys:['MELFALAN-200','MELFALAN-140','MELFALAN-200-AMI']},
-  {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM']},
+  {label:'Acondicionamiento TASPE – Linfoma', keys:['BEAM','BCNU-TIOTEPA']},
   {label:'Acondicionamiento TASPE – LMA',     keys:['BEA']}
 ];
 
