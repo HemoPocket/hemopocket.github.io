@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v55';
+const CACHE = 'hemopocket-v56';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html'];
 
@@ -57,7 +57,9 @@ self.addEventListener('fetch', e => {
   // 1. HTML / navegación: network-first con fallback a cache.
   if (isHTML) {
     e.respondWith(
-      fetch(req)
+      // cache:'no-store' evita que la caché HTTP del navegador devuelva un HTML
+      // viejo: forzamos siempre la última versión de la red cuando hay conexión.
+      fetch(req, { cache: 'no-store' })
         .then(resp => {
           const copy = resp.clone();
           caches.open(CACHE).then(c => safePut(c, req, copy));
