@@ -8573,11 +8573,35 @@ function RXtranscribe(raw){
   const ACC={acido:'ácido',folico:'fólico',acetilsalicilico:'acetilsalicílico',tranexamico:'tranexámico',
     ascorbico:'ascórbico',ursodesoxicolico:'ursodesoxicólico',zoledronico:'zoledrónico',ibandronico:'ibandrónico',
     risedronico:'risedrónico',alendronico:'alendrónico',micofenolico:'micofenólico',clavulanico:'clavulánico'};
+  // Formatea la cabecera "nombre dosis [- nombre2 dosis2 ...]" conservando los compuestos
+  const fmtHead=(head)=>{
+    head=(head||'').replace(/\([^)]*\)/g,' ');
+    let comps=head.split(/\s+-\s+/).map(s=>s.trim()).filter(Boolean);
+    comps=comps.map(comp=>{
+      const dmm=comp.match(/(\d+(?:[.,]\d+)?)\s*(mg\/ml|mcg\/ml|µg\/ml|mg|mcg|µg|g|ml|ui|u\.?\s*i\.?|%)\b/i);
+      let cname=comp,cdose='';
+      if(dmm){let u=dmm[2].toLowerCase().replace(/\s+/g,'');if(/^u\.?i\.?$/.test(u))u='UI';cdose=dmm[1]+' '+u;cname=comp.slice(0,dmm.index);}
+      cname=cname.replace(FORM,' ').replace(/[.,;:()]+/g,' ').replace(/\s+/g,' ').trim();
+      let toks=cname.toLowerCase().split(/\s+/).filter(Boolean);
+      const ai=toks.findIndex(t=>/^[áa]cido$/.test(t));if(ai>0){toks.splice(ai,1);toks.unshift('acido');}
+      toks=toks.map(t=>ACC[t]||t);
+      cname=capFirst(toks.join(' '));
+      return (cname+(cdose?' '+cdose:'')).trim();
+    }).filter(Boolean);
+    return comps.join(' - ');
+  };
 
   const out=[];
   for(let c of chunks){
     c=c.replace(/[–—]/g,'-').trim().replace(/^[\-•*\.\d\)\s]+(?=[A-Za-zÁÉÍÓÚ])/,'');
     if(!c||c.length<2) continue;
+
+    // Caso especial: cotrimoxazol (Septrin) — profilaxis lunes/miércoles/viernes con el almuerzo
+    if(/sulfametoxazol|cotrimoxazol|trimetoprim|septrin/i.test(c)){
+      const dd=[...c.matchAll(/(\d+(?:[.,]\d+)?)\s*mg\b/gi)].map(m=>m[1]);
+      out.push(`Sulfametoxazol ${dd[0]||'800'} mg - trimetoprima ${dd[1]||'160'} mg: 1 comprimido vía oral con el almuerzo todos los lunes, miércoles y viernes`);
+      continue;
+    }
 
     // 1) VÍA: detectar la canónica y eliminar TODAS sus menciones (caja + pauta)
     let route='';
@@ -8585,6 +8609,19 @@ function RXtranscribe(raw){
       if(re.test(c)){ route=canon; c=c.replace(new RegExp(re.source,'gi'),' '); break; }
     }
     c=c.replace(/\bv[ií]a\b/gi,' '); // quitar "vía" huérfano
+
+    // 1b) DÍAS de la semana → "todos los lunes, miércoles y viernes"
+    let daysTxt='';
+    const dayRe=/\b(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bados?|domingos?)\b/gi;
+    const DMAP={lunes:'lunes',martes:'martes',miercoles:'miércoles','miércoles':'miércoles',jueves:'jueves',viernes:'viernes',sabado:'sábado',sabados:'sábado','sábado':'sábado','sábados':'sábado',domingo:'domingo',domingos:'domingo'};
+    const dfound=[];let dmm;
+    while((dmm=dayRe.exec(c))){const v=DMAP[dmm[1].toLowerCase()]||dmm[1].toLowerCase();if(!dfound.includes(v))dfound.push(v);}
+    if(dfound.length){c=c.replace(dayRe,' ');daysTxt='todos los '+(dfound.length>1?dfound.slice(0,-1).join(', ')+' y '+dfound[dfound.length-1]:dfound[0]);}
+
+    // 1c) MOMENTO DE LA TOMA (con el desayuno / almuerzo / comida / cena)
+    let meal='';
+    const mealM=c.match(/\bcon\s+(?:el|la|las|los)?\s*(desayunos?|almuerzos?|comidas?|cenas?|meriendas?)\b/i);
+    if(mealM){let w=mealM[1].toLowerCase().replace(/s$/,'');const art=(w==='comida'||w==='cena'||w==='merienda')?'la':'el';meal='con '+art+' '+w;c=c.replace(mealM[0],' ');}
 
     // 2) FRECUENCIA
     c=c.replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*h\b/gi,' cada $1 h');
@@ -8608,36 +8645,15 @@ function RXtranscribe(raw){
     const PRN=/\bsi\s+precisa\b|\bs\.?\s*o\.?\s*s\.?\b/i;
     if(PRN.test(c)){ freq=(freq?freq+' ':'')+'si precisa'; c=c.replace(new RegExp(PRN.source,'gi'),' '); }
 
-    // 3) DOSIS: primer número+unidad → separa nombre (antes) de la pauta (después)
-    const dm=c.match(/(\d+(?:[.,]\d+)?)\s*(mg\/ml|mcg\/ml|µg\/ml|mg|mcg|µg|g|ml|ui|u\.?\s*i\.?|%)\b/i);
-    let dose='';
-    let namePart=c;
-    let doseEnd=0;
-    if(dm){
-      let unit=dm[2].toLowerCase().replace(/\s+/g,'');
-      if(/^u\.?i\.?$/.test(unit)) unit='UI';
-      dose=dm[1]+' '+unit;
-      namePart=c.slice(0,dm.index);
-      doseEnd=dm.index+dm[0].length;
-    }
+    // 3) FORMA (pauta) y CABECERA (nombre+dosis, conservando compuestos "A - B")
+    const formsAll=[...c.matchAll(FORM)];
+    let head=c, form='';
+    if(formsAll.length){ head=c.slice(0,formsAll[0].index); const last=formsAll[formsAll.length-1]; form=normForm(last[1],last[2]); }
+    const nameDose=fmtHead(head);
+    if(!nameDose) continue;
 
-    // 4) FORMA: la pauta posológica (la última forma que va DESPUÉS de la dosis)
-    let form='';
-    const forms=[...c.matchAll(FORM)].filter(m=>m.index>=doseEnd);
-    if(forms.length){ const last=forms[forms.length-1]; form=normForm(last[1],last[2]); }
-
-    // 5) NOMBRE: limpiar, reordenar "X ácido"→"ácido X" y acentuar términos conocidos
-    namePart=namePart.replace(FORM,' ').replace(/[.,;:()\-]+/g,' ').replace(/\s+/g,' ').trim();
-    let toks=namePart.toLowerCase().split(/\s+/).filter(Boolean);
-    const ai=toks.findIndex(t=>/^[áa]cido$/.test(t));
-    if(ai>0){ toks.splice(ai,1); toks.unshift('acido'); }
-    toks=toks.map(t=>ACC[t]||t);
-    const nm=capFirst(toks.join(' '));
-    if(!nm&&!dose) continue;
-    const nameDose=(nm+(dose?' '+dose:'')).trim();
-
-    // 6) ensamblar: forma + vía + frecuencia
-    const tail=[form,route,freq].filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/[\s,\-]+$/,'').trim();
+    // 4) ensamblar: forma + vía + frecuencia + momento + días
+    const tail=[form,route,freq,meal,daysTxt].filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/[\s,\-]+$/,'').trim();
     out.push(tail?`${nameDose}: ${tail}`:nameDose);
   }
   return out.join('\n');
