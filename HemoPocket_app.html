@@ -3576,7 +3576,7 @@ if(st.id==='fol'||/folicular/.test(n))return GELTAMO_ALGOS_FOL;
 if(st.id==='lbdcg'||/difuso|lbdcg|ldcgb|c[eé]lulas grandes|dlbcl/.test(n))return GELTAMO_ALGOS_LBDCG;
 return [];
 }
-const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
+const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "citodiag": [{"n": "Dr. Joaquín Breña"}, {"n": "Dra. Cristina Notario"}, {"n": "Dra. Julia Climent"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
 // El equipo se mantiene en el código (DEFAULT_COLLABORATORS) y es la fuente
@@ -3623,6 +3623,13 @@ h+='<div class="team-empty">Sin colaboradores asignados todavía.</div>';
 }
 h+='</div>';
 });
+// Citodiagnóstico (apartado propio, debajo de Hematología pediátrica)
+const cdx=all['citodiag']&&all['citodiag'].length?all['citodiag']:[];
+if(cdx.length){
+h+='<div class="team-card"><h3>Citodiagnóstico</h3><ul class="collabs-list">';
+cdx.forEach(c=>{const name=c.n||c.name||'';const role=c.r||c.role||'';h+=role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;});
+h+='</ul></div>';
+}
 // Servicio de Farmacia (apartado propio, debajo de Hematología pediátrica)
 const farm=all['farmacia']&&all['farmacia'].length?all['farmacia']:[{n:'Jorge Esquivel',r:'Farmacéutico'}];
 h+='<div class="team-card"><h3>Servicio de Farmacia</h3><ul class="collabs-list">';
@@ -4526,7 +4533,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.04-7';
+const APP_BUILD='2026.06.04-8';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.

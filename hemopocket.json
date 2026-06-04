@@ -1,5 +1,5 @@
 {
-  "version": "2026.06.04-repo4",
+  "version": "2026.06.04-repo5",
   "updatedAt": "2026-06-04",
   "note": "Fuente de actualización de HemoPocket (equipo/contactos/guías). Migrado el contenido completo del Gist al repo. Para añadir/quitar guías: subir el PDF a guias/ y editar este archivo + bump version.",
   "collaborators": {
@@ -109,6 +109,17 @@
       },
       {
         "n": "Dra. M.T. Busnego Barreto"
+      }
+    ],
+    "citodiag": [
+      {
+        "n": "Dr. Joaquín Breña"
+      },
+      {
+        "n": "Dra. Cristina Notario"
+      },
+      {
+        "n": "Dra. Julia Climent"
       }
     ],
     "farmacia": [
