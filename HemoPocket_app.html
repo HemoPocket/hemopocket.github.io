@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="HemoPocket">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/svg+xml" href="./icon.svg?v=44">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png?v=45">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
 <link rel="manifest" href="./manifest.json">
 <!-- Open Graph / vista previa con logo al compartir el enlace -->
 <meta property="og:type" content="website">
@@ -394,7 +394,7 @@ body{font-size:13px}
 @media(max-width:768px){.viewer-card{height:calc(100vh - 70px)}.viewer-pages{padding:8px 4px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="./icon.svg?v=44">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png?v=45">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HemoPocket">
@@ -5009,7 +5009,7 @@ const QT_SCHEMES = {
     premed: [
       'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar la premedicación si enfermedad pulmonar previa.',
       'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No es necesaria si recibe un corticoide de base (p. ej. dexametasona o prednisona) el día siguiente.',
-      'El día que la dexametasona coincida con daratumumab, administrarla dividida en 2 días (p. ej. 40 mg → 20 mg el día de daratumumab y 20 mg al día siguiente).'
+      'Los días que la dexametasona coincide con daratumumab, fraccionar la dosis (Libro Azul SEHH): 20 mg antes y 20 mg después de la infusión de daratumumab, en lugar de la toma única de 40 mg. Los días sin daratumumab, la dexametasona se administra como dosis única.'
     ],
     notes: [
       '4 ciclos de inducción + 2 ciclos de consolidación, cada 28 días.',
@@ -5043,7 +5043,8 @@ const QT_SCHEMES = {
     ],
     premed: [
       'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar si enfermedad pulmonar previa.',
-      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No necesaria si recibe un corticoide de base el día siguiente.'
+      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No necesaria si recibe un corticoide de base el día siguiente.',
+      'Los días que la dexametasona coincide con daratumumab, fraccionar la dosis (Libro Azul SEHH): 20 mg antes y 20 mg después de la infusión de daratumumab, en lugar de la toma única de 40 mg.'
     ],
     notes: [
       'Realizar fenotipo eritrocitario previo al inicio del tratamiento con daratumumab.',
@@ -5079,7 +5080,8 @@ const QT_SCHEMES = {
     ],
     premed: [
       'Premedicación daratumumab (1–3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO/IV) + paracetamol 650–1000 mg + montelukast 10 mg VO. Considerar intensificar si enfermedad pulmonar previa.',
-      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No necesaria si recibe un corticoide de base (p. ej. dexametasona) el día siguiente.'
+      'Postmedicación daratumumab: metilprednisolona oral en dosis baja (≤20 mg) o equivalente el día siguiente a la inyección. No necesaria si recibe un corticoide de base (p. ej. dexametasona) el día siguiente.',
+      'Los días que la dexametasona coincide con daratumumab, fraccionar la dosis (Libro Azul SEHH): 20 mg antes y 20 mg después de la infusión de daratumumab, en lugar de la toma única de 40 mg.'
     ],
     notes: [
       'Realizar fenotipo eritrocitario previo al inicio del tratamiento con daratumumab.',
@@ -6522,6 +6524,28 @@ const mm=String(d.getMonth()+1).padStart(2,'0');
 const yy=String(d.getFullYear()).slice(-2);
 return `${dd}/${mm}/${yy}`;
 }
+function qtFmtDM(d){ // solo día/mes (sin año)
+return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+}
+// Formatea una lista de tramos (groupDays) según el estilo pedido:
+// días sueltos separados por comas (solo día/mes), el último con "y" y el año;
+// "del X al Y" (con año completo) solo para tramos de ≥3 días contiguos.
+function qtFmtDates(ranges){
+  const items=[];
+  ranges.forEach(r=>{
+    const len=r.e.day-r.s.day+1;
+    if(len>=3){items.push({range:true,s:r.s.date,e:r.e.date});}
+    else{let d=new Date(r.s.date);for(let k=0;k<len;k++){items.push({range:false,d:new Date(d)});d.setDate(d.getDate()+1);}}
+  });
+  const n=items.length;if(!n)return '';
+  let out='';
+  items.forEach((it,i)=>{
+    const last=i===n-1;
+    const s=it.range?('del '+qtFmtDate(it.s)+' al '+qtFmtDate(it.e)):(last?qtFmtDate(it.d):qtFmtDM(it.d));
+    if(i===0)out=s;else out+=((last&&!it.range)?' y ':', ')+s;
+  });
+  return out;
+}
 
 function qtAddDays(base,n){
 const d=new Date(base);d.setDate(d.getDate()+n);return d;
@@ -6648,12 +6672,7 @@ if(scheme.conditioning){
 } else {
   lines.push(cycle+'º ciclo '+key+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
   drugsList.forEach(drug=>{
-    const ranges=groupDays(drug.days);
-    const strs=ranges.map(r=>{
-      if(r.s.day===r.e.day) return qtFmtDate(r.s.date);
-      return 'del '+qtFmtDate(r.s.date)+' al '+qtFmtDate(r.e.date);
-    });
-    lines.push(fmtDrugLine(drug,strs.join(', ')));
+    lines.push(fmtDrugLine(drug,qtFmtDates(groupDays(drug.days))));
   });
   // Esquema en días del ciclo → bloque de notas (solo lectura)
   drugsList.forEach(drug=>{
