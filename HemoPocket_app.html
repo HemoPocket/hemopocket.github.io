@@ -3891,13 +3891,6 @@ return `<div class="card">
 <div class="fld"><label class="lbl">Dosis actual <span id="op_unit" style="font-weight:400;color:var(--mut);font-size:11px"></span></label><input type="number" step="0.01" id="op_dose" placeholder="introduce la dosis" oninput="calcOpio()"></div>
 <div class="fld"><label class="lbl">Rotar a</label>
 <select id="op_to" onchange="calcOpio()">${optsTo}</select></div>
-<div class="fld"><label class="lbl">Reducción por tolerancia cruzada</label>
-<select id="op_red" onchange="calcOpio()">
-<option value="0.5">50% (anciano, IR/IH, polifarmacia)</option>
-<option value="0.3" selected>30% (estándar)</option>
-<option value="0.25">25% (dolor mal controlado, joven, función conservada)</option>
-<option value="0">Sin reducción (uso experto)</option>
-</select></div>
 </div>
 <div id="op_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn" onclick="calcOpio()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyOpio()">Copiar evolución</button></div>
@@ -3929,7 +3922,7 @@ return `<div class="card">
 };
 
 function calcOpio(){
-const from=$('op_from').value,to=$('op_to').value,dose=n($('op_dose').value),red=parseFloat($('op_red').value);
+const from=$('op_from').value,to=$('op_to').value,dose=n($('op_dose').value);
 // Unidad esperada según el opioide de origen (ayuda a no confundir mg/día con µg/h)
 const _fc=from==='meta_vo'?{unit:'mg'}:OPIO_FACT[from];
 const _uh=(_fc&&_fc.td)?'µg/h':(from==='fent_iv'?'µg/día (IV/SC)':((from.endsWith('_iv')||from.endsWith('_sc'))?'mg/día (IV/SC)':'mg/día'));
@@ -3960,12 +3953,8 @@ if(to==='fent_iv')toUnit='µg/día IV/SC';
 toName=conf.n;
 toFactor=`×1/${conf.f}`;
 }
-// Paso 3: reducción por tolerancia cruzada SOLO al rotar a un opioide DISTINTO
-// (un cambio de vía del mismo fármaco —p. ej. fentanilo IV→parche— no lleva reducción)
 const baseDrug=k=>k.split('_')[0];
 const isRotation=baseDrug(from)!==baseDrug(to);
-const reducedDose=isRotation?toDose*(1-red):toDose;
-const reductionTxt=isRotation&&red>0?` (con reducción del ${(red*100).toFixed(0)}% por tolerancia cruzada incompleta)`:'';
 // Clasificación de riesgo
 let riskCls,riskTxt;
 if(mme<50){riskCls='lo';riskTxt='Dosis baja (MME <50/día)'}
@@ -3976,22 +3965,20 @@ const el=$('op_res');el.style.display='block';el.className='res '+riskCls;
 el.innerHTML=`<div class="res-h"><span class="score">${mme.toFixed(0)} MME/día</span><span>${riskTxt}</span></div>
 <div class="res-s" style="margin-top:10px">
 <strong>Origen:</strong> ${fromName} ${dose} ${OPIO_FACT[from]?OPIO_FACT[from].unit:'mg'} → <strong>${mme.toFixed(1)} MME/día</strong> de morfina oral.<br>
-<strong>Equivalencia bruta en ${toName}:</strong> ${toDose.toFixed(2)} ${toUnit}.<br>
-<strong>Dosis recomendada al rotar:</strong> <span style="font-size:15px;color:var(--c1);font-weight:700">${reducedDose.toFixed(1)} ${toUnit}</span>${reductionTxt}.
+<strong>Dosis equivalente en ${toName}:</strong> <span style="font-size:15px;color:var(--c1);font-weight:700">${toDose.toFixed(1)} ${toUnit}</span>.
 </div>
 <div class="res-s" style="margin-top:8px"><small><strong>Rescate sugerido:</strong> 10–15% de la dosis diaria de fondo cada 4 h vía oral o cada 1 h vía IV. <strong>Naloxona</strong>: tener prescrita si MME ≥50/día o factores de riesgo (apnea del sueño, depresión respiratoria, insuficiencia respiratoria, opioides + benzodiacepinas, edad avanzada).</small></div>`;
-window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'mg',mme,toName,reducedDose,toUnit,red,isRotation,riskTxt};
+window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'mg',mme,toName,toDose,toUnit,isRotation,riskTxt};
 }
 
 function copyOpio(){
 const d=window._opioData;if(!d){toast('Calcula primero');return}
-const rotTxt=d.isRotation?`Se realiza rotación de ${d.fromName} a ${d.toName}.`:`Se mantiene el mismo opioide (${d.fromName}).`;
-const redTxt=(d.isRotation&&d.red>0)?` Tras aplicar una reducción del ${(d.red*100).toFixed(0)}% por tolerancia cruzada incompleta entre opioides, se propone una dosis inicial de ${d.reducedDose.toFixed(1)} ${d.toUnit}.`:'';
+const rotTxt=d.isRotation?`Se calcula la dosis equivalente en ${d.toName}: ${d.toDose.toFixed(1)} ${d.toUnit}.`:`Se mantiene el mismo opioide (${d.fromName}).`;
 const txt=`Conversión de opioides — equivalente de morfina oral (MME)
 ─────────────────────────────────────────────
 ${patientHeader()}El paciente recibe actualmente ${d.fromName} a dosis de ${d.dose} ${d.fromUnit}, equivalente a ${d.mme.toFixed(1)} MME/día de morfina oral (${d.riskTxt.toLowerCase()}).
 
-${rotTxt}${redTxt}
+${rotTxt}
 
 Se asocia pauta de rescate (10–15% de la dosis diaria de fondo cada 4 h vía oral o cada 1 h vía intravenosa). Se valora prescripción de naloxona si la dosis total supera 50 MME/día o existen factores de riesgo asociados. Se monitoriza analgesia, función intestinal, sedación y depresión respiratoria.
 
@@ -6088,11 +6075,11 @@ function opioInlineCard(r){
   const fU=opioUnitMin(r.fromKey),tU=opioUnitMin(r.toKey);
   let main,note;
   if(r.isRot){
-    main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong>${fmtOpioNum(r.toDose)} ${tU}</strong> de ${chatEsc(opioName(r.toKey))} <em>(equivalencia bruta)</em>.`;
-    note=`Al <strong>rotar de opioide</strong> se aplica una reducción del 25–50% por tolerancia cruzada incompleta → dosis inicial sugerida <strong style="color:var(--c1)">${fmtOpioNum(r.toDose*0.5)}–${fmtOpioNum(r.toDose*0.75)} ${tU}</strong>, ajustando con dosis de rescate.`;
+    main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong style="color:var(--c1)">${fmtOpioNum(r.toDose)} ${tU}</strong> de ${chatEsc(opioName(r.toKey))}.`;
+    note='Ajustar según la respuesta clínica y la dosis de rescate.';
   }else{
     main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong style="color:var(--c1)">${fmtOpioNum(r.toDose)} ${tU}</strong> de ${chatEsc(opioName(r.toKey))}.`;
-    note='Mismo fármaco, solo cambia la vía: no se aplica reducción por tolerancia cruzada.';
+    note='Mismo fármaco, solo cambia la vía.';
   }
   const metaW=r.meta?'<div style="margin-top:6px;font-size:11.5px;color:#9a3412"><strong>⚠️ Metadona:</strong> conversión NO lineal y tolerancia cruzada parcial; iniciar siempre en consulta especializada.</div>':'';
   return `<div style="${CHAT_CARD};border-left-color:#b91c1c">
