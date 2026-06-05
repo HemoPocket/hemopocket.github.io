@@ -410,6 +410,31 @@ body{font-size:13px}
 .viewer-loading{padding:30px;text-align:center;color:var(--mut)}
 .viewer-error{padding:20px;text-align:center;color:var(--er);background:var(--card);border-radius:var(--rs);margin:14px}
 @media(max-width:768px){.viewer-card{height:calc(100vh - 70px)}.viewer-pages{padding:8px 4px}}
+/* === Auth overlay === */
+#hp-auth-overlay{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+#hp-auth-overlay.hidden{display:none}
+.hp-login-card{background:var(--card);border-radius:var(--r);padding:32px 28px;width:100%;max-width:360px;box-shadow:var(--shd2);text-align:center}
+.hp-login-title{font-size:22px;font-weight:700;color:var(--c1);margin:0 0 3px}
+.hp-login-sub{font-size:12px;color:var(--mut);margin:0 0 24px}
+.hp-login-field{display:flex;flex-direction:column;gap:5px;text-align:left;margin-bottom:14px}
+.hp-login-label{font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.hp-login-input{border:1.5px solid var(--bd);border-radius:var(--rs);padding:10px 12px;font-size:15px;background:var(--inp);color:var(--txt);outline:none;transition:.15s;width:100%;box-sizing:border-box}
+.hp-login-input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(196,30,58,.12)}
+.hp-pw-wrap{position:relative}
+.hp-pw-wrap .hp-login-input{padding-right:40px}
+.hp-pw-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mut);padding:4px;line-height:0}
+.hp-login-btn{width:100%;padding:12px;background:var(--c1);color:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;transition:.15s}
+.hp-login-btn:active{opacity:.85}
+.hp-login-btn:disabled{opacity:.5;cursor:not-allowed}
+.hp-login-err{font-size:13px;color:var(--er);margin:10px 0 0;min-height:18px;text-align:center;line-height:1.4}
+.hp-login-ok{color:var(--ok)!important}
+.hp-login-forgot{font-size:12.5px;color:var(--c2);background:none;border:none;cursor:pointer;padding:10px 0 0;text-decoration:underline;display:block;width:100%;text-align:center}
+[data-t="dark"] .hp-login-forgot{color:var(--c2l)}
+/* User badge in topbar */
+#hp-user-btn{display:none;align-items:center;gap:5px;font-size:12px;color:var(--mut);background:none;border:1.5px solid var(--bd);border-radius:20px;padding:5px 10px 5px 8px;cursor:pointer;transition:.15s;max-width:120px;overflow:hidden}
+#hp-user-btn:hover{border-color:var(--c1);color:var(--c1)}
+#hp-user-btn.visible{display:flex}
+#hp_user_label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 <link rel="icon" type="image/svg+xml" href="./icon.svg?v=44">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
@@ -420,6 +445,34 @@ body{font-size:13px}
 <meta name="theme-color" content="#c41e3a">
 </head>
 <body>
+<!-- ══ Login overlay ══ -->
+<div id="hp-auth-overlay" role="dialog" aria-modal="true" aria-label="Iniciar sesión">
+  <div class="hp-login-card">
+    <svg style="display:block;margin:0 auto 10px" width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="#c41e3a" aria-hidden="true">
+      <path d="M22 4C32 4 40 12 40 22C40 35 27 42 27 50C27 58 40 65 40 78C40 88 32 96 22 96C12 96 4 88 4 78C4 65 17 58 17 50C17 42 4 35 4 22C4 12 12 4 22 4Z"/>
+      <path d="M78 4C88 4 96 12 96 22C96 35 83 42 83 50C83 58 96 65 96 78C96 88 88 96 78 96C68 96 60 88 60 78C60 65 73 58 73 50C73 42 60 35 60 22C60 12 68 4 78 4Z"/>
+      <circle cx="50" cy="50" r="17"/>
+    </svg>
+    <div class="hp-login-title">HemoPocket</div>
+    <div class="hp-login-sub">Guía de consulta rápida en Hematología</div>
+    <div class="hp-login-field">
+      <label class="hp-login-label" for="hp_email">Correo electrónico</label>
+      <input class="hp-login-input" id="hp_email" type="email" autocomplete="email" placeholder="usuario@hospital.es" inputmode="email">
+    </div>
+    <div class="hp-login-field">
+      <label class="hp-login-label" for="hp_pw">Contraseña</label>
+      <div class="hp-pw-wrap">
+        <input class="hp-login-input" id="hp_pw" type="password" autocomplete="current-password" placeholder="••••••••">
+        <button class="hp-pw-eye" type="button" onclick="hpTogglePw()" tabindex="-1" aria-label="Mostrar/ocultar contraseña">
+          <svg id="hp_eye_ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="hp_login_err" class="hp-login-err"></div>
+    <button class="hp-login-btn" id="hp_login_btn" onclick="hpLogin()">Entrar</button>
+    <button class="hp-login-forgot" onclick="hpForgotPw()">¿Olvidaste tu contraseña?</button>
+  </div>
+</div>
 <!-- Splash propio eliminado: el SO/Vercel ya muestra su propia splash al instalar (evita doble splash). -->
 <script>window._hpBIP=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window._hpBIP=e;if(typeof hpShowInstall==='function')hpShowInstall();});window.addEventListener('appinstalled',function(){window._hpBIP=null;var b=document.getElementById('installBar');if(b)b.hidden=true;});</script>
 <!-- ══════════════════════════════════════════════ -->
@@ -452,6 +505,10 @@ body{font-size:13px}
 <button class="tb-btn" onclick="openCmd()" title="Búsqueda rápida (Ctrl+K)" aria-label="Búsqueda rápida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
 <button class="tb-btn" onclick="go('phone')" title="Listín Telefónico" aria-label="Listín Telefónico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg></button>
 <button id="theme_btn" class="tb-btn" onclick="toggleTheme()" title="Modo oscuro / claro" aria-label="Cambiar tema"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg></button>
+<button id="hp-user-btn" onclick="hpSignOut()" title="Cerrar sesión" aria-label="Cerrar sesión">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  <span id="hp_user_label"></span>
+</button>
 </div>
 <div id="installBar" class="install-bar" hidden>
 <svg class="install-bar-ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 6v8"/><path d="m9 11 3 3 3-3"/><line x1="10" y1="18.5" x2="14" y2="18.5"/></svg>
@@ -9835,6 +9892,113 @@ document.addEventListener('DOMContentLoaded', function() {
   if (m) m.addEventListener('click', function(e) {
     if (e.target === this) cerrarAvisoLegal();
   });
+});
+</script>
+
+<!-- ══ Firebase Auth ══ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
+  authDomain: "hemopocket.firebaseapp.com",
+  projectId: "hemopocket",
+  storageBucket: "hemopocket.firebasestorage.app",
+  messagingSenderId: "873773275437",
+  appId: "1:873773275437:web:4d6ec7c118f50c4a445ba4",
+  measurementId: "G-PDEJWB1576"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+getAnalytics(fbApp);
+const auth = getAuth(fbApp);
+
+// Auth state: show/hide overlay and user badge
+onAuthStateChanged(auth, user => {
+  const overlay = document.getElementById('hp-auth-overlay');
+  const userBtn = document.getElementById('hp-user-btn');
+  const userLabel = document.getElementById('hp_user_label');
+  const loginBtn = document.getElementById('hp_login_btn');
+  if (user) {
+    overlay.classList.add('hidden');
+    userBtn.classList.add('visible');
+    userLabel.textContent = user.email.split('@')[0];
+    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
+  } else {
+    overlay.classList.remove('hidden');
+    userBtn.classList.remove('visible');
+    const emailEl = document.getElementById('hp_email');
+    const pwEl = document.getElementById('hp_pw');
+    const errEl = document.getElementById('hp_login_err');
+    if (emailEl) emailEl.value = '';
+    if (pwEl) pwEl.value = '';
+    if (errEl) { errEl.textContent = ''; errEl.className = 'hp-login-err'; }
+    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
+  }
+});
+
+const ERR_MSGS = {
+  'auth/user-not-found': 'Usuario no encontrado.',
+  'auth/wrong-password': 'Contraseña incorrecta.',
+  'auth/invalid-email': 'Formato de correo no válido.',
+  'auth/too-many-requests': 'Demasiados intentos. Prueba más tarde o restablece tu contraseña.',
+  'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+  'auth/network-request-failed': 'Sin conexión. Conéctate a Internet para iniciar sesión.',
+};
+
+window.hpLogin = async function() {
+  const email = document.getElementById('hp_email').value.trim();
+  const pw = document.getElementById('hp_pw').value;
+  const errEl = document.getElementById('hp_login_err');
+  const btn = document.getElementById('hp_login_btn');
+  errEl.className = 'hp-login-err';
+  if (!email || !pw) { errEl.textContent = 'Introduce correo y contraseña.'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Entrando…';
+  errEl.textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    errEl.textContent = ERR_MSGS[e.code] || 'Error al iniciar sesión. Inténtalo de nuevo.';
+  }
+};
+
+window.hpSignOut = async function() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await signOut(auth);
+};
+
+window.hpForgotPw = async function() {
+  const email = document.getElementById('hp_email').value.trim();
+  const errEl = document.getElementById('hp_login_err');
+  errEl.className = 'hp-login-err';
+  if (!email) {
+    errEl.textContent = 'Escribe primero tu correo electrónico.';
+    document.getElementById('hp_email').focus();
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    errEl.className = 'hp-login-err hp-login-ok';
+    errEl.textContent = 'Correo de recuperación enviado. Revisa tu bandeja de entrada.';
+  } catch(e) {
+    errEl.textContent = 'No se pudo enviar el correo. Comprueba que la dirección es correcta.';
+  }
+};
+
+window.hpTogglePw = function() {
+  const inp = document.getElementById('hp_pw');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+};
+
+// Enter key submits login
+['hp_email','hp_pw'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') window.hpLogin(); });
 });
 </script>
 </body>
