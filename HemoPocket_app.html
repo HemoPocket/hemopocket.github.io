@@ -2034,45 +2034,48 @@ VIEWS.citomol=()=>`<div class="card">
 <div class="coll open">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · NPM1 mutada</span><span class="ar">▶</span></div>
 <div class="coll-c">
-<p><strong>PCR cuantitativa de NPM1</strong> (transcrito mutado).</p>
+<p><strong>qRT-PCR cuantitativa de NPM1</strong> mutado, centralizada. La <strong>sangre periférica (SP)</strong> es la muestra de referencia para el seguimiento de la EMR (en MO la EMR por PCR es investigacional/de apoyo).</p>
 <ul style="padding-left:20px;line-height:1.7">
-<li><strong>Médula ósea (MO):</strong> a los <strong>3, 12 y 24 meses</strong> tras finalizar el tratamiento.</li>
-<li><strong>Sangre periférica (SP):</strong> <strong>cada 3 meses</strong> tras finalizar el tratamiento y hasta los <strong>2 años</strong> desde el fin del tratamiento.</li>
-<li><strong>Fin del tratamiento</strong> = recuperación de la neutropenia tras el último ciclo.</li>
+<li><strong>Intratratamiento:</strong> SP y MO tras la inducción y tras cada ciclo de consolidación, y <strong>pre-TPH</strong> si se realiza.</li>
+<li><strong>Seguimiento · SP:</strong> <strong>cada 3 meses</strong> desde el fin del tratamiento hasta cumplir <strong>2 años</strong> (o 2 años post-TPH si el TPH fue en 1.ª RC). En alo-TPH puede hacerse cada 2 meses.</li>
+<li><strong>Seguimiento · MO:</strong> aspirado a los <strong>3, 12 y 24 meses</strong> tras finalizar el tratamiento.</li>
+<li><strong>Fin del tratamiento</strong> = recuperación de la neutropenia tras el último ciclo (incluido TPH).</li>
 </ul>
-<p class="small muted" style="margin-top:6px">Recaída molecular = reaparición o ascenso significativo del transcrito en dos determinaciones; obliga a actuar. Ver <strong>protocolo PETHEMA LMA-NPM1</strong>.</p>
+<p class="small muted" style="margin-top:6px">Recaída molecular = SP positiva [ratio (NPM1/gen control) × 10⁴ ≥ 1]; confirmar en una 2.ª muestra antes de darla por positiva. Ver <strong>protocolo PETHEMA LMA-NPM1</strong>.</p>
 </div></div>
 
 <div class="coll" style="margin-top:8px">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · core-binding factor (CBF)</span><span class="ar">▶</span></div>
 <div class="coll-c">
-<p><strong>PCR del transcrito de fusión</strong>: RUNX1::RUNX1T1 [t(8;21)] o CBFB::MYH11 [inv(16)/t(16;16)].</p>
+<p><strong>qRT-PCR del transcrito de fusión</strong>, centralizada (SP y MO): RUNX1::RUNX1T1 [t(8;21)] o CBFB::MYH11 [inv(16)/t(16;16)].</p>
 <ul style="padding-left:20px;line-height:1.7">
-<li>Monitorización seriada en <strong>MO y SP</strong> tras el tratamiento (aproximadamente cada 3 meses durante ~2 años).</li>
-<li>Una reducción &lt; 3 log o un <strong>ascenso de la EMR</strong> predice la recaída.</li>
+<li><strong>Intratratamiento:</strong> tras cada uno de los <strong>4 ciclos</strong> de quimioterapia y <strong>pre-TPH</strong> si se realiza.</li>
+<li><strong>Seguimiento · SP:</strong> <strong>cada 3 meses</strong> desde el fin del tratamiento hasta cumplir <strong>2 años desde el diagnóstico</strong> (y 2 años post-TPH si el TPH fue en 1.ª RC).</li>
+<li>Una <strong>reducción &lt; 3 log</strong> tras inducción/consolidación o un <strong>ascenso de la EMR</strong> predicen la recaída.</li>
 </ul>
+<p class="small muted" style="margin-top:6px">Recaída/persistencia molecular: muestra positiva confirmada en una 2.ª determinación. Ver <strong>protocolo PETHEMA LMA-CBF</strong>.</p>
 </div></div>
 
 <div class="coll" style="margin-top:8px">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Leucemia promielocítica aguda (LPA · PML::RARA)</span><span class="ar">▶</span></div>
 <div class="coll-c">
-<p><strong>PCR de PML::RARA.</strong></p>
+<p><strong>RT-PCR de PML::RARA</strong> en MO, tras alcanzar la RC y al final de la consolidación.</p>
 <ul style="padding-left:20px;line-height:1.7">
-<li>Tras la consolidación: si es <strong>negativa</strong>, en bajo riesgo no precisa más monitorización.</li>
-<li>En <strong>alto riesgo</strong>: MO (o SP) <strong>cada 3 meses durante 2-3 años</strong>.</li>
-<li>Recaída molecular (2 PCR positivas consecutivas) → iniciar tratamiento.</li>
+<li><strong>Bajo/intermedio riesgo (ATO+ATRA):</strong> si se alcanza <strong>RC molecular</strong> tras la consolidación, no precisa monitorización molecular rutinaria (recaída muy infrecuente).</li>
+<li><strong>Alto riesgo / esquema con quimioterapia (ATRA+QT):</strong> PML::RARA <strong>cada 2 meses durante 2 años</strong>, después <strong>cada 3 meses durante 1 año</strong> y luego <strong>cada 6 meses durante 2 años</strong>.</li>
+<li>Recaída molecular = <strong>2 PCR positivas consecutivas</strong> → iniciar tratamiento.</li>
 </ul>
 </div></div>
 
 <div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · sin marcador molecular específico (FLT3-ITD u otros)</span><span class="ar">▶</span></div>
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA sin marcador molecular (no CBF, no NPM1) · LMA-FLOW</span><span class="ar">▶</span></div>
 <div class="coll-c">
+<p><strong>EMR por citometría de flujo multiparamétrica</strong> (LAIP/diferente-de-normal) en <strong>médula ósea</strong>, centralizada — método de referencia cuando no hay marcador molecular seguible.</p>
 <ul style="padding-left:20px;line-height:1.7">
-<li><strong>FLT3-ITD</strong>: poco fiable como EMR aislada; valorar EMR por NGS (si disponible) o por citometría.</li>
-<li><strong>EMR por citometría de flujo</strong> (LAIP/diferente-de-normal) en MO tras inducción y consolidación.</li>
-<li><strong>WT1</strong>: marcador inespecífico, solo si no hay otro marcador.</li>
+<li>Determinación en MO <strong>tras la inducción</strong> y <strong>tras la consolidación</strong>; el resultado post-inducción orienta la indicación de <strong>ATSP vs alo-TPH</strong>.</li>
+<li>Nueva evaluación de MO <strong>antes del ATSP o del alo-TPH</strong>.</li>
 </ul>
-<p class="small muted" style="margin-top:6px">Marco general ELN-MRD 2021: EMR molecular en SP tras 2 ciclos, en MO al final de la consolidación y en MO cada 3 meses durante 24 meses.</p>
+<p class="small muted" style="margin-top:6px">Ver <strong>protocolo PETHEMA LMA-FLOW</strong>. Marco general ELN-MRD 2021.</p>
 </div></div>
 
 <div class="coll" style="margin-top:8px">
@@ -3576,7 +3579,7 @@ if(st.id==='fol'||/folicular/.test(n))return GELTAMO_ALGOS_FOL;
 if(st.id==='lbdcg'||/difuso|lbdcg|ldcgb|c[eé]lulas grandes|dlbcl/.test(n))return GELTAMO_ALGOS_LBDCG;
 return [];
 }
-const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "citodiag": [{"n": "Dr. Joaquín Breña"}, {"n": "Dra. Cristina Notario"}, {"n": "Dra. Julia Climent"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
+const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}, {"n": "Dr. Carlos Quintero"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "citodiag": [{"n": "Dr. Joaquín Breña"}, {"n": "Dra. Cristina Notario"}, {"n": "Dra. Julia Climent"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
 // El equipo se mantiene en el código (DEFAULT_COLLABORATORS) y es la fuente
@@ -4533,7 +4536,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.04-8';
+const APP_BUILD='2026.06.04-9';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
