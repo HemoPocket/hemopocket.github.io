@@ -2,6 +2,14 @@
 <html lang="es" data-t="light">
 <head>
 <meta charset="UTF-8">
+<script>
+/* Migración de Vercel → GitHub Pages: si la app se abrió desde *.vercel.app
+   (despliegue antiguo en retirada), redirigir al dominio oficial conservando
+   ruta/búsqueda/hash. No afecta a hemopocket.github.io ni a otros dominios. */
+(function(){try{if(location.hostname.indexOf('vercel.app')!==-1){
+  location.replace('https://hemopocket.github.io'+location.pathname+location.search+location.hash);
+}}catch(e){}})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>HemoPocket</title>
 <meta name="description" content="Guía de consulta rápida en Hematología">
@@ -4560,7 +4568,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.04-11';
+const APP_BUILD='2026.06.04-12';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
