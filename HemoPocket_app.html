@@ -653,7 +653,23 @@ body{font-size:13px}
 <script>
 // === STATE & STORAGE ===
 const S={p:{age:'',sex:'',weight:'',height:'',creatinine:''},theme:'light',view:'home',favs:[],contacts:[],pdfs:{}};
-const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}}};
+// Claves que se sincronizan con la cuenta del usuario (Firestore)
+const HP_SYNC_KEYS={favs:1,recent:1};
+let _hpCloudSuppress=false;
+const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}if(!_hpCloudSuppress&&HP_SYNC_KEYS[k]&&window.__hpCloudWrite){try{window.__hpCloudWrite(k,v)}catch(e){}}}};
+// Aplica los datos del usuario descargados desde Firestore (favoritos, recientes)
+window.hpApplyCloudData=function(d){
+  if(!d)return;
+  _hpCloudSuppress=true;
+  try{
+    if(Array.isArray(d.favs)){S.favs=d.favs.slice(0,4);ls.s('favs',S.favs);}
+    if(Array.isArray(d.recent)){S.recent=d.recent.slice(0,6);ls.s('recent',S.recent);}
+  }finally{_hpCloudSuppress=false;}
+  try{renderMenu($('search')?$('search').value:'');}catch(e){}
+  try{if(S.view==='home')$('content').innerHTML=homeView();}catch(e){}
+};
+// Recopila los datos locales actuales para subirlos a una cuenta nueva
+window.hpCollectLocal=function(){return{favs:S.favs||[],recent:S.recent||[]};};
 const $=id=>document.getElementById(id);
 const n=v=>{const x=parseFloat(v);return isNaN(x)?null:x};
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
@@ -9900,6 +9916,7 @@ document.addEventListener('DOMContentLoaded', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
@@ -9914,6 +9931,34 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 getAnalytics(fbApp);
 const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+// ── Sincronización de datos por usuario (favoritos, recientes) ──
+let curUid = null;
+let writeTimer = null;
+let pending = {};
+window.__hpCloudWrite = function(k, v) {
+  if (!curUid) return;
+  pending[k] = v;
+  clearTimeout(writeTimer);
+  writeTimer = setTimeout(flushCloud, 800);
+};
+function flushCloud() {
+  if (!curUid || !Object.keys(pending).length) return;
+  const data = { ...pending };
+  pending = {};
+  setDoc(doc(db, 'users', curUid), data, { merge: true }).catch(e => console.warn('[hp] cloud write', e.message));
+}
+function loadCloud(uid) {
+  getDoc(doc(db, 'users', uid)).then(snap => {
+    if (snap.exists()) {
+      if (window.hpApplyCloudData) window.hpApplyCloudData(snap.data());
+    } else if (window.hpCollectLocal) {
+      // Cuenta nueva: subir los datos locales actuales como punto de partida
+      setDoc(doc(db, 'users', uid), window.hpCollectLocal(), { merge: true }).catch(() => {});
+    }
+  }).catch(e => console.warn('[hp] cloud read', e.message));
+}
 
 // Auth state: show/hide overlay and user badge
 onAuthStateChanged(auth, user => {
@@ -9922,11 +9967,15 @@ onAuthStateChanged(auth, user => {
   const userLabel = document.getElementById('hp_user_label');
   const loginBtn = document.getElementById('hp_login_btn');
   if (user) {
+    curUid = user.uid;
     overlay.classList.add('hidden');
     userBtn.classList.add('visible');
     userLabel.textContent = user.email.split('@')[0];
     if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
+    loadCloud(user.uid);
   } else {
+    curUid = null;
+    pending = {};
     overlay.classList.remove('hidden');
     userBtn.classList.remove('visible');
     const emailEl = document.getElementById('hp_email');
