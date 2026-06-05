@@ -2093,17 +2093,18 @@ VIEWS.citomol=()=>`<div class="card">
 
 // === CITODIAGNÓSTICO · Clasificación LMA (ICC/OMS) y linfomas ===
 VIEWS.citoclas=()=>`<div class="card">
-<h2>🗂️ Clasificación LMA (ICC / OMS) y linfomas</h2>
-<p class="intro">Resumen de las clasificaciones actuales (2022): leucemia mieloide aguda por ICC y OMS 5ª ed., y neoplasias linfoides (OMS 5ª ed. / ICC).</p>
+<h2>🗂️ Clasificación LMA (OMS / ICC) y linfomas</h2>
+<p class="intro">Clasificaciones vigentes (2022): <strong>OMS 5.ª ed. (WHO-HAEM5)</strong> e <strong>ICC 2022</strong>, ambas basadas sobre todo en la genética. No hay todavía una edición posterior publicada; la <strong>6.ª ed. de la OMS (WHO6)</strong> está en desarrollo (proyecto de unificación OMS/ICC iniciado en 2024-2025).</p>
 
 <div class="coll open">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA — ICC vs OMS 2022: diferencias clave</span><span class="ar">▶</span></div>
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA — OMS 5.ª ed. vs ICC 2022: diferencias clave</span><span class="ar">▶</span></div>
 <div class="coll-c">
-<table class="tbl"><tr><th></th><th>OMS 5ª ed. (WHO 2022)</th><th>ICC 2022</th></tr>
-<tr><td><strong>Umbral de blastos</strong></td><td>Sin umbral para la LMA con alteración genética definitoria (salvo AML-MR, definida por diferenciación, BCR::ABL1 y CEBPA → ≥ 20 %)</td><td>Requiere <strong>≥ 10 %</strong> de blastos; categoría intermedia <strong>«MDS/AML» (10-19 %)</strong></td></tr>
-<tr><td><strong>NPM1 con blastos &lt; 10 %</strong></td><td>«LMA con NPM1»</td><td>«SMD con NPM1 mutado»</td></tr>
-<tr><td><strong>TP53 mutado</strong></td><td>No es entidad propia</td><td><strong>Entidad propia</strong> (≥ 20 % blastos y VAF &gt; 10 %; categoría combinada SMD/LMA)</td></tr>
-<tr><td><strong>LMA relacionada con mielodisplasia (AML-MR)</strong></td><td colspan="2">Definida por <strong>citogenética</strong> o por <strong>mutaciones</strong> (ASXL1, BCOR, EZH2, RUNX1, SF3B1, SRSF2, STAG2, U2AF1, ZRSR2), no por la morfología</td></tr>
+<table class="tbl"><tr><th></th><th>OMS 5.ª ed.</th><th>ICC 2022</th></tr>
+<tr><td><strong>Umbral de blastos</strong></td><td><strong>Sin umbral</strong> en la LMA con alteración genética definitoria (excepto AML-<em>BCR::ABL1</em> y AML-<em>CEBPA</em>: ≥ 20 %). La LMA definida por diferenciación y la AML-MR requieren ≥ 20 %.</td><td>Requiere <strong>≥ 10 %</strong>; categoría intermedia <strong>«MDS/AML» (10-19 %)</strong> y «AML» (≥ 20 %).</td></tr>
+<tr><td><strong>NPM1 / CEBPA con 10-19 % blastos</strong></td><td>«LMA con NPM1» (a cualquier %) / «LMA con CEBPA» (CEBPA exige ≥ 20 %)</td><td><strong>«MDS/AML»</strong> con NPM1 o CEBPA (umbral 10 %)</td></tr>
+<tr><td><strong>TP53 mutado</strong></td><td>No es entidad propia (suele caer en AML-MR)</td><td><strong>Entidad propia</strong>: AML / MDS-AML con TP53 (VAF ≥ 10 %; multi-hit), separada de la AML-MR</td></tr>
+<tr><td><strong>KMT2A</strong></td><td>«LMA con reordenamiento de KMT2A» (grupo único)</td><td>Distingue <strong>AML con KMT2A::MLLT3</strong> del resto de KMT2A-r</td></tr>
+<tr><td><strong>AML-MR (relacionada con mielodisplasia)</strong></td><td colspan="2">Definida por <strong>citogenética</strong> o por <strong>mutaciones</strong> (no por la morfología). Genes: ASXL1, BCOR, EZH2, RUNX1, SF3B1, SRSF2, STAG2, U2AF1, ZRSR2. La ICC la divide en dos: AML-MR <em>por mutaciones</em> y AML-MR <em>por citogenética</em>.</td></tr>
 </table>
 </div></div>
 
@@ -2114,34 +2115,53 @@ VIEWS.citoclas=()=>`<div class="card">
 <li>LPA con <strong>PML::RARA</strong>.</li>
 <li>LMA con <strong>RUNX1::RUNX1T1</strong> [t(8;21)].</li>
 <li>LMA con <strong>CBFB::MYH11</strong> [inv(16)/t(16;16)].</li>
-<li>LMA con <strong>DEK::NUP214</strong>; con <strong>RBM15::MRTFA</strong>; con <strong>BCR::ABL1</strong> (≥ 20 % blastos).</li>
-<li>LMA con reordenamiento de <strong>KMT2A</strong>, de <strong>MECOM</strong> o de <strong>NUP98</strong>.</li>
-<li>LMA con <strong>NPM1 mutado</strong>.</li>
+<li>LMA con <strong>DEK::NUP214</strong> [t(6;9)].</li>
+<li>LMA con <strong>RBM15::MRTFA</strong> [t(1;22)].</li>
+<li>LMA con <strong>BCR::ABL1</strong> (≥ 20 % blastos).</li>
+<li>LMA con reordenamiento de <strong>KMT2A</strong> (la ICC distingue <em>KMT2A::MLLT3</em>).</li>
+<li>LMA con reordenamiento de <strong>MECOM</strong> [inv(3)/t(3;3)].</li>
+<li>LMA con reordenamiento de <strong>NUP98</strong>.</li>
+<li>LMA con <strong>NPM1</strong> mutado.</li>
 <li>LMA con <strong>CEBPA</strong> mutado (bZIP; OMS exige ≥ 20 % blastos).</li>
 <li>LMA <strong>relacionada con mielodisplasia (AML-MR)</strong>.</li>
-<li>LMA con <strong>TP53 mutado</strong> (solo ICC).</li>
-<li><strong>OMS — LMA definida por diferenciación</strong> (la antigua «LMA NOS»): mínima diferenciación, sin/ con maduración, mielomonocítica, monocítica, eritroide, megacarioblástica.</li>
+<li>LMA con <strong>TP53</strong> mutado (entidad propia solo en la ICC).</li>
+<li>OMS — «<strong>LMA con otras alteraciones genéticas definidas</strong>» (fusiones raras).</li>
 </ul>
 </div></div>
 
 <div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Linfomas — clasificación OMS 5ª ed. / ICC 2022</span><span class="ar">▶</span></div>
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA definida por diferenciación (OMS)</span><span class="ar">▶</span></div>
+<div class="coll-c">
+<p>Sustituye a la antigua «LMA NOS». Requiere <strong>≥ 20 % blastos</strong> y ausencia de alteración genética definitoria:</p>
+<ul style="padding-left:20px;line-height:1.7">
+<li>LMA con mínima diferenciación.</li>
+<li>LMA sin maduración · LMA con maduración.</li>
+<li>Leucemia mielomonocítica aguda.</li>
+<li>Leucemia monoblástica / monocítica aguda.</li>
+<li>Leucemia eritroide aguda.</li>
+<li>Leucemia megacarioblástica aguda.</li>
+</ul>
+<p class="small muted" style="margin-top:6px">La leucemia aguda de fenotipo mixto (MPAL) y las de linaje ambiguo se clasifican en un capítulo aparte.</p>
+</div></div>
+
+<div class="coll" style="margin-top:8px">
+<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Linfomas — OMS 5.ª ed. (con notas ICC 2022)</span><span class="ar">▶</span></div>
 <div class="coll-c">
 <p><strong>Neoplasias B maduras:</strong></p>
 <ul style="padding-left:20px;line-height:1.6;margin:4px 0">
 <li>Linfocitosis B monoclonal (MBL) · <strong>LLC/SLL</strong> · tricoleucemia · linfomas/leucemias B esplénicos.</li>
 <li>Linfoma <strong>linfoplasmocítico</strong> / Waldenström.</li>
-<li>Linfomas de la <strong>zona marginal</strong> (MALT extranodal, nodal, esplénico).</li>
-<li><strong>Linfoma folicular</strong> (clásico y variantes).</li>
-<li><strong>Linfoma del manto</strong> (+ neoplasia in situ y variante leucémica no nodal).</li>
-<li><strong>Linfomas B de células grandes:</strong> LBDCG NOS; <strong>linfoma B de alto grado con reordenamientos de MYC y BCL2</strong> (doble hit); LBCG de alto grado NOS; B mediastínico primario; rico en T/histiocitos; primario del SNC; cutáneo tipo pierna; intravascular; ALK+; plasmablástico; de cavidades.</li>
-<li><strong>Linfoma de Burkitt.</strong></li>
+<li>Linfomas de la <strong>zona marginal</strong> (MALT extranodal, nodal, esplénico; pediátrico nodal).</li>
+<li><strong>Linfoma folicular:</strong> <em>FL clásico (cFL)</em> y subtipos — FL con patrón predominantemente folicular, FL con rasgos citológicos inusuales (uFL) y <strong>linfoma B folicular de células grandes (FLBL)</strong>; la gradación 1-3A deja de ser obligatoria. Aparte: FL pediátrico y FL tipo duodenal.</li>
+<li><strong>Linfoma del manto</strong> (+ neoplasia de células del manto in situ y variante leucémica no nodal).</li>
+<li><strong>Linfomas B de células grandes:</strong> LBDCG NOS (GCB / ABC); <strong>LBDCG/LBCG de alto grado con MYC y BCL2</strong> (antiguo «doble hit»); LBCG de alto grado NOS; B mediastínico primario; rico en T/histiocitos; primario del SNC; cutáneo primario tipo pierna; intravascular; ALK+; plasmablástico; primario de cavidades; asociado a inflamación crónica; LBCG con reordenamiento de IRF4.</li>
+<li><strong>Linfoma de Burkitt</strong> · linfoma de alto grado tipo Burkitt con aberración de 11q.</li>
 </ul>
-<p style="margin-top:6px"><strong>Neoplasias T/NK maduras:</strong> T-PLL, LGL-T, ATLL, NK/T extranodal, asociado a enteropatía, hepatoesplénico, micosis fungoide/Sézary, cutáneos T primarios, <strong>linfoma T periférico NOS</strong>, <strong>linfoma T nodal con fenotipo T-folicular helper</strong> (incluye el antiguo angioinmunoblástico), <strong>linfoma anaplásico de células grandes</strong> (ALK+, ALK−, asociado a implante mamario).</p>
-<p style="margin-top:6px"><strong>Linfoma de Hodgkin:</strong> clásico (esclerosis nodular, celularidad mixta, rico en linfocitos, depleción linfocítica) y <strong>linfoma B con predominio linfocítico nodular</strong> (antes «Hodgkin de predominio linfocítico nodular», renombrado en la OMS 5ª ed.).</p>
-<div class="alert b" style="margin-top:8px;font-size:12px"><strong>Cambios destacados 2022:</strong> el angioinmunoblástico pasa a «linfoma T nodal tipo TFH»; el doble-hit MYC/BCL2 es categoría definida (se retira la categoría específica MYC/BCL6); el LPLN de Hodgkin se renombra como linfoma B con predominio linfocítico nodular.</div>
+<p style="margin-top:6px"><strong>Neoplasias T/NK maduras:</strong> T-PLL, LGL-T, ATLL, NK/T extranodal, asociado a enteropatía, hepatoesplénico, micosis fungoide/Sézary, cutáneos T primarios, <strong>linfoma T periférico NOS</strong>, <strong>linfoma T nodal tipo T-folicular helper (TFH)</strong> — subtipos angioinmunoblástico, folicular y NOS —, <strong>linfoma anaplásico de células grandes</strong> (ALK+, ALK−, asociado a implante mamario).</p>
+<p style="margin-top:6px"><strong>Linfoma de Hodgkin:</strong> Hodgkin clásico (esclerosis nodular, celularidad mixta, rico en linfocitos, depleción linfocítica) y el <strong>predominio linfocítico nodular</strong>.</p>
+<div class="alert b" style="margin-top:8px;font-size:12px"><strong>Cambios destacados 2022:</strong> el angioinmunoblástico pasa a «linfoma T nodal tipo TFH»; el «doble hit» MYC/BCL2 se define como LBDCG/LBCG-alto-grado-MYC/BCL2 (se retira la categoría específica MYC/BCL6, que pasa a LBDCG NOS o LBCG alto grado NOS); en el folicular se introduce el «FL clásico» y subtipos (uFL, FLBL). <strong>Predominio linfocítico nodular:</strong> la <strong>OMS 5.ª ed. mantiene «Hodgkin» (NLPHL)</strong>, mientras que la <strong>ICC 2022 lo renombra «linfoma B con predominio linfocítico nodular» (NLPBL)</strong>.</div>
 </div></div>
-<div class="ref">Khoury JD, et al. WHO Classification of Haematolymphoid Tumours, 5ª ed., 2022. Arber DA, et al. International Consensus Classification (ICC) of myeloid and lymphoid neoplasms. Blood. 2022;140(11):1200-1228. Alaggio R, et al. WHO 5th ed. lymphoid neoplasms. Leukemia. 2022.</div>
+<div class="ref">Khoury JD, et al. WHO-HAEM5 (mieloide). Leukemia. 2022;36(7):1703-1719. Alaggio R, et al. WHO-HAEM5 (linfoide). Leukemia. 2022;36(7):1720-1748. Arber DA, et al. ICC. Blood. 2022;140(11):1200-1228. WHO6 en desarrollo: Advancing the classification of hematolymphoid neoplasms together. Blood. 2025.</div>
 </div>`;
 
 // === LLC: criterios diagnósticos y de tratamiento ===
@@ -4536,7 +4556,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.04-9';
+const APP_BUILD='2026.06.04-10';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
