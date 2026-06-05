@@ -6162,6 +6162,9 @@ function chatBuildBase(){
     docs.push({type:'tool',id:it.id,title:it.name,body:chatNorm(body),kwn:chatNorm(it.name+' '+(it.kw||'')),refs:refs});
   });}catch(e){}
   try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];const dt=(s.drugs||[]).map(d=>d.name+' '+(d.dose||'')+' '+(d.route||'')).join(' ');docs.push({type:'scheme',id:k,title:s.label,body:chatNorm(k+' '+s.label+' '+dt+' '+(s.kw||'')),kwn:chatNorm(s.label+' '+(s.kw||'')+' '+k),data:s});});}catch(e){}
+  // Guías/protocolos por NOMBRE (desde la estructura): así son localizables aunque el PDF no esté descargado.
+  // Si luego se descarga, chatIndexGuides añade el doc 'pdf' (con texto completo) y chatIndexAll descarta este stub.
+  try{Object.keys(GUIDES_TITLES).forEach(sec=>{const secName=GUIDES_TITLES[sec]||'';(getSubtypes(sec)||[]).forEach(st=>{(st.pdfs||[]).forEach(p=>{if(!p||!p.url||!p.name)return;const ttl=secName+' · '+p.name;docs.push({type:'guide',id:sec,url:p.url,name:p.name,title:ttl,body:chatNorm(ttl+' '+(st.name||''))});});});});}catch(e){}
   try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{docs.push({type:'phone',section:sn,title:(e[0]||'').replace(/\n/g,' '),loc:e[1],phone:e[2],ext:e[3],body:chatNorm(sn+' '+e[0]+' '+(e[1]||'')+' '+(e[3]||'')),kwn:chatNorm((e[0]||'')+' '+sn)});});});}catch(e){}
   return docs;
 }
@@ -6201,7 +6204,12 @@ async function chatIndexGuides(onProgress){
     if(onProgress)onProgress(i+1,pdfKeys.length);
   }
 }
-function chatIndexAll(){return (_chatBase||[]).concat(_chatPdfDocs);}
+function chatIndexAll(){
+  // Descarta los stubs de guía cuyo PDF ya está indexado con texto completo (evita duplicados)
+  const pdfUrls=new Set((_chatPdfDocs||[]).map(d=>{const k=d.key||'';const i=k.indexOf('|');return i>=0?k.slice(i+1):'';}).filter(Boolean));
+  const base=(_chatBase||[]).filter(d=>!(d.type==='guide'&&pdfUrls.has(d.url)));
+  return base.concat(_chatPdfDocs);
+}
 const CHAT_STOP=new Set(['de','la','el','los','las','en','y','a','del','un','una','que','como','donde','cual','cuales','para','por','con','sobre','me','mi','es','al','lo','su','se','o','tiene','cuanto','cuanta','hay','del','este','esta','algo','cosa','cosas','algun','alguna','alguno','algunos','algunas','esto','eso','otro','otra','otros','otras','vez','veces','nuevo','nueva','nuevos','nuevas','nuevamente',
   // negaciones, conjunciones, pronombres y conectores (no deben anclar la búsqueda)
   'no','ni','pero','sino','porque','pues','aunque','si','tampoco','mas','muy','ya','aun','asi','entonces','luego','mientras','tan','tanto','nada','nadie','alguien','mucho','mucha','muchos','muchas','poco','poca','pocos','pocas','todo','toda','todos','todas','cada','ser','estar','soy','eres','son','era','fue','fui','fuiste','sido','estoy','estan','han','ha','he','hemos','le','les','te','nos','os','yo','tu','ella','ellos','ellas','usted','nosotros','vosotros','ustedes','ese','esa','esos','esas','aquel','aquella','aquellos','aquellas','aqui','ahi','alli','ahora','hoy','tambien','quiza','quizas','desde','hasta','entre','hacia','durante','antes','despues','tras']);
@@ -6260,7 +6268,7 @@ function chatSearch(query,limit){
   const phoneStrict=/ (telefono|telefonos|telefonico|tlf|tfno|centralita|directorio|llamar|marcar) /.test(' '+chatNorm(query)+' ');
   let baseScored=scored;
   if(phoneStrict){baseScored=scored.filter(x=>x.doc.type==='phone');if(!baseScored.length)return [];}
-  else if(docIntent){const pdfs=scored.filter(x=>x.doc.type==='pdf'&&(x.tcov>0||x.cov>0));if(pdfs.length)baseScored=pdfs;}
+  else if(docIntent){const pdfs=scored.filter(x=>(x.doc.type==='pdf'||x.doc.type==='guide')&&(x.tcov>0||x.cov>0));if(pdfs.length)baseScored=pdfs;}
   // si algún doc coincide en el título, descarta los que solo coinciden en el cuerpo (evita divagar)
   const maxT=baseScored[0].tcov;
   let pool=maxT>0?baseScored.filter(x=>x.tcov===maxT):baseScored;
@@ -6303,10 +6311,11 @@ function chatSchemeCard(doc,query){const s=doc.data;
 function chatPhoneCard(doc){return `<div style="${CHAT_CARD}"><div style="${CHAT_TTL}">📞 ${chatEsc(doc.title)}</div><div style="font-size:13px;margin:3px 0">Ext. <strong>${chatEsc(doc.ext||'—')}</strong>${doc.phone&&doc.phone!==doc.ext?` · <a href="tel:${chatEsc(doc.phone)}" style="color:var(--c2)">${chatEsc(doc.phone)}</a>`:''}</div><div style="font-size:12px;color:var(--mut)">${chatEsc(doc.section)}${doc.loc?' · '+chatEsc(doc.loc):''}</div><button onclick="closeChat();go('phone')" style="${CHAT_LINK}">📍 Ir al listín telefónico →</button></div>`;}
 function chatToolCard(doc){return `<div style="${CHAT_CARD}"><div style="${CHAT_TTL}">🛠️ ${chatEsc(doc.title)}</div><button onclick="closeChat();go('${chatEsc(doc.id)}')" style="${CHAT_LINK}">📍 Ir a ${chatEsc(doc.title)} →</button></div>`;}
 function chatPdfCard(doc,query){return `<div style="${CHAT_CARD}"><div style="${CHAT_TTL}">📄 ${chatEsc(doc.title)}</div><div style="font-size:12.5px;color:var(--txt);margin:5px 0;line-height:1.5">${chatSnippet(doc.rawText,query)}</div><button onclick="closeChat();openPDF('${encodeURIComponent(doc.key)}')" style="${CHAT_LINK}">📍 Abrir guía clínica →</button></div>`;}
+function chatGuideCard(doc){const u=(doc.url||'').replace(/['"\\]/g,'');const n=(doc.name||'').replace(/['"\\]/g,' ');return `<div style="${CHAT_CARD}"><div style="${CHAT_TTL}">📄 ${chatEsc(doc.title)}</div><button onclick="closeChat();openPDFurl('${u}','${n}')" style="${CHAT_LINK}">📍 Abrir protocolo →</button></div>`;}
 function chatRefsHTML(results){
   const refs=[],seen=new Set();
   results.forEach(doc=>{
-    if(doc.type==='pdf'){const r='Guía clínica HemoPocket: '+doc.title;if(!seen.has(r)){seen.add(r);refs.push(r);}}
+    if(doc.type==='pdf'||doc.type==='guide'){const r='Guía clínica HemoPocket: '+doc.title;if(!seen.has(r)){seen.add(r);refs.push(r);}}
     else if(doc.refs&&doc.refs.length){doc.refs.forEach(r=>{if(r&&!seen.has(r)){seen.add(r);refs.push(r);}});}
   });
   if(!refs.length)return '';
@@ -6320,7 +6329,7 @@ function chatLeadNeutral(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! �
 function chatAnswerHTML(query,results,neutral){
   if(!results.length){const hi=_chatGreeted?'':'¡Hola! 👋 Soy <strong>Eri</strong>. ';_chatGreeted=true;return `<div style="${CHAT_BOT}">${hi}No he encontrado nada sobre <em>"${chatEsc(query)}"</em> en el contenido de la app 🤔. Prueba con el nombre del fármaco, el esquema, una sección o «teléfono de …».</div>`;}
   let h=`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${neutral?chatLeadNeutral():chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">`;
-  results.forEach(doc=>{if(doc.type==='scheme')h+=chatSchemeCard(doc,query);else if(doc.type==='phone')h+=chatPhoneCard(doc);else if(doc.type==='pdf')h+=chatPdfCard(doc,query);else h+=chatToolCard(doc);});
+  results.forEach(doc=>{if(doc.type==='scheme')h+=chatSchemeCard(doc,query);else if(doc.type==='phone')h+=chatPhoneCard(doc);else if(doc.type==='pdf')h+=chatPdfCard(doc,query);else if(doc.type==='guide')h+=chatGuideCard(doc);else h+=chatToolCard(doc);});
   h+='</div>'+chatRefsHTML(results);
   return h+'</div>';
 }
