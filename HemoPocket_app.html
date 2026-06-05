@@ -1884,7 +1884,6 @@ const CL_SECTIONS=[
   {id:'general',title:'TODOS LOS INGRESOS',icon:'⬡',items:[
     {id:'g1',text:'Valoración al ingreso: antecedentes actualizados, último tratamiento recibido, fármacos en domicilio'},
     {id:'g2',text:'ECOG / Performance Status basal — documentar en valoración al ingreso'},
-    {id:'g3',text:'Peso y talla (para cálculo de superficie corporal y dosis de QT)'},
     {id:'g4',text:'Acceso venoso: documentar tipo y estado (PICC, reservorio, catéter central, vía periférica) y fecha de implantación si procede'},
     {id:'g5',text:'Hoja A: cumplimentar e imprimir en planta'},
     {id:'g6',text:'Orden de ingreso'},
@@ -1896,18 +1895,19 @@ const CL_SECTIONS=[
     {id:'g12',text:'Pautar medicación habitual domiciliaria pertinente. Si se suspende algún fármaco, reflejarlo en la valoración al ingreso'}
   ]},
   {id:'primer',title:'PRIMER INGRESO',icon:'◈',items:[
-    {id:'p1',text:'Analítica basal completa'},
+    {id:'p1',text:'Analítica de primer ingreso'},
     {id:'p2',text:'ECG basal'},
     {id:'p3',text:'Rx de tórax basal'}
   ]},
   {id:'qt',title:'PREVISIÓN DE INICIO DE QT',icon:'◇',items:[
+    {id:'q_pt',text:'Peso y talla (para cálculo de superficie corporal y dosis de QT)'},
     {id:'q1',text:'Hidratación estándar: SSF 2500 ml — ajustar según contexto clínico del paciente',sub:'Excepto si aplica protocolo MTX (ver abajo)'},
     {id:'q2',text:'PROTOCOLO MTX: hiperhidratación alcalina → Bicarbonato 1/6 M 2000 ml + SSF 1000 ml',hl:true},
     {id:'q3',text:'Profilaxis antiemética según protocolo de QT pautado',hl:true},
     {id:'q4',text:'Si QT URGENTE: solicitar PICC urgente, ecocardiograma, AMO y prueba de imagen',hl:true,cond:true,sub:'Prueba de imagen según el caso: ecografía, TAC o PET-TC'}
   ]},
   {id:'taspe',title:'INGRESO PARA TRASPLANTE (TASPE)',icon:'◉',items:[
-    {id:'t1',text:'Revisar checklist de pruebas preTASPE — si falta alguna, solicitarla de forma urgente',hl:true},
+    {id:'t1',text:'Revisar checklist de pruebas preTASPE — si falta alguna, solicitarla de forma urgente',hl:true,sub:'Incluye: ecocardiograma, ecografía de abdomen, pruebas funcionales respiratorias (PFR) y valoración ORL'},
     {id:'t2',text:'Revisar Rx de tórax: ¿tiene realizada en los últimos 6 meses?',sub:'Si NO → solicitar Rx de tórax'},
     {id:'t3',text:'ECG basal'}
   ]},
@@ -1932,8 +1932,12 @@ function clReset(){ls.s('checklist',{});clRenderBody();}
 function clRenderBody(){
   const body=$('cl_body');if(!body)return;
   const st=clState(),op=clOpen();
-  const all=CL_SECTIONS.flatMap(s=>s.items),total=all.length;
-  const done=all.filter(i=>st[i.id]).length,pct=total?Math.round(done/total*100):0;
+  // El progreso global cuenta SOLO la sección obligatoria "TODOS LOS INGRESOS";
+  // el resto de apartados son opcionales según las circunstancias y no suman al total.
+  const genSec=CL_SECTIONS.find(s=>s.id==='general');
+  const genItems=genSec?genSec.items:[];
+  const total=genItems.length;
+  const done=genItems.filter(i=>st[i.id]).length,pct=total?Math.round(done/total*100):0;
   const bar=$('cl_bar'),pctEl=$('cl_pct');
   if(bar)bar.style.width=pct+'%';
   if(pctEl)pctEl.textContent=done+'/'+total+' · '+pct+'%';
@@ -1960,7 +1964,7 @@ function clRenderBody(){
 }
 VIEWS.checklist=()=>`<div class="card">
 <h2>📋 Check list de ingreso</h2>
-<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo.</p>
+<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo. <strong>El progreso (%) cuenta solo «Todos los ingresos»</strong>; el resto de apartados son opcionales según el caso.</p>
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
 <div style="flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;height:8px;overflow:hidden"><div id="cl_bar" style="height:100%;width:0;background:var(--c1);transition:width .35s"></div></div>
 <span id="cl_pct" class="small muted" style="white-space:nowrap"></span>
@@ -4556,7 +4560,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.04-10';
+const APP_BUILD='2026.06.04-11';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
