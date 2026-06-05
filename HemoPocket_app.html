@@ -395,7 +395,17 @@ body{font-size:13px}
 .vw-z{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;font-size:19px;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
 .vw-z:active{transform:scale(.9)}
 .vw-zlbl{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--mut);min-width:40px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;user-select:none}
-.viewer-pages canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;max-width:100%;height:auto}
+.viewer-pages canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;max-width:100%;height:auto;position:relative;z-index:1}
+/* Capa de texto de pdf.js: spans transparentes alineados sobre el canvas → permite seleccionar/copiar y resaltar búsquedas */
+.textLayer{position:absolute;top:0;left:0;transform-origin:0 0;overflow:hidden;line-height:1;z-index:2;text-align:initial;text-size-adjust:none}
+.textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0 0}
+.textLayer span.vw-hl{background:rgba(255,213,0,.45);border-radius:2px}
+.textLayer span.vw-hl.cur{background:rgba(255,140,0,.78)}
+.textLayer ::selection{background:rgba(0,120,255,.35)}
+.textLayer ::-moz-selection{background:rgba(0,120,255,.35)}
+.viewer-search{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--bd);background:var(--bg2)}
+.viewer-search input{flex:1;min-width:0;padding:6px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px}
+.viewer-search .vw-scount{font-size:11px;color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums;min-width:34px;text-align:center}
 .viewer-page-placeholder{width:100%;max-width:900px;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:300px}
 .viewer-loading{padding:30px;text-align:center;color:var(--mut)}
 .viewer-error{padding:20px;text-align:center;color:var(--er);background:var(--card);border-radius:var(--rs);margin:14px}
@@ -3846,10 +3856,26 @@ toast('⬇️ Descargado');
 }
 
 let _vwZoom=1;
+// === Buscador + capa de texto del visor PDF ===
+let _vwPageInfo={};   // {nPágina: {tl, textDivs}}
+let _vwPageText={};   // caché de TextContent por página (evita re-extraer)
+let _vwSearch={q:'',raw:'',pages:[],pos:-1};
+let _vwSearchT=null;
+// Normaliza para buscar sin distinguir mayúsculas ni acentos
+function vwNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+async function vwGetPageTC(n,pageObj){
+  if(_vwPageText[n])return _vwPageText[n];
+  const page=pageObj||(window._vwPDF&&await window._vwPDF.getPage(n));
+  if(!page)return null;
+  const tc=await page.getTextContent();
+  _vwPageText[n]=tc;
+  return tc;
+}
 VIEWS.viewer=()=>`<div class="card viewer-card">
 <div class="viewer-header">
 <button class="btn btn-out btn-sm" onclick="viewerBack()">← Volver</button>
 <span class="title" id="vw_title">Cargando...</span>
+<button class="btn btn-out btn-sm" onclick="vwToggleSearch()" title="Buscar en el PDF">🔍</button>
 <button class="btn btn-out btn-sm" onclick="downloadCurrentPDF()" title="Descargar PDF">⬇️</button>
 </div>
 <div class="viewer-toolbar">
@@ -3858,6 +3884,13 @@ VIEWS.viewer=()=>`<div class="card viewer-card">
 <button class="vw-z" onclick="vwZoom(-1)" title="Alejar" aria-label="Alejar">−</button>
 <span class="vw-zlbl" id="vw_zlabel" onclick="vwZoomReset()" title="Ajustar">100%</span>
 <button class="vw-z" onclick="vwZoom(1)" title="Acercar" aria-label="Acercar">+</button>
+</div>
+<div class="viewer-search" id="vw_search" style="display:none">
+<input id="vw_q" type="text" placeholder="Buscar palabra en el PDF…" autocomplete="off" oninput="vwSearchDebounced()" onkeydown="if(event.key==='Enter'){event.preventDefault();vwSearchNav(event.shiftKey?-1:1);}" aria-label="Buscar en el PDF">
+<span class="vw-scount" id="vw_scount"></span>
+<button class="vw-z" onclick="vwSearchNav(-1)" title="Anterior" aria-label="Coincidencia anterior">▲</button>
+<button class="vw-z" onclick="vwSearchNav(1)" title="Siguiente" aria-label="Coincidencia siguiente">▼</button>
+<button class="vw-z" onclick="vwToggleSearch()" title="Cerrar búsqueda" aria-label="Cerrar búsqueda">✕</button>
 </div>
 <div class="viewer-pages" id="vw_pages">
 <div class="viewer-loading">⏳ Cargando PDF...</div>
@@ -3909,6 +3942,9 @@ try{
 const arrayBuffer=await pdfBlob.arrayBuffer();
 const pdf=await pdfjsLib.getDocument({data:arrayBuffer,disableWorker:true,isEvalSupported:false}).promise;
 container.innerHTML='';
+window._vwPDF=pdf;
+_vwPageInfo={};_vwPageText={};_vwSearch={q:'',raw:'',pages:[],pos:-1};
+{const sb=$('vw_search');if(sb)sb.style.display='none';const sq=$('vw_q');if(sq)sq.value='';const sc=$('vw_scount');if(sc)sc.textContent='';}
 const dpr=window.devicePixelRatio||1;
 const firstPage=await pdf.getPage(1);
 const initialViewport=firstPage.getViewport({scale:1});
@@ -3955,13 +3991,37 @@ target.style.aspectRatio='';
 target.style.minHeight='';
 target.style.background='transparent';
 target.style.boxShadow='none';
+target.style.display='block';
+target.style.position='relative';
 target.appendChild(canvas);
 const ctx=canvas.getContext('2d',{alpha:false});
 await page.render({canvasContext:ctx,viewport}).promise;
+// Capa de texto: habilita seleccionar/copiar y el resaltado del buscador.
+// Aditiva y tolerante a fallos: si no hay texto (PDF escaneado) o falla, el PDF se sigue viendo igual.
+try{
+if(pdfjsLib.renderTextLayer){
+const tlScale=baseW/natural.width; // escala base sin zoom; el zoom se aplica luego por transform
+const tlViewport=page.getViewport({scale:tlScale});
+const tl=document.createElement('div');
+tl.className='textLayer';
+tl.style.width=baseW+'px';
+tl.style.height=(baseW*ratio)+'px';
+tl.style.setProperty('--scale-factor',tlScale); // requerido por pdf.js 3.x para posicionar el texto
+tl.style.transform='scale('+_vwZoom+')';
+target.appendChild(tl);
+const tc=await vwGetPageTC(pageNum,page);
+const textDivs=[];
+await pdfjsLib.renderTextLayer({textContentSource:tc,container:tl,viewport:tlViewport,textDivs}).promise;
+_vwPageInfo[pageNum]={tl,textDivs};
+if(_vwSearch.q)vwHighlightPage(pageNum);
+}
+}catch(e){/* sin capa de texto en esta página: no es un error fatal */}
 }catch(e){
 target.innerHTML=`<div style="padding:20px;color:#c00;text-align:center;font-size:12px">Error pág ${pageNum}: ${e.message}</div>`;
 }
 };
+// Permite al buscador forzar el render de una página concreta (para resaltar en páginas aún no visibles)
+window._vwRender=async(n)=>{const ph=container.querySelector('.viewer-page-placeholder[data-page="'+n+'"]');if(ph)await renderPage(n,ph);};
 await renderPage(1,placeholders[0]);
 if(placeholders.length>1){
 const observer=new IntersectionObserver(entries=>{
@@ -3987,6 +4047,8 @@ function vwSetZoom(z){
       p.style.width=w+'px';p.style.maxWidth='none';
       const cv=p.querySelector('canvas');
       if(cv){const r=parseFloat(p.dataset.ratio)||1.414;cv.style.width=w+'px';cv.style.height=(w*r)+'px';cv.style.maxWidth='none';}
+      const tl=p.querySelector('.textLayer');
+      if(tl)tl.style.transform='scale('+_vwZoom+')';
     });
   }
   const lbl=$('vw_zlabel');if(lbl)lbl.textContent=Math.round(_vwZoom*100)+'%';
@@ -4037,6 +4099,81 @@ function vwSetupPinch(c){
   const end=e=>{if(e.touches.length<2)_pinch=null;};
   c.addEventListener('touchend',end,{passive:true});
   c.addEventListener('touchcancel',end,{passive:true});
+}
+
+// === BUSCADOR DEL VISOR PDF ===
+// Muestra/oculta la barra de búsqueda
+function vwToggleSearch(){
+  const bar=$('vw_search');if(!bar)return;
+  const show=bar.style.display==='none'||!bar.style.display;
+  bar.style.display=show?'flex':'none';
+  if(show){const i=$('vw_q');if(i){i.focus();i.select();}}
+  else{vwClearHighlights();_vwSearch={q:'',raw:'',pages:[],pos:-1};const i=$('vw_q');if(i)i.value='';const sc=$('vw_scount');if(sc)sc.textContent='';}
+}
+// Quita todos los resaltados actuales
+function vwClearHighlights(){
+  const c=window._vwContainer;if(!c)return;
+  c.querySelectorAll('.textLayer span.vw-hl').forEach(s=>s.classList.remove('vw-hl','cur'));
+}
+// Resalta en una página ya renderizada los fragmentos que contienen el término
+function vwHighlightPage(n){
+  const info=_vwPageInfo[n];if(!info||!info.textDivs)return;
+  const nq=_vwSearch.q;if(!nq)return;
+  info.textDivs.forEach(div=>{
+    if(vwNorm(div.textContent).indexOf(nq)>=0)div.classList.add('vw-hl');
+    else div.classList.remove('vw-hl','cur');
+  });
+}
+// Búsqueda con pequeño retardo mientras se escribe
+function vwSearchDebounced(){clearTimeout(_vwSearchT);_vwSearchT=setTimeout(vwDoSearch,300);}
+async function vwDoSearch(){
+  const inp=$('vw_q');if(!inp)return;
+  const raw=inp.value.trim();
+  const nq=vwNorm(raw);
+  vwClearHighlights();
+  _vwSearch={q:nq,raw:raw,pages:[],pos:-1};
+  const cnt=$('vw_scount');
+  if(!nq){if(cnt)cnt.textContent='';return}
+  if(!window._vwPDF){if(cnt)cnt.textContent='';return}
+  if(cnt)cnt.textContent='…';
+  const total=window._vwPDF.numPages;
+  const myQ=nq; // para descartar resultados si el usuario sigue escribiendo
+  const pages=[];let anyText=false;
+  for(let n=1;n<=total;n++){
+    if(_vwSearch.q!==myQ)return; // se ha lanzado otra búsqueda
+    let t='';
+    try{const tc=await vwGetPageTC(n);if(tc){t=vwNorm(tc.items.map(it=>it.str).join(' '));if(t)anyText=true;}}catch(e){}
+    if(t&&t.indexOf(myQ)>=0)pages.push(n);
+  }
+  if(_vwSearch.q!==myQ)return;
+  _vwSearch.pages=pages;
+  if(!pages.length){
+    if(cnt)cnt.textContent=anyText?'0':'sin texto';
+    if(!anyText&&cnt)cnt.title='Este PDF no contiene texto seleccionable (parece escaneado)';
+    return;
+  }
+  _vwSearch.pos=0;
+  await vwGoToMatch();
+}
+// Va a la página de la coincidencia actual, la resalta y la centra
+async function vwGoToMatch(){
+  const s=_vwSearch;if(!s.pages.length)return;
+  const page=s.pages[s.pos];
+  const cnt=$('vw_scount');if(cnt)cnt.textContent=(s.pos+1)+'/'+s.pages.length;
+  vwGoToPage(page);
+  try{if(!_vwPageInfo[page]&&window._vwRender)await window._vwRender(page);}catch(e){}
+  vwHighlightPage(page);
+  const info=_vwPageInfo[page];
+  if(info&&info.tl){
+    const first=info.tl.querySelector('.vw-hl');
+    if(first){first.classList.add('cur');first.scrollIntoView({block:'center',behavior:'smooth'});}
+  }
+}
+// Anterior/siguiente página con coincidencias (cíclico)
+function vwSearchNav(dir){
+  const s=_vwSearch;if(!s.pages.length){if(s.raw)vwDoSearch();return;}
+  s.pos=(s.pos+dir+s.pages.length)%s.pages.length;
+  vwGoToMatch();
 }
 
 // === CONVERSIÓN DE OPIOIDES (MME) ===
@@ -4568,7 +4705,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.04-12';
+const APP_BUILD='2026.06.05-1';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
