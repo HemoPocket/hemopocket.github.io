@@ -9916,7 +9916,7 @@ document.addEventListener('DOMContentLoaded', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
@@ -9931,7 +9931,7 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 getAnalytics(fbApp);
 const auth = getAuth(fbApp);
-const db = getFirestore(fbApp);
+const db = getDatabase(fbApp);
 
 // ── Sincronización de datos por usuario (favoritos, recientes) ──
 let curUid = null;
@@ -9947,15 +9947,15 @@ function flushCloud() {
   if (!curUid || !Object.keys(pending).length) return;
   const data = { ...pending };
   pending = {};
-  setDoc(doc(db, 'users', curUid), data, { merge: true }).catch(e => console.warn('[hp] cloud write', e.message));
+  update(ref(db, 'users/' + curUid), data).catch(e => console.warn('[hp] cloud write', e.message));
 }
 function loadCloud(uid) {
-  getDoc(doc(db, 'users', uid)).then(snap => {
+  get(ref(db, 'users/' + uid)).then(snap => {
     if (snap.exists()) {
-      if (window.hpApplyCloudData) window.hpApplyCloudData(snap.data());
+      if (window.hpApplyCloudData) window.hpApplyCloudData(snap.val());
     } else if (window.hpCollectLocal) {
       // Cuenta nueva: subir los datos locales actuales como punto de partida
-      setDoc(doc(db, 'users', uid), window.hpCollectLocal(), { merge: true }).catch(() => {});
+      update(ref(db, 'users/' + uid), window.hpCollectLocal()).catch(() => {});
     }
   }).catch(e => console.warn('[hp] cloud read', e.message));
 }
