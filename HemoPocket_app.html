@@ -436,6 +436,15 @@ body{font-size:13px}
 #hp-user-btn:hover{border-color:var(--c1);color:var(--c1)}
 #hp-user-btn.visible{display:flex}
 #hp_user_label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Confirm dialog propio (sustituye al confirm() nativo) */
+#hp-confirm{position:fixed;inset:0;z-index:21000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5)}
+#hp-confirm.show{display:flex}
+.hp-confirm-card{background:var(--card);border-radius:var(--r);padding:22px 22px 16px;width:100%;max-width:320px;box-shadow:var(--shd2);text-align:center}
+.hp-confirm-msg{font-size:15px;color:var(--txt);margin:0 0 18px;line-height:1.45}
+.hp-confirm-btns{display:flex;gap:10px;justify-content:center}
+.hp-confirm-btn{flex:1;padding:10px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--bd);background:var(--card);color:var(--txt);transition:.15s}
+.hp-confirm-btn.primary{background:var(--c1);color:#fff;border-color:var(--c1)}
+.hp-confirm-btn:active{opacity:.85}
 </style>
 <link rel="icon" type="image/svg+xml" href="./icon.svg?v=44">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
@@ -472,6 +481,16 @@ body{font-size:13px}
     <div id="hp_login_err" class="hp-login-err"></div>
     <button class="hp-login-btn" id="hp_login_btn" onclick="hpLogin()">Entrar</button>
     <button class="hp-login-forgot" onclick="hpForgotPw()">¿Olvidaste tu contraseña?</button>
+  </div>
+</div>
+<!-- ══ Diálogo de confirmación propio ══ -->
+<div id="hp-confirm" role="dialog" aria-modal="true" aria-labelledby="hp_confirm_msg">
+  <div class="hp-confirm-card">
+    <p class="hp-confirm-msg" id="hp_confirm_msg">¿Confirmar?</p>
+    <div class="hp-confirm-btns">
+      <button class="hp-confirm-btn" id="hp_confirm_no">Cancelar</button>
+      <button class="hp-confirm-btn primary" id="hp_confirm_yes">Aceptar</button>
+    </div>
   </div>
 </div>
 <!-- Splash propio eliminado: el SO/Vercel ya muestra su propia splash al instalar (evita doble splash). -->
@@ -671,6 +690,18 @@ window.hpApplyCloudData=function(d){
 };
 // Recopila los datos locales actuales para subirlos a una cuenta nueva
 window.hpCollectLocal=function(){return{favs:S.favs||[],recent:S.recent||[]};};
+// Diálogo de confirmación propio (sin el "...dice" del navegador)
+window.hpConfirm=function(msg,onYes){
+  const ov=$('hp-confirm');
+  if(!ov){if(window.confirm(msg)&&onYes)onYes();return;}
+  $('hp_confirm_msg').textContent=msg||'¿Confirmar?';
+  const yes=$('hp_confirm_yes'),no=$('hp_confirm_no');
+  const close=()=>{ov.classList.remove('show');yes.onclick=null;no.onclick=null;ov.onclick=null;};
+  yes.onclick=()=>{close();if(onYes)onYes();};
+  no.onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+  ov.classList.add('show');
+};
 const $=id=>document.getElementById(id);
 const n=v=>{const x=parseFloat(v);return isNaN(x)?null:x};
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
@@ -10018,9 +10049,10 @@ window.hpLogin = async function() {
   }
 };
 
-window.hpSignOut = async function() {
-  if (!confirm('¿Cerrar sesión?')) return;
-  await signOut(auth);
+window.hpSignOut = function() {
+  const doIt = () => signOut(auth);
+  if (window.hpConfirm) window.hpConfirm('¿Cerrar sesión?', doIt);
+  else doIt();
 };
 
 window.hpForgotPw = async function() {
