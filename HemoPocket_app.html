@@ -9873,9 +9873,15 @@ if(document.readyState!=='loading')init();
       if(document.visibilityState === 'visible') reg.update().catch(function(){});
     });
   };
-  // Cuando el nuevo service worker toma el control, recargar para usar la versión nueva
+  // Cuando un nuevo service worker toma el control, recargar para usar la versión nueva.
+  // Recargamos SIEMPRE (no solo si esta pestaña inició la actualización), porque ahora el
+  // SW hace skipWaiting en install y puede activarse por su cuenta. Guardamos contra bucles
+  // recargando como mucho una vez por sesión de página.
+  var _hpReloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', function(){
-    if(_hpUpdating){ try{ sessionStorage.setItem('hp_justUpdated','1'); }catch(e){} window.location.reload(); }
+    if(_hpReloaded) return; _hpReloaded = true;
+    try{ sessionStorage.setItem('hp_justUpdated','1'); }catch(e){}
+    window.location.reload();
   });
 })();
 </script>
