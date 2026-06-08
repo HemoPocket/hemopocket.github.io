@@ -9883,6 +9883,50 @@ if(document.readyState!=='loading')init();
     try{ sessionStorage.setItem('hp_justUpdated','1'); }catch(e){}
     window.location.reload();
   });
+
+  // === Red de seguridad anti-caché/proxy (imprescindible en equipos de hospital) ===
+  // El service worker puede no rescatar a un equipo si un proxy/CDN intermedio le sirve
+  // un sw.js o HTML viejos. Esta comprobación pide el sw.js con un parámetro anti-caché
+  // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
+  // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
+  // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
+  var HP_BUILD = 72;
+  async function hpVersionGuard(){
+    try{
+      if(!navigator.onLine) return;
+      var r = await fetch('sw.js?ts=' + Date.now(), { cache: 'no-store' });
+      if(!r.ok) return;
+      var txt = await r.text();
+      var mm = txt.match(/hemopocket-v(\d+)/);
+      if(!mm) return;
+      var netBuild = parseInt(mm[1], 10);
+      if(netBuild > HP_BUILD){
+        if(sessionStorage.getItem('hp_fr') === String(netBuild)) return; // ya intentado: evitar bucle
+        try{ sessionStorage.setItem('hp_fr', String(netBuild)); }catch(e){}
+        try{
+          if('serviceWorker' in navigator){
+            var regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(function(x){ return x.unregister(); }));
+          }
+        }catch(e){}
+        try{
+          if(window.caches){
+            var keys = await caches.keys();
+            await Promise.all(keys.map(function(k){ return caches.delete(k); }));
+          }
+        }catch(e){}
+        // Recarga con cache-bust en la URL → fuerza al proxy/CDN a ir al origen.
+        location.replace(location.pathname + '?u=' + netBuild + (location.hash || ''));
+      } else {
+        try{ sessionStorage.removeItem('hp_fr'); }catch(e){}
+      }
+    }catch(e){}
+  }
+  var _hpVGlast = 0;
+  function hpVGthrottled(){ if(Date.now() - _hpVGlast < 60000) return; _hpVGlast = Date.now(); hpVersionGuard(); }
+  if(document.readyState === 'complete') setTimeout(hpVGthrottled, 1500);
+  else window.addEventListener('load', function(){ setTimeout(hpVGthrottled, 1500); });
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') hpVGthrottled(); });
 })();
 </script>
 <div id="modal-aviso-legal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true">
