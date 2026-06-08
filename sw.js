@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v69';
+const CACHE = 'hemopocket-v70';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html'];
 
@@ -31,8 +31,11 @@ self.addEventListener('install', e => {
       ))
     )
   );
-  // NO skipWaiting aquí: la versión nueva queda "esperando" y la app la aplica
-  // automáticamente (envía 'skipWaiting'), recargando con la versión nueva.
+  // skipWaiting AQUÍ: la versión nueva se activa de inmediato sin esperar a que se
+  // cierren todas las ventanas. Imprescindible para PWA de escritorio que el usuario
+  // mantiene abiertas: sin esto, la versión nueva quedaba "esperando" indefinidamente
+  // y esos equipos nunca se actualizaban. La página recarga al recibir 'controllerchange'.
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
