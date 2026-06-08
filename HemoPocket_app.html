@@ -9106,6 +9106,17 @@ function RXtranscribe(raw){
     c=c.replace(/[–—]/g,'-').trim().replace(/^[\-•*\.\d\)\s]+(?=[A-Za-zÁÉÍÓÚ])/,'');
     if(!c||c.length<2) continue;
 
+    // 0) METADATOS administrativos que NO forman parte de la pauta:
+    //    fecha de inicio/fin (con o sin la fecha), duración, "hasta nueva revisión", "indefinida"…
+    c=c.replace(/\bfechas?\s+(?:de\s+)?(?:inicio|comienzo|fin(?:alizaci[oó]n)?|t[eé]rmino)\b\s*:?\s*\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}/gi,' ');
+    c=c.replace(/\bfechas?\s+(?:de\s+)?(?:inicio|comienzo|fin(?:alizaci[oó]n)?|t[eé]rmino)\b\s*:?/gi,' ');
+    c=c.replace(/\bduraci[oó]n\b[^,;]*/gi,' ');
+    c=c.replace(/\bhasta\s+(?:nueva\s+revisi[oó]n|nuevo\s+aviso|nueva\s+orden|nueva\s+indicaci[oó]n)\b/gi,' ');
+    c=c.replace(/\bindefinid[ao]s?\b/gi,' ');
+    c=c.replace(/\b(?:pr[oó]xima\s+)?revisi[oó]n\b/gi,' ');
+    c=c.replace(/\s+/g,' ').trim();
+    if(!c||c.length<2) continue;
+
     // Caso especial: cotrimoxazol (Septrin) — profilaxis lunes/miércoles/viernes con el almuerzo
     if(/sulfametoxazol|cotrimoxazol|trimetoprim|septrin/i.test(c)){
       const dd=[...c.matchAll(/(\d+(?:[.,]\d+)?)\s*mg\b/gi)].map(m=>m[1]);
