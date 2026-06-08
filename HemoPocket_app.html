@@ -4831,7 +4831,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.05-1';
+const APP_BUILD='2026.06.08 (build 74)';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -9906,7 +9906,7 @@ if(document.readyState!=='loading')init();
   // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
   // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
   // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 73;
+  var HP_BUILD = 74;
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
