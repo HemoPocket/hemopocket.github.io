@@ -2095,7 +2095,7 @@ function clRenderBody(){
       const ck=!!st[it.id];
       h+='<div class="chk-card" onclick="clToggle(\''+it.id+'\')" style="align-items:flex-start;cursor:pointer">';
       h+='<input type="checkbox" '+(ck?'checked':'')+' style="pointer-events:none" tabindex="-1">';
-      h+='<span style="'+(ck?'opacity:.5;text-decoration:line-through':(it.hl?'font-weight:600':''))+'">';
+      h+='<span style="'+(ck?'opacity:.5;text-decoration:line-through':'')+'">';
       if(it.cond)h+='<span style="font-size:11px;letter-spacing:.04em;color:var(--c1);margin-right:5px;text-decoration:none">[SI APLICA]</span>';
       h+=chatEsc(it.text);
       if(it.sub)h+='<br><span class="small muted" style="text-decoration:none">↳ '+chatEsc(it.sub)+'</span>';
