@@ -3,16 +3,36 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v50';
-const APP_SHELL = ['/', '/index.html', '/HemoPocket_app.html', '/manifest.json'];
+const CACHE = 'hemopocket-v68';
+// El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
+const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html'];
+
+// Guarda una respuesta en caché de forma segura. Si la respuesta venía de una
+// redirección (típico en Vercel para "/" e "/index.html"), la reconstruimos:
+// servir una respuesta "redirected" a una navegación falla y rompe el offline.
+async function safePut(cache, req, resp) {
+  try {
+    if (!resp || !resp.ok || resp.type === 'opaque') return;
+    if (resp.redirected) {
+      const body = await resp.blob();
+      await cache.put(req, new Response(body, { status: 200, statusText: 'OK', headers: resp.headers }));
+    } else {
+      await cache.put(req, resp);
+    }
+  } catch (e) { /* nunca dejamos que un fallo de caché rompa la respuesta */ }
+}
 
 self.addEventListener('install', e => {
+  // Cacheo INDIVIDUAL (no addAll atómico): que el fallo de una URL no impida cachear el resto.
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(APP_SHELL).catch(() => null))
+    caches.open(CACHE).then(c =>
+      Promise.allSettled(APP_SHELL.map(u =>
+        fetch(u, { cache: 'reload' }).then(r => safePut(c, u, r)).catch(() => null)
+      ))
+    )
   );
-  // NO skipWaiting aquí: dejamos que la versión nueva quede "esperando" para
-  // que la app muestre el aviso "Actualizar". Al pulsarlo, la app envía
-  // 'skipWaiting' (ver abajo) y la versión vieja se reemplaza automáticamente.
+  // NO skipWaiting aquí: la versión nueva queda "esperando" y la app la aplica
+  // automáticamente (envía 'skipWaiting'), recargando con la versión nueva.
 });
 
 self.addEventListener('activate', e => {
@@ -35,37 +55,52 @@ self.addEventListener('fetch', e => {
   const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 
   // 1. HTML / navegación: network-first con fallback a cache.
-  // Fallback: primero la URL exacta, luego /HemoPocket_app.html (el app shell principal),
-  // así evitamos servir la página de redirect como fallback y que cause un bucle.
   if (isHTML) {
     e.respondWith(
-      fetch(req)
+      // cache:'no-store' evita que la caché HTTP del navegador devuelva un HTML
+      // viejo: forzamos siempre la última versión de la red cuando hay conexión.
+      fetch(req, { cache: 'no-store' })
         .then(resp => {
-          if (resp.ok) {
-            const clone = resp.clone();
-            caches.open(CACHE).then(c => c.put(req, clone));
-          }
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => safePut(c, req, copy));
           return resp;
         })
         .catch(() =>
-          caches.match(req)
+          caches.match(req, { ignoreSearch: true })
             .then(r => r || caches.match('/HemoPocket_app.html'))
             .then(r => r || caches.match('/'))
+            .then(r => r || new Response(
+              '<!doctype html><meta charset="utf-8"><body style="font-family:system-ui;text-align:center;padding:40px;color:#333"><h2>Sin conexión</h2><p>Abre HemoPocket una vez con conexión para guardarla en el dispositivo.</p></body>',
+              { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+            ))
         )
     );
     return;
   }
 
-  // 2. Mismo origen (CSS/JS/iconos/PDFs): cache-first
+  // 1b. hemopocket.json (estructura de guías/sync): network-first, fallback a caché.
+  // Así el sync siempre ve la última versión en vez de una copia cacheada.
+  if (sameOrigin && url.pathname.endsWith('hemopocket.json')) {
+    e.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => safePut(c, req, copy));
+          return resp;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // 2. Mismo origen (CSS/JS/iconos/PDFs locales): cache-first
   if (sameOrigin) {
     e.respondWith(
       caches.match(req).then(cached => {
         if (cached) return cached;
         return fetch(req).then(resp => {
-          if (resp.ok) {
-            const clone = resp.clone();
-            caches.open(CACHE).then(c => c.put(req, clone));
-          }
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => safePut(c, req, copy));
           return resp;
         }).catch(() => cached);
       })
@@ -73,8 +108,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 3. Cross-origin (Gist, PDFs en raw.githubusercontent): solo pasarelaje, ya se cachea en IndexedDB de la app
-  // No interferimos para no romper CORS.
+  // 3. Cross-origin (pdf.js CDN, PDFs en raw.githubusercontent): no interferimos (CORS).
 });
 
 // Permite refrescar desde la app cuando hay una nueva versión
