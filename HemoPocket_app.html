@@ -414,6 +414,7 @@ body{font-size:13px}
 .verify-note{display:flex;align-items:center;gap:7px;margin:0 0 12px;padding:9px 12px;border-radius:var(--rs);font-size:12.5px;font-weight:600;line-height:1.35;color:#92500a;background:#fff7e6;border:1px solid #f3d28a}
 [data-t="dark"] .verify-note{color:#f6c66b;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)}
 .verify-note svg{flex:0 0 auto;opacity:.9}
+.cl-subhead{margin:16px 4px 2px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
 /* === Auth overlay === */
 #hp-auth-overlay{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
 #hp-auth-overlay.hidden{display:none}
@@ -946,7 +947,7 @@ const VIEWS={};
 // === Nota "Contenido en proceso de verificación" ===
 // Apartados YA VERIFICADOS por un hematólogo → NO muestran la nota.
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
-const HP_VERIFIED=new Set(['bsa','cacorr']);
+const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
 const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer']);
 function hpVerifyBanner(id){
@@ -2060,12 +2061,17 @@ const CL_SECTIONS=[
     {id:'lma2',text:'Antecedentes familiares detallados: padres, hermanos, hijos — registrar edad y patologías de cada uno',hl:true},
     {id:'lma3',text:'Extracción 1ª muestra HLA: 1 tubo de suero + 1 tubo EDTA',sub:'Petición en Drago',hl:true},
     {id:'lma4',text:'Vigilancia de síndrome de lisis tumoral: ácido úrico, LDH, fósforo, potasio, creatinina',hl:true,sub:'Valorar rasburicasa profiláctica según riesgo'}
+  ]},
+  {id:'ptiahai',title:'SOSPECHA / RECAÍDA PTI o AHAI',icon:'❖',items:[
+    {id:'pa1',text:'Extraer muestra y solicitar analítica ordinaria con autoinmunidad ANTES de iniciar IGIV y/o esteroides',hl:true},
+    {id:'pa2',text:'ANAs, Ac. anticardiolipina y Ac. anti-β2-glicoproteína I'},
+    {id:'pa3',text:'Haptoglobina'}
   ]}
 ];
 function clState(){return ls.g('checklist')||{}}
 function clOpen(){return ls.g('checklist_open')||{}}
 function clToggle(id){const s=clState();s[id]=!s[id];ls.s('checklist',s);clRenderBody();}
-function clToggleSec(id){const o=clOpen();const cur=(o[id]!==undefined)?o[id]:true;o[id]=!cur;ls.s('checklist_open',o);clRenderBody();}
+function clToggleSec(id){const o=clOpen();const def=(id==='general');const cur=(o[id]!==undefined)?o[id]:def;o[id]=!cur;ls.s('checklist_open',o);clRenderBody();}
 function clReset(){ls.s('checklist',{});clRenderBody();}
 function clRenderBody(){
   const body=$('cl_body');if(!body)return;
@@ -2080,8 +2086,9 @@ function clRenderBody(){
   if(bar)bar.style.width=pct+'%';
   if(pctEl)pctEl.textContent=done+'/'+total+' · '+pct+'%';
   let h='';
-  CL_SECTIONS.forEach(sec=>{
-    const open=(op[sec.id]!==undefined)?op[sec.id]:true;
+  CL_SECTIONS.forEach((sec,idx)=>{
+    if(idx===1)h+='<div class="cl-subhead">Según el caso · despliega lo que aplique</div>';
+    const open=(op[sec.id]!==undefined)?op[sec.id]:(sec.id==='general');
     const sc=sec.items.filter(i=>st[i.id]).length;
     h+='<div class="coll'+(open?' open':'')+'" style="margin-top:8px">';
     h+='<div class="coll-h" onclick="clToggleSec(\''+sec.id+'\')"><span>'+sec.icon+' '+sec.title+' <span class="small muted">('+sc+'/'+sec.items.length+')</span></span><span class="ar">▶</span></div>';
@@ -2102,7 +2109,7 @@ function clRenderBody(){
 }
 VIEWS.checklist=()=>`<div class="card">
 <h2>📋 Check list de ingreso</h2>
-<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo. <strong>El progreso (%) cuenta solo «Todos los ingresos»</strong>; el resto de apartados son opcionales según el caso.</p>
+<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo. <strong>«Todos los ingresos»</strong> está desplegado; <strong>abre abajo</strong> el apartado que corresponda según el caso. El progreso (%) cuenta solo «Todos los ingresos».</p>
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
 <div style="flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;height:8px;overflow:hidden"><div id="cl_bar" style="height:100%;width:0;background:var(--c1);transition:width .35s"></div></div>
 <span id="cl_pct" class="small muted" style="white-space:nowrap"></span>
