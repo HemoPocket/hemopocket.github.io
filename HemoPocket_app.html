@@ -2020,7 +2020,7 @@ VIEWS.wells_post=()=>renderWells();
 
 // === CHECK LIST DE INGRESO ===
 const CL_SECTIONS=[
-  {id:'general',title:'TODOS LOS INGRESOS',icon:'⬡',items:[
+  {id:'general',title:'TODOS LOS INGRESOS',icon:'🏥',items:[
     {id:'g1',text:'Valoración al ingreso: antecedentes actualizados, último tratamiento recibido, fármacos en domicilio'},
     {id:'g2',text:'ECOG / Performance Status basal — documentar en valoración al ingreso'},
     {id:'g4',text:'Acceso venoso: documentar tipo y estado (PICC, reservorio, catéter central, vía periférica) y fecha de implantación si procede'},
@@ -2033,39 +2033,37 @@ const CL_SECTIONS=[
     {id:'g11',text:'Consentimientos informados pertinentes',cond:true,sub:'QT, trasplante, procedimientos diagnósticos según el caso'},
     {id:'g12',text:'Pautar medicación habitual domiciliaria pertinente. Si se suspende algún fármaco, reflejarlo en la valoración al ingreso'}
   ]},
-  {id:'primer',title:'PRIMER INGRESO',icon:'◈',items:[
+  {id:'primer',title:'PRIMER INGRESO',icon:'🩺',items:[
     {id:'p1',text:'Analítica de primer ingreso'},
     {id:'p2',text:'ECG basal'},
     {id:'p3',text:'Rx de tórax basal'}
   ]},
-  {id:'qt',title:'PREVISIÓN DE INICIO DE QT',icon:'◇',items:[
+  {id:'qt',title:'PREVISIÓN DE INICIO DE QT',icon:'💊',items:[
     {id:'q_pt',text:'Peso y talla (para cálculo de superficie corporal y dosis de QT)'},
     {id:'q1',text:'Hidratación estándar: SSF 2500 ml — ajustar según contexto clínico del paciente',sub:'Excepto si aplica protocolo MTX (ver abajo)'},
     {id:'q2',text:'PROTOCOLO MTX: hiperhidratación alcalina → Bicarbonato 1/6 M 2000 ml + SSF 1000 ml',hl:true},
     {id:'q3',text:'Profilaxis antiemética según protocolo de QT pautado',hl:true},
     {id:'q4',text:'Si QT URGENTE: solicitar PICC urgente, ecocardiograma, AMO y prueba de imagen',hl:true,cond:true,sub:'Prueba de imagen según el caso: ecografía, TAC o PET-TC'}
   ]},
-  {id:'taspe',title:'INGRESO PARA TRASPLANTE (TASPE)',icon:'◉',items:[
+  {id:'taspe',title:'TASPE',icon:'🧬',items:[
     {id:'t1',text:'Revisar checklist de pruebas preTASPE — si falta alguna, solicitarla de forma urgente',hl:true,sub:'Incluye: ecocardiograma, ecografía de abdomen, pruebas funcionales respiratorias (PFR) y valoración ORL'},
     {id:'t2',text:'Revisar Rx de tórax: ¿tiene realizada en los últimos 6 meses?',sub:'Si NO → solicitar Rx de tórax'},
     {id:'t3',text:'ECG basal'}
   ]},
-  {id:'nf',title:'NEUTROPENIA FEBRIL',icon:'◎',items:[
+  {id:'nf',title:'NEUTROPENIA FEBRIL',icon:'🌡️',items:[
     {id:'nf1',text:'Hemocultivos diferenciales (periférico + cada lumen de catéter)'},
     {id:'nf2',text:'Si síntomas urinarios o paciente diabético: sistemático de orina + urocultivo',cond:true},
     {id:'nf3',text:'Rx de tórax'},
     {id:'nf4',text:'Cultivo de cualquier exudado o foco de supuración presente',cond:true,sub:'Solo si existe foco'}
   ]},
-  {id:'lma',title:'DEBUT DE LMA',icon:'◆',items:[
+  {id:'lma',title:'DEBUT DE LMA',icon:'🩸',items:[
     {id:'lma1',text:'Iniciar hidratación: SSF'},
     {id:'lma2',text:'Antecedentes familiares detallados: padres, hermanos, hijos — registrar edad y patologías de cada uno',hl:true},
     {id:'lma3',text:'Extracción 1ª muestra HLA: 1 tubo de suero + 1 tubo EDTA',sub:'Petición en Drago',hl:true},
     {id:'lma4',text:'Vigilancia de síndrome de lisis tumoral: ácido úrico, LDH, fósforo, potasio, creatinina',hl:true,sub:'Valorar rasburicasa profiláctica según riesgo'}
   ]},
-  {id:'ptiahai',title:'SOSPECHA / RECAÍDA PTI o AHAI',icon:'❖',items:[
-    {id:'pa1',text:'Extraer muestra y solicitar analítica ordinaria con autoinmunidad ANTES de iniciar IGIV y/o esteroides',hl:true},
-    {id:'pa2',text:'ANAs, Ac. anticardiolipina y Ac. anti-β2-glicoproteína I'},
-    {id:'pa3',text:'Haptoglobina'}
+  {id:'ptiahai',title:'SOSPECHA / RECAÍDA PTI o AHAI',icon:'🧪',items:[
+    {id:'pa1',text:'Extraer muestra y solicitar analítica ordinaria con autoinmunidad ANTES de iniciar IGIV y/o esteroides',hl:true,subs:['ANAs','Ac. anticardiolipina','Ac. anti-β2-glicoproteína I','Coombs directo','Haptoglobina']}
   ]}
 ];
 function clState(){return ls.g('checklist')||{}}
@@ -2101,6 +2099,7 @@ function clRenderBody(){
       if(it.cond)h+='<span style="font-size:11px;letter-spacing:.04em;color:var(--c1);margin-right:5px;text-decoration:none">[SI APLICA]</span>';
       h+=chatEsc(it.text);
       if(it.sub)h+='<br><span class="small muted" style="text-decoration:none">↳ '+chatEsc(it.sub)+'</span>';
+      if(it.subs)it.subs.forEach(function(s){h+='<br><span class="small muted" style="text-decoration:none">↳ '+chatEsc(s)+'</span>';});
       h+='</span></div>';
     });
     h+='</div></div>';
@@ -2109,7 +2108,7 @@ function clRenderBody(){
 }
 VIEWS.checklist=()=>`<div class="card">
 <h2>📋 Check list de ingreso</h2>
-<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo. <strong>«Todos los ingresos»</strong> está desplegado; <strong>abre abajo</strong> el apartado que corresponda según el caso. El progreso (%) cuenta solo «Todos los ingresos».</p>
+<p class="intro">Lista de verificación para el ingreso en planta de Hematología. El estado de los ítems se guarda en este dispositivo. <strong>«Todos los ingresos»</strong> está desplegado; <strong>abre abajo</strong> el apartado que corresponda según el caso.</p>
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
 <div style="flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;height:8px;overflow:hidden"><div id="cl_bar" style="height:100%;width:0;background:var(--c1);transition:width .35s"></div></div>
 <span id="cl_pct" class="small muted" style="white-space:nowrap"></span>
