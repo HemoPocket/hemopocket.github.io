@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v68';
+const CACHE = 'hemopocket-v69';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html'];
 
