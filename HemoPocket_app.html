@@ -473,6 +473,7 @@ body{font-size:13px}
     </svg>
     <div class="hp-login-title">HemoPocket</div>
     <div class="hp-login-sub">Guía de consulta rápida en Hematología</div>
+    <div id="hp-login-view">
     <div class="hp-login-field">
       <label class="hp-login-label" for="hp_email">Correo electrónico</label>
       <input class="hp-login-input" id="hp_email" type="email" autocomplete="email" placeholder="usuario@hospital.es" inputmode="email">
@@ -489,6 +490,46 @@ body{font-size:13px}
     <div id="hp_login_err" class="hp-login-err"></div>
     <button class="hp-login-btn" id="hp_login_btn" onclick="hpLogin()">Entrar</button>
     <button class="hp-login-forgot" onclick="hpForgotPw()">¿Olvidaste tu contraseña?</button>
+    <button class="hp-login-forgot" onclick="hpShowRegister()" style="font-weight:600">Crear cuenta nueva</button>
+    </div><!-- /hp-login-view -->
+    <div id="hp-register-view" style="display:none">
+      <div class="hp-login-field">
+        <label class="hp-login-label" for="hp_reg_nombre">Nombre</label>
+        <input class="hp-login-input" id="hp_reg_nombre" type="text" autocomplete="given-name">
+      </div>
+      <div class="hp-login-field">
+        <label class="hp-login-label" for="hp_reg_apellido">Apellidos</label>
+        <input class="hp-login-input" id="hp_reg_apellido" type="text" autocomplete="family-name">
+      </div>
+      <div class="hp-login-field">
+        <label class="hp-login-label" for="hp_reg_email">Correo electrónico</label>
+        <input class="hp-login-input" id="hp_reg_email" type="email" autocomplete="email" placeholder="usuario@hospital.es" inputmode="email">
+      </div>
+      <div class="hp-login-field">
+        <label class="hp-login-label" for="hp_reg_pw">Contraseña</label>
+        <input class="hp-login-input" id="hp_reg_pw" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="hp-login-field">
+        <label class="hp-login-label" for="hp_reg_pw2">Repite la contraseña</label>
+        <input class="hp-login-input" id="hp_reg_pw2" type="password" autocomplete="new-password">
+      </div>
+      <label style="display:flex; gap:8px; align-items:flex-start; font-size:0.78rem; line-height:1.45; margin:8px 0 4px; text-align:left; color:#333">
+        <input type="checkbox" id="hp_reg_terms" style="margin-top:3px; flex:0 0 auto">
+        <span>Acepto el <a onclick="abrirAvisoLegal()" style="color:#c41e3a; text-decoration:underline; cursor:pointer">Aviso Legal y la Política de Privacidad</a>, y entiendo que HemoPocket es una <strong>herramienta de apoyo</strong> a la consulta, que <strong>no sustituye</strong> el juicio del facultativo ni los protocolos del centro, y que <strong>las decisiones clínicas son responsabilidad del médico responsable</strong>.</span>
+      </label>
+      <div id="hp_reg_err" class="hp-login-err"></div>
+      <button class="hp-login-btn" id="hp_reg_btn" onclick="hpRegister()">Crear cuenta</button>
+      <button class="hp-login-forgot" onclick="hpShowLogin()">← Ya tengo cuenta</button>
+    </div>
+  </div>
+</div>
+<!-- ══ Cuenta pendiente de aprobación ══ -->
+<div id="hp-pending-overlay" role="dialog" aria-modal="true" aria-label="Cuenta pendiente de aprobación" style="display:none; position:fixed; inset:0; z-index:20001; align-items:center; justify-content:center; padding:20px; background:var(--bg)">
+  <div class="hp-login-card">
+    <div class="hp-login-title">Cuenta pendiente</div>
+    <p style="font-size:0.9rem; line-height:1.6; color:#333; text-align:center; margin:12px 0">Gracias por registrarte<span id="hp_pending_name"></span>. Tu cuenta está <strong>pendiente de aprobación</strong> por el administrador. Cuando se valide recibirás acceso y podrás entrar con tu correo y contraseña.</p>
+    <button class="hp-login-btn" onclick="hpRecheckAccess()">Comprobar de nuevo</button>
+    <button class="hp-login-forgot" onclick="hpSignOut()">Cerrar sesión</button>
   </div>
 </div>
 <!-- ══ Diálogo de confirmación propio ══ -->
@@ -870,7 +911,9 @@ const MENU=[
 ]},
 {h:'EQUIPO Y SINCRONIZACIÓN',items:[
 {id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
-{id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'}
+{id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
+{id:'acerca',name:'Acerca de…',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
+{id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true}
 ]}
 ];
 
@@ -886,13 +929,15 @@ favs.forEach(id=>{const it=getAll().find(x=>x.id===id);if(it)h+=`<div class="men
 h+='</div>';
 }
 MENU.forEach((sec,si)=>{
-const realItems=sec.items.filter(it=>!it.sub && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
+const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
+const realItems=sec.items.filter(it=>!it.sub && !(it.admin&&!isAdminUI) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
 if(!realItems.length)return;
 const visible=f?realItems:sec.items;
 const open=f||sec._o||sec.o;
 h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${sec.h}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
 let inSub=false;
 visible.forEach(it=>{
+if(it.admin&&!isAdminUI)return;
 if(it.sub){inSub=true;h+=`<div class="menu-sub">${it.name}</div>`;return}
 const isFav=S.favs.includes(it.id);
 const isNew=it.new && isRecentlyNew(it.new);
@@ -3812,6 +3857,91 @@ h+='</ul></div>';
 h+='</div>';
 return h;
 };
+// === ACERCA DE ===
+VIEWS.acerca=()=>{
+const build=ls.g('updateVersion')||'';
+return `<div class="card">
+<h2>Acerca de HemoPocket</h2>
+<p class="intro">Guía de consulta rápida en Hematología.</p>
+<h3>Objetivo</h3>
+<p>HemoPocket es una <strong>herramienta de apoyo a la decisión clínica</strong> para profesionales de Hematología y Hemoterapia. Reúne en un único punto de acceso —disponible también sin conexión— los algoritmos, escalas pronósticas, calculadoras, criterios diagnósticos y guías clínicas de uso habitual, con el fin de:</p>
+<ul>
+<li><strong>Unificar criterios y terminología</strong> entre profesionales, secciones y turnos.</li>
+<li><strong>Reducir la variabilidad</strong> no justificada de la práctica clínica.</li>
+<li><strong>Garantizar el acceso a la versión vigente</strong> de los protocolos y de las guías de las sociedades científicas de referencia.</li>
+<li><strong>Mejorar la seguridad del paciente</strong> y agilizar la consulta en el punto de atención.</li>
+<li><strong>Apoyar la docencia</strong> y la incorporación de residentes y nuevos facultativos.</li>
+</ul>
+<div class="alert b" style="margin-top:8px"><strong>Importante:</strong> HemoPocket es una herramienta de apoyo y consulta. <strong>No</strong> sustituye el juicio del facultativo responsable, los protocolos oficiales del centro ni la ficha técnica de los medicamentos. <strong>Las decisiones clínicas son responsabilidad del médico responsable.</strong></div>
+<h3>Privacidad</h3>
+<p>La aplicación <strong>no almacena datos identificativos de pacientes</strong>. El acceso requiere credenciales personales e intransferibles. Los datos de cuenta se alojan en región europea y el tráfico viaja cifrado (HTTPS). No se utiliza analítica de uso ni telemetría hacia terceros.</p>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
+<button class="btn" onclick="abrirAvisoLegal()">⚖️ Aviso Legal y Política de Privacidad</button>
+</div>
+<p style="font-size:12px; color:var(--mut); margin-top:16px">© 2026 Busnego Barreto, M.T. — Desarrollada de forma independiente por profesional sanitaria.${build?(' · Versión '+build):''}</p>
+</div>`;
+};
+
+// === SOLICITUDES DE ACCESO (solo administrador) ===
+VIEWS.solicitudes=()=>{
+if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
+return `<div class="card"><h2>Solicitudes de acceso</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
+}
+return `<div class="card">
+<h2>Solicitudes de acceso</h2>
+<p class="intro">Cuentas registradas desde la app. Al <strong>aprobar</strong> una cuenta, el usuario podrá acceder con su correo y contraseña. Aquí queda el <strong>registro de aceptación</strong> de los términos.</p>
+<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-out btn-sm" onclick="hpRenderSolicitudes()">↻ Actualizar</button></div>
+<div id="sol_list">Cargando…</div></div>`;
+};
+VIEWS.solicitudes_post=()=>{ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); };
+
+function solCard(c,withActions){
+const nom=((c.nombre||'')+' '+(c.apellido||'')).trim()||'(sin nombre)';
+let fecha='';
+try{ if(c.fechaAceptacion&&c.fechaAceptacion.seconds) fecha=new Date(c.fechaAceptacion.seconds*1000).toLocaleString('es-ES'); }catch(e){}
+const estado=c.estado||'';
+const badge=estado==='aprobada'?'<span style="color:#1a7f37;font-weight:600">✔ aprobada</span>'
+  :estado==='rechazada'?'<span style="color:#b00020;font-weight:600">✕ rechazada</span>'
+  :'<span style="color:#b8860b;font-weight:600">⏳ pendiente</span>';
+let h='<div class="team-card"><h3 style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>'+nom+'</span>'+badge+'</h3>';
+h+='<div style="font-size:13px;line-height:1.7">';
+h+='<div><strong>Correo:</strong> '+(c.email||'')+'</div>';
+if(fecha) h+='<div><strong>Aceptó los términos:</strong> '+fecha+(c.versionTerminos?(' (v'+c.versionTerminos+')'):'')+'</div>';
+h+='</div>';
+if(withActions){
+h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
+h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpRechazarUI(\''+c.uid+'\')">Rechazar</button>';
+h+='</div>';
+}
+h+='</div>';
+return h;
+}
+window.hpRenderSolicitudes=async function(){
+const box=document.getElementById('sol_list'); if(!box) return;
+if(!window.hpListCuentas){ box.innerHTML='<div class="alert y">Conéctate a Internet para gestionar las solicitudes.</div>'; return; }
+box.innerHTML='Cargando…';
+let list;
+try{ list=await window.hpListCuentas(); }
+catch(e){ box.innerHTML='<div class="alert y">No se pudieron cargar las solicitudes. '+(e.message||'')+'</div>'; return; }
+const pend=list.filter(c=>c.estado==='pendiente');
+const otras=list.filter(c=>c.estado!=='pendiente').sort((a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0));
+let h='<h3>Pendientes ('+pend.length+')</h3>';
+if(!pend.length) h+='<div class="team-empty">No hay solicitudes pendientes.</div>';
+pend.forEach(c=>{ h+=solCard(c,true); });
+if(otras.length){ h+='<h3 style="margin-top:18px">Historial ('+otras.length+')</h3>'; otras.forEach(c=>{ h+=solCard(c,false); }); }
+box.innerHTML=h;
+};
+async function _hpDoAccion(uid,acc){
+try{
+if(acc==='aprobar') await window.hpAprobarCuenta(uid); else await window.hpRechazarCuenta(uid);
+if(typeof toast==='function') toast(acc==='aprobar'?'✔ Cuenta aprobada':'Cuenta rechazada');
+if(window.hpRenderSolicitudes) window.hpRenderSolicitudes();
+}catch(e){ if(typeof toast==='function') toast('Error: '+(e.message||'')); }
+}
+window.hpAprobarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Aprobar esta cuenta? El usuario podrá acceder a la app.',()=>_hpDoAccion(uid,'aprobar')); else _hpDoAccion(uid,'aprobar'); };
+window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
+
 let _editGuide=null;
 
 function guidesView(id){
@@ -3983,7 +4113,7 @@ if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){const v=S.view;if(v&&(v.indexOf('g_')===0||v==='sync'))go(v)};
+window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&(v.indexOf('g_')===0||v==='sync'||v==='solicitudes'))go(v)};
 
 // Subir una guía a una sección (solo editor de esa sección o admin).
 window.hcUpload=function(section,subtypeId){
@@ -10195,9 +10325,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ Firebase Auth ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
@@ -10330,6 +10460,124 @@ function loadCloud(uid) {
   }).catch(e => console.warn('[hp] cloud read', e.message));
 }
 
+// ── Registro de cuentas con aprobación del administrador ──
+// Versión del texto legal aceptado (queda registrada con cada cuenta).
+const TERMS_VERSION = '2026-06-09';
+
+function hidePending(){
+  const pe = document.getElementById('hp-pending-overlay');
+  if (pe) pe.style.display = 'none';
+}
+function showPending(name){
+  const ov = document.getElementById('hp-auth-overlay'); if (ov) ov.classList.add('hidden');
+  const ub = document.getElementById('hp-user-btn'); if (ub) ub.classList.remove('visible');
+  const ne = document.getElementById('hp_pending_name'); if (ne) ne.textContent = name ? (', ' + name) : '';
+  const pe = document.getElementById('hp-pending-overlay'); if (pe) pe.style.display = 'flex';
+}
+
+// Acceso normal de un usuario autorizado: revela la app y dispara la carga de datos.
+function revealAndEnter(user){
+  const overlay = document.getElementById('hp-auth-overlay');
+  const userBtn = document.getElementById('hp-user-btn');
+  const userLabel = document.getElementById('hp_user_label');
+  const loginBtn = document.getElementById('hp_login_btn');
+  curUid = user.uid;
+  // Solo recordamos el inicio de sesión OFFLINE para cuentas YA autorizadas: así una
+  // cuenta pendiente nunca obtiene acceso de consulta a través de la red de seguridad.
+  try { localStorage.setItem('hp_everLoggedIn', '1'); } catch(e) {}
+  hidePending();
+  overlay.classList.add('hidden');
+  userBtn.classList.add('visible');
+  userLabel.textContent = user.email.split('@')[0];
+  if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
+  loadCloud(user.uid);
+  window.__hpUid = user.uid;
+  HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
+  if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
+  setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
+}
+
+// "Portero": tras iniciar sesión, comprueba si la cuenta está aprobada.
+// - Si existe ficha en 'cuentas' y NO está aprobada → pantalla de espera.
+// - Si no existe ficha (cuentas heredadas, creadas en consola) o hay error de red
+//   (offline) → no se bloquea, para no dejar fuera a los usuarios ya existentes.
+async function enterAppGated(user){
+  let blocked = false, name = '';
+  try {
+    const s = await getDoc(doc(fs, 'cuentas', user.uid));
+    if (s.exists()) { const d = s.data(); name = d.nombre || ''; if (d.estado !== 'aprobada') blocked = true; }
+  } catch(e) { /* offline o ficha heredada: no bloquear */ }
+  if (blocked) { curUid = null; showPending(name); return; }
+  revealAndEnter(user);
+}
+window.hpRecheckAccess = function(){ if (auth.currentUser) enterAppGated(auth.currentUser); };
+
+window.hpShowRegister = function(){
+  const l = document.getElementById('hp-login-view'); if (l) l.style.display = 'none';
+  const r = document.getElementById('hp-register-view'); if (r) r.style.display = '';
+  const e = document.getElementById('hp_reg_err'); if (e) { e.textContent = ''; e.className = 'hp-login-err'; }
+};
+window.hpShowLogin = function(){
+  const r = document.getElementById('hp-register-view'); if (r) r.style.display = 'none';
+  const l = document.getElementById('hp-login-view'); if (l) l.style.display = '';
+};
+
+window.hpRegister = async function(){
+  const nombre = (document.getElementById('hp_reg_nombre').value || '').trim();
+  const apellido = (document.getElementById('hp_reg_apellido').value || '').trim();
+  const email = (document.getElementById('hp_reg_email').value || '').trim();
+  const pw = document.getElementById('hp_reg_pw').value;
+  const pw2 = document.getElementById('hp_reg_pw2').value;
+  const terms = document.getElementById('hp_reg_terms').checked;
+  const errEl = document.getElementById('hp_reg_err');
+  const btn = document.getElementById('hp_reg_btn');
+  errEl.className = 'hp-login-err';
+  if (!nombre || !apellido || !email || !pw) { errEl.textContent = 'Completa todos los campos.'; return; }
+  if (pw.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
+  if (pw !== pw2) { errEl.textContent = 'Las contraseñas no coinciden.'; return; }
+  if (!terms) { errEl.textContent = 'Debes aceptar el Aviso Legal y la Política de Privacidad.'; return; }
+  btn.disabled = true; btn.textContent = 'Creando…'; errEl.textContent = '';
+  window.__hpRegistering = true;
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+    const user = cred.user;
+    try { await updateProfile(user, { displayName: (nombre + ' ' + apellido).trim() }); } catch(e) {}
+    // Ficha de cuenta + registro de aceptación de términos (queda como prueba auditable).
+    await setDoc(doc(fs, 'cuentas', user.uid), {
+      email, nombre, apellido,
+      aceptaTerminos: true, versionTerminos: TERMS_VERSION,
+      fechaAceptacion: serverTimestamp(),
+      estado: 'pendiente', createdAt: serverTimestamp()
+    });
+    try { localStorage.setItem('hp_legalAccepted', '1'); } catch(e) {}
+    window.__hpRegistering = false;
+    btn.disabled = false; btn.textContent = 'Crear cuenta';
+    showPending(nombre);
+  } catch(e) {
+    window.__hpRegistering = false;
+    btn.disabled = false; btn.textContent = 'Crear cuenta';
+    const map = {
+      'auth/email-already-in-use': 'Ya existe una cuenta con ese correo. Inicia sesión o recupera la contraseña.',
+      'auth/invalid-email': 'Formato de correo no válido.',
+      'auth/weak-password': 'La contraseña es demasiado débil (mínimo 6 caracteres).',
+      'auth/network-request-failed': 'Sin conexión. Conéctate a Internet para crear la cuenta.'
+    };
+    errEl.textContent = map[e.code] || ('No se pudo crear la cuenta. ' + (e.message || ''));
+  }
+};
+
+// Gestión de cuentas (solo administrador; protegido también por las reglas de Firestore).
+window.hpListCuentas = async function(){
+  const snap = await getDocs(collection(fs, 'cuentas'));
+  const out = []; snap.forEach(d => out.push({ uid: d.id, ...d.data() })); return out;
+};
+window.hpAprobarCuenta = async function(uid){
+  await updateDoc(doc(fs, 'cuentas', uid), { estado: 'aprobada', revisadaPor: curUid || null, fechaRevision: serverTimestamp() });
+};
+window.hpRechazarCuenta = async function(uid){
+  await updateDoc(doc(fs, 'cuentas', uid), { estado: 'rechazada', revisadaPor: curUid || null, fechaRevision: serverTimestamp() });
+};
+
 // Auth state: show/hide overlay and user badge
 onAuthStateChanged(auth, user => {
   // Firebase ya ha resuelto el estado de sesión (haya o no usuario): lo señalamos
@@ -10337,30 +10585,19 @@ onAuthStateChanged(auth, user => {
   window.__hpFirebaseReady = true;
   const overlay = document.getElementById('hp-auth-overlay');
   const userBtn = document.getElementById('hp-user-btn');
-  const userLabel = document.getElementById('hp_user_label');
   const loginBtn = document.getElementById('hp_login_btn');
   if (user) {
-    curUid = user.uid;
-    // Recordar que este equipo inició sesión correctamente alguna vez: permite el
-    // acceso offline de consulta cuando Firebase no se puede cargar (sin conexión).
-    try { localStorage.setItem('hp_everLoggedIn', '1'); } catch(e) {}
-    overlay.classList.add('hidden');
-    userBtn.classList.add('visible');
-    userLabel.textContent = user.email.split('@')[0];
-    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
-    loadCloud(user.uid);
-    window.__hpUid = user.uid;
-    // Rol (admin/editor): controla los botones de subida por sección.
-    HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
-    // Traer las guías de la nube y guardarlas offline (en segundo plano).
-    if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
-    // Aceptación del Aviso Legal en el primer uso (una sola vez por dispositivo).
-    setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
+    // Durante el alta, es hpRegister quien conduce el flujo (evita acceso por la carrera
+    // entre la creación del usuario y la escritura de su ficha).
+    if (window.__hpRegistering) return;
+    enterAppGated(user);
   } else {
     curUid = null;
     window.__hpUid = null;
     HemoCloud.role = null;
     pending = {};
+    hidePending();
+    if (window.hpShowLogin) window.hpShowLogin();
     overlay.classList.remove('hidden');
     userBtn.classList.remove('visible');
     const emailEl = document.getElementById('hp_email');

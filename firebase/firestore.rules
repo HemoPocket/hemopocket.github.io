@@ -47,6 +47,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Cuentas de usuario y registro de aceptación de términos ──
+    // Cada usuario crea su PROPIA ficha al registrarse (estado 'pendiente' y con la
+    // aceptación de términos). Solo el admin puede leer todas, aprobar/rechazar o borrar.
+    match /cuentas/{uid} {
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.estado == 'pendiente'
+                    && request.resource.data.aceptaTerminos == true;
+      allow read:   if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
