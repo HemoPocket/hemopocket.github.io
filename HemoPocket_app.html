@@ -3855,8 +3855,10 @@ if(algos.length){
 bundled=algos.map(p=>`<div class="pdf-item" onclick="openPDFurl('${p.url}','${p.name.replace(/'/g,"\\'")}')"><span class="name">📄 ${p.name}</span></div>`).join('')
 +`<div style="font-size:11px;color:var(--mut);padding:4px 2px 8px;line-height:1.5">Algoritmos reproducidos de la <strong>App GELTAMO</strong>. © GELTAMO — material orientativo; consulta siempre la fuente original.</div>`;
 }
-h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}')"><span>${st.name}</span><span class="ar">▶</span></div>
-<div class="coll-c">${bundled}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
+const canUp=window.HemoCloud&&HemoCloud.canEdit(id);
+const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out btn-sm" onclick="event.stopPropagation();hcUpload('${id}','${st.id}')">⬆️ Subir guía a este apartado</button></div>`:'';
+h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span class="ar">▶</span></div>
+<div class="coll-c">${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
 });
 }
 }
@@ -3911,7 +3913,7 @@ go('g_'+id);
 toast('✓ Restaurado');
 }
 
-async function loadPDFs(k){
+async function loadPDFs(k,section){
 const el=$(`pdfs_${k}`);
 if(!el||el.dataset.loaded==='1')return;
 el.dataset.loaded='1';
@@ -3927,14 +3929,133 @@ const items=await Promise.all(matching.map(async key=>{
 const data=await idb.get(key);
 return data?{key,...data}:null;
 }));
+const canEdit=!!(section&&window.HemoCloud&&HemoCloud.canEdit(section));
 el.innerHTML=items.filter(Boolean).map(item=>{
 const safeKey=encodeURIComponent(item.key);
-return `<div class="pdf-item" onclick="openPDF('${safeKey}')"><span class="name">📄 ${item.name}${item.size?' ('+(item.size/1024).toFixed(0)+' KB)':''}</span></div>`;
+const cloudTag=item.cloud?' <span title="Guía en la nube" style="font-size:11px;color:var(--mut)">☁️</span>':'';
+const delBtn=(item.cloud&&canEdit)?`<button title="Eliminar para todos los usuarios" onclick="event.stopPropagation();hcDeleteGuide('${safeKey}','${section}')">🗑️</button>`:'';
+return `<div class="pdf-item" onclick="openPDF('${safeKey}')"><span class="name">📄 ${item.name}${item.size?' ('+(item.size/1024).toFixed(0)+' KB)':''}${cloudTag}</span>${delBtn}</div>`;
 }).join('');
 }catch(e){
 el.innerHTML=`<div style="color:var(--er);font-size:12px;padding:6px 0">Error: ${e.message}</div>`;
 }
 }
+
+// === GUÍAS EN LA NUBE (Firebase Storage + Firestore) ===
+// Las guías subidas por los editores se guardan en idb con la MISMA convención de
+// clave que las del JSON (`seccion_apartado|...`), con marca `cloud:` en la ruta, para
+// que loadPDFs las muestre y el visor las abra offline sin cambios adicionales.
+
+// Trae el listado de Firestore y lo refleja en idb (descarga PDFs nuevos, borra los
+// que ya no existen en la nube). Solo con sesión iniciada y conexión.
+window.syncCloudGuides=async function(silent){
+if(!window.HemoCloud||!navigator.onLine||!window.__hpUid)return;
+let guides;
+try{guides=await HemoCloud.listGuides()}catch(e){console.warn('[hp] cloud guides',e.message);return}
+const desired=new Map();
+for(const g of guides){
+if(!g.section||!g.subtype||!g.path||!g.name)continue;
+desired.set(`${g.section}_${g.subtype}|cloud:${g.path}`,g);
+}
+let existing=[];
+try{existing=(await idb.keys()).filter(k=>typeof k==='string'&&k.indexOf('|cloud:')!==-1)}catch(e){}
+const existingSet=new Set(existing);
+let added=0,removed=0;
+for(const [key,g] of desired){
+if(existingSet.has(key))continue;
+try{
+const url=await HemoCloud.downloadURL(g.path);
+const r=await fetch(url);
+if(!r.ok)continue;
+const blob=await r.blob();
+if(blob.size<200)continue;
+await idb.set(key,{name:g.name,size:blob.size,blob,cloud:true,docId:g.id,path:g.path});
+added++;
+}catch(e){/* siguiente */}
+}
+const desiredSet=new Set(desired.keys());
+for(const key of existing){if(!desiredSet.has(key)){try{await idb.del(key);removed++}catch(e){}}}
+if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
+};
+
+// Re-render al cargar el rol, para que aparezcan los botones de subida.
+window.hpOnRoleLoaded=function(){const v=S.view;if(v&&(v.indexOf('g_')===0||v==='sync'))go(v)};
+
+// Subir una guía a una sección (solo editor de esa sección o admin).
+window.hcUpload=function(section,subtypeId){
+if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('No tienes permiso para subir en esta sección');return}
+if(!navigator.onLine){toast('Necesitas conexión para subir');return}
+const inp=document.createElement('input');
+inp.type='file';inp.accept='application/pdf,.pdf';
+inp.onchange=async()=>{
+const file=inp.files&&inp.files[0];
+if(!file)return;
+if(file.type&&file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){toast('Selecciona un archivo PDF');return}
+const defName=(file.name||'').replace(/\.pdf$/i,'');
+const name=prompt('Nombre que verán los usuarios para esta guía:',defName);
+if(name===null)return;
+const finalName=name.trim()||defName||'Guía';
+toast('⏳ Subiendo…');
+try{
+const {id,path}=await HemoCloud.uploadGuide(section,subtypeId,file,finalName);
+const key=`${section}_${subtypeId}|cloud:${path}`;
+await idb.set(key,{name:finalName,size:file.size,blob:file,cloud:true,docId:id,path});
+toast('✓ Guía subida');
+const k=`${section}_${subtypeId}`;const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';loadPDFs(k,section)}
+}catch(e){console.error('hcUpload',e);toast('❌ Error al subir: '+(e.code||e.message||''))}
+};
+inp.click();
+};
+
+// Borrar una guía de la nube (para todos). Solo editor de esa sección o admin.
+window.hcDeleteGuide=async function(encodedKey,section){
+if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return}
+if(!navigator.onLine){toast('Necesitas conexión para borrar');return}
+const key=decodeURIComponent(encodedKey);
+let rec;try{rec=await idb.get(key)}catch(e){}
+if(!confirm('¿Eliminar esta guía para TODOS los usuarios? No se puede deshacer.'))return;
+toast('⏳ Eliminando…');
+try{
+if(rec&&rec.docId)await HemoCloud.deleteGuide(rec.docId,rec.path);
+await idb.del(key);
+toast('✓ Eliminada');
+const k=key.split('|')[0];const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';loadPDFs(k,section)}
+}catch(e){console.error('hcDeleteGuide',e);toast('❌ Error al eliminar: '+(e.code||e.message||''))}
+};
+
+// Migración inicial (solo admin): sube a Firebase todas las guías incluidas en la app.
+window.hcMigrateAll=async function(){
+if(!window.HemoCloud||!HemoCloud.isAdmin()){toast('Solo el admin puede migrar');return}
+if(!navigator.onLine){toast('Necesitas conexión');return}
+if(!confirm('Migrar a Firebase TODAS las guías incluidas en la app. Puede tardar unos minutos. Las que ya estén en la nube se omiten. ¿Continuar?'))return;
+let existing=[];try{existing=await HemoCloud.listGuides()}catch(e){}
+const existsSet=new Set(existing.map(g=>`${g.section}|${g.name}`));
+let ok=0,skip=0,fail=0;const failed=[];
+for(const section in DEFAULT_SUBTYPES){
+for(const st of DEFAULT_SUBTYPES[section]){
+if(!st.pdfs||!Array.isArray(st.pdfs))continue;
+for(const pdf of st.pdfs){
+if(!pdf||!pdf.url||!pdf.name)continue;
+if(existsSet.has(`${section}|${pdf.name}`)){skip++;continue}
+try{
+toast(`⏳ Migrando ${ok+1}: ${pdf.name}`);
+const r=await fetch(pdf.url);
+if(!r.ok)throw new Error('HTTP '+r.status);
+const blob=await r.blob();
+if(blob.size<200)throw new Error('archivo vacío');
+const fileName=pdf.url.split('/').pop()||'guia.pdf';
+const file=new File([blob],fileName,{type:'application/pdf'});
+await HemoCloud.uploadGuide(section,st.id,file,pdf.name);
+existsSet.add(`${section}|${pdf.name}`);
+ok++;
+}catch(e){fail++;failed.push(`${pdf.name}: ${e.message}`);console.error('migra',pdf.url,e)}
+}
+}
+}
+if(failed.length)console.warn('[hp] migración fallidos:',failed);
+toast(`✓ Migración: ${ok} subidas · ${skip} ya estaban · ${fail} fallidas`);
+try{await window.syncCloudGuides(true)}catch(e){}
+};
 
 // === VISOR PDF (PDF.js, lazy load + offline cache) ===
 let _returnView='home';
@@ -4880,6 +5001,12 @@ return `<div class="card">
 <p class="intro" style="margin-top:10px">Si tras abrir con Internet sigues viendo una versión antigua, pulsa este botón: borra la caché y el service worker y recarga la app con la última versión. No pierdes tus favoritos ni datos.</p>
 <button class="btn" style="width:100%;padding:14px;justify-content:center;background:#fff3f3;color:#c41e3a;border:1px solid #f0c0c5" onclick="hpForceUpdate()">🔄 Forzar actualización completa</button>
 </details>
+${(window.HemoCloud&&HemoCloud.isAdmin())?`
+<details style="margin-top:14px">
+<summary style="cursor:pointer;color:#666;font-size:14px">⚙️ Administración (solo admin)</summary>
+<p class="intro" style="margin-top:10px">Sube a Firebase todas las guías incluidas en la app (migración inicial, una sola vez). Las que ya existan en la nube se omiten.</p>
+<button class="btn btn-out" style="width:100%;padding:14px;justify-content:center" onclick="hcMigrateAll()">☁️ Migrar guías de la app a Firebase</button>
+</details>`:''}
 
 </div>`;
 };
@@ -4947,7 +5074,8 @@ const existingSet=new Set(existingKeys);
 const desiredSet=new Set(desired.keys());
 
 const toDownload=[...desired.entries()].filter(([k])=>!existingSet.has(k));
-const toRemove=existingKeys.filter(k=>!desiredSet.has(k));
+// Las guías de la nube (clave con `|cloud:`) las gestiona syncCloudGuides, no el JSON.
+const toRemove=existingKeys.filter(k=>!desiredSet.has(k)&&k.indexOf('|cloud:')===-1);
 
 let ok=0,fail=0;
 const failed=[];
@@ -4976,6 +5104,9 @@ try{await idb.del(k);removed++}catch(e){}
 ls.s('lastUpdate',Date.now());
 ls.s('updateVersion',data.version||'');
 updateSyncInd();
+
+// Además del JSON, traer las guías subidas por los editores (Firebase).
+try{await window.syncCloudGuides(true)}catch(e){}
 
 if(silent){
 // Modo silencioso: refrescar vista actual si está mostrando datos que han cambiado
@@ -10064,6 +10195,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
@@ -10080,6 +10213,44 @@ const fbApp = initializeApp(firebaseConfig);
 getAnalytics(fbApp);
 const auth = getAuth(fbApp);
 const db = getDatabase(fbApp);
+const storage = getStorage(fbApp);
+const fs = getFirestore(fbApp);
+
+// ── HemoCloud: roles + gestión de guías por sección (subir/borrar/listar) ──
+// Lo usan funciones del script principal (window.*). Si Firebase no carga (offline),
+// window.HemoCloud no existe y toda la lógica de subida queda inactiva sin romper nada.
+window.HemoCloud = {
+  role: null,                 // null | {role:'admin'} | {role:'editor', sections:[...]}
+  isAdmin(){ return !!this.role && this.role.role === 'admin'; },
+  canEdit(section){
+    const r = this.role; if(!r) return false;
+    if(r.role === 'admin') return true;
+    return r.role === 'editor' && Array.isArray(r.sections) && r.sections.indexOf(section) !== -1;
+  },
+  async loadRole(uid){
+    try{ const s = await getDoc(doc(fs,'roles',uid)); this.role = s.exists() ? s.data() : null; }
+    catch(e){ this.role = null; console.warn('[hp] role', e.message); }
+  },
+  async listGuides(){
+    const snap = await getDocs(collection(fs,'guias'));
+    const out = []; snap.forEach(d => out.push({ id:d.id, ...d.data() })); return out;
+  },
+  async uploadGuide(section, subtypeId, file, name){
+    const safe = (file.name || 'guia.pdf').replace(/[^\w.\-]+/g,'_');
+    const path = `guias/${section}/${Date.now()}_${safe}`;
+    await uploadBytes(sRef(storage, path), file, { contentType: 'application/pdf' });
+    const r = await addDoc(collection(fs,'guias'), {
+      section, subtype: subtypeId, name: name || safe, path,
+      updatedAt: serverTimestamp(), uploadedBy: curUid || null
+    });
+    return { id: r.id, path };
+  },
+  async deleteGuide(docId, path){
+    if(path){ try{ await deleteObject(sRef(storage, path)); }catch(e){ /* puede no existir el archivo */ } }
+    await deleteDoc(doc(fs,'guias',docId));
+  },
+  async downloadURL(path){ return await getDownloadURL(sRef(storage, path)); }
+};
 
 // ── Sincronización de datos por usuario (favoritos, recientes) ──
 let curUid = null;
@@ -10127,8 +10298,15 @@ onAuthStateChanged(auth, user => {
     userLabel.textContent = user.email.split('@')[0];
     if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
     loadCloud(user.uid);
+    window.__hpUid = user.uid;
+    // Rol (admin/editor): controla los botones de subida por sección.
+    HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
+    // Traer las guías de la nube y guardarlas offline (en segundo plano).
+    if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
   } else {
     curUid = null;
+    window.__hpUid = null;
+    HemoCloud.role = null;
     pending = {};
     overlay.classList.remove('hidden');
     userBtn.classList.remove('visible');
