@@ -46,5 +46,12 @@ service cloud.firestore {
       allow read:  if request.auth != null && request.auth.uid == uid;
       allow write: if false;
     }
+
+    match /config/{doc} {
+      // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
+      // Nunca se escribe desde la app; se gestiona desde la consola.
+      allow read:  if isAdmin() || (hasRole() && roleData().role == 'editor');
+      allow write: if false;
+    }
   }
 }
