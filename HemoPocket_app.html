@@ -9986,8 +9986,9 @@ if(document.readyState!=='loading')init();
         if(nw.state === 'installed' && navigator.serviceWorker.controller) window.hpApplyUpdate(nw);
       });
     });
-    // Comprobar si hay actualización cada 30 min y al volver a la pestaña
-    setInterval(function(){ reg.update().catch(function(){}); }, 30*60*1000);
+    // Comprobar actualización: nada más abrir, cada 10 min, y al volver a la pestaña.
+    reg.update().catch(function(){});
+    setInterval(function(){ reg.update().catch(function(){}); }, 10*60*1000);
     document.addEventListener('visibilitychange', function(){
       if(document.visibilityState === 'visible') reg.update().catch(function(){});
     });
@@ -10009,7 +10010,7 @@ if(document.readyState!=='loading')init();
   // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
   // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
   // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 79;
+  var HP_BUILD = 80;
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
@@ -10046,6 +10047,9 @@ if(document.readyState!=='loading')init();
   if(document.readyState === 'complete') setTimeout(hpVGthrottled, 1500);
   else window.addEventListener('load', function(){ setTimeout(hpVGthrottled, 1500); });
   document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') hpVGthrottled(); });
+  // Comprobación periódica (cada 10 min) también con la app abierta sin tocarla:
+  // así un equipo que deja HemoPocket abierto se autoactualiza solo a la última versión.
+  setInterval(hpVGthrottled, 10*60*1000);
 })();
 </script>
 <div id="modal-aviso-legal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true">
