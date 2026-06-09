@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v75';
+const CACHE = 'hemopocket-v76';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html'];
 
@@ -92,6 +92,24 @@ self.addEventListener('fetch', e => {
           return resp;
         })
         .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // 1c. SDK de Firebase (gstatic.com/firebasejs/...): cache-first CROSS-ORIGIN.
+  // Imprescindible para offline: Firebase se importa desde Google; si no lo
+  // guardamos, sin conexión el módulo de login no carga y la app queda inutilizable.
+  // gstatic envía CORS, así que la respuesta es 'cors' (no opaca) y se puede cachear.
+  if (url.hostname === 'www.gstatic.com' && url.pathname.indexOf('/firebasejs/') !== -1) {
+    e.respondWith(
+      caches.match(req).then(cached => {
+        if (cached) return cached;
+        return fetch(req).then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => safePut(c, req, copy));
+          return resp;
+        });
+      })
     );
     return;
   }

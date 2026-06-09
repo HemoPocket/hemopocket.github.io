@@ -5,8 +5,11 @@
 <script>
 /* Migración de Vercel → GitHub Pages: si la app se abrió desde *.vercel.app
    (despliegue antiguo en retirada), redirigir al dominio oficial conservando
-   ruta/búsqueda/hash. No afecta a hemopocket.github.io ni a otros dominios. */
-(function(){try{if(location.hostname.indexOf('vercel.app')!==-1){
+   ruta/búsqueda/hash. No afecta a hemopocket.github.io ni a otros dominios.
+   IMPRESCINDIBLE: solo redirigir si hay conexión. Sin ella, saltar a otro
+   dominio falla (página en blanco) y rompe el uso offline de una PWA que se
+   instaló desde Vercel; offline servimos la app cacheada donde esté. */
+(function(){try{if(location.hostname.indexOf('vercel.app')!==-1&&navigator.onLine){
   location.replace('https://hemopocket.github.io'+location.pathname+location.search+location.hash);
 }}catch(e){}})();
 </script>
@@ -9905,7 +9908,7 @@ if(document.readyState!=='loading')init();
   // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
   // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
   // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 75;
+  var HP_BUILD = 76;
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
@@ -10107,12 +10110,18 @@ function loadCloud(uid) {
 
 // Auth state: show/hide overlay and user badge
 onAuthStateChanged(auth, user => {
+  // Firebase ya ha resuelto el estado de sesión (haya o no usuario): lo señalamos
+  // para que la red de seguridad offline sepa que NO hace falta intervenir.
+  window.__hpFirebaseReady = true;
   const overlay = document.getElementById('hp-auth-overlay');
   const userBtn = document.getElementById('hp-user-btn');
   const userLabel = document.getElementById('hp_user_label');
   const loginBtn = document.getElementById('hp_login_btn');
   if (user) {
     curUid = user.uid;
+    // Recordar que este equipo inició sesión correctamente alguna vez: permite el
+    // acceso offline de consulta cuando Firebase no se puede cargar (sin conexión).
+    try { localStorage.setItem('hp_everLoggedIn', '1'); } catch(e) {}
     overlay.classList.add('hidden');
     userBtn.classList.add('visible');
     userLabel.textContent = user.email.split('@')[0];
@@ -10195,6 +10204,29 @@ window.hpTogglePw = function() {
   const el = document.getElementById(id);
   if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') window.hpLogin(); });
 });
+</script>
+<script>
+/* Red de seguridad para el login en modo sin conexión.
+   El SDK de Firebase se importa desde Google (gstatic.com). Sin conexión —o tras un
+   proxy de hospital que bloquee ese dominio— ese módulo no llega a ejecutarse, así que
+   onAuthStateChanged nunca corre y la pantalla de login no se ocultaría jamás: la app
+   quedaría inservible offline. Este script NO depende de Firebase. Si pasados unos
+   segundos Firebase no ha resuelto el estado de sesión y este equipo YA inició sesión
+   antes (marca 'hp_everLoggedIn'), revelamos la app para consultar las guías offline.
+   Si nunca se inició sesión aquí, se mantiene el login (la seguridad no cambia). */
+(function(){
+  function reveal(){
+    if (window.__hpFirebaseReady) return;                 // Firebase sí cargó: no intervenir
+    try { if (localStorage.getItem('hp_everLoggedIn') !== '1') return; } catch(e) { return; }
+    var ov = document.getElementById('hp-auth-overlay');
+    if (ov) ov.classList.add('hidden');                   // entró antes + Firebase no carga → acceso offline
+  }
+  // Offline: el SDK falla casi al instante, basta poco margen. Online (por si un proxy
+  // bloquea gstatic): damos más tiempo a que Firebase resuelva por sí mismo antes de actuar.
+  var delay = navigator.onLine ? 5000 : 1500;
+  if (document.readyState === 'complete') setTimeout(reveal, delay);
+  else window.addEventListener('load', function(){ setTimeout(reveal, delay); });
+})();
 </script>
 </body>
 </html>
