@@ -170,6 +170,7 @@ DOCS = [
     ('docs/02_Jefatura_Servicio.md',    'docs/02_HemoPocket_Jefatura_Servicio.docx',    'HemoPocket · Servicio de Hematología'),
     ('docs/03_Direccion_Medica.md',     'docs/03_HemoPocket_Direccion_Medica.docx',     'HemoPocket · Dirección Médica'),
     ('docs/04_Informatica.md',          'docs/04_HemoPocket_Informatica.docx',          'HemoPocket · Sistemas de Información'),
+    ('docs/05_Protocolo_Investigacion_Calidad.md', 'docs/05_HemoPocket_Protocolo_Investigacion.docx', 'HemoPocket · Protocolo de Investigación/Calidad'),
 ]
 
 if __name__ == '__main__':
