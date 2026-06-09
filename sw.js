@@ -3,9 +3,10 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v80';
+const CACHE = 'hemopocket-v81';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
-const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html'];
+// pdf.min.js se auto-aloja y se precachea para que el visor de PDF funcione sin conexión.
+const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html', '/vendor/pdfjs/pdf.min.js'];
 
 // Guarda una respuesta en caché de forma segura. Si la respuesta venía de una
 // redirección (típico en Vercel para "/" e "/index.html"), la reconstruimos:

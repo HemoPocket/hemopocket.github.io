@@ -17,6 +17,21 @@ Las acciones pendientes son, en su mayoría, de **formalización documental y de
 
 ---
 
+## 0 bis. Cambios ya aplicados en el código (esta versión)
+
+Como parte de esta revisión, ya se han implementado en la aplicación las siguientes mejoras técnicas. El resto de acciones (documentales y organizativas) se detallan en los bloques siguientes.
+
+| Mejora | Bloque | Detalle |
+|---|---|---|
+| ✅ **Analítica de uso desactivada** | A | Se ha eliminado Google Analytics for Firebase. La app **ya no envía telemetría de uso a terceros**. |
+| ✅ **Sección de Privacidad en la app** | A | El Aviso Legal incluye ahora un apartado "Privacidad y protección de datos" que explicita que no se tratan datos de pacientes, qué se almacena y la recomendación de no introducir datos identificativos. |
+| ✅ **Aceptación del Aviso Legal en el primer uso** | C | Tras el primer inicio de sesión, el usuario debe confirmar ("He leído y acepto") antes de usar la herramienta. Queda registrado en el dispositivo. |
+| ✅ **Visor de PDF auto-alojado** | B | `pdf.js` se sirve desde el propio dominio (antes desde un CDN externo). Elimina el punto único de fallo y **permite abrir las guías sin conexión**. El *service worker* lo precachea. |
+
+> Las acciones que siguen marcadas como pendientes (🔴/🟡/🟢) son las que requieren intervención documental, jurídica o de configuración en consola (DPD, DPA, registro de actividad, App Check, etc.), que no pueden resolverse solo desde el código.
+
+---
+
 ## Bloque A — Protección de datos (RGPD / LOPDGDD)
 
 ### Lo que ya está bien ✅
@@ -29,10 +44,10 @@ Las acciones pendientes son, en su mayoría, de **formalización documental y de
 
 | Prio | Acción |
 |---|---|
-| 🔴 | **Política de privacidad explícita.** Publicar, junto al Aviso Legal, una política de privacidad que indique: (a) qué datos se tratan (correo y UID de la cuenta; preferencias de uso); (b) que **no** se tratan datos de pacientes; (c) base jurídica, responsable, encargado (Google/Firebase), conservación, derechos del interesado y vía de ejercicio. |
+| 🔴 | **Política de privacidad explícita.** ✅ *Parcialmente hecho*: el Aviso Legal ya incluye una sección "Privacidad y protección de datos" en la app. **Pendiente** de formalizar con el DPD el documento completo: base jurídica, responsable, encargado (Google/Firebase), conservación, derechos del interesado y vía de ejercicio. |
 | 🔴 | **Registro de la actividad de tratamiento.** Con el apoyo del **Delegado de Protección de Datos (DPD)** del centro, inscribir el tratamiento de "datos de cuenta de profesionales usuarios" en el Registro de Actividades de Tratamiento. |
 | 🔴 | **Contrato de encargado / DPA.** Documentar el acuerdo de tratamiento de datos con Google (Firebase) y verificar las garantías de transferencia internacional (los servicios de autenticación de Google pueden implicar tratamiento fuera de la UE pese a la región del dato). |
-| 🟡 | **Revisar la analítica de uso.** La app tiene **Google Analytics for Firebase activado** (`measurementId G-PDEJWB1576`, `getAnalytics()`). Para una herramienta sanitaria interna, lo más limpio es **desactivar la analítica** (elimina envío de telemetría a Google y simplifica el cumplimiento) o, si se mantiene, justificarla y documentarla en la política de privacidad. |
+| ✅ | **Analítica de uso desactivada (hecho).** Se ha eliminado Google Analytics for Firebase; la app ya no envía telemetría de uso a terceros. |
 | 🟡 | **Aviso "no introducir datos de paciente".** Añadir un recordatorio visible en los campos de las calculadoras indicando que no deben introducirse datos identificativos (refuerza el diseño *privacy-by-default* ya existente). |
 | 🟢 | **Evaluación de impacto (EIPD/DPIA).** Previsiblemente **no es exigible** al no tratarse datos de salud de pacientes; aun así, conviene dejar constancia escrita de esa valoración (umbral no alcanzado) avalada por el DPD. |
 
@@ -52,7 +67,7 @@ Las acciones pendientes son, en su mayoría, de **formalización documental y de
 | Prio | Acción |
 |---|---|
 | 🔴 | **Acceso a los PDF de guías.** Los 48 PDF de `guias/` se sirven en **GitHub Pages de forma pública** (URL directa accesible sin login), aunque la *interfaz* de la app exija autenticación. Como muchos son documentos de sociedades científicas con derechos de terceros, conviene: (a) confirmar la licencia/permiso de difusión pública de cada documento, o (b) trasladar los PDF a un alojamiento con control de acceso. *Nota: el código documenta que la red del hospital bloquea Firebase Storage, de ahí el alojamiento actual; debe valorarse con Informática la alternativa viable.* |
-| 🟡 | **Dependencias externas.** La app carga el **SDK de Firebase** desde `gstatic.com` y **pdf.js** desde `cdn.jsdelivr.net`. Acciones: (1) que Informática **confirme que esos dominios están permitidos** en la red asistencial; (2) **auto-alojar pdf.js** en el propio dominio para eliminar el punto único de fallo (el SDK de Firebase ya se cachea offline vía *service worker*). |
+| 🟡 | **Dependencias externas.** ✅ **pdf.js ya se auto-aloja** en el propio dominio (`/vendor/pdfjs/pdf.min.js`), eliminando la dependencia del CDN y habilitando el visor offline. Queda pendiente: que Informática **confirme que `gstatic.com` (SDK de Firebase) está permitido** en la red asistencial (ya se cachea offline vía *service worker*). |
 | 🟡 | **Endurecer Firebase.** La clave web de Firebase es visible en el código fuente —**esto es normal y esperado** en apps de navegador; la seguridad recae en las reglas y en Auth—. Reforzar con: **Firebase App Check**, **restricción de la API key por referrer HTTP** y revisión periódica de las reglas. |
 | 🟡 | **Política de credenciales.** Definir requisitos de contraseña, proceso de alta/baja de usuarios (sincronizado con altas/bajas del Servicio) y valorar **verificación en dos pasos (MFA)** para las cuentas con rol de edición. |
 | 🟢 | **Alojamiento.** El despliegue actual es GitHub Pages / Vercel (proveedores fuera de la UE). Si la institución adopta la herramienta como propia, valorar alojamiento controlado por el centro y, en su caso, encaje con el **Esquema Nacional de Seguridad (ENS)**. |
@@ -77,7 +92,7 @@ Las acciones pendientes son, en su mayoría, de **formalización documental y de
 | 🟡 | **Trazabilidad por unidad de contenido.** Mostrar en cada escala/algoritmo la **fecha de última revisión** y la **versión de la guía fuente**, además de un **historial de cambios** (*changelog*) accesible al usuario desde la app. |
 | 🟡 | **Validación de cálculos.** Documentar que cada calculadora reproduce fielmente la fórmula publicada (lista de verificación firmada por los revisores). Opcional: una pequeña prueba de validación/usabilidad interna con casos de control. |
 | 🟡 | **Implicación formal del Servicio de Farmacia.** Para dosis y conversiones (opioides, antifúngicos, antibióticos, reversión de anticoagulación), validar la concordancia con la **ficha técnica** y los protocolos de Farmacia del centro (ya figura un farmacéutico entre los contactos). |
-| 🟢 | **Aceptación del Aviso Legal en el primer uso.** Requerir una confirmación (*click-through*) la primera vez, para evidenciar el uso informado de la herramienta como apoyo. |
+| ✅ | **Aceptación del Aviso Legal en el primer uso (hecho).** Se requiere confirmación (*click-through*) en el primer uso tras iniciar sesión, evidenciando el uso informado de la herramienta como apoyo. |
 
 ---
 

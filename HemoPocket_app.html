@@ -4031,7 +4031,9 @@ const k=key.split('|')[0];const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';lo
 let _returnView='home';
 let _pdfjsLoadPromise=null;
 let _viewerParams=null;
-const PDFJS_URL='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+// Visor PDF auto-alojado en el propio dominio (mismo origen): elimina la dependencia
+// de un CDN externo y permite que el service worker lo cachee para uso sin conexión.
+const PDFJS_URL='./vendor/pdfjs/pdf.min.js';
 
 function ensurePDFJSLoaded(){
 if(window.pdfjsLib)return Promise.resolve(true);
@@ -4155,7 +4157,7 @@ vwSetupPinch(container);
 container.innerHTML='<div class="viewer-loading">⏳ Cargando visor PDF...</div>';
 const ok=await ensurePDFJSLoaded();
 if(!ok||!window.pdfjsLib){
-container.innerHTML=`<div class="viewer-error">No se pudo cargar el visor de PDF.<br><small>Comprueba la conexión a Internet (la primera vez se descarga el visor, ~250 KB).</small><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="retryViewer()">Reintentar</button><button class="btn btn-out" onclick="downloadCurrentPDF()">Descargar PDF</button></div></div>`;
+container.innerHTML=`<div class="viewer-error">No se pudo cargar el visor de PDF.<br><small>Inténtalo de nuevo o descarga el PDF para abrirlo con tu lector habitual.</small><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="retryViewer()">Reintentar</button><button class="btn btn-out" onclick="downloadCurrentPDF()">Descargar PDF</button></div></div>`;
 return;
 }
 try{
@@ -10054,7 +10056,7 @@ if(document.readyState!=='loading')init();
 </script>
 <div id="modal-aviso-legal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true">
   <div style="background:white; border-radius:12px; padding:1.5rem; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
-    <button onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;" aria-label="Cerrar">✕</button>
+    <button id="aviso-cerrar-x" onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;" aria-label="Cerrar">✕</button>
 
     <h2 style="color:#c41e3a; margin-bottom:1rem; font-size:1.1rem;">⚖️ Aviso Legal — HemoPocket</h2>
 
@@ -10107,6 +10109,16 @@ if(document.readyState!=='loading')init();
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Uso permitido</h3>
     <p style="font-size:0.85rem; line-height:1.6; color:#333;">HemoPocket se ofrece para consulta personal y gratuita por parte de profesionales sanitarios, en el ejercicio de su actividad asistencial o formativa. Las <strong>credenciales de acceso son personales e intransferibles</strong>. Este uso no implica la cesión de derecho alguno sobre la aplicación ni sobre su contenido. Cualquier uso distinto —en particular la redistribución, el alojamiento de copias o el uso comercial— requiere autorización expresa y por escrito de la autora.</p>
 
+    <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Privacidad y protección de datos</h3>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">HemoPocket <strong>no trata datos identificativos de pacientes</strong>. No solicita ni almacena nombre, número de historia clínica, DNI ni diagnóstico nominativo. Las calculadoras funcionan únicamente con parámetros clínicos <strong>no identificativos</strong> (edad, sexo, peso, talla, creatinina), que se guardan <strong>solo en el propio dispositivo</strong> y <strong>no se transmiten</strong> a ningún servidor.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Los únicos datos asociados a la cuenta son el <strong>correo electrónico y el identificador de usuario</strong> (para el inicio de sesión) y las <strong>preferencias de uso</strong> (favoritos y elementos recientes), que se sincronizan entre los dispositivos del propio profesional. El servicio de autenticación y la base de datos están configurados en <strong>región europea</strong> y el tráfico viaja siempre cifrado (HTTPS). La aplicación <strong>no incorpora analítica de uso ni telemetría</strong> hacia terceros.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:#333;"><strong>Recomendación de uso:</strong> no introduzca datos identificativos de pacientes en ningún campo de la aplicación. Para registrar información clínica del paciente, utilice siempre la historia clínica electrónica corporativa.</p>
+
+    <div id="aviso-aceptar-wrap" style="display:none; margin-top:1.5rem; padding-top:1rem; border-top:1px solid #f0d0d5; text-align:center;">
+      <p style="font-size:0.85rem; line-height:1.6; color:#333; margin-bottom:0.8rem;">Para usar HemoPocket, confirme que ha leído y acepta este Aviso Legal y que utilizará la aplicación como <strong>herramienta de apoyo</strong>, sin que sustituya el juicio clínico ni los protocolos oficiales del centro.</p>
+      <button onclick="aceptarLegal()" style="background:#c41e3a; color:#fff; border:none; border-radius:8px; padding:0.6rem 1.4rem; font-size:0.9rem; font-weight:600; cursor:pointer;">He leído y acepto</button>
+    </div>
+
     <p style="margin-top:1.5rem; font-size:0.75rem; color:#999; text-align:center;">© 2026 Busnego Barreto, M.T. · HemoPocket</p>
   </div>
 </div>
@@ -10148,17 +10160,34 @@ function abrirAvisoLegal() {
   document.body.style.overflow = 'hidden';
 }
 function cerrarAvisoLegal() {
+  // En modo "aceptación obligatoria" (primer uso) no se puede cerrar sin aceptar.
+  if (window._hpLegalForcing) return;
   const m = document.getElementById('modal-aviso-legal');
   m.style.display = 'none';
   document.body.style.overflow = '';
 }
+// Aceptación del Aviso Legal en el primer uso (una sola vez por dispositivo).
+window.mostrarAceptacionLegal = function() {
+  try { if (localStorage.getItem('hp_legalAccepted')) return; } catch (e) {}
+  window._hpLegalForcing = true;
+  abrirAvisoLegal();
+  var x = document.getElementById('aviso-cerrar-x'); if (x) x.style.display = 'none';
+  var w = document.getElementById('aviso-aceptar-wrap'); if (w) w.style.display = 'block';
+};
+window.aceptarLegal = function() {
+  try { localStorage.setItem('hp_legalAccepted', '1'); } catch (e) {}
+  window._hpLegalForcing = false;
+  var x = document.getElementById('aviso-cerrar-x'); if (x) x.style.display = '';
+  var w = document.getElementById('aviso-aceptar-wrap'); if (w) w.style.display = 'none';
+  cerrarAvisoLegal();
+};
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') cerrarAvisoLegal();
+  if (e.key === 'Escape' && !window._hpLegalForcing) cerrarAvisoLegal();
 });
 document.addEventListener('DOMContentLoaded', function() {
   const m = document.getElementById('modal-aviso-legal');
   if (m) m.addEventListener('click', function(e) {
-    if (e.target === this) cerrarAvisoLegal();
+    if (e.target === this && !window._hpLegalForcing) cerrarAvisoLegal();
   });
 });
 </script>
@@ -10166,7 +10195,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ Firebase Auth ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
@@ -10178,12 +10206,12 @@ const firebaseConfig = {
   storageBucket: "hemopocket.firebasestorage.app",
   messagingSenderId: "873773275437",
   appId: "1:873773275437:web:4d6ec7c118f50c4a445ba4",
-  measurementId: "G-PDEJWB1576",
   databaseURL: "https://hemopocket-default-rtdb.europe-west1.firebasedatabase.app"
 };
 
 const fbApp = initializeApp(firebaseConfig);
-getAnalytics(fbApp);
+// Analítica de uso (Google Analytics) deshabilitada de forma intencionada: la app
+// no envía telemetría de uso a terceros, reforzando la privacidad en entorno sanitario.
 const auth = getAuth(fbApp);
 const db = getDatabase(fbApp);
 const fs = getFirestore(fbApp);
@@ -10326,6 +10354,8 @@ onAuthStateChanged(auth, user => {
     HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
     // Traer las guías de la nube y guardarlas offline (en segundo plano).
     if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
+    // Aceptación del Aviso Legal en el primer uso (una sola vez por dispositivo).
+    setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
   } else {
     curUid = null;
     window.__hpUid = null;
