@@ -1,70 +1,64 @@
 # HemoPocket
-## Propuesta de reconocimiento como herramienta de apoyo a la decisión clínica
+## Presentación de un proyecto de mejora de la calidad y solicitud de valoración
 
 |  |  |
 |---|---|
 | **A la atención de** | Comisión de Calidad — Hospital Universitario Ntra. Sra. de Candelaria (HUNSC) |
-| **Asunto** | Solicitud de valoración y reconocimiento de HemoPocket como herramienta de apoyo clínico del Servicio de Hematología |
-| **Promotora** | Dra. María Teresa Busnego Barreto — F.E.A. Hematología y Hemoterapia |
+| **Asunto** | Valoración del proyecto "Implantación y evaluación de una herramienta de apoyo a la decisión clínica en Hematología" |
+| **Promotora / IP** | Dra. María Teresa Busnego Barreto — F.E.A. Hematología y Hemoterapia |
+| **Documento adjunto** | Protocolo de Investigación y Mejora de la Calidad (estructura estándar) |
 | **Fecha** | Santa Cruz de Tenerife, 9 de junio de 2026 |
 
 ---
 
 Estimados miembros de la Comisión de Calidad:
 
-Tengo el placer de presentar a esta Comisión **HemoPocket**, una herramienta de apoyo a la decisión clínica desarrollada para el Servicio de Hematología y Hemoterapia, y de solicitar su valoración con vistas a su **reconocimiento como recurso de apoyo del Servicio**. A continuación expongo su aportación específica a los objetivos de calidad y seguridad del paciente que son competencia de esta Comisión.
+Presento a esta Comisión el proyecto de mejora de la calidad **«Implantación y evaluación de una herramienta de apoyo a la decisión clínica en Hematología»**, cuyo protocolo completo se adjunta. La herramienta evaluada es **HemoPocket**, una guía de consulta rápida desarrollada desde el propio Servicio. Solicito su valoración y, en su caso, el aval para su desarrollo y para su tramitación ante el comité correspondiente.
 
 ---
 
-## 1. Qué es, en una línea
+## 1. El proyecto en una línea
 
-Una guía de consulta rápida —disponible en móvil, tableta y ordenador, **incluso sin conexión**— que reúne los algoritmos, escalas, calculadoras, criterios diagnósticos y guías clínicas de uso habitual en Hematología, en un único punto de acceso curado y actualizado.
+Evaluar, mediante un **estudio de intervención antes-después**, el impacto de implantar una herramienta de apoyo a la decisión clínica (HemoPocket) sobre la **unificación de criterios**, la **seguridad** y la **utilidad percibida** en el Servicio de Hematología.
 
-> **No** es un dispositivo de diagnóstico ni de prescripción automática, y **no** almacena datos identificativos de pacientes. Es un apoyo que **no sustituye** el juicio del facultativo ni los protocolos oficiales del centro.
+> La herramienta es un **apoyo** a la decisión: no es un dispositivo de diagnóstico ni de prescripción, **no sustituye** el juicio del facultativo ni los protocolos del centro, y **no trata datos identificativos de pacientes**.
 
-## 2. Problema de calidad que resuelve
+## 2. Problema de calidad y justificación
 
-La información clínica en Hematología está habitualmente **fragmentada** (PDF en carpetas de red, papel, calculadoras en webs externas) y **se desactualiza con rapidez** (las clasificaciones y recomendaciones de ELN, ESMO, NCCN, SEHH, GELTAMO, PETHEMA, ISTH, IMWG… cambian con frecuencia). Esto genera:
+La información clínica en Hematología está **fragmentada** y se **actualiza con rapidez** (ELN, ESMO, NCCN, SEHH, GELTAMO, PETHEMA, ISTH, IMWG…). Esto favorece la **variabilidad no justificada**, el uso de **versiones desactualizadas** y una elevada **carga cognitiva** en urgencias. El proyecto aborda directamente estos problemas, alineándose con los objetivos de seguridad del paciente y de reducción de la variabilidad.
 
-- **Variabilidad no justificada** entre facultativos y entre turnos.
-- **Uso de versiones obsoletas** de protocolos.
-- **Carga cognitiva y pérdida de tiempo** en situaciones urgentes (neutropenia febril, microangiopatías, CRS/ICANS, reversión de anticoagulación, lisis tumoral…).
+## 3. Diseño y evaluación (resumen del protocolo)
 
-## 3. Aportación a la calidad y a la seguridad del paciente
-
-| Eje de calidad | Cómo lo aborda HemoPocket |
+| Elemento | Contenido |
 |---|---|
-| **Práctica basada en la evidencia** | Escalas y criterios reproducen guías de referencia, **con cita bibliográfica**. |
-| **Reducción de la variabilidad** | Un único origen de verdad para algoritmos, umbrales y criterios, común a todo el equipo. |
-| **Seguridad del paciente** | Más de 50 calculadoras que minimizan errores de cálculo (dosis, aclaramiento, calcio corregido, conversión de opioides, QTc, lisis tumoral…) y *check-lists* de ingreso que reducen omisiones. |
-| **Continuidad asistencial** | Misma información en todos los turnos y dispositivos; funciona sin conexión en cualquier punto del hospital. |
-| **Actualización continua** | El contenido se versiona y se distribuye de forma centralizada: al abrir la app con conexión, todos los equipos reciben la última versión. |
-| **Trazabilidad** | La app muestra la versión activa y la fecha de última sincronización; el historial de cambios queda registrado. |
-| **Docencia** | Recurso normalizado para residentes y formación continuada. |
+| **Diseño** | Estudio de intervención cuasi-experimental, antes-después, sin grupo control. |
+| **Población** | Facultativos y residentes del Servicio (muestreo censal). |
+| **Medición** | Cuestionario estructurado basal, a los 6 y a los 12 meses, más registro de adopción. |
+| **Análisis** | Descriptivo y bivariante pre-post (McNemar / Wilcoxon; p < 0,05). |
 
-## 4. Garantías de calidad del contenido
+## 4. Indicadores de calidad propuestos
 
-- **Revisión clínica por pares**: los contenidos han sido revisados por **facultativos del propio Servicio**, acreditados como revisores por área dentro de la herramienta.
-- **Fuentes reconocidas**: ELN, ESMO, NCCN, SEHH, GELTAMO, PETHEMA, ISTH, ASTCT, IMWG, iwCLL, entre otras.
-- **Aviso Legal y de privacidad** accesible desde la propia app, con limitación de responsabilidad y aceptación en el primer uso.
+1. **Grado de adopción**: cuentas activas y frecuencia de uso (sin telemetría; por privacidad, se mide por cuentas activas y autodeclaración).
+2. **Unificación de criterios**: percepción de homogeneidad antes/después.
+3. **Seguridad**: contribución percibida a la prevención de errores de cálculo y omisiones.
+4. **Eficiencia**: percepción de ahorro de tiempo en el punto de atención.
+5. **Satisfacción / utilidad** del profesional y utilidad docente.
+6. **Incidencias** de seguridad o de protección de datos (objetivo: 0).
 
-## 5. Indicadores propuestos para el seguimiento
+## 5. Garantías
 
-A acordar con esta Comisión:
-
-1. **Grado de adopción**: facultativos con acceso activo / plantilla del Servicio.
-2. **Actualización**: nº de actualizaciones por trimestre y tiempo medio de actualización tras la publicación de una nueva guía.
-3. **Cobertura de revisión**: nº de áreas con revisor clínico asignado y contenido revisado.
-4. **Satisfacción/utilidad percibida** (encuesta semestral al equipo).
-5. **Incidencias de seguridad o de protección de datos** (objetivo: 0).
+- **Revisión clínica por pares** del propio Servicio (revisores por área).
+- **Fuentes reconocidas** y con cita bibliográfica.
+- **Aviso Legal y de privacidad** integrados, con aceptación en el primer uso.
+- **Conflicto de interés declarado**: la IP es la autora de la herramienta; se mitiga delegando la recogida y el análisis de los cuestionarios en un coinvestigador no autor.
 
 ## 6. Solicitud a la Comisión
 
-1. **Valorar y, en su caso, reconocer** HemoPocket como herramienta de apoyo del Servicio de Hematología.
-2. **Acordar el cuadro de indicadores** de seguimiento y la periodicidad de revisión (p. ej., anual).
-3. **Avalar el modelo de gobernanza del contenido** (comité editorial del Servicio y procedimiento de actualización documentado).
+1. **Valorar y avalar** el proyecto y su protocolo como iniciativa de mejora de la calidad del Servicio.
+2. **Acordar el cuadro de indicadores** y la periodicidad de revisión.
+3. **Apoyar su tramitación** ante el CEIm y la interlocución con Sistemas de Información y con el Delegado de Protección de Datos.
 
-Quedo a disposición de la Comisión para una demostración de la herramienta y para aportar cuanta documentación complementaria se precise (memoria completa del proyecto y documento técnico para Sistemas de Información).
+Quedo a disposición de la Comisión para presentar el protocolo, realizar una demostración de la herramienta y aportar la documentación complementaria (memoria del proyecto y documento técnico).
 
 Atentamente,
 

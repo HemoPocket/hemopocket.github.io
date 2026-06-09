@@ -1,59 +1,61 @@
 # HemoPocket
-## Solicitud de respaldo institucional a una herramienta de apoyo a la decisión clínica
+## Solicitud de respaldo institucional a un proyecto de mejora de la calidad
 
 |  |  |
 |---|---|
 | **A la atención de** | Dirección Médica — Hospital Universitario Ntra. Sra. de Candelaria (HUNSC) |
-| **Asunto** | Solicitud de respaldo institucional y decisión sobre el modelo de relación |
-| **Promotora** | Dra. María Teresa Busnego Barreto — F.E.A. Hematología y Hemoterapia |
+| **Asunto** | Respaldo institucional al proyecto "Implantación y evaluación de una herramienta de apoyo a la decisión clínica en Hematología" |
+| **Promotora / IP** | Dra. María Teresa Busnego Barreto — F.E.A. Hematología y Hemoterapia |
+| **Documento adjunto** | Protocolo de Investigación y Mejora de la Calidad |
 | **Fecha** | Santa Cruz de Tenerife, 9 de junio de 2026 |
 
 ---
 
 Estimada Dirección Médica:
 
-Someto a su consideración **HemoPocket**, una herramienta de apoyo a la decisión clínica para el Servicio de Hematología, y solicito su **respaldo institucional**, así como una **decisión sobre el modelo de relación** del hospital con la herramienta. Resumo a continuación el valor estratégico, las garantías y las decisiones que requieren su criterio.
+Someto a su consideración el proyecto de mejora de la calidad **«Implantación y evaluación de una herramienta de apoyo a la decisión clínica en Hematología»** (protocolo adjunto), que evalúa la herramienta **HemoPocket**, desarrollada desde el propio Servicio. Solicito su **respaldo institucional** y una **decisión sobre el modelo de relación** del hospital con la herramienta.
 
 ---
 
 ## 1. Valor para la institución
 
-- **Mejor atención al paciente hematológico**: criterios homogéneos, decisiones más rápidas y seguras en urgencias y guardia, y menor variabilidad no justificada.
-- **Seguridad del paciente**: calculadoras que reducen errores de cálculo y *check-lists* que reducen omisiones.
-- **Docencia y captación de talento**: recurso de referencia para residentes y nuevos facultativos; proyecta una imagen de servicio innovador.
-- **Coste para el hospital: prácticamente nulo**. No requiere licencias, servidores propios ni instalación en los equipos.
-- **Innovación clínica liderada desde el propio Servicio**, con revisión por pares interna.
+- **Mejor atención al paciente hematológico**: criterios homogéneos y decisiones más rápidas y seguras, con menor variabilidad no justificada.
+- **Seguridad del paciente**: la herramienta reduce errores de cálculo y omisiones; el proyecto lo evalúa con indicadores.
+- **Docencia y captación de talento**: recurso de referencia para residentes; proyecta una imagen de servicio innovador.
+- **Coste prácticamente nulo**: sin licencias, sin servidores propios y sin instalación en los equipos.
+- **Innovación y evaluación rigurosa**: el proyecto incorpora un **estudio antes-después** que aportará evidencia local.
 
-## 2. Garantías (resumen para Dirección)
+## 2. Garantías (resumen)
 
 | Ámbito | Garantía |
 |---|---|
-| **Protección de datos** | No se tratan datos identificativos de pacientes. Acceso con credenciales personales. Datos de cuenta en región europea y tráfico cifrado. Sin telemetría a terceros. |
-| **Calidad del contenido** | Basado en guías de referencia (ELN, ESMO, NCCN, SEHH, GELTAMO, PETHEMA…), revisado por facultativos del Servicio. |
-| **Responsabilidad** | Aviso Legal con limitación de responsabilidad: herramienta de **apoyo**, que no sustituye el juicio clínico ni los protocolos del centro. Aceptación obligatoria en el primer uso. |
+| **Protección de datos** | No se tratan datos de pacientes. Acceso con credenciales personales; datos de cuenta en región europea; tráfico cifrado; sin telemetría a terceros. |
+| **Calidad del contenido** | Basado en guías de referencia y revisado por facultativos del Servicio. |
+| **Responsabilidad** | Aviso Legal con limitación de responsabilidad y aceptación obligatoria en el primer uso. |
+| **Ética y rigor** | El proyecto se someterá al **CEIm**; participación voluntaria de los profesionales y conflicto de interés declarado. |
 | **Seguridad informática** | Aplicación sin instalación intrusiva, con permisos por roles y código auditable (detalle en el documento para Sistemas de Información). |
 
 ## 3. Riesgos identificados y su mitigación
 
-| Riesgo | Mitigación propuesta |
+| Riesgo | Mitigación |
 |---|---|
 | Dependencia de una sola persona | Comité editorial del Servicio y **mantenedor de respaldo** con acceso. |
 | Cumplimiento formal (RGPD) | Política de privacidad y registro de la actividad **con el Delegado de Protección de Datos**. |
+| Sesgo del evaluador (la IP es la autora) | Recogida y análisis delegados en un coinvestigador no autor; conflicto declarado. |
 | Contenido desactualizado | Procedimiento de actualización documentado y trazabilidad de versiones. |
-| Encaje institucional | **Decisión de Dirección** sobre el modelo de relación (ver punto 4). |
 
 ## 4. Decisión que solicitamos: modelo de relación
 
-El Aviso Legal actual declara que HemoPocket **no es un producto oficial del hospital**. Si la institución desea respaldarla, conviene definir el marco:
+El Aviso Legal declara que HemoPocket **no es un producto oficial del hospital**. Si la institución desea respaldarlo, conviene definir el marco:
 
 - **Opción A — Reconocimiento de uso** *(recomendada para iniciar)*: el centro autoriza y recomienda su uso como herramienta de apoyo; la titularidad permanece en la autora. Implantación rápida y de bajo riesgo.
 - **Opción B — Adopción institucional**: el centro la asume como recurso propio, con acuerdo de cesión/licencia, gobernanza y mantenimiento corporativos. Mayor implicación; requeriría acuerdo de propiedad intelectual y encaje en los sistemas corporativos.
 
 ## 5. Solicitud a la Dirección Médica
 
-1. **Respaldo institucional** a HemoPocket como herramienta de apoyo del Servicio de Hematología.
+1. **Respaldo institucional** al proyecto y a la herramienta como apoyo del Servicio de Hematología.
 2. **Decisión sobre el modelo de relación** (Opción A o B).
-3. **Apoyo para las gestiones de cumplimiento**: facilitar la interlocución con el **Delegado de Protección de Datos** y con **Sistemas de Información**.
+3. **Apoyo para las gestiones de cumplimiento y tramitación**: interlocución con el **CEIm**, el **Delegado de Protección de Datos** y **Sistemas de Información**.
 
 Quedo a su disposición para una presentación ejecutiva y una demostración de la herramienta.
 
