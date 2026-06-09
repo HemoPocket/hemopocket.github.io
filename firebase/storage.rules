@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// ── Reglas de Cloud Storage para HemoPocket ──
+// Los PDF se guardan organizados por sección:  guias/{section}/{archivo}.pdf
+//   p. ej.  guias/bs/Inmunobanco.pdf  →  pertenece a la sección "bs" (Banco de Sangre)
+//
+// Lectura: cualquier usuario con sesión iniciada.
+// Escritura (subir/sustituir/borrar): admin, o editor de ESA sección.
+// Los permisos se leen de Firestore (colección roles), porque las reglas de
+// Storage pueden consultar Firestore pero NO la Realtime Database.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function roleData() {
+      return firestore.get(/databases/(default)/documents/roles/$(request.auth.uid)).data;
+    }
+    function hasRole() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/roles/$(request.auth.uid));
+    }
+    function canEdit(section) {
+      return (hasRole() && roleData().role == 'admin')
+        || (hasRole()
+            && roleData().role == 'editor'
+            && (roleData().sections is list)
+            && (section in roleData().sections));
+    }
+
+    match /guias/{section}/{fileName} {
+      allow read:  if request.auth != null;
+      allow write: if canEdit(section);
+    }
+  }
+}
