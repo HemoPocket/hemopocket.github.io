@@ -4027,40 +4027,6 @@ const k=key.split('|')[0];const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';lo
 }catch(e){console.error('hcDeleteGuide',e);toast('❌ Error al eliminar: '+(e.code||e.message||''))}
 };
 
-// Migración inicial (solo admin): sube a Firebase todas las guías incluidas en la app.
-window.hcMigrateAll=async function(){
-if(!window.HemoCloud||!HemoCloud.isAdmin()){toast('Solo el admin puede migrar');return}
-if(!navigator.onLine){toast('Necesitas conexión');return}
-if(!confirm('Migrar a Firebase TODAS las guías incluidas en la app. Puede tardar unos minutos. Las que ya estén en la nube se omiten. ¿Continuar?'))return;
-let existing=[];try{existing=await HemoCloud.listGuides()}catch(e){}
-const existsSet=new Set(existing.map(g=>`${g.section}|${g.name}`));
-let ok=0,skip=0,fail=0;const failed=[];
-for(const section in DEFAULT_SUBTYPES){
-for(const st of DEFAULT_SUBTYPES[section]){
-if(!st.pdfs||!Array.isArray(st.pdfs))continue;
-for(const pdf of st.pdfs){
-if(!pdf||!pdf.url||!pdf.name)continue;
-if(existsSet.has(`${section}|${pdf.name}`)){skip++;continue}
-try{
-toast(`⏳ Migrando ${ok+1}: ${pdf.name}`);
-const r=await fetch(pdf.url);
-if(!r.ok)throw new Error('HTTP '+r.status);
-const blob=await r.blob();
-if(blob.size<200)throw new Error('archivo vacío');
-const fileName=pdf.url.split('/').pop()||'guia.pdf';
-const file=new File([blob],fileName,{type:'application/pdf'});
-await HemoCloud.uploadGuide(section,st.id,file,pdf.name);
-existsSet.add(`${section}|${pdf.name}`);
-ok++;
-}catch(e){fail++;failed.push(`${pdf.name}: ${e.message}`);console.error('migra',pdf.url,e)}
-}
-}
-}
-if(failed.length)console.warn('[hp] migración fallidos:',failed);
-toast(`✓ Migración: ${ok} subidas · ${skip} ya estaban · ${fail} fallidas`);
-try{await window.syncCloudGuides(true)}catch(e){}
-};
-
 // === VISOR PDF (PDF.js, lazy load + offline cache) ===
 let _returnView='home';
 let _pdfjsLoadPromise=null;
@@ -5005,12 +4971,6 @@ return `<div class="card">
 <p class="intro" style="margin-top:10px">Si tras abrir con Internet sigues viendo una versión antigua, pulsa este botón: borra la caché y el service worker y recarga la app con la última versión. No pierdes tus favoritos ni datos.</p>
 <button class="btn" style="width:100%;padding:14px;justify-content:center;background:#fff3f3;color:#c41e3a;border:1px solid #f0c0c5" onclick="hpForceUpdate()">🔄 Forzar actualización completa</button>
 </details>
-${(window.HemoCloud&&HemoCloud.isAdmin())?`
-<details style="margin-top:14px">
-<summary style="cursor:pointer;color:#666;font-size:14px">⚙️ Administración (solo admin)</summary>
-<p class="intro" style="margin-top:10px">Sube a Firebase todas las guías incluidas en la app (migración inicial, una sola vez). Las que ya existan en la nube se omiten.</p>
-<button class="btn btn-out" style="width:100%;padding:14px;justify-content:center" onclick="hcMigrateAll()">☁️ Migrar guías de la app a Firebase</button>
-</details>`:''}
 
 </div>`;
 };
@@ -10049,7 +10009,7 @@ if(document.readyState!=='loading')init();
   // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
   // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
   // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 78;
+  var HP_BUILD = 79;
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
@@ -10205,7 +10165,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
-import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -10223,14 +10182,52 @@ const fbApp = initializeApp(firebaseConfig);
 getAnalytics(fbApp);
 const auth = getAuth(fbApp);
 const db = getDatabase(fbApp);
-const storage = getStorage(fbApp);
 const fs = getFirestore(fbApp);
 
-// ── HemoCloud: roles + gestión de guías por sección (subir/borrar/listar) ──
+// ── Almacenamiento de PDF en GitHub ──
+// Los ordenadores del hospital bloquean Firebase Storage pero SÍ pueden leer
+// github.io. Por eso los PDF subidos por los editores se guardan en el repositorio
+// (servidos por GitHub Pages, igual que las guías ya existentes) y el índice de
+// guías + los permisos viven en Firestore (que el hospital sí permite).
+const GH_REPO = 'hemopocket/hemopocket.github.io';
+async function fileToBase64(file){
+  const buf = new Uint8Array(await file.arrayBuffer());
+  let bin = ''; const chunk = 0x8000;
+  for(let i=0;i<buf.length;i+=chunk){ bin += String.fromCharCode.apply(null, buf.subarray(i,i+chunk)); }
+  return btoa(bin);
+}
+async function ghGetSha(token, path){
+  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
+    { headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json' } });
+  if(r.ok){ const j = await r.json(); return j.sha; }
+  return undefined;
+}
+async function ghPutFile(token, path, base64, message){
+  const sha = await ghGetSha(token, path); // si existe, hace falta para sobrescribir
+  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+    method:'PUT',
+    headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
+    body: JSON.stringify({ message, content: base64, branch:'main', sha })
+  });
+  if(!r.ok){ const t = await r.text(); throw new Error('GitHub '+r.status+': '+t.slice(0,150)); }
+  return await r.json();
+}
+async function ghDeleteFile(token, path, message){
+  const sha = await ghGetSha(token, path);
+  if(!sha) return; // ya no existe
+  await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+    method:'DELETE',
+    headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
+    body: JSON.stringify({ message, sha, branch:'main' })
+  });
+}
+
+// ── HemoCloud: roles (Firestore) + gestión de guías (PDF en GitHub, índice en Firestore) ──
 // Lo usan funciones del script principal (window.*). Si Firebase no carga (offline),
 // window.HemoCloud no existe y toda la lógica de subida queda inactiva sin romper nada.
 window.HemoCloud = {
   role: null,                 // null | {role:'admin'} | {role:'editor', sections:[...]}
+  token: null,                // token de GitHub (leído de Firestore config/github)
   isAdmin(){ return !!this.role && this.role.role === 'admin'; },
   canEdit(section){
     const r = this.role; if(!r) return false;
@@ -10241,14 +10238,22 @@ window.HemoCloud = {
     try{ const s = await getDoc(doc(fs,'roles',uid)); this.role = s.exists() ? s.data() : null; }
     catch(e){ this.role = null; console.warn('[hp] role', e.message); }
   },
+  async loadToken(){
+    try{ const s = await getDoc(doc(fs,'config','github')); this.token = s.exists() ? (s.data().token||null) : null; }
+    catch(e){ this.token = null; console.warn('[hp] token', e.message); }
+    return this.token;
+  },
   async listGuides(){
     const snap = await getDocs(collection(fs,'guias'));
     const out = []; snap.forEach(d => out.push({ id:d.id, ...d.data() })); return out;
   },
   async uploadGuide(section, subtypeId, file, name){
+    if(!this.token) await this.loadToken();
+    if(!this.token) throw new Error('No hay token de GitHub configurado (config/github)');
     const safe = (file.name || 'guia.pdf').replace(/[^\w.\-]+/g,'_');
-    const path = `guias/${section}/${Date.now()}_${safe}`;
-    await uploadBytes(sRef(storage, path), file, { contentType: 'application/pdf' });
+    const path = `guias/subidas/${section}/${Date.now()}_${safe}`;
+    const b64 = await fileToBase64(file);
+    await ghPutFile(this.token, path, b64, `App: subir guía "${name}" (${section})`);
     const r = await addDoc(collection(fs,'guias'), {
       section, subtype: subtypeId, name: name || safe, path,
       updatedAt: serverTimestamp(), uploadedBy: curUid || null
@@ -10256,10 +10261,14 @@ window.HemoCloud = {
     return { id: r.id, path };
   },
   async deleteGuide(docId, path){
-    if(path){ try{ await deleteObject(sRef(storage, path)); }catch(e){ /* puede no existir el archivo */ } }
+    if(path){
+      if(!this.token) await this.loadToken();
+      if(this.token){ try{ await ghDeleteFile(this.token, path, `App: eliminar guía (${path})`); }catch(e){ console.warn('[hp] gh delete', e.message); } }
+    }
     await deleteDoc(doc(fs,'guias',docId));
   },
-  async downloadURL(path){ return await getDownloadURL(sRef(storage, path)); }
+  // Los PDF se sirven desde github.io con su ruta relativa (mismo origen → offline + sin bloqueo).
+  async downloadURL(path){ return path; }
 };
 
 // ── Sincronización de datos por usuario (favoritos, recientes) ──
