@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// ── Reglas de Firestore para HemoPocket ──
+// Dos colecciones:
+//   roles/{uid}  → { role: "admin" }  ó  { role: "editor", sections: ["bs","th", ...] }
+//   guias/{id}   → { section, subtype, name, path, updatedAt, uploadedBy }
+//
+// Lectura: cualquier usuario con sesión iniciada (la app ya exige login).
+// Escritura de guías: admin (cualquier sección) o editor de ESA sección.
+// La colección roles se gestiona desde la consola; el cliente no la escribe.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function roleData() {
+      return get(/databases/$(database)/documents/roles/$(request.auth.uid)).data;
+    }
+    function hasRole() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/roles/$(request.auth.uid));
+    }
+    function isAdmin() {
+      return hasRole() && roleData().role == 'admin';
+    }
+    // ¿Puede el usuario actual editar guías de la sección indicada?
+    function canEdit(section) {
+      return isAdmin()
+        || (hasRole()
+            && roleData().role == 'editor'
+            && (roleData().sections is list)
+            && (section in roleData().sections));
+    }
+
+    match /guias/{id} {
+      allow read:   if request.auth != null;
+      allow create: if canEdit(request.resource.data.section);
+      // Al actualizar, debe poder editar tanto la sección actual como la nueva
+      // (impide "mover" una guía a una sección sobre la que no se tiene permiso).
+      allow update: if canEdit(resource.data.section)
+                    && canEdit(request.resource.data.section);
+      allow delete: if canEdit(resource.data.section);
+    }
+
+    match /roles/{uid} {
+      // Cada usuario puede leer su propio rol; nadie escribe roles desde la app.
+      allow read:  if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

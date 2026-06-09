@@ -96,6 +96,24 @@ self.addEventListener('fetch', e => {
     return;
   }
 
+  // 1c. SDK de Firebase (gstatic.com/firebasejs/...): cache-first CROSS-ORIGIN.
+  // Imprescindible para offline: Firebase se importa desde Google; si no lo
+  // guardamos, sin conexión el módulo de login no carga y la app queda inutilizable.
+  // gstatic envía CORS, así que la respuesta es 'cors' (no opaca) y se puede cachear.
+  if (url.hostname === 'www.gstatic.com' && url.pathname.indexOf('/firebasejs/') !== -1) {
+    e.respondWith(
+      caches.match(req).then(cached => {
+        if (cached) return cached;
+        return fetch(req).then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE).then(c => safePut(c, req, copy));
+          return resp;
+        });
+      })
+    );
+    return;
+  }
+
   // 2. Mismo origen (CSS/JS/iconos/PDFs locales): cache-first
   if (sameOrigin) {
     e.respondWith(
