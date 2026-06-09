@@ -3818,7 +3818,9 @@ function guidesView(id){
 const title=GUIDES_TITLES[id];
 const subs=getSubtypes(id);
 const lastUpd=ls.g('lastUpdate');
-const editing=_editGuide===id;
+// Solo admin o editor de ESTA sección pueden gestionar (editar apartados / subir guías).
+const canManage=!!(window.HemoCloud&&HemoCloud.canEdit(id));
+const editing=canManage&&_editGuide===id;
 let h=`<div class="card"><h2>Guías Clínicas - ${title}</h2>`;
 h+=renderCollaboratorsBlock(id);
 if(!lastUpd){
@@ -3826,13 +3828,15 @@ h+='<div class="alert y" style="margin-bottom:14px">⚠️ <strong>Sin sincroniz
 }else{
 h+=`<p class="intro">Última actualización: <strong>${new Date(lastUpd).toLocaleDateString('es-ES')}</strong>. <a onclick="go('sync')" style="cursor:pointer;text-decoration:underline">Actualizar</a></p>`;
 }
+if(canManage){
 h+=`<div class="btns" style="margin-bottom:12px">
-<button class="btn ${editing?'btn-2':'btn-out'} btn-sm" onclick="toggleEditGuide('${id}')">${editing?'✓ Salir de edición':'✏️ Editar'}</button>`;
+<button class="btn ${editing?'btn-2':'btn-out'} btn-sm" onclick="toggleEditGuide('${id}')">${editing?'✓ Salir de edición':'✏️ Editar apartados'}</button>`;
 if(editing){
 h+=`<button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">➕ Añadir</button>
 <button class="btn btn-out btn-sm" onclick="resetSubtypes('${id}')">Restaurar default</button>`;
 }
 h+='</div>';
+}
 if(editing){
 h+='<p style="font-size:12px;color:var(--mut);margin-bottom:8px">Edita los nombres directamente. Al borrar un apartado se borran sus PDFs descargados. Si pulsas <em>Actualizar</em> después, el JSON del servidor sobrescribirá esta estructura local.</p>';
 if(!subs.length){
@@ -10045,7 +10049,7 @@ if(document.readyState!=='loading')init();
   // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
   // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
   // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 77;
+  var HP_BUILD = 78;
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
