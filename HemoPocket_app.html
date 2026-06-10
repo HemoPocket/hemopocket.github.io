@@ -491,6 +491,10 @@ body{font-size:13px}
     <button class="hp-login-btn" id="hp_login_btn" onclick="hpLogin()">Entrar</button>
     <button class="hp-login-forgot" onclick="hpForgotPw()">¿Olvidaste tu contraseña?</button>
     <button class="hp-login-forgot" onclick="hpShowRegister()" style="font-weight:600">Crear cuenta nueva</button>
+    <div id="hp_offline_box" style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid #eee">
+      <div style="font-size:0.78rem; color:#666; line-height:1.45; margin-bottom:8px">No se puede conectar con el servidor de acceso (es posible que la red bloquee Google/Firebase). Como <strong>este equipo ya se validó antes</strong>, puedes continuar en modo consulta sin volver a iniciar sesión.</div>
+      <button class="hp-login-btn" onclick="hpOfflineEnter()" style="background:#555">Continuar sin conexión</button>
+    </div>
     </div><!-- /hp-login-view -->
     <div id="hp-register-view" style="display:none">
       <div class="hp-login-field">
@@ -10696,17 +10700,34 @@ window.hpTogglePw = function() {
    antes (marca 'hp_everLoggedIn'), revelamos la app para consultar las guías offline.
    Si nunca se inició sesión aquí, se mantiene el login (la seguridad no cambia). */
 (function(){
-  function reveal(){
-    if (window.__hpFirebaseReady) return;                 // Firebase sí cargó: no intervenir
-    try { if (localStorage.getItem('hp_everLoggedIn') !== '1') return; } catch(e) { return; }
+  function everLogged(){ try { return localStorage.getItem('hp_everLoggedIn') === '1'; } catch(e) { return false; } }
+  // Acceso directo para un equipo YA validado (botón "Continuar sin conexión").
+  window.hpOfflineEnter = function(){
     var ov = document.getElementById('hp-auth-overlay');
-    if (ov) ov.classList.add('hidden');                   // entró antes + Firebase no carga → acceso offline
+    if (ov) ov.classList.add('hidden');
+  };
+  // Si Firebase no resuelve y el equipo ya se validó, mostramos pronto la opción
+  // explícita de continuar (sin volver a pedir credenciales).
+  function showOption(){
+    if (window.__hpFirebaseReady) return;                 // Firebase sí cargó: no intervenir
+    if (!everLogged()) return;                            // nunca validado aquí: se mantiene el login
+    var box = document.getElementById('hp_offline_box');
+    if (box) box.style.display = 'block';
   }
-  // Offline: el SDK falla casi al instante, basta poco margen. Online (por si un proxy
-  // bloquea gstatic): damos más tiempo a que Firebase resuelva por sí mismo antes de actuar.
-  var delay = navigator.onLine ? 5000 : 1500;
-  if (document.readyState === 'complete') setTimeout(reveal, delay);
-  else window.addEventListener('load', function(){ setTimeout(reveal, delay); });
+  // Último recurso: si tras más margen sigue sin resolver, revelamos la app (consulta).
+  function reveal(){
+    if (window.__hpFirebaseReady) return;
+    if (!everLogged()) return;
+    var ov = document.getElementById('hp-auth-overlay');
+    if (ov) ov.classList.add('hidden');
+  }
+  // Offline: el SDK falla casi al instante. Online (proxy que bloquea gstatic): damos
+  // un poco más de margen a que Firebase resuelva por sí mismo antes de actuar.
+  var optDelay = navigator.onLine ? 2500 : 1200;
+  var revDelay = navigator.onLine ? 6000 : 1800;
+  function arm(){ setTimeout(showOption, optDelay); setTimeout(reveal, revDelay); }
+  if (document.readyState === 'complete') arm();
+  else window.addEventListener('load', arm);
 })();
 </script>
 </body>
