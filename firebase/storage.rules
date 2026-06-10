@@ -26,9 +26,23 @@ service firebase.storage {
             && (roleData().sections is list)
             && (section in roleData().sections));
     }
+    // Lectura permitida a usuarios autorizados: admin/editor, cuenta aprobada, o
+    // usuario heredado sin ficha (creado en consola antes del sistema de registro).
+    function hasApprovedAccount() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/cuentas/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/cuentas/$(request.auth.uid)).data.estado == 'aprobada';
+    }
+    function hasNoAccount() {
+      return request.auth != null
+        && !firestore.exists(/databases/(default)/documents/cuentas/$(request.auth.uid));
+    }
+    function isApproved() {
+      return hasRole() || hasApprovedAccount() || hasNoAccount();
+    }
 
     match /guias/{section}/{fileName} {
-      allow read:  if request.auth != null;
+      allow read:  if isApproved();
       allow write: if canEdit(section);
     }
   }

@@ -5,7 +5,8 @@ rules_version = '2';
 //   roles/{uid}  → { role: "admin" }  ó  { role: "editor", sections: ["bs","th", ...] }
 //   guias/{id}   → { section, subtype, name, path, updatedAt, uploadedBy }
 //
-// Lectura: cualquier usuario con sesión iniciada (la app ya exige login).
+// Lectura de guías: solo usuarios AUTORIZADOS (admin/editor, cuenta aprobada, o
+//   usuario heredado sin ficha de cuenta). Ver función isApproved().
 // Escritura de guías: admin (cualquier sección) o editor de ESA sección.
 // La colección roles se gestiona desde la consola; el cliente no la escribe.
 
@@ -31,8 +32,29 @@ service cloud.firestore {
             && (section in roleData().sections));
     }
 
+    // ── Aprobación de cuentas ──
+    function accountData() {
+      return get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data;
+    }
+    function hasAccount() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/cuentas/$(request.auth.uid));
+    }
+    // ¿Está autorizado el usuario a LEER el contenido?
+    //  - admin/editor (rol asignado en consola), o
+    //  - cuenta aprobada por el administrador, o
+    //  - usuario HEREDADO sin ficha de cuenta (creado en consola antes del registro).
+    // Este último caso evita dejar fuera a los usuarios ya existentes. Una vez migrados
+    // todos a 'cuentas', puede endurecerse quitando "|| !hasAccount()".
+    function isApproved() {
+      return request.auth != null
+        && ( hasRole()
+          || !hasAccount()
+          || accountData().estado == 'aprobada' );
+    }
+
     match /guias/{id} {
-      allow read:   if request.auth != null;
+      allow read:   if isApproved();
       allow create: if canEdit(request.resource.data.section);
       // Al actualizar, debe poder editar tanto la sección actual como la nueva
       // (impide "mover" una guía a una sección sobre la que no se tiene permiso).
