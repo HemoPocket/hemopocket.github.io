@@ -5083,6 +5083,17 @@ const version=ls.g('updateVersion')||'';
 const online=navigator.onLine;
 const btnDisabled=!online;
 const btnText=!online?'Sin Internet':'Descargar todo ahora';
+// ¿Está la app guardada en el dispositivo para funcionar sin conexión?
+// Si el service worker ya controla la página, el "armazón" de la app está cacheado.
+const swReady=('serviceWorker' in navigator)&&!!navigator.serviceWorker.controller;
+const offlineReady='<div class="alert '+(swReady?'g':'y')+'" style="margin:14px 0">'+
+  (swReady
+    ? '✅ <strong>Listo para usar sin conexión.</strong> La app está guardada en este dispositivo.'
+    : '⏳ <strong>Aún no está guardada del todo para sin conexión.</strong> Mantén la app abierta unos segundos con Internet y vuelve a esta pantalla.')+
+  (lastUpd
+    ? '<br>Guías y PDF: guardados (última descarga: '+new Date(lastUpd).toLocaleString('es-ES')+').'
+    : '<br>Pulsa «Descargar todo ahora» para guardar también las guías y los PDF.')+
+  '</div>';
 return `<div class="card">
 <h2>Actualizar la app</h2>
 <p class="intro"><strong>La app se actualiza sola</strong> en segundo plano (guías, contactos, equipo y PDFs) siempre que tengas Internet. <strong>Normalmente no necesitas usar este botón.</strong></p>
@@ -5093,6 +5104,8 @@ return `<div class="card">
 <strong>Versión de la app:</strong> ${APP_BUILD}<br>
 <strong>Última actualización:</strong> ${lastUpd?new Date(lastUpd).toLocaleString('es-ES'):'Nunca'}${version?'<br><strong>Versión de guías:</strong> '+version:''}
 </div>
+
+${offlineReady}
 
 <button class="btn btn-2" style="width:100%;padding:18px;font-size:16px;justify-content:center" onclick="syncAll()" ${btnDisabled?'disabled':''}>${btnText}</button>
 
