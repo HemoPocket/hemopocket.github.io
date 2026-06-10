@@ -11,3 +11,10 @@ Thumbs.db
 .DS_Store
 desktop.ini
 *.tmp
+
+# Firebase: claves de servicio (NUNCA subir) y dependencias locales
+**/serviceAccountKey*.json
+**/serviceAccount*.json
+firebase/scripts/node_modules/
+firebase/functions/node_modules/
+firebase/**/package-lock.json

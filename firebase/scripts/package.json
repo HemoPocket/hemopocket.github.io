@@ -1,0 +1,9 @@
+{
+  "name": "hemopocket-scripts",
+  "description": "Scripts de mantenimiento de HemoPocket (migración de cuentas)",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
