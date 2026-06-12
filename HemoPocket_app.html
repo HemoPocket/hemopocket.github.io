@@ -4021,6 +4021,7 @@ const farm=all['farmacia']&&all['farmacia'].length?all['farmacia']:[{n:'Jorge Es
 h+='<div class="team-card"><h3>Servicio de Farmacia</h3><ul class="collabs-list">';
 farm.forEach(c=>{const name=c.n||c.name||'';const role=c.r||c.role||'';h+=role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;});
 h+='</ul></div>';
+h+='<p style="font-size:12.5px;color:var(--mut);margin-top:14px">Los colaboradores participan a título personal como revisores clínicos. Su acreditación formal figura en el <a onclick="abrirAvisoLegal()" style="color:var(--c2);cursor:pointer;text-decoration:underline">Aviso Legal</a>.</p>';
 h+='</div>';
 return h;
 };
@@ -4029,7 +4030,7 @@ VIEWS.acerca=()=>{
 const build=ls.g('updateVersion')||'';
 return `<div class="card">
 <h2>Acerca de HemoPocket</h2>
-<p class="intro">Guía de consulta rápida en Hematología.</p>
+<p class="intro">Guía de consulta rápida en Hematología y Hemoterapia.</p>
 <h3>Objetivo</h3>
 <p>HemoPocket es una <strong>herramienta de apoyo a la decisión clínica</strong> para profesionales de Hematología y Hemoterapia. Reúne en un único punto de acceso —disponible también sin conexión— los algoritmos, escalas pronósticas, calculadoras, criterios diagnósticos y guías clínicas de uso habitual, con el fin de:</p>
 <ul>
@@ -4041,9 +4042,12 @@ return `<div class="card">
 </ul>
 <div class="alert b" style="margin-top:8px"><strong>Importante:</strong> HemoPocket es una herramienta de apoyo y consulta. <strong>No</strong> sustituye el juicio del facultativo responsable, los protocolos oficiales del centro ni la ficha técnica de los medicamentos. <strong>Las decisiones clínicas son responsabilidad del médico responsable.</strong></div>
 <h3>Privacidad</h3>
-<p>La aplicación <strong>no almacena datos identificativos de pacientes</strong>. El acceso requiere credenciales personales e intransferibles. Los datos de cuenta se alojan en región europea y el tráfico viaja cifrado (HTTPS). No se utiliza analítica de uso ni telemetría hacia terceros.</p>
+<p>La aplicación <strong>no trata datos identificativos de pacientes</strong>. El acceso requiere credenciales personales e intransferibles; los datos de cuenta se alojan en región europea y el tráfico viaja cifrado (HTTPS), sin analítica de uso ni telemetría a terceros. El detalle completo está en el Aviso Legal y Política de Privacidad.</p>
+<h3>Más información</h3>
+<p>El Aviso Legal reúne —en un único documento— la autoría y titularidad, la propiedad intelectual, la revisión de contenido clínico, las fuentes y actualización, la limitación de responsabilidad, el uso permitido y la protección de datos. El equipo de colaboradores y revisores por sección figura en el apartado Equipo.</p>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
 <button class="btn" onclick="abrirAvisoLegal()">⚖️ Aviso Legal y Política de Privacidad</button>
+<button class="btn btn-out" onclick="go('equipo')">👥 Equipo y colaboradores</button>
 </div>
 <p style="font-size:12px; color:var(--mut); margin-top:16px">© 2026 Busnego Barreto, M.T. — Desarrollada de forma independiente por profesional sanitaria.${build?(' · Versión '+build):''}</p>
 </div>`;
