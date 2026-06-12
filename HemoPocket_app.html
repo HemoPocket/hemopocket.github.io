@@ -591,7 +591,6 @@ body{font-size:13px}
 </div>
 <div id="content"></div>
 <footer class="app-footer" style="text-align:center; padding:0.8rem; font-size:0.75rem; color:#666; border-top:1px solid #eee; margin-top:1rem;">
-  © 2026 Busnego Barreto, M.T. — Desarrollada de forma independiente por profesional sanitaria.
   Herramienta de apoyo clínico. No sustituye protocolos oficiales.
   <br>
   <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
@@ -3961,7 +3960,7 @@ if(st.id==='fol'||/folicular/.test(n))return GELTAMO_ALGOS_FOL;
 if(st.id==='lbdcg'||/difuso|lbdcg|ldcgb|c[eé]lulas grandes|dlbcl/.test(n))return GELTAMO_ALGOS_LBDCG;
 return [];
 }
-const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}, {"n": "Dr. Carlos Quintero"}, {"n": "Dra. Y. Lorenzo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}, {"n": "Dra. Y. Lorenzo"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "citodiag": [{"n": "Dr. Joaquín Breña"}, {"n": "Dra. Cristina Notario"}, {"n": "Dra. M. Pilar Alberich"}, {"n": "Dra. Julia Climent"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
+const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}, {"n": "Dr. Carlos Quintero"}, {"n": "Dra. Y. Lorenzo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Cristina Notario"}, {"n": "Dra. Y. Lorenzo"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "citodiag": [{"n": "Dr. Joaquín Breña", "r": "Diagnóstico"}, {"n": "Dra. Cristina Notario", "r": "Diagnóstico"}, {"n": "Dra. M. Pilar Alberich", "r": "Diagnóstico"}, {"n": "Dra. Julia Climent", "r": "Diagnóstico"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}]};
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
 // El equipo se mantiene en el código (DEFAULT_COLLABORATORS) y es la fuente
@@ -4008,7 +4007,7 @@ return `<div class="card">
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
 <button class="btn" onclick="abrirAvisoLegal()">⚖️ Aviso Legal y Política de Privacidad</button>
 </div>
-<p style="font-size:12px; color:var(--mut); margin-top:16px">© 2026 Busnego Barreto, M.T. — Desarrollada de forma independiente por profesional sanitaria.${build?(' · Versión '+build):''}</p>
+<p style="font-size:12px; color:var(--mut); margin-top:16px">${build?('Versión '+build):''}</p>
 </div>`;
 };
 
