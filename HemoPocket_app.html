@@ -917,8 +917,7 @@ const MENU=[
 {id:'citomol',name:'Seguimiento molecular / EMR',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
 {id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'}
 ]},
-{h:'EQUIPO Y SINCRONIZACIÓN',items:[
-{id:'equipo',name:'Equipo',kw:'equipo colaboradores autores revisores creditos firmantes responsables',new:'2026-05-12'},
+{h:'INFORMACIÓN Y SINCRONIZACIÓN',items:[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
 {id:'acerca',name:'Acerca de…',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true}
@@ -3986,45 +3985,6 @@ return `<div class="collabs-block">
 </div>`;
 }
 
-VIEWS.equipo=()=>{
-const all=getAllCollaborators();
-const lastUpd=ls.g('lastUpdate');
-let h=`<div class="card"><h2>Equipo</h2>
-<p class="intro">Colaboradores que firman y revisan cada sección de la app.</p>`;
-if(!lastUpd){h+='<div class="alert y" style="margin-bottom:14px"><strong>Sin sincronizar todavía.</strong> Ve a <a onclick="go(\'sync\')" style="cursor:pointer;text-decoration:underline">Actualizar</a> cuando tengas Internet.</div>'}
-Object.keys(GUIDES_TITLES).forEach(id=>{
-const title=GUIDES_TITLES[id];
-const list=all[id]||[];
-h+=`<div class="team-card"><h3>${title}</h3>`;
-if(list.length){
-h+='<ul class="collabs-list">';
-list.forEach(c=>{
-const name=c.n||c.name||'';
-const role=c.r||c.role||'';
-h+=role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;
-});
-h+='</ul>';
-}else{
-h+='<div class="team-empty">Sin colaboradores asignados todavía.</div>';
-}
-h+='</div>';
-});
-// Citodiagnóstico (apartado propio, debajo de Hematología pediátrica)
-const cdx=all['citodiag']&&all['citodiag'].length?all['citodiag']:[];
-if(cdx.length){
-h+='<div class="team-card"><h3>Citodiagnóstico</h3><ul class="collabs-list">';
-cdx.forEach(c=>{const name=c.n||c.name||'';const role=c.r||c.role||'';h+=role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;});
-h+='</ul></div>';
-}
-// Servicio de Farmacia (apartado propio, debajo de Hematología pediátrica)
-const farm=all['farmacia']&&all['farmacia'].length?all['farmacia']:[{n:'Jorge Esquivel',r:'Farmacéutico'}];
-h+='<div class="team-card"><h3>Servicio de Farmacia</h3><ul class="collabs-list">';
-farm.forEach(c=>{const name=c.n||c.name||'';const role=c.r||c.role||'';h+=role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;});
-h+='</ul></div>';
-h+='<p style="font-size:12.5px;color:var(--mut);margin-top:14px">Los colaboradores participan a título personal como revisores clínicos. Su acreditación formal figura en el <a onclick="abrirAvisoLegal()" style="color:var(--c2);cursor:pointer;text-decoration:underline">Aviso Legal</a>.</p>';
-h+='</div>';
-return h;
-};
 // === ACERCA DE ===
 VIEWS.acerca=()=>{
 const build=ls.g('updateVersion')||'';
@@ -4044,10 +4004,9 @@ return `<div class="card">
 <h3>Privacidad</h3>
 <p>La aplicación <strong>no trata datos identificativos de pacientes</strong>. El acceso requiere credenciales personales e intransferibles; los datos de cuenta se alojan en región europea y el tráfico viaja cifrado (HTTPS), sin analítica de uso ni telemetría a terceros. El detalle completo está en el Aviso Legal y Política de Privacidad.</p>
 <h3>Más información</h3>
-<p>El Aviso Legal reúne —en un único documento— la autoría y titularidad, la propiedad intelectual, la revisión de contenido clínico, las fuentes y actualización, la limitación de responsabilidad, el uso permitido y la protección de datos. El equipo de colaboradores y revisores por sección figura en el apartado Equipo.</p>
+<p>El Aviso Legal reúne —en un único documento— la autoría y titularidad, la propiedad intelectual, la revisión de contenido clínico, las fuentes y actualización, la limitación de responsabilidad, el uso permitido y la protección de datos. El equipo de colaboradores y revisores figura acreditado en el propio Aviso Legal; además, los colaboradores de cada área aparecen dentro de su sección de guías.</p>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
 <button class="btn" onclick="abrirAvisoLegal()">⚖️ Aviso Legal y Política de Privacidad</button>
-<button class="btn btn-out" onclick="go('equipo')">👥 Equipo y colaboradores</button>
 </div>
 <p style="font-size:12px; color:var(--mut); margin-top:16px">© 2026 Busnego Barreto, M.T. — Desarrollada de forma independiente por profesional sanitaria.${build?(' · Versión '+build):''}</p>
 </div>`;

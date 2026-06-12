@@ -6,6 +6,9 @@ Imagen.jpg
 hemapocket.json
 serve.ps1
 
+# Previsualizaciones generadas (no forman parte de la PWA publicada)
+preview.html
+
 # OS / editor cruft
 Thumbs.db
 .DS_Store
