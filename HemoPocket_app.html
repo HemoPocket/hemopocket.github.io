@@ -862,6 +862,8 @@ const MENU=[
 {h:'LEUCEMIAS AGUDAS',items:[
 {id:'eln',name:'ELN 2022 (LMA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
 {id:'eln24',name:'ELN 2024 (LMA baja intensidad)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
+{id:'ferrara',name:'Ferrara (aptitud para QT intensiva)',kw:'ferrara fit unfit frail aptitud fragilidad candidato quimioterapia intensiva baja intensidad lma anciano comorbilidad ecog fraccion eyeccion viale-a',new:'2026-06-12'},
+{id:'prism_aml',name:'PRISM (LMA con venetoclax · info)',kw:'prism lma leucemia mieloide aguda venetoclax azacitidina hma pronostico riesgo supervivencia tp53 asxl1 flt3 score 2025',new:'2026-06-12'},
 {id:'g_leuc_ag',name:'Guías clínicas',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
 ]},
 {h:'PATOLOGÍA MIELOIDE CRÓNICA',items:[
@@ -1634,6 +1636,57 @@ Esta categoría informa la expectativa de respuesta al esquema azacitidina/decit
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);
 }
+
+// === FERRARA: aptitud para QT intensiva (LMA) ===
+VIEWS.ferrara=()=>pointCalc({
+id:'ferrara',title:'Ferrara (SIE/SIES/GITMO) – Aptitud para QT intensiva (LMA)',
+intro:'Definición de consenso de <strong>no aptitud (unfit) para quimioterapia INTENSIVA</strong> en leucemia mieloide aguda. Marca los criterios presentes: <strong>basta UNO</strong> para clasificar al paciente como NO apto para QT intensiva (candidato a esquema de baja intensidad, p. ej. azacitidina/decitabina + venetoclax). Son los <strong>9 criterios del consenso original</strong>; abajo se resume la adaptación operativa usada en el ensayo VIALE-A.',
+items:[
+{q:'Edad > 75 años',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Insuficiencia cardíaca congestiva o miocardiopatía documentada con FEVI ≤ 50%',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enf. pulmonar con DLCO ≤ 65% o FEV1 ≤ 65%, disnea de reposo o necesidad de O₂, o neoplasia pleural/pulmonar no controlada',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Diálisis y edad > 60 años, o carcinoma renal no controlado',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Cirrosis Child B/C, o hepatopatía con transaminasas > 3× normal y edad > 60 años, o carcinoma biliar/hepático no controlado, o hepatitis viral aguda',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Infección activa resistente al tratamiento antiinfeccioso',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enfermedad mental que requiere hospitalización/manejo psiquiátrico intensivo, o deterioro cognitivo con dependencia no controlada por el cuidador',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'ECOG ≥ 3 no relacionado con la leucemia',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Cualquier otra comorbilidad que el clínico juzgue incompatible con la quimioterapia intensiva',type:'check',opts:[{l:'Sí',p:1}]}
+],
+ranges:[
+{min:0,max:0,cls:'lo',label:'Apto (fit) para QT intensiva',info:'<div class="res-s">Ningún criterio presente. Candidato a quimioterapia intensiva si así lo indican el resto de factores (citogenética/molecular, valoración geriátrica, objetivos y preferencias del paciente).</div><div class="alert b" style="margin-top:8px;font-size:12px"><strong>Adaptación operativa (VIALE-A):</strong> en la práctica, para indicar esquema basado en venetoclax suele considerarse <strong>no apto</strong> a todo paciente con edad ≥ 75 años, o de 18–74 años con ≥ 1 de: ECOG 2–3, FEVI ≤ 50% / ICC en tratamiento / angina estable crónica, DLCO ≤ 65% o FEV1 ≤ 65%, aclaramiento de creatinina < 45 mL/min, bilirrubina > 1,5 × LSN, u otra comorbilidad incompatible con QT intensiva.</div>'},
+{min:1,max:99,cls:'hi',label:'NO apto (unfit) para QT intensiva',info:'<div class="res-s">Al menos un criterio presente. Considerar esquema de <strong>baja intensidad</strong> (p. ej. azacitidina/decitabina + venetoclax). La decisión final integra comorbilidad, valoración geriátrica, perfil molecular y preferencias del paciente.</div><div class="res-s" style="margin-top:6px"><small>Nota: existe además una lista separada de no aptitud para QT de <strong>baja</strong> intensidad (≥ 1 de 6 criterios), que orienta hacia mejor tratamiento de soporte.</small></div>'}
+],
+ref:'Ferrara F, Barosi G, Venditti A, et al. Consensus-based definition of unfitness to intensive and non-intensive chemotherapy in acute myeloid leukemia (SIE/SIES/GITMO). Leukemia. 2013;27(5):997-999. https://www.nature.com/articles/leu2012303 · Validación: Palmieri R, et al. Accuracy of SIE/SIES/GITMO consensus criteria for unfitness… J Clin Oncol. 2021;39(suppl). https://pmc.ncbi.nlm.nih.gov/articles/PMC8462659/ · Adaptación operativa: DiNardo CD, et al. Azacitidine and Venetoclax in Previously Untreated AML (VIALE-A). N Engl J Med. 2020;383(7):617-629. https://www.nejm.org/doi/full/10.1056/NEJMoa2012971'
+});
+
+// === PRISM: pronóstico en LMA tratada con venetoclax (informativo) ===
+VIEWS.prism_aml=()=>`<div class="card">
+<h2>PRISM – LMA con venetoclax</h2>
+<p class="intro"><strong>Prognostic Risk Integration for Survival Modeling (PRISM).</strong> Escala pronóstica (2025) para <strong>LMA de nuevo diagnóstico tratada con esquemas de baja intensidad basados en venetoclax</strong> (HMA + venetoclax o LDAC + venetoclax). No aplica a LMA tratada con quimioterapia intensiva.</p>
+<div class="alert b"><strong>Cálculo:</strong> el peso exacto por variable y los puntos de corte se obtienen de la <strong>calculadora oficial validada</strong>. Esta ficha resume las variables y los grupos de riesgo; para puntuar a un paciente, usa la calculadora oficial.</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+<a class="btn" href="https://prism-aml.com/" target="_blank" rel="noopener">🧮 Abrir calculadora oficial PRISM →</a>
+</div>
+<h3>Variables del modelo</h3>
+<table class="tbl">
+<tr><th>Categoría</th><th>Factores</th></tr>
+<tr><td>Clínicas</td><td>Edad · sexo · LMA secundaria con trastorno hematológico previo (sAML-AHD)</td></tr>
+<tr><td>Citogenética adversa</td><td>Cariotipo complejo (ELN 2022) y otras alteraciones de riesgo adverso</td></tr>
+<tr><td>Citogenética favorable</td><td>Cariotipo diploide</td></tr>
+<tr><td>Mutaciones adversas</td><td>KRAS · PTPN11 · FLT3-ITD · JAK2 · ASXL1 · TP53</td></tr>
+<tr><td>Mutaciones favorables</td><td>RUNX1 · IDH2 · (ResMut-fav: CEBPA, BCOR, IDH1, SF3B1)</td></tr>
+</table>
+<h3>Grupos de riesgo (supervivencia global mediana)</h3>
+<table class="tbl">
+<tr><th>Grupo</th><th>SG mediana</th></tr>
+<tr><td><span style="font-weight:700;color:var(--ok)">Bajo</span></td><td>29,6 meses</td></tr>
+<tr><td><span style="font-weight:700;color:var(--wn)">Moderado</span></td><td>17,6 meses</td></tr>
+<tr><td><span style="font-weight:700;color:var(--er)">Alto</span></td><td>11,3 meses</td></tr>
+<tr><td><span style="font-weight:700;color:var(--er)">Muy alto</span></td><td>5,6 meses</td></tr>
+</table>
+<p class="res-s" style="margin-top:8px">Por cada incremento de 1 unidad de PRISM, HR de muerte 2,50 (IC95% 2,21–2,82); índice C 0,654. Reclasifica a parte de los pacientes considerados de riesgo favorable por escalas moleculares de 4 genes, mejorando la discriminación.</p>
+<div class="ref">Prognostic risk integration for survival modeling (PRISM) in newly diagnosed AML treated with venetoclax: a multinational retrospective cohort study. Blood. 2025;146(Suppl 1):453 (ASH 2025). https://ashpublications.org/blood/article/146/Supplement%201/453/555659 · Artículo: https://www.sciencedirect.com/science/article/pii/S0006497125030289 · Calculadora oficial: https://prism-aml.com/</div>
+</div>`;
 
 // === LLC ===
 VIEWS.cllipi=()=>pointCalc({
