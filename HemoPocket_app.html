@@ -5185,9 +5185,12 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
   ? location.origin+'/hemopocket.json'
   : 'https://hemopocket.github.io/hemopocket.json';
 
-// Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
-// dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.14 (build 85)';
+// Sello de versión de la app (HTML). ÚNICA FUENTE DE VERDAD del número de build:
+// HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
+// que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
+// con la versión del CACHE en sw.js (así nunca se descuadran).
+const HP_BUILD = 86;
+const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -10347,10 +10350,26 @@ if(document.readyState!=='loading')init();
       if(document.readyState === 'complete') _hpSay(); else window.addEventListener('load', _hpSay);
     }
   }catch(e){}
-  // Aplica la nueva versión automáticamente, sin botón
+  // Overlay visible de "Actualizando…": para que el usuario VEA, nada más abrir, que la
+  // app se está poniendo al día, en vez de pensar que no se actualiza.
+  function hpShowUpdating(){
+    try{
+      if(document.getElementById('hp-updating')) return;
+      var o = document.createElement('div');
+      o.id = 'hp-updating';
+      o.setAttribute('style','position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#eef1f5;color:#c41e3a;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px');
+      o.innerHTML = '<div style="width:42px;height:42px;border:4px solid #f0d0d5;border-top-color:#c41e3a;border-radius:50%;animation:hpspin .8s linear infinite"></div>'
+        + '<div style="font-size:1.05rem;font-weight:700">Actualizando HemoPocket…</div>'
+        + '<div style="font-size:.85rem;color:#666">Cargando la última versión</div>'
+        + '<style>@keyframes hpspin{to{transform:rotate(360deg)}}</style>';
+      (document.body || document.documentElement).appendChild(o);
+    }catch(e){}
+  }
+  // Aplica la nueva versión automáticamente, sin botón (mostrando el aviso visible)
   window.hpApplyUpdate = function(worker){
     if(!worker || _hpUpdating) return;
     _hpUpdating = true;
+    hpShowUpdating();
     worker.postMessage('skipWaiting');
   };
   window.hpSWReady = function(reg){
@@ -10372,9 +10391,8 @@ if(document.readyState!=='loading')init();
     });
   };
   // Cuando un nuevo service worker toma el control, recargar para usar la versión nueva.
-  // Recargamos SIEMPRE (no solo si esta pestaña inició la actualización), porque ahora el
-  // SW hace skipWaiting en install y puede activarse por su cuenta. Guardamos contra bucles
-  // recargando como mucho una vez por sesión de página.
+  // Recargamos SIEMPRE (no solo si esta pestaña inició la actualización), porque el SW hace
+  // skipWaiting en install y puede activarse por su cuenta. Una sola recarga por sesión.
   var _hpReloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', function(){
     if(_hpReloaded) return; _hpReloaded = true;
@@ -10382,13 +10400,13 @@ if(document.readyState!=='loading')init();
     window.location.reload();
   });
 
-  // === Red de seguridad anti-caché/proxy (imprescindible en equipos de hospital) ===
-  // El service worker puede no rescatar a un equipo si un proxy/CDN intermedio le sirve
-  // un sw.js o HTML viejos. Esta comprobación pide el sw.js con un parámetro anti-caché
-  // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
-  // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
-  // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 85;
+  // === Comprobación de versión: INMEDIATA y VISIBLE al abrir ===
+  // Pide sw.js con un parámetro anti-caché (?ts=) que ningún proxy/CDN reutiliza. Si la
+  // versión publicada es más nueva que la que corre aquí (HP_BUILD), muestra el aviso y la
+  // aplica: primero por la vía ligera (que el service worker tome el control → recarga) y,
+  // si en unos segundos no lo ha hecho (proxy sirviendo un sw.js viejo), limpieza dura.
+  // HP_BUILD se define arriba junto a APP_BUILD (única fuente de verdad); ./bump.sh lo
+  // mantiene SIEMPRE igual que la versión del CACHE en sw.js.
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
@@ -10398,35 +10416,36 @@ if(document.readyState!=='loading')init();
       var mm = txt.match(/hemopocket-v(\d+)/);
       if(!mm) return;
       var netBuild = parseInt(mm[1], 10);
-      if(netBuild > HP_BUILD){
-        if(sessionStorage.getItem('hp_fr') === String(netBuild)) return; // ya intentado: evitar bucle
-        try{ sessionStorage.setItem('hp_fr', String(netBuild)); }catch(e){}
+      if(netBuild <= HP_BUILD){ try{ sessionStorage.removeItem('hp_fr'); }catch(e){} return; }
+      if(sessionStorage.getItem('hp_fr') === String(netBuild)) return; // ya intentado en esta sesión: evita bucles
+      try{ sessionStorage.setItem('hp_fr', String(netBuild)); }catch(e){}
+      hpShowUpdating();
+      // Vía ligera: que el service worker recoja la versión nueva y tome el control.
+      try{
+        var reg = await navigator.serviceWorker.getRegistration();
+        if(reg){ reg.update().catch(function(){}); if(reg.waiting) reg.waiting.postMessage('skipWaiting'); }
+      }catch(e){}
+      // Fallback anti-proxy: si en 3,5 s el SW no ha tomado el control, limpieza dura + recarga.
+      setTimeout(async function(){
+        if(_hpReloaded) return; // el controllerchange ya recargó
         try{
-          if('serviceWorker' in navigator){
-            var regs = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(regs.map(function(x){ return x.unregister(); }));
-          }
+          var regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(function(x){ return x.unregister(); }));
         }catch(e){}
         try{
-          if(window.caches){
-            var keys = await caches.keys();
-            await Promise.all(keys.map(function(k){ return caches.delete(k); }));
-          }
+          if(window.caches){ var keys = await caches.keys(); await Promise.all(keys.map(function(k){ return caches.delete(k); })); }
         }catch(e){}
         // Recarga con cache-bust en la URL → fuerza al proxy/CDN a ir al origen.
         location.replace(location.pathname + '?u=' + netBuild + (location.hash || ''));
-      } else {
-        try{ sessionStorage.removeItem('hp_fr'); }catch(e){}
-      }
+      }, 3500);
     }catch(e){}
   }
   var _hpVGlast = 0;
   function hpVGthrottled(){ if(Date.now() - _hpVGlast < 60000) return; _hpVGlast = Date.now(); hpVersionGuard(); }
-  if(document.readyState === 'complete') setTimeout(hpVGthrottled, 1500);
-  else window.addEventListener('load', function(){ setTimeout(hpVGthrottled, 1500); });
+  // INMEDIATO al abrir (sin esperas), al volver a la pestaña y cada 10 min con la app abierta.
+  if(document.readyState === 'complete') hpVGthrottled();
+  else window.addEventListener('load', hpVGthrottled);
   document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') hpVGthrottled(); });
-  // Comprobación periódica (cada 10 min) también con la app abierta sin tocarla:
-  // así un equipo que deja HemoPocket abierto se autoactualiza solo a la última versión.
   setInterval(hpVGthrottled, 10*60*1000);
 })();
 </script>
