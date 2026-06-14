@@ -578,7 +578,7 @@ body{font-size:13px}
 <button class="tb-btn" onclick="openCmd()" title="Búsqueda rápida (Ctrl+K)" aria-label="Búsqueda rápida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
 <button class="tb-btn" onclick="go('phone')" title="Listín Telefónico" aria-label="Listín Telefónico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg></button>
 <button id="theme_btn" class="tb-btn" onclick="toggleTheme()" title="Modo oscuro / claro" aria-label="Cambiar tema"><svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg></button>
-<button id="hp-user-btn" onclick="hpSignOut()" title="Cerrar sesión" aria-label="Cerrar sesión">
+<button id="hp-user-btn" onclick="hpUserBtn()" title="Cuenta" aria-label="Cuenta">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
   <span id="hp_user_label"></span>
 </button>
@@ -5189,7 +5189,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 88;
+const HP_BUILD = 89;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10736,6 +10736,7 @@ function revealAndEnter(user){
   hidePending();
   overlay.classList.add('hidden');
   userBtn.classList.add('visible');
+  userBtn.title = 'Cerrar sesión';
   userLabel.textContent = user.email.split('@')[0];
   if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
   loadCloud(user.uid);
@@ -10845,16 +10846,30 @@ onAuthStateChanged(auth, user => {
     HemoCloud.role = null;
     pending = {};
     hidePending();
-    if (window.hpShowLogin) window.hpShowLogin();
-    overlay.classList.remove('hidden');
-    userBtn.classList.remove('visible');
-    const emailEl = document.getElementById('hp_email');
-    const pwEl = document.getElementById('hp_pw');
-    const errEl = document.getElementById('hp_login_err');
-    if (emailEl) emailEl.value = '';
-    if (pwEl) pwEl.value = '';
-    if (errEl) { errEl.textContent = ''; errEl.className = 'hp-login-err'; }
-    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
+    let everLogged = false; try { everLogged = localStorage.getItem('hp_everLoggedIn') === '1'; } catch(e) {}
+    if (everLogged && !window.__hpExplicitSignOut) {
+      // Sin sesión disponible (p. ej. tras apagar el equipo, o intranet que bloquea Firebase),
+      // pero este equipo YA se validó antes: NO volvemos a pedir credenciales. Seguimos en modo
+      // consulta con la última versión guardada. El botón de cuenta pasa a "Iniciar sesión" por
+      // si el usuario quiere conectarse para actualizar/sincronizar. Apertura sin fricción.
+      overlay.classList.add('hidden');
+      userBtn.classList.add('visible');
+      userBtn.title = 'Iniciar sesión';
+      const ulbl = document.getElementById('hp_user_label');
+      if (ulbl) ulbl.textContent = 'Iniciar sesión';
+    } else {
+      window.__hpExplicitSignOut = false;
+      if (window.hpShowLogin) window.hpShowLogin();
+      overlay.classList.remove('hidden');
+      userBtn.classList.remove('visible');
+      const emailEl = document.getElementById('hp_email');
+      const pwEl = document.getElementById('hp_pw');
+      const errEl = document.getElementById('hp_login_err');
+      if (emailEl) emailEl.value = '';
+      if (pwEl) pwEl.value = '';
+      if (errEl) { errEl.textContent = ''; errEl.className = 'hp-login-err'; }
+      if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
+    }
   }
 });
 
@@ -10886,9 +10901,27 @@ window.hpLogin = async function() {
   }
 };
 
+// Botón de cuenta: si hay sesión activa, cerrar sesión; si estamos en modo consulta
+// (equipo ya validado pero sin sesión), abrir el login para conectarse (p. ej. al actualizar).
+window.hpUserBtn = function() {
+  if (window.__hpUid) window.hpSignOut();
+  else window.hpShowLoginOverlay();
+};
+window.hpShowLoginOverlay = function() {
+  window.__hpExplicitSignOut = false;
+  if (window.hpShowLogin) window.hpShowLogin();
+  const ov = document.getElementById('hp-auth-overlay'); if (ov) ov.classList.remove('hidden');
+  const em = document.getElementById('hp_email'); if (em) setTimeout(() => { try { em.focus(); } catch(e) {} }, 50);
+};
 window.hpSignOut = function() {
-  const doIt = () => signOut(auth);
-  if (window.hpConfirm) window.hpConfirm('¿Cerrar sesión?', doIt);
+  // Cierre de sesión DELIBERADO: olvidamos la validación de este equipo y volvemos a pedir
+  // credenciales (distinto de una sesión perdida por apagar el equipo, que NO pide login).
+  const doIt = () => {
+    window.__hpExplicitSignOut = true;
+    try { localStorage.removeItem('hp_everLoggedIn'); } catch(e) {}
+    signOut(auth);
+  };
+  if (window.hpConfirm) window.hpConfirm('¿Cerrar sesión? Tendrás que iniciar sesión de nuevo para volver a entrar.', doIt);
   else doIt();
 };
 
