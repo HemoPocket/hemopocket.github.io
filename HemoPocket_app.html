@@ -4371,13 +4371,14 @@ let _viewerParams=null;
 const PDFJS_URL='./vendor/pdfjs/pdf.min.js';
 const PDFJS_WORKER_URL='./vendor/pdfjs/pdf.worker.min.js';
 
+function _pdfSetWorker(){try{if(window.pdfjsLib&&pdfjsLib.GlobalWorkerOptions&&!pdfjsLib.GlobalWorkerOptions.workerSrc)pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER_URL;}catch(e){}}
 function ensurePDFJSLoaded(){
-if(window.pdfjsLib)return Promise.resolve(true);
+if(window.pdfjsLib){_pdfSetWorker();return Promise.resolve(true);}
 if(_pdfjsLoadPromise)return _pdfjsLoadPromise;
 _pdfjsLoadPromise=new Promise(resolve=>{
 const s=document.createElement('script');
 s.src=PDFJS_URL;
-s.onload=()=>{try{if(window.pdfjsLib&&pdfjsLib.GlobalWorkerOptions)pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER_URL;}catch(e){}resolve(true)};
+s.onload=()=>{_pdfSetWorker();resolve(true)};
 s.onerror=()=>{_pdfjsLoadPromise=null;resolve(false)};
 document.head.appendChild(s);
 });
@@ -4498,7 +4499,7 @@ return;
 }
 try{
 const arrayBuffer=await pdfBlob.arrayBuffer();
-const pdf=await pdfjsLib.getDocument({data:arrayBuffer,disableWorker:true,isEvalSupported:false}).promise;
+const pdf=await pdfjsLib.getDocument({data:arrayBuffer,isEvalSupported:false}).promise;
 container.innerHTML='';
 window._vwPDF=pdf;
 _vwPageInfo={};_vwPageText={};_vwSearch={q:'',raw:'',pages:[],pos:-1};
@@ -5265,7 +5266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 101;
+const HP_BUILD = 102;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6830,7 +6831,7 @@ async function chatIndexGuides(onProgress){
         if(data&&data.blob){
           regName=data.name||null;
           const ab=await (new Blob([data.blob])).arrayBuffer();
-          const pdf=await pdfjsLib.getDocument({data:ab,disableWorker:true,isEvalSupported:false}).promise;
+          const pdf=await pdfjsLib.getDocument({data:ab,isEvalSupported:false}).promise;
           const parts=[],maxP=Math.min(pdf.numPages,80);
           for(let p=1;p<=maxP;p++){const pg=await pdf.getPage(p);const tc=await pg.getTextContent();parts.push(tc.items.map(x=>x.str).join(' '));}
           txt=parts.join(' ').replace(/\s+/g,' ').slice(0,250000);
