@@ -5189,7 +5189,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 89;
+const HP_BUILD = 90;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6879,6 +6879,7 @@ function chatSmallTalk(q){
       '<li><strong>Dosis y esquemas</strong> de quimioterapia — p. ej. «dosis de rituximab en R-CHOP»</li>'+
       '<li><strong>Teléfonos y extensiones</strong> internas — p. ej. «teléfono del banco de sangre»</li>'+
       '<li><strong>Guías clínicas</strong> y protocolos — p. ej. «neutropenia febril»</li>'+
+      '<li><strong>Definiciones, criterios y escalas</strong> — p. ej. «¿cuándo transfundir plaquetas?», «criterios IMWG», «qué es el PLASMIC»</li>'+
       '<li><strong>Calculadoras y herramientas</strong> de la app</li></ul>'+
       '<div style="margin-top:7px">Escríbeme el fármaco, el esquema, la sección o lo que necesites 😊</div>');
   }
@@ -7199,6 +7200,169 @@ function chatMtxIntent(q){
 const THERAPY_RX=/\b(puedo|podria|podriamos|debo|debe|debemos|deberia|deberiamos|podemos|conviene|procede|toca|hay que|se puede)\b[^?]{0,40}\b(transfund\w*|trasfund\w*|trasfu\w*|anticoagul\w*|dar(le|les)?|administr\w*|pautar|poner|ponerle|iniciar|empezar|comenzar|suspender|retirar|parar|tratar|profilax\w*|premedic\w*)\b|\b(esta|estaria) indicad|indicacion de (transfu|trasfu|anticoagul|tratar|dar|poner|profilax)|\b(transfundo|trasfundo|le doy|le pongo|le pauto|le administro)\b|\b(tratamiento|tratar|diagnostico|diagnosticar|que actitud|actitud a seguir|actitud terapeutica|conducta a seguir|que hago|que hacer)\b|como (lo |la |le )?(trato|tratar|manejo|manejar|trataria|manejaria)/;
 function chatIsTherapyQ(nq){return (THERAPY_RX.test(nq)||CASE_RX.test(nq))&&!PHONE_Q_RX.test(nq);}
 function chatIntent(q){return chatRiskIntent(q)||chatFitnessIntent(q)||chatTlsIntent(q)||chatNfIntent(q)||chatMtxIntent(q)||chatBridgeIntent(q)||chatQtcIntent(q)||chatPttIntent(q)||chatCrsIntent(q)||chatTransfusionIntent(q);}
+// === Base de conocimiento de Eri: preguntas frecuentes por tema ===
+// Respuestas de ORIENTACIÓN (definiciones, criterios y escalas que YA están en la app). Eri no
+// decide el manejo de un paciente: da el criterio general establecido y remite a la herramienta
+// o guía correspondiente como fuente autorizada (botón "Abrir"). 'neu' marca temas de manejo,
+// para los que se usa el tono neutro. El texto coincide (sin tildes) con la consulta normalizada.
+const CHAT_FAQ=[
+  // — Neutropenia febril e infecciones —
+  {v:'nf',neu:1,t:'Neutropenia febril',rx:/(neutropenia febril|fiebre.*neutropen|neutropen.*fiebre)/,
+   a:'Se considera <strong>neutropenia febril</strong> con <strong>Tª ≥38,3 °C</strong> puntual (o ≥38 °C mantenida ≥1 h) y <strong>neutrófilos &lt;500/µL</strong> (o &lt;1000 con previsión de descenso). Es una urgencia: extraer hemocultivos e iniciar <strong>antibioterapia empírica precoz</strong> con cobertura antipseudomónica, y estratificar el riesgo (MASCC).'},
+  {v:'nf',t:'Índice MASCC',rx:/\bmascc\b/,
+   a:'El <strong>índice MASCC</strong> estratifica el riesgo en la neutropenia febril: <strong>≥21 = bajo riesgo</strong> (candidato a manejo según protocolo), <strong>&lt;21 = alto riesgo</strong>. No sustituye el juicio clínico.'},
+  {v:'atb',t:'Sensibilidad / espectro antibiótico',rx:/(espectro|cobertura|sensibilidad|que cubre).*(antibiotic|atb)|antibiograma|que antibiotico/,
+   a:'Puedes consultar el <strong>espectro y la cobertura</strong> de los antibióticos (gram + / −, BLEE, KPC, antipseudomónicos…) en la tabla de sensibilidad de la app.'},
+  {v:'saureus',neu:1,t:'Bacteriemia por S. aureus',rx:/(bacteriemia|hemocultiv).*aureus|s aureus|estafilococo aureus/,
+   a:'Ante bacteriemia por <strong>S. aureus</strong> son clave: valorar <strong>retirada del catéter</strong>, <strong>ecocardiograma</strong> (descartar endocarditis), hemocultivos de control y duración según foco. La elección del antibiótico depende de sensibilidad (SAMS/SAMR).'},
+  {v:'fiebre_persist',neu:1,t:'Fiebre persistente >72 h',rx:/fiebre persistente|persiste la fiebre|fiebre.*72/,
+   a:'En la <strong>fiebre persistente &gt;72 h</strong> pese a antibioterapia en neutropénico se reevalúa el foco (TAC tórax, galactomanano) y se valora <strong>escalamiento y/o antifúngico empírico</strong>.'},
+  {v:'ifi',neu:1,t:'Infección fúngica invasiva',rx:/(infeccion fungica|aspergilosis|candidiasis|candidemia|antifungic|galactomanano|\bifi\b|mucormicosis)/,
+   a:'Para la <strong>infección fúngica invasiva</strong> (aspergilosis, candidiasis…) consulta criterios EORTC/MSGERC, marcadores (galactomanano, β-D-glucano) y el tratamiento/profilaxis antifúngica en la guía.'},
+  // — Trombosis y hemostasia —
+  {v:'plasmic',t:'Score PLASMIC',rx:/plasmic/,
+   a:'El <strong>PLASMIC</strong> estima la probabilidad de <strong>déficit grave de ADAMTS13 (PTT)</strong> en una microangiopatía trombótica: puntuación <strong>6–7 = alta</strong> probabilidad. Orienta el inicio de recambio plasmático a la espera del ADAMTS13.'},
+  {v:'ptt_tto',neu:1,t:'Tratamiento de la PTT aguda',rx:/(tratamiento|recambio plasmatico|caplacizumab).*(ptt|ttp|purpura trombotica)|caplacizumab/,
+   a:'El tratamiento de la <strong>PTT aguda</strong> se basa en <strong>recambio plasmático</strong> precoz, corticoides y <strong>caplacizumab</strong>, con rituximab según el caso. Consulta la pauta y el manejo de refractariedad/recaída.'},
+  {v:'tma_dif',neu:1,t:'Diferencial de microangiopatías (MAT)',rx:/(microangiopatia|\bmat\b|\bttp\b|\bptt\b|shua|\bsuh\b|esquistocit|adamts|hellp)/,
+   a:'Ante una <strong>microangiopatía trombótica</strong> (esquistocitos + trombopenia + LDH↑) el diferencial incluye <strong>PTT, SHUa, CID y HELLP</strong>. PLASMIC y ADAMTS13 ayudan a distinguir PTT.'},
+  {v:'cid',t:'CID (score ISTH)',rx:/\bcid\b|coagulacion intravascular|\bdic\b/,
+   a:'El <strong>score ISTH</strong> para CID combina plaquetas, dímero-D/PDF, TP alargado y fibrinógeno; <strong>≥5 = compatible con CID manifiesta</strong> (overt). Siempre en el contexto de una causa desencadenante.'},
+  {v:'tt',t:'4T Score (HIT)',rx:/\b4t\b|trombo(citopenia|penia).*heparina|heparina.*trombo/,
+   a:'El <strong>4T</strong> estima la probabilidad de <strong>trombopenia inducida por heparina (HIT)</strong>: <strong>0–3 baja</strong>, 4–5 intermedia, 6–8 alta. Una probabilidad baja la hace muy improbable.'},
+  {v:'wells',t:'Score de Wells (TVP/TEP)',rx:/\bwells\b|probabilidad.*(tvp|tep|trombosis venosa|embolia)/,
+   a:'El <strong>Wells</strong> estima la probabilidad pretest de <strong>TVP o TEP</strong> y orienta el uso de dímero-D e imagen.'},
+  {v:'hb',t:'HAS-BLED',rx:/has ?bled|riesgo.*sangrado.*(fa|anticoag|fibrilacion)/,
+   a:'El <strong>HAS-BLED</strong> estima el riesgo de sangrado bajo anticoagulación en fibrilación auricular; <strong>≥3 = riesgo alto</strong> (no contraindica, obliga a vigilar factores corregibles).'},
+  {v:'isthbat',t:'ISTH-BAT (escala de sangrado)',rx:/isth ?bat|escala.*sangrado|bleeding score|diatesis hemorragica/,
+   a:'El <strong>ISTH-BAT</strong> cuantifica la historia hemorrágica; un score elevado apoya una <strong>diátesis hemorrágica</strong> (p. ej. enf. de von Willebrand o trombopatía) y orienta el estudio.'},
+  {v:'coag_alt',t:'Alteración de TP / TTPa / TT',rx:/(\btp\b|ttpa|\btt\b).*(alargad|prolongad|alterad)|alteracion.*coagulacion|test de mezclas|tiempos de coagulacion/,
+   a:'Un <strong>TP/TTPa/TT alargado</strong> se estudia con <strong>test de mezclas</strong> (corrige → déficit de factor; no corrige → inhibidor/heparina) y dosificación de factores. Consulta el algoritmo de patrones.'},
+  {v:'bridging',neu:1,t:'Bridging perioperatorio',rx:/bridging|puente.*(anticoag|hbpm)|anticoagulacion.*(cirugia|perioperatori|operacion|procedimiento|intervencion)|suspender.*(sintrom|acenocumarol|acod|anticoag)/,
+   a:'El manejo perioperatorio de la anticoagulación depende del fármaco (AVK vs ACOD), del <strong>riesgo trombótico</strong> y del <strong>riesgo hemorrágico del procedimiento</strong>. Los ACOD rara vez precisan puente. Consulta los tiempos de suspensión/reinicio.'},
+  {v:'reversion',neu:1,t:'Reversión de la anticoagulación',rx:/(revertir|reversion|antidoto).*(anticoag|dabigatran|apixaban|rivaroxaban|edoxaban|sintrom|acenocumarol|heparina|warfarina)|idarucizumab|andexanet/,
+   a:'Antídotos/reversión: <strong>idarucizumab</strong> para dabigatrán; <strong>andexanet/CCP</strong> para anti-Xa (apixabán, rivaroxabán); <strong>CCP + vitamina K</strong> para AVK; protamina para heparina. Consulta dosis y escenario de sangrado.'},
+  {v:'rotem',t:'Interpretación del ROTEM',rx:/rotem|tromboelastometr/,
+   a:'El <strong>ROTEM</strong> evalúa la coagulación a pie de cama (EXTEM, INTEM, FIBTEM, APTEM…). Cada patrón orienta el déficit (factores, fibrinógeno, plaquetas, hiperfibrinólisis o efecto heparina).'},
+  {v:'hemof_urg',neu:1,t:'Hemofilia / EvW en urgencias',rx:/hemofilia.*(urgenc|sangrado|aguda|vital)|factor (viii|ix).*sangrado|von willebrand.*sangrado/,
+   a:'Ante sangrado en <strong>hemofilia / enfermedad de von Willebrand</strong>, el tratamiento se guía por el factor deficitario, la gravedad/localización y la presencia de <strong>inhibidor</strong> (que obliga a agentes bypass). Consulta dosis y objetivos.'},
+  {v:'hemof_adq',t:'Hemofilia adquirida',rx:/hemofilia adquirida|inhibidor adquirido.*viii|autoanticuerpo.*viii/,
+   a:'Sospecha <strong>hemofilia adquirida</strong> ante sangrado de novo con <strong>TTPa alargado que no corrige</strong> en el test de mezclas (inhibidor del FVIII). Requiere control hemostático (bypass) e inmunosupresión.'},
+  {v:'agrego',t:'Agregometría óptica',rx:/agregometr|agregacion plaquetaria/,
+   a:'La <strong>agregometría óptica</strong> ayuda a diagnosticar trombopatías según el patrón con distintos agonistas (ADP, colágeno, ristocetina…): orienta Glanzmann, Bernard-Soulier, EvW o defectos de secreción.'},
+  // — Banco de sangre —
+  {v:'trans_ch',neu:1,t:'Transfusión de hematíes',rx:/(transfusion|transfundir).*(hematie|concentrado|hemoglobina|\bhb\b|globulos rojos)|umbral.*hemoglobina|cuando transfundir.*(hematie|sangre)/,
+   a:'Estrategia <strong>restrictiva</strong>: umbral habitual <strong>Hb 7 g/dL</strong> (≈<strong>8 g/dL</strong> en cardiopatía/SCA), siempre valorando clínica y comorbilidad. Consulta indicaciones y componentes especiales (irradiados, CMV-neg, lavados).'},
+  {v:'trans_pq',neu:1,t:'Transfusión de plaquetas',rx:/(transfusion|transfundir).*plaqueta|umbral.*plaqueta|cuando transfundir.*plaqueta/,
+   a:'Umbral profiláctico habitual <strong>&lt;10×10⁹/L</strong> estable; <strong>&lt;20</strong> con fiebre/factores de riesgo; <strong>&lt;50</strong> para procedimientos invasivos/cirugía (más alto en neuroeje). Consulta detalles y componentes irradiados.'},
+  {v:'trans_pfc',neu:1,t:'Transfusión de plasma (PFC)',rx:/(transfusion|transfundir).*(plasma|pfc)|plasma fresco/,
+   a:'El <strong>plasma fresco congelado</strong> se indica en coagulopatía con sangrado o procedimiento (TP/TTPa alargados), CID o reversión urgente de AVK sin CCP; dosis ~<strong>10–15 mL/kg</strong>. No corrige déficits aislados con concentrado disponible.'},
+  {v:'disc_abo',t:'Discrepancia ABO',rx:/discrepancia abo|grupo (serico|hematico)/,
+   a:'Una <strong>discrepancia ABO</strong> es la falta de concordancia entre grupo hemático (antígenos) y sérico (anticuerpos). Consulta el algoritmo de causas y resolución antes de transfundir.'},
+  {v:'aaii',t:'Anticuerpos irregulares (AAII)',rx:/anticuerpos irregulares|\baaii\b|escrutinio.*anticuerpo|coombs indirecto/,
+   a:'Ante <strong>escrutinio de anticuerpos irregulares positivo</strong> se identifica el anticuerpo y se valora su <strong>significado clínico</strong> para seleccionar sangre fenotipada compatible.'},
+  {v:'panag',t:'Panaglutinación',rx:/panaglutinacion|autocontrol positivo|coombs directo/,
+   a:'La <strong>panaglutinación</strong> (reactividad frente a todos los hematíes del panel) obliga a estudiar autocontrol y Coombs directo para distinguir <strong>autoanticuerpo</strong> de aloanticuerpo y resolver la compatibilidad.'},
+  {v:'pre_op',neu:1,t:'Optimización preoperatoria (PBM)',rx:/optimizacion preoperatoria|hierro.*(preoperatori|cirugia)|ganzoni|ferinject|patient blood management|anemia preoperatoria/,
+   a:'El <strong>patient blood management</strong> trata la anemia antes de la cirugía: estudio del déficit y <strong>hierro oral o IV</strong> (déficit por fórmula de Ganzoni), ± eritropoyetina. Consulta dosis y tiempos.'},
+  // — Terapia celular —
+  {v:'crs',neu:1,t:'Síndrome de liberación de citoquinas (CRS)',rx:/\bcrs\b|liberacion de citoquinas|sindrome.*citoquinas|tocilizumab/,
+   a:'El <strong>CRS</strong> (tras CAR-T o biespecíficos) se gradúa según la <strong>escala ASTCT</strong> (fiebre, hipotensión, hipoxia). El manejo escala con <strong>tocilizumab</strong> ± corticoides según el grado.'},
+  {v:'icans',neu:1,t:'ICANS / ICE',rx:/icans|\bice\b|neurotoxicidad.*car/,
+   a:'La <strong>ICANS</strong> es la neurotoxicidad asociada a terapia celular; se evalúa con el <strong>score ICE</strong> y se gradúa por ASTCT. El manejo se basa en corticoides según el grado (el tocilizumab no atraviesa bien la BHE).'},
+  {v:'taspe',t:'TASPE (autotrasplante)',rx:/taspe|trasplante autologo|auto ?tph|movilizacion.*progenitores|plerixafor/,
+   a:'Consulta el proceso del <strong>autotrasplante (TASPE)</strong>: movilización (± plerixafor), objetivo de CD34, acondicionamiento (p. ej. BEAM, Mel200) y prendimiento.'},
+  // — Leucemias agudas —
+  {v:'eln24',t:'ELN 2024 (LMA baja intensidad)',rx:/eln 2024|lma.*baja intensidad|venetoclax.*azacitidina/,
+   a:'La clasificación <strong>ELN 2024</strong> estratifica el riesgo de la LMA tratada con <strong>baja intensidad</strong> (azacitidina + venetoclax), distinta de la ELN 2022 (intensiva).'},
+  {v:'eln',t:'ELN 2022 (LMA)',rx:/eln 2022|\beln\b.*lma|riesgo.*citogenetic.*lma|estratificacion.*lma|riesgo.*lma/,
+   a:'La <strong>ELN 2022</strong> clasifica la LMA en <strong>favorable / intermedio / adverso</strong> según citogenética y mutaciones, para candidatos a quimioterapia intensiva.'},
+  {v:'ferrara',t:'Criterios de Ferrara (aptitud)',rx:/ferrara|fit.*unfit|aptitud.*(quimioterapia|intensiva)|candidato.*intensiva|unfit/,
+   a:'Los <strong>criterios de Ferrara</strong> definen al paciente con LMA <strong>fit / unfit</strong> para quimioterapia intensiva según edad, comorbilidad y estado funcional.'},
+  // — Patología mieloide crónica / SMD / NMP —
+  {v:'nmp_dx',t:'NMP: PV / MF / LMC',rx:/(policitemia vera|mielofibrosis|leucemia mieloide cronica|\bnmp\b|neoplasia mieloproliferativa|\bjak2\b|\bcalr\b|\blmc\b)/,
+   a:'Las <strong>neoplasias mieloproliferativas</strong> (PV, MF, LMC) se diagnostican por criterios OMS 2022 con marcadores moleculares (<strong>JAK2, CALR, MPL</strong>; <strong>BCR::ABL1</strong> en la LMC). Consulta criterios y tratamiento.'},
+  {v:'ipssr',t:'IPSS-R (SMD)',rx:/ipss ?r\b|ipssr|smd.*(riesgo|pronostico)|mielodisplasi.*pronostico/,
+   a:'El <strong>IPSS-R</strong> estratifica el pronóstico del <strong>SMD</strong> según citopenias, blastos y citogenética (muy bajo → muy alto riesgo). El IPSS-M añade datos moleculares.'},
+  {v:'sokal',t:'Índice de Sokal (LMC)',rx:/\bsokal\b/,
+   a:'El <strong>Sokal</strong> estratifica el riesgo al diagnóstico de la <strong>LMC</strong> (bajo/intermedio/alto) y ayuda a orientar la elección del inhibidor de tirosina cinasa.'},
+  {v:'dipss',t:'DIPSS (mielofibrosis)',rx:/\bdipss\b/,
+   a:'El <strong>DIPSS</strong> estima el pronóstico de la <strong>mielofibrosis</strong> de forma dinámica (edad, Hb, leucocitos, blastos, síntomas). Existen DIPSS-Plus y MIPSS70 (molecular).'},
+  {v:'mipss70',t:'MIPSS70 / MIPSS70-Plus',rx:/mipss/,
+   a:'El <strong>MIPSS70</strong> integra clínica y <strong>mutaciones de alto riesgo</strong> (ASXL1, SRSF2, EZH2, IDH, U2AF1) para el pronóstico de la mielofibrosis en candidatos a trasplante.'},
+  // — Mieloma y gammapatías —
+  {v:'imwg',t:'Criterios IMWG (mieloma)',rx:/\bimwg\b|\bcrab\b|criterios.*mieloma|diagnostico.*mieloma|gammapatia|\bmgus\b|\bgmsi\b|smoldering|quiescente/,
+   a:'Los criterios <strong>IMWG</strong> definen mieloma sintomático por <strong>CRAB</strong> (hiperCalcemia, fallo Renal, Anemia, lesiones óseas/Bone) o biomarcadores <strong>SLiM</strong> (≥60% plasmocitos, cadenas ligeras ≥100, &gt;1 lesión en RM). Distinguen GMSI y smoldering.'},
+  {v:'riss',t:'R-ISS / R2-ISS (mieloma)',rx:/r ?iss|r2 ?iss|estadio.*mieloma|estadiaje.*mieloma/,
+   a:'El <strong>R-ISS</strong> (y el R2-ISS) estadifica el mieloma combinando ISS (β2-microglobulina, albúmina) con <strong>citogenética de alto riesgo</strong> y LDH.'},
+  {v:'ipsswm',t:'IPSS-WM (Waldenström)',rx:/ipss ?wm|waldenstrom|macroglobulinemia/,
+   a:'El <strong>IPSS-WM</strong> estratifica el pronóstico de la <strong>macroglobulinemia de Waldenström</strong> (edad, β2-microglobulina, hemoglobina, plaquetas, IgM).'},
+  // — Linfomas —
+  {v:'ripi',t:'R-IPI (linfoma B difuso)',rx:/r ?ipi\b|ripi|lbdcg.*pronostico|linfoma b grande.*pronostico/,
+   a:'El <strong>R-IPI</strong> estima el pronóstico del <strong>linfoma B difuso de célula grande</strong> en la era rituximab (edad, LDH, estadio, ECOG, extranodales).'},
+  {v:'flipi',t:'FLIPI / R-FLIPI (folicular)',rx:/flipi|folicular.*pronostico/,
+   a:'El <strong>FLIPI</strong> estratifica el pronóstico del <strong>linfoma folicular</strong> (edad, estadio, Hb, nº de áreas ganglionares, LDH).'},
+  {v:'mipi',t:'MIPI (linfoma del manto)',rx:/\bmipi\b|manto.*pronostico/,
+   a:'El <strong>MIPI</strong> estima el pronóstico del <strong>linfoma del manto</strong> (edad, ECOG, LDH, leucocitos; el MIPI-c añade Ki-67).'},
+  {v:'ips',t:'IPS (Hodgkin)',rx:/\bips\b|hodgkin.*pronostico|hasenclever/,
+   a:'El <strong>IPS</strong> (Hasenclever) estima el pronóstico del <strong>linfoma de Hodgkin avanzado</strong> con 7 variables clínico-analíticas.'},
+  {v:'aa',t:'Estadio Ann Arbor',rx:/ann arbor|estadio.*linfoma|estadiaje.*linfoma/,
+   a:'La <strong>clasificación de Ann Arbor</strong> (I–IV, con sufijos A/B y E/S) estadifica los linfomas según las regiones ganglionares y la afectación extranodal o de órganos.'},
+  // — Leucemia linfática crónica —
+  {v:'llc_dx',t:'LLC: diagnóstico y cuándo tratar',rx:/(llc|\bcll\b).*(criterio|diagnostico|tratamiento|cuando tratar|indicacion|tratar)|iwcll/,
+   a:'La <strong>LLC</strong> se diagnostica con ≥5×10⁹/L linfocitos B clonales. Según los criterios <strong>iwCLL</strong> se trata solo la <strong>enfermedad activa/sintomática</strong> (no por la cifra de linfocitos aislada); estudiar <strong>TP53/del(17p) e IGHV</strong> antes del tratamiento.'},
+  {v:'cllipi',t:'CLL-IPI',rx:/cll ?ipi|cllipi|llc.*pronostico/,
+   a:'El <strong>CLL-IPI</strong> integra <strong>TP53/del(17p), IGHV</strong>, β2-microglobulina, estadio y edad para el pronóstico de la LLC.'},
+  {v:'binet_rai',t:'Estadiaje Binet / Rai',rx:/\bbinet\b|\brai\b|estadiaje.*llc|estadio.*llc/,
+   a:'<strong>Binet</strong> (A/B/C) y <strong>Rai</strong> (0–IV) estadifican la LLC según áreas linfoides afectas y la presencia de anemia o trombopenia.'},
+  // — Citodiagnóstico —
+  {v:'citodx',t:'Tubos para estudios',rx:/(tubos|que pedir|que tubo|muestra).*(citogenetic|citometr|biologia molecular|estudio|medula|fish|ngs)|tubos para/,
+   a:'Consulta qué <strong>tubo/muestra</strong> enviar para cada estudio (citogenética/cariotipo, citometría/inmunofenotipo, FISH, biología molecular/NGS) y los requisitos de cada uno.'},
+  {v:'citomol',t:'Seguimiento molecular / EMR',rx:/enfermedad minima residual|\bemr\b|seguimiento molecular|monitorizacion molecular/,
+   a:'Revisa los marcadores y la cadencia del <strong>seguimiento molecular / EMR</strong> por entidad (NPM1, CBF, PML::RARA, BCR::ABL1, citometría…) y los puntos de decisión.'},
+  {v:'citoclas',t:'Clasificación LMA (ICC/OMS)',rx:/clasificacion.*lma|icc.*oms|who 2022.*lma|oms 2022.*lma/,
+   a:'Consulta la <strong>clasificación de la LMA</strong> (ICC y OMS 2022) por alteraciones genéticas definitorias y el umbral de blastos.'},
+  // — Ingreso —
+  {v:'checklist',t:'Check-list de ingreso',rx:/check ?list|lista.*ingreso|ingreso.*planta|ingreso.*(taspe|debut|lma)/,
+   a:'Usa el <strong>check-list de ingreso</strong> para no omitir pasos (cribados, consentimientos, hidratación, profilaxis…) según el motivo (TASPE, debut de LMA, neutropenia febril…).'},
+  // — Calculadoras —
+  {v:'qtc',t:'QTc (Fridericia)',rx:/\bqtc\b|fridericia|intervalo qt/,
+   a:'El <strong>QTc por Fridericia</strong> (QT/RR^⅓) corrige el QT por la frecuencia. Orientativo: <strong>prolongado &gt;450 ms</strong> (varón) / <strong>&gt;470 ms</strong> (mujer); <strong>&gt;500 ms</strong> aumenta el riesgo de torsade de pointes.'},
+  {v:'crcl',t:'Aclaramiento de creatinina',rx:/aclaramiento.*creatinina|cockcroft|filtrado glomerular|\bcrcl\b/,
+   a:'La calculadora usa <strong>Cockcroft-Gault</strong>: (140−edad)×peso×(0,85 si mujer)/(72×creatinina). Útil para ajustar dosis de fármacos.'},
+  {v:'cacorr',t:'Calcio corregido',rx:/calcio corregido|corregir.*calcio|\bpayne\b/,
+   a:'<strong>Calcio corregido</strong> = Ca medido + 0,8 × (4 − albúmina g/dL). Corrige el efecto de la hipoalbuminemia (frecuente en mieloma).'},
+  {v:'bsa',t:'Superficie corporal',rx:/superficie corporal|mosteller|\bbsa\b/,
+   a:'La <strong>superficie corporal</strong> (Mosteller) = √(talla[cm] × peso[kg] / 3600), en m². Base para dosificar muchos citostáticos.'},
+  {v:'cb',neu:1,t:'Síndrome de lisis tumoral',rx:/lisis tumoral|cairo ?bishop|sindrome.*lisis/,
+   a:'El <strong>síndrome de lisis tumoral</strong> se clasifica por los criterios de <strong>Cairo-Bishop</strong> (laboratorio y clínico). El manejo incluye hidratación y control del urato; revisa el riesgo y la profilaxis.'},
+  {v:'rasburicasa',neu:1,t:'Rasburicasa / hiperuricemia',rx:/rasburicasa|hiperuricemia|acido urico|\burato\b|fasturtec/,
+   a:'La <strong>rasburicasa</strong> reduce rápidamente el ácido úrico en la lisis tumoral. <strong>Contraindicada en déficit de G6PD</strong> (riesgo de hemólisis y metahemoglobinemia). Consulta dosis e indicación.'},
+  {v:'mtx',neu:1,t:'Metotrexato a altas dosis',rx:/metotrexato.*(alta|nivel|rescate|monitoriz|aclaramiento)|altas dosis.*metotrexato|glucarpidasa|folinico.*metotrexato/,
+   a:'El <strong>metotrexato a altas dosis</strong> exige hidratación, <strong>alcalinización</strong>, <strong>rescate con ácido folínico</strong> y monitorización de niveles; en aclaramiento retardado/toxicidad valorar <strong>glucarpidasa</strong>. Revisa el nomograma.'},
+  {v:'hctci',t:'HCT-CI (Sorror)',rx:/hct ?ci|hctci|sorror|comorbilidad.*trasplante/,
+   a:'El <strong>HCT-CI (Sorror)</strong> cuantifica la comorbilidad antes del <strong>trasplante alogénico</strong> y se asocia a la mortalidad no relacionada con la recaída.'},
+  {v:'ecog',t:'ECOG',rx:/\becog\b|estado funcional|performance status/,
+   a:'La <strong>escala ECOG</strong> (0–5) mide el estado funcional, de la actividad normal (0) a la dependencia total (4) o el fallecimiento (5).'},
+  {v:'g8',t:'G8 de fragilidad',rx:/\bg8\b|fragilidad.*(anciano|geriatric)|cribado.*geriatric/,
+   a:'El <strong>G8</strong> es un cribado de fragilidad en el anciano; <strong>≤14 = alterado</strong> y sugiere valoración geriátrica integral.'},
+  {v:'light',t:'Criterios de Light (líquido pleural)',rx:/criterios de light|liquido pleural|exudado.*trasudado|trasudado.*exudado|toracocentesis/,
+   a:'Los <strong>criterios de Light</strong> distinguen <strong>exudado vs trasudado</strong> en el derrame pleural (cocientes de proteínas y LDH líquido/suero y LDH del líquido).'},
+  {v:'opioides',t:'Conversión de opioides',rx:/tabla.*opioides|equivalencia.*opioides|factor.*conversion.*opioide|conversion.*opioide/,
+   a:'La calculadora convierte entre opioides usando <strong>equivalentes de morfina (MME)</strong>. También puedes pedírmelo directo (p. ej. «120 mg de morfina oral a oxicodona»).'}
+];
+function chatFaqCard(f){
+  return `<div style="${CHAT_CARD}">
+    <div style="${CHAT_TTL}">💡 ${chatEsc(f.t)}</div>
+    <div style="font-size:13.5px;color:var(--txt);line-height:1.55;margin:5px 0">${f.a}</div>
+    ${f.v?`<button onclick="closeChat();go('${f.v}')" style="${CHAT_LINK}">📍 Abrir ${chatEsc(f.t)} →</button>`:''}
+  </div>`;
+}
+function chatFaqMatch(q){
+  const n=chatNorm(q);if(n.length<3)return null;
+  for(const f of CHAT_FAQ){try{if(f.rx.test(n))return f;}catch(e){}}
+  return null;
+}
 function chatSend(preset){
   const inp=$('chat_input');
   const q=((preset!=null?preset:(inp?inp.value:''))||'').trim();
@@ -7216,6 +7380,11 @@ function chatSend(preset){
   try{const dzc=chatDetectDisease(chatNorm(q));if(dzc)_chatCtx.dz=dzc.dz;}catch(e){}
   // ¿pide una actitud terapéutica / manejo / diagnóstico? → Eri remite a la guía SIN emitir juicio (lead neutro, nunca "claro/sí")
   let therap=false;try{therap=chatIsTherapyQ(chatNorm(q));}catch(e){therap=false;}
+  // Base de conocimiento (preguntas frecuentes por tema): responde con el criterio establecido y
+  // remite a la herramienta/guía como fuente. Va antes de la búsqueda genérica para dar una
+  // respuesta orientada en lugar de un fragmento suelto.
+  let fq=null;try{fq=chatFaqMatch(q);}catch(e){fq=null;}
+  if(fq){const lead=(therap||fq.neu)?chatLeadNeutral():chatLead();chatPushHTML(`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${lead}</div><div style="display:flex;flex-direction:column;gap:9px">${chatFaqCard(fq)}</div></div>`);return;}
   // enrutamiento por intención (riesgo/pronóstico → score; dosis de heparina → HBPM; transfusión → indicaciones)
   let intent=null;try{intent=chatIntent(q);}catch(e){intent=null;}
   if(intent){chatPushHTML(`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${therap?chatLeadNeutral():chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">${intent}</div></div>`);return;}
