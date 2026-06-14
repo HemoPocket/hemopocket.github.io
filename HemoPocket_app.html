@@ -596,7 +596,7 @@ body{font-size:13px}
   <br>
   <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
   <span style="color:var(--bd)"> · </span>
-  <button onclick="hpOpenReport()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">🐞 Reportar un error</button>
+  <button onclick="hpOpenReport()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">Reportar un error</button>
   <br><span id="app-build-stamp" style="color:var(--mut); opacity:.7; font-size:0.7rem"></span>
 </footer>
 </main>
@@ -1008,7 +1008,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes']);
 function hpVerifyBanner(id){
   if(!VIEWS[id]||HP_NO_BANNER.has(id)||HP_VERIFIED.has(id))return '';
   return '<div class="verify-note" role="note"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Contenido en proceso de verificación</span></div>';
@@ -4082,7 +4082,7 @@ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
 return `<div class="card"><h2>Errores reportados</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
 }
 return `<div class="card">
-<h2>🐞 Errores reportados</h2>
+<h2>Errores reportados</h2>
 <p class="intro">Incidencias enviadas por los usuarios desde «Reportar un error» y errores técnicos capturados automáticamente. Puedes marcarlas como <strong>resueltas</strong> o borrarlas.</p>
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-out btn-sm" onclick="hpRenderReportes()">↻ Actualizar</button></div>
 <div id="rep_list">Cargando…</div></div>`;
@@ -5265,7 +5265,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 99;
+const HP_BUILD = 100;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10821,7 +10821,7 @@ if(document.readyState!=='loading')init();
 <div id="hp-report-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-label="Reportar un error">
   <div style="background:var(--card,#fff); color:var(--txt,#222); border-radius:12px; padding:1.3rem; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
     <button onclick="hpCloseReport()" style="position:absolute; top:0.7rem; right:0.7rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#888;" aria-label="Cerrar">✕</button>
-    <h2 style="color:#c41e3a; margin:0 0 0.5rem; font-size:1.1rem;">🐞 Reportar un error</h2>
+    <h2 style="color:#c41e3a; margin:0 0 0.5rem; font-size:1.1rem;">Reportar un error</h2>
     <p style="font-size:0.85rem; line-height:1.55; color:var(--mut,#666); margin:0 0 0.6rem;">Cuéntame qué ha fallado o qué se podría mejorar (un dato incorrecto, algo que no funciona, una sugerencia…). Llega directamente a la administradora.</p>
     <div id="hp_report_ctx" style="font-size:0.72rem; color:var(--mut,#888); margin-bottom:0.5rem;"></div>
     <textarea id="hp_report_text" rows="5" placeholder="Describe el problema con el mayor detalle posible…" style="width:100%; box-sizing:border-box; border:1px solid var(--bd,#ccc); border-radius:8px; padding:0.6rem; font-size:0.9rem; font-family:inherit; resize:vertical; background:var(--bg,#fff); color:var(--txt,#222);"></textarea>
