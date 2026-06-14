@@ -922,6 +922,7 @@ const MENU=[
 {h:'INFORMACIÓN Y SINCRONIZACIÓN',items:[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
+{id:'novedades',name:'Novedades',kw:'novedades cambios changelog que hay nuevo actualizaciones version historial mejoras',new:'2026-06-14'},
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true}
 ]}
@@ -4075,6 +4076,24 @@ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes();
 window.hpAprobarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Aprobar esta cuenta? El usuario podrá acceder a la app.',()=>_hpDoAccion(uid,'aprobar')); else _hpDoAccion(uid,'aprobar'); };
 window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
 
+// === NOVEDADES (changelog visible para todo el equipo) ===
+VIEWS.novedades=()=>{
+const chg=(fecha,items)=>`<div class="team-card"><h3 style="margin:0 0 6px">${fecha}</h3><ul style="margin:0;padding-left:18px;line-height:1.6;font-size:13.5px">${items.map(i=>'<li>'+i+'</li>').join('')}</ul></div>`;
+return `<div class="card">
+<h2>✨ Novedades</h2>
+<p class="intro">Mejoras recientes de HemoPocket. La app se actualiza sola al abrirla con conexión; en el pie verás la versión instalada.</p>
+${chg('Junio 2026',[
+ '<strong>Eri más lista:</strong> calcula el <strong>QTc (Fridericia)</strong> y entiende las preguntas aunque no estén bien estructuradas (p. ej. «5.3 de calcio con 4 de proteínas», «1.2 de creatinina, varón 75 años 70 kg»).',
+ '<strong>Conversión de opioides</strong> mejorada: reconoce la vía subcutánea (IV↔SC ≈ 1:1) y, si falta algún dato, te lleva a la calculadora en vez de dar un resultado confuso.',
+ '<strong>Base de preguntas frecuentes</strong> en Eri sobre todos los temas (criterios, escalas y definiciones), remitiendo siempre a la fuente.',
+ '<strong>Reportar un error:</strong> botón en el pie para enviar incidencias o sugerencias; llegan al panel de la administradora.',
+ '<strong>Acceso sin fricción:</strong> la app abre al instante con la última validación —sin volver a iniciar sesión en el día a día— y funciona sin conexión.',
+ '<strong>Arranque</strong> siempre en la pantalla principal y actualización automática, visible y segura.'
+])}
+<p style="font-size:12px;color:var(--mut);margin-top:14px">¿Echas algo en falta o ves un fallo? Usa <strong>🐞 Reportar un error</strong> en el pie de página.</p>
+</div>`;
+};
+
 // === ERRORES REPORTADOS (solo administradora) ===
 VIEWS.reportes=()=>{
 if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
@@ -4093,12 +4112,12 @@ function repCard(r){
 let fecha='';
 try{ if(r.createdAt&&r.createdAt.seconds) fecha=new Date(r.createdAt.seconds*1000).toLocaleString('es-ES'); }catch(e){}
 const resuelto=r.estado==='resuelto';
-const auto=r.tipo==='auto';
+const tipoT=r.tipo==='auto'?'⚙️ Error técnico (automático)':r.tipo==='eri_miss'?'🔎 Eri sin respuesta':'💬 Reporte de usuario';
 const badge=resuelto?'<span style="color:#1a7f37;font-weight:600">✔ resuelto</span>':'<span style="color:#b8860b;font-weight:600">⏳ nuevo</span>';
-const tipoT=auto?'⚙️ Error técnico (automático)':'💬 Reporte de usuario';
 let h='<div class="team-card"><h3 style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span style="font-size:14px">'+tipoT+'</span>'+badge+'</h3>';
 h+='<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;margin:4px 0">'+_hpEsc(r.texto||'')+'</div>';
 h+='<div style="font-size:11.5px;color:var(--mut);line-height:1.6">';
+if(r.eriLastQ) h+='<div><strong>Última consulta a Eri:</strong> '+_hpEsc(''+r.eriLastQ)+'</div>';
 if(r.email) h+='<div><strong>De:</strong> '+_hpEsc(r.email)+'</div>';
 if(r.vista) h+='<div><strong>Sección:</strong> '+_hpEsc(''+r.vista)+'</div>';
 if(r.build!=null) h+='<div><strong>Versión:</strong> build '+_hpEsc(''+r.build)+(r.online===false?' · sin conexión':'')+'</div>';
@@ -5252,7 +5271,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 94;
+const HP_BUILD = 95;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6727,7 +6746,50 @@ const CHAT_SYN={
   septico:'sepsis neutropenia febril',
   septica:'sepsis neutropenia febril',
   sepsis:'neutropenia febril septico',
-  bacteriemia:'neutropenia febril sepsis'
+  bacteriemia:'neutropenia febril sepsis',
+  // — Ampliación: abreviaturas, nombres comerciales y erratas frecuentes —
+  car:'cart car t terapia celular crs icans',
+  cart:'car t terapia celular crs icans biespecificos',
+  taspe:'trasplante autologo auto tph progenitores',
+  tph:'trasplante progenitores hematopoyeticos taspe alogenico autologo',
+  trasplante:'tph taspe progenitores alogenico autologo acondicionamiento',
+  mat:'microangiopatia trombotica ttp ptt shua cid hellp plasmic',
+  microangiopatia:'mat ttp ptt shua cid plasmic esquistocitos',
+  ttp:'ptt purpura trombotica microangiopatia plasmic adamts caplacizumab',
+  ptt:'ttp purpura trombotica microangiopatia plasmic adamts caplacizumab',
+  shua:'suh atipico microangiopatia complemento mat',
+  hit:'trombopenia heparina 4t trombocitopenia inducida',
+  acod:'aco directo apixaban rivaroxaban edoxaban dabigatran anticoagulante',
+  aco:'anticoagulacion anticoagulante acod avk sintrom acenocumarol',
+  avk:'sintrom acenocumarol warfarina antivitamina k anticoagulacion',
+  hbpm:'heparina bajo peso molecular enoxaparina bemiparina tinzaparina',
+  tep:'embolia pulmonar tromboembolismo wells trombosis',
+  tvp:'trombosis venosa profunda wells',
+  fa:'fibrilacion auricular has bled anticoagulacion',
+  smd:'mielodisplasico mielodisplasia ipss ipssr ipssm',
+  lma:'leucemia mieloide aguda eln blastos',
+  lla:'leucemia linfoblastica aguda',
+  llc:'leucemia linfatica cronica cll iwcll binet rai cllipi',
+  cll:'llc leucemia linfatica cronica iwcll binet rai',
+  lmc:'leucemia mieloide cronica sokal bcr abl itk',
+  mm:'mieloma multiple imwg riss crab',
+  mieloma:'mm imwg riss crab gammapatia',
+  gmsi:'mgus gammapatia monoclonal significado incierto',
+  mgus:'gmsi gammapatia monoclonal significado incierto',
+  lbdcg:'linfoma b difuso celula grande ripi r ipi',
+  emr:'enfermedad minima residual seguimiento molecular',
+  qtc:'qt fridericia intervalo torsade',
+  bsa:'superficie corporal mosteller dubois',
+  crcl:'aclaramiento creatinina cockcroft filtrado',
+  tls:'lisis tumoral cairo bishop',
+  lisis:'lisis tumoral cairo bishop rasburicasa',
+  mtx:'metotrexato altas dosis folinico glucarpidasa',
+  // erratas habituales
+  neutropenina:'neutropenia febril fiebre',
+  netropenia:'neutropenia febril fiebre',
+  anticoagulacionn:'anticoagulacion',
+  metrotexato:'metotrexato mtx',
+  metotrexate:'metotrexato mtx'
 };
 function chatNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñ\s]/g,' ').replace(/\s+/g,' ').trim();}
 // resalta los términos buscados (q en minúsculas) dentro de un texto, ya escapado a HTML
@@ -7142,7 +7204,26 @@ function crclInline(s,toks){
   let cat;if(cg>=90)cat='normal/levemente disminuida (G1)';else if(cg>=60)cat='disminución leve (G2)';else if(cg>=45)cat='leve-moderada (G3a)';else if(cg>=30)cat='moderada-severa (G3b)';else if(cg>=15)cat='severa (G4)';else cat='fallo renal (G5)';
   return chatCalcCard('🩺','Aclaramiento de creatinina','crcl',`${sex==='M'?'Hombre':'Mujer'} de ${_hpFmt(age,0)} años, ${_hpFmt(w,1)} kg, creatinina ${_hpFmt(cr,2)} mg/dL → <strong style="color:var(--c1)">${cg.toFixed(0)} mL/min</strong> (Cockcroft-Gault, ${pl}) · ${cat}.`,`Cockcroft-Gault es la fórmula de referencia para ajuste de dosis (carboplatino, lenalidomida, etc.). Abre la calculadora para CKD-EPI y el ajuste por IMC.`);
 }
-function chatCalc(q){const nc=chatNormCalc(q);const s=' '+nc+' ';const toks=_hpToks(nc);return calcioInline(s,toks)||bsaInline(s,toks)||pesoInline(s,toks)||crclInline(s,toks);}
+function qtcInline(s,toks){
+  if(!/\bqtc\b|\bqt\b|fridericia|intervalo qt/.test(s))return null;
+  const nums=toks.map(_hpVal).filter(v=>v!=null);
+  let qt=_hpNearLabel(toks,t=>t==='qt'||t==='qtc',4);
+  if(qt==null)qt=_hpBeforeUnit(toks,['ms']);
+  if(qt==null){const c=nums.filter(v=>v>=250&&v<=750);if(c.length)qt=c[0];}
+  let fc=_hpNearLabel(toks,t=>/^(fc|frecuencia|lpm|bpm|pulso)/.test(t),4);
+  if(fc==null)fc=_hpBeforeUnit(toks,['lpm','bpm']);
+  let rr=_hpNearLabel(toks,t=>t==='rr',4);
+  if(fc==null&&rr==null){const c=nums.filter(v=>v>=25&&v<=240&&v!==qt);if(c.length)fc=c[0];}
+  if(qt==null||qt<200||qt>800)return chatCalcRouter('qtc','📉','QTc (Fridericia)','Dame el <strong>QT</strong> (ms) y la <strong>FC</strong> (lpm) o el <strong>RR</strong> (ms) y te calculo el QTc. Te abro la calculadora.');
+  let rrms=null;
+  if(rr!=null&&rr>=200&&rr<=2500)rrms=rr;
+  else if(fc!=null&&fc>=20&&fc<=260)rrms=60000/fc;
+  if(rrms==null)return chatCalcRouter('qtc','📉','QTc (Fridericia)',`Tengo el <strong>QT ${_hpFmt(qt,0)} ms</strong>, pero necesito la <strong>FC</strong> (lpm) o el <strong>RR</strong> (ms). Te abro la calculadora.`);
+  const qtc=Math.round(qt/Math.cbrt(rrms/1000)),fcv=Math.round(60000/rrms);
+  let cat;if(qtc<450)cat='normal';else if(qtc<470)cat='limítrofe';else if(qtc<500)cat='prolongado';else cat='≥ 500 ms · RIESGO ALTO de Torsade';
+  return chatCalcCard('📉','QTc (Fridericia)','qtc',`QT ${_hpFmt(qt,0)} ms con FC ${fcv} lpm → <strong style="color:var(--c1)">QTc ${qtc} ms</strong> · ${cat}.`,`Fridericia: QT/∛(RR/1000). Umbrales orientativos: normal &lt;450 · limítrofe 450–469 · prolongado ≥470 · ≥500 alto riesgo. Confirma la medición del QT en el ECG.`);
+}
+function chatCalc(q){const nc=chatNormCalc(q);const s=' '+nc+' ';const toks=_hpToks(nc);return calcioInline(s,toks)||bsaInline(s,toks)||pesoInline(s,toks)||crclInline(s,toks)||qtcInline(s,toks);}
 function chatSuggestChip(d){let onclick,label=chatEsc(d.title||''),ic;
   if(d.type==='scheme'){onclick=`closeChat();chatOpenScheme('${chatEsc(d.id)}')`;ic='💊';}
   else if(d.type==='phone'){onclick=`closeChat();go('phone')`;ic='📞';}
@@ -7466,6 +7547,7 @@ function chatSend(preset){
   const q=((preset!=null?preset:(inp?inp.value:''))||'').trim();
   if(!q)return;
   if(inp)inp.value='';
+  try{window._eriLastQ=q;}catch(e){}   // última consulta (contexto para los reportes de error)
   chatPushUser(q);
   const small=chatSmallTalk(q);
   if(small){_chatGreeted=true;chatPushHTML(small);return;}
@@ -7494,7 +7576,7 @@ function chatSend(preset){
   try{if(chatCaseNoAnchor(q)){_chatNear=[];chatPushHTML(chatNoPrecise(q));return;}}catch(e){}
   const res=chatSearch(chatCleanQuery(q),3);
   if(res.length)chatPushHTML(chatAnswerHTML(q,res,therap));
-  else chatPushHTML(chatNoPrecise(q));
+  else { try{ if(window.hpLogEriMiss) window.hpLogEriMiss(q); }catch(e){} chatPushHTML(chatNoPrecise(q)); }
 }
 function chatInit(){
   const log=$('chat_log');if(!log)return;log.innerHTML='';_chatGreeted=true;
@@ -11124,6 +11206,7 @@ window.hpSubmitReport = async function(texto, meta){
     build: (meta.build != null) ? meta.build : (typeof HP_BUILD !== 'undefined' ? HP_BUILD : null),
     online: (meta.online != null) ? !!meta.online : navigator.onLine,
     userAgent: meta.ua || navigator.userAgent || null,
+    eriLastQ: meta.eriLastQ || null,
     uid: curUid || (auth.currentUser && auth.currentUser.uid) || null,
     email: (auth.currentUser && auth.currentUser.email) || null,
     estado: 'nuevo',
@@ -11341,7 +11424,7 @@ window.hpTogglePw = function() {
     var txt=((t&&t.value)||'').trim();
     if(txt.length<3){if(msg){msg.style.color='#b00020';msg.textContent='Escribe un poco más de detalle, por favor.';}return;}
     if(b){b.disabled=true;b.textContent='Enviando…';}
-    var meta={texto:txt,tipo:'usuario',vista:curViewName(),vistaId:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
+    var meta={texto:txt,tipo:'usuario',vista:curViewName(),vistaId:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,eriLastQ:(window._eriLastQ||null),ts:Date.now()};
     var ok=false;
     if(navigator.onLine&&window.hpSubmitReport){try{await window.hpSubmitReport(txt,meta);ok=true;}catch(e){queueReport(meta);}}
     else{queueReport(meta);}
@@ -11360,6 +11443,19 @@ window.hpTogglePw = function() {
       else{queueReport(meta);}
     }catch(e){}
   }
+  // Registra (para la administradora) las consultas que Eri no supo responder, para saber qué
+  // FAQ/sinónimos añadir. Se guardan como reportes de tipo 'eri_miss'. Deduplicado y limitado.
+  var _missSeen={},_missCount=0;
+  window.hpLogEriMiss=function(q){
+    try{
+      q=(q||'').toString().trim();if(q.length<3)return;
+      if(_missCount>=15)return;
+      var key=q.toLowerCase().slice(0,80);if(_missSeen[key])return;_missSeen[key]=1;_missCount++;
+      var meta={texto:'🔎 Eri no encontró respuesta para: «'+q.slice(0,200)+'»',tipo:'eri_miss',vista:curViewName(),vistaId:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
+      if(navigator.onLine&&window.hpSubmitReport){window.hpSubmitReport(meta.texto,meta).catch(function(){queueReport(meta);});}
+      else{queueReport(meta);}
+    }catch(e){}
+  };
   window.addEventListener('error',function(e){if(!e||!e.message)return;try{var src=e.filename?(' @ '+(''+e.filename).split('/').pop()+':'+e.lineno+':'+e.colno):'';autoReport('[JS] '+e.message+src);}catch(_){}});
   window.addEventListener('unhandledrejection',function(e){try{var r=e&&e.reason;var m=(r&&r.message)||(''+r)||'promesa rechazada';autoReport('[Promise] '+m);}catch(_){}});
   // Vacía la cola pendiente al cargar y al reconectar.
