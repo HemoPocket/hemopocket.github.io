@@ -595,6 +595,8 @@ body{font-size:13px}
   No sustituye protocolos oficiales
   <br>
   <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
+  <span style="color:#ddd"> · </span>
+  <button onclick="hpOpenReport()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">🐞 Reportar un error</button>
   <br><span id="app-build-stamp" style="color:#bbb; font-size:0.7rem"></span>
 </footer>
 </main>
@@ -920,6 +922,7 @@ const MENU=[
 {h:'INFORMACIÓN Y SINCRONIZACIÓN',items:[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
+{id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true}
 ]}
 ];
@@ -4072,6 +4075,66 @@ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes();
 window.hpAprobarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Aprobar esta cuenta? El usuario podrá acceder a la app.',()=>_hpDoAccion(uid,'aprobar')); else _hpDoAccion(uid,'aprobar'); };
 window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
 
+// === ERRORES REPORTADOS (solo administradora) ===
+VIEWS.reportes=()=>{
+if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
+return `<div class="card"><h2>Errores reportados</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
+}
+return `<div class="card">
+<h2>🐞 Errores reportados</h2>
+<p class="intro">Incidencias enviadas por los usuarios desde «Reportar un error» y errores técnicos capturados automáticamente. Puedes marcarlas como <strong>resueltas</strong> o borrarlas.</p>
+<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-out btn-sm" onclick="hpRenderReportes()">↻ Actualizar</button></div>
+<div id="rep_list">Cargando…</div></div>`;
+};
+VIEWS.reportes_post=()=>{ if(window.hpRenderReportes) window.hpRenderReportes(); };
+
+function _hpEsc(s){return (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function repCard(r){
+let fecha='';
+try{ if(r.createdAt&&r.createdAt.seconds) fecha=new Date(r.createdAt.seconds*1000).toLocaleString('es-ES'); }catch(e){}
+const resuelto=r.estado==='resuelto';
+const auto=r.tipo==='auto';
+const badge=resuelto?'<span style="color:#1a7f37;font-weight:600">✔ resuelto</span>':'<span style="color:#b8860b;font-weight:600">⏳ nuevo</span>';
+const tipoT=auto?'⚙️ Error técnico (automático)':'💬 Reporte de usuario';
+let h='<div class="team-card"><h3 style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span style="font-size:14px">'+tipoT+'</span>'+badge+'</h3>';
+h+='<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;margin:4px 0">'+_hpEsc(r.texto||'')+'</div>';
+h+='<div style="font-size:11.5px;color:var(--mut);line-height:1.6">';
+if(r.email) h+='<div><strong>De:</strong> '+_hpEsc(r.email)+'</div>';
+if(r.vista) h+='<div><strong>Sección:</strong> '+_hpEsc(''+r.vista)+'</div>';
+if(r.build!=null) h+='<div><strong>Versión:</strong> build '+_hpEsc(''+r.build)+(r.online===false?' · sin conexión':'')+'</div>';
+if(fecha) h+='<div><strong>Fecha:</strong> '+fecha+'</div>';
+h+='</div>';
+h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
+if(!resuelto) h+='<button class="btn btn-sm" onclick="hpReporteResolverUI(\''+r.id+'\')">Marcar resuelto</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpReporteBorrarUI(\''+r.id+'\')">Borrar</button>';
+h+='</div></div>';
+return h;
+}
+window.hpRenderReportes=async function(){
+const box=document.getElementById('rep_list'); if(!box) return;
+if(!window.hpListReportes){ box.innerHTML='<div class="alert y">Conéctate a Internet para ver los reportes.</div>'; return; }
+box.innerHTML='Cargando…';
+let list;
+try{ list=await window.hpListReportes(); }
+catch(e){ box.innerHTML='<div class="alert y">No se pudieron cargar los reportes. '+(e.message||'')+'</div>'; return; }
+const nuevos=list.filter(r=>r.estado!=='resuelto');
+const hechos=list.filter(r=>r.estado==='resuelto');
+let h='<h3>Nuevos ('+nuevos.length+')</h3>';
+if(!nuevos.length) h+='<div class="team-empty">No hay reportes nuevos. 🎉</div>';
+nuevos.forEach(r=>{ h+=repCard(r); });
+if(hechos.length){ h+='<h3 style="margin-top:18px">Resueltos ('+hechos.length+')</h3>'; hechos.forEach(r=>{ h+=repCard(r); }); }
+box.innerHTML=h;
+};
+async function _hpRepAccion(id,acc){
+try{
+if(acc==='resolver') await window.hpResolveReporte(id,'resuelto'); else await window.hpDeleteReporte(id);
+if(typeof toast==='function') toast(acc==='resolver'?'✔ Marcado como resuelto':'Reporte borrado');
+if(window.hpRenderReportes) window.hpRenderReportes();
+}catch(e){ if(typeof toast==='function') toast('Error: '+(e.message||'')); }
+}
+window.hpReporteResolverUI=function(id){ _hpRepAccion(id,'resolver'); };
+window.hpReporteBorrarUI=function(id){ if(window.hpConfirm) window.hpConfirm('¿Borrar este reporte?',()=>_hpRepAccion(id,'borrar')); else _hpRepAccion(id,'borrar'); };
+
 let _editGuide=null;
 
 function guidesView(id){
@@ -5189,7 +5252,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 92;
+const HP_BUILD = 93;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10657,6 +10720,20 @@ if(document.readyState!=='loading')init();
   setInterval(hpVGthrottled, 10*60*1000);
 })();
 </script>
+<div id="hp-report-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-label="Reportar un error">
+  <div style="background:var(--card,#fff); color:var(--txt,#222); border-radius:12px; padding:1.3rem; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
+    <button onclick="hpCloseReport()" style="position:absolute; top:0.7rem; right:0.7rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#888;" aria-label="Cerrar">✕</button>
+    <h2 style="color:#c41e3a; margin:0 0 0.5rem; font-size:1.1rem;">🐞 Reportar un error</h2>
+    <p style="font-size:0.85rem; line-height:1.55; color:var(--mut,#666); margin:0 0 0.6rem;">Cuéntame qué ha fallado o qué se podría mejorar (un dato incorrecto, algo que no funciona, una sugerencia…). Llega directamente a la administradora.</p>
+    <div id="hp_report_ctx" style="font-size:0.72rem; color:var(--mut,#888); margin-bottom:0.5rem;"></div>
+    <textarea id="hp_report_text" rows="5" placeholder="Describe el problema con el mayor detalle posible…" style="width:100%; box-sizing:border-box; border:1px solid var(--bd,#ccc); border-radius:8px; padding:0.6rem; font-size:0.9rem; font-family:inherit; resize:vertical; background:var(--bg,#fff); color:var(--txt,#222);"></textarea>
+    <div id="hp_report_msg" style="font-size:0.8rem; min-height:1.1em; margin-top:0.4rem;"></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:0.6rem;">
+      <button onclick="hpCloseReport()" class="btn btn-out btn-sm">Cancelar</button>
+      <button id="hp_report_send" onclick="hpSendReport()" class="btn btn-sm" style="background:#c41e3a; color:#fff;">Enviar</button>
+    </div>
+  </div>
+</div>
 <div id="modal-aviso-legal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true">
   <div style="background:white; border-radius:12px; padding:1.5rem; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
     <button id="aviso-cerrar-x" onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;" aria-label="Cerrar">✕</button>
@@ -11035,6 +11112,37 @@ window.hpRechazarCuenta = async function(uid){
   await updateDoc(doc(fs, 'cuentas', uid), { estado: 'rechazada', revisadaPor: curUid || null, fechaRevision: serverTimestamp() });
 };
 
+// ── Reportes de errores / incidencias ──
+// Crear: cualquier usuario autenticado. Leer/gestionar: solo administradora (reglas Firestore).
+window.hpSubmitReport = async function(texto, meta){
+  meta = meta || {};
+  const data = {
+    texto: (texto || '').toString().slice(0, 4000),
+    tipo: meta.tipo || 'usuario',
+    vista: meta.vista || null,
+    build: (meta.build != null) ? meta.build : (typeof HP_BUILD !== 'undefined' ? HP_BUILD : null),
+    online: (meta.online != null) ? !!meta.online : navigator.onLine,
+    userAgent: meta.ua || navigator.userAgent || null,
+    uid: curUid || (auth.currentUser && auth.currentUser.uid) || null,
+    email: (auth.currentUser && auth.currentUser.email) || null,
+    estado: 'nuevo',
+    createdAt: serverTimestamp()
+  };
+  await addDoc(collection(fs, 'reportes'), data);
+};
+window.hpListReportes = async function(){
+  const snap = await getDocs(collection(fs, 'reportes'));
+  const out = []; snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+  out.sort((a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0));
+  return out;
+};
+window.hpResolveReporte = async function(id, estado){
+  await updateDoc(doc(fs, 'reportes', id), { estado: estado || 'resuelto', revisadoPor: curUid || null, fechaRevision: serverTimestamp() });
+};
+window.hpDeleteReporte = async function(id){
+  await deleteDoc(doc(fs, 'reportes', id));
+};
+
 // Auth state: show/hide overlay and user badge
 onAuthStateChanged(auth, user => {
   // Firebase ya ha resuelto el estado de sesión (haya o no usuario): lo señalamos
@@ -11190,6 +11298,65 @@ window.hpTogglePw = function() {
     if (box) box.style.display = 'block';
   }
   setTimeout(showOption, navigator.onLine ? 2000 : 900);
+})();
+</script>
+<script>
+/* Reportar errores: modal del usuario + cola sin conexión + captura automática de errores JS.
+   Los reportes se guardan en Firestore (colección 'reportes'); la administradora los ve en su
+   apartado «Errores reportados». Si no hay conexión o falla el envío, se guardan en una cola
+   local y se reintentan al recuperar la conexión, para no perder ningún reporte. */
+(function(){
+  function $id(x){return document.getElementById(x);}
+  function curView(){try{return (typeof S!=='undefined'&&S)?(S.view||null):null;}catch(e){return null;}}
+  function curBuild(){try{return (typeof HP_BUILD!=='undefined')?HP_BUILD:null;}catch(e){return null;}}
+  function queueReport(meta){try{var q=JSON.parse(localStorage.getItem('hp_reportQueue')||'[]');q.push(meta);localStorage.setItem('hp_reportQueue',JSON.stringify(q.slice(-50)));}catch(e){}}
+  window.hpFlushReportQueue=async function(){
+    if(!navigator.onLine||!window.hpSubmitReport)return;
+    var q;try{q=JSON.parse(localStorage.getItem('hp_reportQueue')||'[]');}catch(e){return;}
+    if(!q.length)return;var rest=[];
+    for(var i=0;i<q.length;i++){try{await window.hpSubmitReport(q[i].texto,q[i]);}catch(e){rest.push(q[i]);}}
+    try{localStorage.setItem('hp_reportQueue',JSON.stringify(rest));}catch(e){}
+  };
+  window.hpOpenReport=function(prefill){
+    var m=$id('hp-report-modal');if(!m)return;
+    var t=$id('hp_report_text');if(t)t.value=prefill||'';
+    var msg=$id('hp_report_msg');if(msg){msg.textContent='';msg.style.color='';}
+    var c=$id('hp_report_ctx');if(c){var v=curView();c.textContent=v?('Se enviará indicando la sección actual: '+v):'';}
+    var b=$id('hp_report_send');if(b){b.disabled=false;b.textContent='Enviar';}
+    m.style.display='flex';
+    setTimeout(function(){try{if(t)t.focus();}catch(e){}},60);
+  };
+  window.hpCloseReport=function(){var m=$id('hp-report-modal');if(m)m.style.display='none';};
+  window.hpSendReport=async function(){
+    var t=$id('hp_report_text'),msg=$id('hp_report_msg'),b=$id('hp_report_send');
+    var txt=((t&&t.value)||'').trim();
+    if(txt.length<3){if(msg){msg.style.color='#b00020';msg.textContent='Escribe un poco más de detalle, por favor.';}return;}
+    if(b){b.disabled=true;b.textContent='Enviando…';}
+    var meta={texto:txt,tipo:'usuario',vista:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
+    var ok=false;
+    if(navigator.onLine&&window.hpSubmitReport){try{await window.hpSubmitReport(txt,meta);ok=true;}catch(e){queueReport(meta);}}
+    else{queueReport(meta);}
+    if(msg){msg.style.color=ok?'#1a7f37':'#b8860b';msg.textContent=ok?'✅ ¡Gracias! Tu reporte se ha enviado.':'Guardado. Se enviará en cuanto haya conexión.';}
+    if(typeof toast==='function')toast(ok?'✅ Reporte enviado':'Reporte guardado (se enviará al reconectar)');
+    setTimeout(window.hpCloseReport,1200);
+  };
+  // Captura automática de errores de JS, para que la administradora los vea sin depender del usuario.
+  var _seen={},_autoCount=0;
+  function autoReport(text){
+    try{
+      if(_autoCount>=8)return;                 // límite por sesión: no saturar
+      var key=(text||'').slice(0,160);if(_seen[key])return;_seen[key]=1;_autoCount++;
+      var meta={texto:text,tipo:'auto',vista:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
+      if(navigator.onLine&&window.hpSubmitReport){window.hpSubmitReport(text,meta).catch(function(){queueReport(meta);});}
+      else{queueReport(meta);}
+    }catch(e){}
+  }
+  window.addEventListener('error',function(e){if(!e||!e.message)return;try{var src=e.filename?(' @ '+(''+e.filename).split('/').pop()+':'+e.lineno+':'+e.colno):'';autoReport('[JS] '+e.message+src);}catch(_){}});
+  window.addEventListener('unhandledrejection',function(e){try{var r=e&&e.reason;var m=(r&&r.message)||(''+r)||'promesa rechazada';autoReport('[Promise] '+m);}catch(_){}});
+  // Vacía la cola pendiente al cargar y al reconectar.
+  function flush(){try{if(window.hpFlushReportQueue)window.hpFlushReportQueue();}catch(e){}}
+  if(document.readyState==='complete')setTimeout(flush,2500);else window.addEventListener('load',function(){setTimeout(flush,2500);});
+  window.addEventListener('online',function(){setTimeout(flush,800);});
 })();
 </script>
 </body>
