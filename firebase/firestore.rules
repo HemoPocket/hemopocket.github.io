@@ -87,5 +87,16 @@ service cloud.firestore {
       allow read:  if isAdmin() || (hasRole() && roleData().role == 'editor');
       allow write: if false;
     }
+
+    // ── Reportes de errores / incidencias ──
+    // Cualquier usuario autenticado puede CREAR un reporte (manual o captura automática de
+    // un error de JS). Solo el administrador puede leerlos, marcarlos como resueltos o borrarlos.
+    match /reportes/{id} {
+      allow create: if request.auth != null
+                    && request.resource.data.texto is string
+                    && request.resource.data.texto.size() > 0
+                    && request.resource.data.texto.size() <= 4000;
+      allow read, update, delete: if isAdmin();
+    }
   }
 }
