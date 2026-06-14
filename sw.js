@@ -3,10 +3,16 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v100';
+const CACHE = 'hemopocket-v101';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 // pdf.min.js se auto-aloja y se precachea para que el visor de PDF funcione sin conexión.
 const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html', '/vendor/pdfjs/pdf.min.js', '/vendor/pdfjs/pdf.worker.min.js'];
+
+// Caché DURABLE: NO se borra al subir de versión. Conserva offline los assets que conviene
+// mantener aunque cambie la versión de la app: PDFs vistos, iconos y el SDK de Firebase (login).
+// El 'app shell' (HTML, pdf.min.js, worker, …) sigue en CACHE, que se refresca en cada versión.
+const ASSET = 'hemopocket-assets';
+function isShell(pathname) { return APP_SHELL.indexOf(pathname) !== -1; }
 
 // Guarda una respuesta en caché de forma segura. Si la respuesta venía de una
 // redirección (típico en Vercel para "/" e "/index.html"), la reconstruimos:
@@ -43,7 +49,7 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     Promise.all([
       caches.keys().then(keys =>
-        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        Promise.all(keys.filter(k => k !== CACHE && k !== ASSET).map(k => caches.delete(k)))
       ),
       self.clients.claim()
     ])
@@ -115,7 +121,7 @@ self.addEventListener('fetch', e => {
         if (cached) return cached;
         return fetch(req).then(resp => {
           const copy = resp.clone();
-          caches.open(CACHE).then(c => safePut(c, req, copy));
+          caches.open(ASSET).then(c => safePut(c, req, copy));   // durable: sobrevive a las actualizaciones
           return resp;
         });
       })
@@ -123,14 +129,16 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 2. Mismo origen (CSS/JS/iconos/PDFs locales): cache-first
+  // 2. Mismo origen (CSS/JS/iconos/PDFs locales): cache-first.
+  //    El app shell va a CACHE (versionada, se refresca al actualizar); el resto (PDFs de guías,
+  //    iconos…) va a la caché DURABLE, para que no se pierda offline al subir de versión.
   if (sameOrigin) {
     e.respondWith(
       caches.match(req).then(cached => {
         if (cached) return cached;
         return fetch(req).then(resp => {
           const copy = resp.clone();
-          caches.open(CACHE).then(c => safePut(c, req, copy));
+          caches.open(isShell(url.pathname) ? CACHE : ASSET).then(c => safePut(c, req, copy));
           return resp;
         }).catch(() => cached);
       })
