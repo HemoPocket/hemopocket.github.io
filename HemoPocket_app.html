@@ -922,7 +922,6 @@ const MENU=[
 {h:'INFORMACIÓN Y SINCRONIZACIÓN',items:[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
-{id:'novedades',name:'Novedades',kw:'novedades cambios changelog que hay nuevo actualizaciones version historial mejoras',new:'2026-06-14'},
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true}
 ]}
@@ -4000,7 +3999,7 @@ return `<div class="card">
 <p>HemoPocket es una <strong>herramienta de apoyo a la decisión clínica</strong> para profesionales de Hematología y Hemoterapia. Reúne en un único punto de acceso —disponible también sin conexión— los algoritmos, escalas pronósticas, calculadoras, criterios diagnósticos y guías clínicas de uso habitual, con el fin de:</p>
 <ul>
 <li><strong>Unificar criterios y terminología</strong> entre profesionales, secciones y turnos.</li>
-<li><strong>Reducir la variabilidad</strong> no justificada de la práctica clínica.</li>
+<li><strong>Reducir la variabilidad</strong> de la práctica clínica.</li>
 <li><strong>Garantizar el acceso a la versión vigente</strong> de los protocolos y de las guías de las sociedades científicas de referencia.</li>
 <li><strong>Mejorar la seguridad del paciente</strong> y agilizar la consulta en el punto de atención.</li>
 <li><strong>Apoyar la docencia</strong> y la incorporación de residentes y nuevos facultativos.</li>
@@ -4076,24 +4075,6 @@ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes();
 }
 window.hpAprobarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Aprobar esta cuenta? El usuario podrá acceder a la app.',()=>_hpDoAccion(uid,'aprobar')); else _hpDoAccion(uid,'aprobar'); };
 window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
-
-// === NOVEDADES (changelog visible para todo el equipo) ===
-VIEWS.novedades=()=>{
-const chg=(fecha,items)=>`<div class="team-card"><h3 style="margin:0 0 6px">${fecha}</h3><ul style="margin:0;padding-left:18px;line-height:1.6;font-size:13.5px">${items.map(i=>'<li>'+i+'</li>').join('')}</ul></div>`;
-return `<div class="card">
-<h2>✨ Novedades</h2>
-<p class="intro">Mejoras recientes de HemoPocket. La app se actualiza sola al abrirla con conexión; en el pie verás la versión instalada.</p>
-${chg('Junio 2026',[
- '<strong>Eri más lista:</strong> calcula el <strong>QTc (Fridericia)</strong> y entiende las preguntas aunque no estén bien estructuradas (p. ej. «5.3 de calcio con 4 de proteínas», «1.2 de creatinina, varón 75 años 70 kg»).',
- '<strong>Conversión de opioides</strong> mejorada: reconoce la vía subcutánea (IV↔SC ≈ 1:1) y, si falta algún dato, te lleva a la calculadora en vez de dar un resultado confuso.',
- '<strong>Base de preguntas frecuentes</strong> en Eri sobre todos los temas (criterios, escalas y definiciones), remitiendo siempre a la fuente.',
- '<strong>Reportar un error:</strong> botón en el pie para enviar incidencias o sugerencias; llegan al panel de la administradora.',
- '<strong>Acceso sin fricción:</strong> la app abre al instante con la última validación —sin volver a iniciar sesión en el día a día— y funciona sin conexión.',
- '<strong>Arranque</strong> siempre en la pantalla principal y actualización automática, visible y segura.'
-])}
-<p style="font-size:12px;color:var(--mut);margin-top:14px">¿Echas algo en falta o ves un fallo? Usa <strong>🐞 Reportar un error</strong> en el pie de página.</p>
-</div>`;
-};
 
 // === ERRORES REPORTADOS (solo administradora) ===
 VIEWS.reportes=()=>{
@@ -5283,7 +5264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 96;
+const HP_BUILD = 97;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
