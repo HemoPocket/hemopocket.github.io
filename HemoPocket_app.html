@@ -5189,7 +5189,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 86;
+const HP_BUILD = 87;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10400,13 +10400,18 @@ if(document.readyState!=='loading')init();
     window.location.reload();
   });
 
-  // === Comprobación de versión: INMEDIATA y VISIBLE al abrir ===
+  // === Comprobación de versión: INMEDIATA, VISIBLE y NO DESTRUCTIVA al abrir ===
   // Pide sw.js con un parámetro anti-caché (?ts=) que ningún proxy/CDN reutiliza. Si la
-  // versión publicada es más nueva que la que corre aquí (HP_BUILD), muestra el aviso y la
-  // aplica: primero por la vía ligera (que el service worker tome el control → recarga) y,
-  // si en unos segundos no lo ha hecho (proxy sirviendo un sw.js viejo), limpieza dura.
-  // HP_BUILD se define arriba junto a APP_BUILD (única fuente de verdad); ./bump.sh lo
-  // mantiene SIEMPRE igual que la versión del CACHE en sw.js.
+  // versión publicada es más nueva que la que corre aquí (HP_BUILD), muestra el aviso y deja
+  // que el service worker recoja la versión nueva y tome el control (→ recarga).
+  //
+  // IMPORTANTE (uso en el hospital): la actualización NUNCA borra la caché automáticamente.
+  // Si la red va lenta o bloqueada y la actualización no llega a completarse, simplemente se
+  // retira el aviso y se sigue usando la versión ya guardada, que funciona SIN CONEXIÓN. El
+  // borrado de caché + descarga limpia queda SOLO para la actualización manual (hpForceUpdate
+  // / "Descargar todo ahora"), bajo control del usuario, para no dejar nunca la app inservible
+  // sin conexión. HP_BUILD se define arriba junto a APP_BUILD (única fuente de verdad); ./bump.sh
+  // lo mantiene SIEMPRE igual que la versión del CACHE en sw.js.
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
@@ -10420,24 +10425,19 @@ if(document.readyState!=='loading')init();
       if(sessionStorage.getItem('hp_fr') === String(netBuild)) return; // ya intentado en esta sesión: evita bucles
       try{ sessionStorage.setItem('hp_fr', String(netBuild)); }catch(e){}
       hpShowUpdating();
-      // Vía ligera: que el service worker recoja la versión nueva y tome el control.
+      // Vía ligera y no destructiva: que el SW recoja la versión nueva y tome el control.
       try{
         var reg = await navigator.serviceWorker.getRegistration();
         if(reg){ reg.update().catch(function(){}); if(reg.waiting) reg.waiting.postMessage('skipWaiting'); }
       }catch(e){}
-      // Fallback anti-proxy: si en 3,5 s el SW no ha tomado el control, limpieza dura + recarga.
-      setTimeout(async function(){
-        if(_hpReloaded) return; // el controllerchange ya recargó
-        try{
-          var regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map(function(x){ return x.unregister(); }));
-        }catch(e){}
-        try{
-          if(window.caches){ var keys = await caches.keys(); await Promise.all(keys.map(function(k){ return caches.delete(k); })); }
-        }catch(e){}
-        // Recarga con cache-bust en la URL → fuerza al proxy/CDN a ir al origen.
-        location.replace(location.pathname + '?u=' + netBuild + (location.hash || ''));
-      }, 3500);
+      // Si en 7 s no se ha actualizado (red del hospital lenta o bloqueada), retiramos el aviso
+      // y dejamos seguir usando la versión cacheada. NO se borra nada. Se permite reintentar en
+      // el siguiente arranque (quitando la marca), sin forzar al usuario a conectarse.
+      setTimeout(function(){
+        if(_hpReloaded) return; // el controllerchange ya recargó a la versión nueva
+        var o = document.getElementById('hp-updating'); if(o && o.remove) o.remove();
+        try{ sessionStorage.removeItem('hp_fr'); }catch(e){}
+      }, 7000);
     }catch(e){}
   }
   var _hpVGlast = 0;
@@ -10954,8 +10954,8 @@ window.hpTogglePw = function() {
   }
   // Offline: el SDK falla casi al instante. Online (proxy que bloquea gstatic): damos
   // un poco más de margen a que Firebase resuelva por sí mismo antes de actuar.
-  var optDelay = navigator.onLine ? 2500 : 1200;
-  var revDelay = navigator.onLine ? 6000 : 1800;
+  var optDelay = navigator.onLine ? 2000 : 900;
+  var revDelay = navigator.onLine ? 4000 : 1500;
   function arm(){ setTimeout(showOption, optDelay); setTimeout(reveal, revDelay); }
   if (document.readyState === 'complete') arm();
   else window.addEventListener('load', arm);
