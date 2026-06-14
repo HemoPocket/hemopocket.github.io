@@ -4369,6 +4369,7 @@ let _viewerParams=null;
 // Visor PDF auto-alojado en el propio dominio (mismo origen): elimina la dependencia
 // de un CDN externo y permite que el service worker lo cachee para uso sin conexión.
 const PDFJS_URL='./vendor/pdfjs/pdf.min.js';
+const PDFJS_WORKER_URL='./vendor/pdfjs/pdf.worker.min.js';
 
 function ensurePDFJSLoaded(){
 if(window.pdfjsLib)return Promise.resolve(true);
@@ -4376,7 +4377,7 @@ if(_pdfjsLoadPromise)return _pdfjsLoadPromise;
 _pdfjsLoadPromise=new Promise(resolve=>{
 const s=document.createElement('script');
 s.src=PDFJS_URL;
-s.onload=()=>resolve(true);
+s.onload=()=>{try{if(window.pdfjsLib&&pdfjsLib.GlobalWorkerOptions)pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER_URL;}catch(e){}resolve(true)};
 s.onerror=()=>{_pdfjsLoadPromise=null;resolve(false)};
 document.head.appendChild(s);
 });
@@ -5264,7 +5265,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 98;
+const HP_BUILD = 99;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
