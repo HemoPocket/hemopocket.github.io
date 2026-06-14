@@ -517,7 +517,7 @@ body{font-size:13px}
         <label class="hp-login-label" for="hp_reg_pw2">Repite la contraseña</label>
         <input class="hp-login-input" id="hp_reg_pw2" type="password" autocomplete="new-password">
       </div>
-      <label style="display:flex; gap:8px; align-items:flex-start; font-size:0.78rem; line-height:1.45; margin:8px 0 4px; text-align:left; color:#333">
+      <label style="display:flex; gap:8px; align-items:flex-start; font-size:0.78rem; line-height:1.45; margin:8px 0 4px; text-align:left; color:var(--txt)">
         <input type="checkbox" id="hp_reg_terms" style="margin-top:3px; flex:0 0 auto">
         <span>Acepto el <a onclick="abrirAvisoLegal()" style="color:#c41e3a; text-decoration:underline; cursor:pointer">Aviso Legal y la Política de Privacidad</a>, y entiendo que HemoPocket es una <strong>herramienta de apoyo</strong> a la consulta, que <strong>no sustituye</strong> el juicio del facultativo ni los protocolos del centro, y que <strong>las decisiones clínicas son responsabilidad del médico responsable</strong>.</span>
       </label>
@@ -531,7 +531,7 @@ body{font-size:13px}
 <div id="hp-pending-overlay" role="dialog" aria-modal="true" aria-label="Cuenta pendiente de aprobación" style="display:none; position:fixed; inset:0; z-index:20001; align-items:center; justify-content:center; padding:20px; background:var(--bg)">
   <div class="hp-login-card">
     <div class="hp-login-title">Cuenta pendiente</div>
-    <p style="font-size:0.9rem; line-height:1.6; color:#333; text-align:center; margin:12px 0">Gracias por registrarte<span id="hp_pending_name"></span>. Tu cuenta está <strong>pendiente de aprobación</strong> por el administrador. Cuando se valide recibirás acceso y podrás entrar con tu correo y contraseña.</p>
+    <p style="font-size:0.9rem; line-height:1.6; color:var(--txt); text-align:center; margin:12px 0">Gracias por registrarte<span id="hp_pending_name"></span>. Tu cuenta está <strong>pendiente de aprobación</strong> por el administrador. Cuando se valide recibirás acceso y podrás entrar con tu correo y contraseña.</p>
     <button class="hp-login-btn" onclick="hpRecheckAccess()">Comprobar de nuevo</button>
     <button class="hp-login-forgot" onclick="hpSignOut()">Cerrar sesión</button>
   </div>
@@ -590,14 +590,14 @@ body{font-size:13px}
 <button class="install-bar-x" onclick="hpInstallDismiss()" aria-label="Descartar">✕</button>
 </div>
 <div id="content"></div>
-<footer class="app-footer" style="text-align:center; padding:0.8rem; font-size:0.75rem; color:#666; border-top:1px solid #eee; margin-top:1rem;">
+<footer class="app-footer" style="text-align:center; padding:0.8rem; font-size:0.75rem; color:var(--mut); border-top:1px solid var(--bd); margin-top:1rem;">
   Herramienta de apoyo clínico<br>
   No sustituye protocolos oficiales
   <br>
-  <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
-  <span style="color:#ddd"> · </span>
-  <button onclick="hpOpenReport()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">🐞 Reportar un error</button>
-  <br><span id="app-build-stamp" style="color:#bbb; font-size:0.7rem"></span>
+  <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
+  <span style="color:var(--bd)"> · </span>
+  <button onclick="hpOpenReport()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">🐞 Reportar un error</button>
+  <br><span id="app-build-stamp" style="color:var(--mut); opacity:.7; font-size:0.7rem"></span>
 </footer>
 </main>
 </div>
@@ -5264,7 +5264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 97;
+const HP_BUILD = 98;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -7150,14 +7150,16 @@ const CHAT_CALC_CARD=CHAT_CARD+";border-left-color:#0d9488";
 function chatCalcRouter(view,emoji,title,hint){return `<div style="${CHAT_CALC_CARD}"><div style="${CHAT_TTL}">${emoji} ${chatEsc(title)}</div><div style="font-size:13px;color:var(--txt);line-height:1.5">${hint}</div><button onclick="closeChat();go('${view}')" style="${CHAT_LINK}">📍 Abrir calculadora →</button></div>`;}
 function chatCalcCard(emoji,title,view,mainHtml,subHtml){return `<div style="${CHAT_CALC_CARD}"><div style="${CHAT_TTL}">${emoji} ${chatEsc(title)}</div><div style="font-size:13.5px;line-height:1.55">${mainHtml}</div>${subHtml?`<div style="font-size:12px;color:var(--mut);margin-top:5px">${subHtml}</div>`:''}<button onclick="closeChat();go('${view}')" style="${CHAT_LINK}">📍 Abrir calculadora →</button></div>`;}
 function calcioInline(s,toks){
-  if(!(/calcio/.test(s)&&/(corregi|payne|album|proteina)/.test(s)))return null;
+  // 'pt' / 'ptot' = proteínas totales (abreviatura de laboratorio).
+  const isProt=t=>/^proteina/.test(t)||t==='pt'||t==='ptot'||t==='ptotales'||t==='prot';
+  if(!(/calcio/.test(s)&&/(corregi|payne|album|proteina|\bpt\b|\bptot\b)/.test(s)))return null;
   let ca=null;
   // "8.5 calcio" (valor pegado justo antes, sin «de»), salvo que ese número sea de otra etiqueta.
   const ci=toks.indexOf('calcio');
-  if(ci>0){const pv=_hpVal(toks[ci-1]),prevTok=ci>=2?toks[ci-2]:'';if(pv!=null&&pv>=3&&pv<=20&&!/^(album|proteina)/.test(prevTok||''))ca=pv;}
+  if(ci>0){const pv=_hpVal(toks[ci-1]),prevTok=ci>=2?toks[ci-2]:'';if(pv!=null&&pv>=3&&pv<=20&&!/^(album|proteina)/.test(prevTok||'')&&prevTok!=='pt'&&prevTok!=='ptot')ca=pv;}
   if(ca==null)ca=_hpNearLabel(toks,t=>t==='calcio',5);
   const alb=_hpNearLabel(toks,t=>/^album/.test(t),4);
-  const prot=_hpNearLabel(toks,t=>/^proteina/.test(t),4);
+  const prot=_hpNearLabel(toks,isProt,4);
   if(ca==null||ca<3||ca>20||(alb==null&&prot==null))return chatCalcRouter('cacorr','🧪','Calcio corregido','Dame el <strong>calcio total</strong> y la <strong>albúmina</strong> (o proteínas) y te lo calculo. Mientras, te abro la calculadora.');
   let corr,formula,src;
   if(alb!=null&&alb>0){corr=ca+0.8*(4.0-alb);formula=`${_hpFmt(ca,2)} + 0,8 × (4,0 − ${_hpFmt(alb,2)})`;src=`albúmina ${_hpFmt(alb,2)} g/dL`;}
@@ -10723,10 +10725,10 @@ if(document.readyState!=='loading')init();
       if(document.getElementById('hp-updating')) return;
       var o = document.createElement('div');
       o.id = 'hp-updating';
-      o.setAttribute('style','position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#eef1f5;color:#c41e3a;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px');
-      o.innerHTML = '<div style="width:42px;height:42px;border:4px solid #f0d0d5;border-top-color:#c41e3a;border-radius:50%;animation:hpspin .8s linear infinite"></div>'
+      o.setAttribute('style','position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg,#eef1f5);color:var(--c1,#c41e3a);font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:24px');
+      o.innerHTML = '<div style="width:42px;height:42px;border:4px solid var(--bd,#f0d0d5);border-top-color:var(--c1,#c41e3a);border-radius:50%;animation:hpspin .8s linear infinite"></div>'
         + '<div style="font-size:1.05rem;font-weight:700">Actualizando HemoPocket…</div>'
-        + '<div style="font-size:.85rem;color:#666">Cargando la última versión</div>'
+        + '<div style="font-size:.85rem;color:var(--mut,#666)">Cargando la última versión</div>'
         + '<style>@keyframes hpspin{to{transform:rotate(360deg)}}</style>';
       (document.body || document.documentElement).appendChild(o);
     }catch(e){}
@@ -10830,50 +10832,50 @@ if(document.readyState!=='loading')init();
   </div>
 </div>
 <div id="modal-aviso-legal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true">
-  <div style="background:white; border-radius:12px; padding:1.5rem; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
-    <button id="aviso-cerrar-x" onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:#666;" aria-label="Cerrar">✕</button>
+  <div style="background:var(--card); color:var(--txt); border-radius:12px; padding:1.5rem; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
+    <button id="aviso-cerrar-x" onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--mut);" aria-label="Cerrar">✕</button>
 
     <h2 style="color:#c41e3a; margin-bottom:1rem; font-size:1.1rem;">⚖️ Aviso Legal — HemoPocket</h2>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Autoría y titularidad</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">HemoPocket es una aplicación desarrollada de forma independiente por <strong>María Teresa Busnego Barreto</strong>, facultativa especialista en Hematología y Hemoterapia. Constituye un proyecto personal de innovación clínica, no vinculado a ningún encargo institucional. No es un producto oficial del Hospital Universitario Nuestra Señora de Candelaria ni del Servicio Canario de la Salud.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">HemoPocket es una aplicación desarrollada de forma independiente por <strong>María Teresa Busnego Barreto</strong>, facultativa especialista en Hematología y Hemoterapia. Constituye un proyecto personal de innovación clínica, no vinculado a ningún encargo institucional. No es un producto oficial del Hospital Universitario Nuestra Señora de Candelaria ni del Servicio Canario de la Salud.</p>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Propiedad intelectual</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">El diseño, la estructura, la interfaz, el código fuente, los textos originales, las calculadoras, los algoritmos y la organización y curación de los contenidos de HemoPocket constituyen una obra protegida por el Real Decreto Legislativo 1/1996, de 12 de abril (Texto Refundido de la Ley de Propiedad Intelectual), incluida la protección específica de los programas de ordenador (arts. 95 y siguientes), y son propiedad exclusiva de la autora.</p>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Queda <strong>expresamente prohibido</strong>, sin autorización previa, expresa y por escrito de la autora:</p>
-    <ul style="font-size:0.85rem; line-height:1.7; color:#333; padding-left:1.2rem;">
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">El diseño, la estructura, la interfaz, el código fuente, los textos originales, las calculadoras, los algoritmos y la organización y curación de los contenidos de HemoPocket constituyen una obra protegida por el Real Decreto Legislativo 1/1996, de 12 de abril (Texto Refundido de la Ley de Propiedad Intelectual), incluida la protección específica de los programas de ordenador (arts. 95 y siguientes), y son propiedad exclusiva de la autora.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">Queda <strong>expresamente prohibido</strong>, sin autorización previa, expresa y por escrito de la autora:</p>
+    <ul style="font-size:0.85rem; line-height:1.7; color:var(--txt); padding-left:1.2rem;">
       <li>Reproducir, copiar o <strong>clonar</strong> total o parcialmente la aplicación o su contenido.</li>
       <li>Distribuir, comunicar públicamente, <strong>alojar o publicar copias</strong> de la aplicación en otros dominios, servidores o plataformas.</li>
       <li>Modificar, adaptar, traducir o crear obras derivadas.</li>
       <li>Realizar <strong>ingeniería inversa</strong>, descompilar o extraer de forma automatizada (<em>scraping</em>) el código, los textos o los documentos.</li>
       <li>Cualquier uso comercial o lucrativo.</li>
     </ul>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">La infracción de estos derechos podrá dar lugar a las acciones civiles y penales previstas en la legislación vigente. Los documentos y guías de sociedades científicas incorporados son propiedad de sus respectivos titulares y se ponen a disposición únicamente con fines de consulta profesional; los derechos reservados por la autora se refieren a la aplicación y a su contenido original.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">La infracción de estos derechos podrá dar lugar a las acciones civiles y penales previstas en la legislación vigente. Los documentos y guías de sociedades científicas incorporados son propiedad de sus respectivos titulares y se ponen a disposición únicamente con fines de consulta profesional; los derechos reservados por la autora se refieren a la aplicación y a su contenido original.</p>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Revisión de contenido clínico</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Los contenidos clínicos han sido revisados por profesionales del Servicio de Hematología y Hemoterapia del HUNSC, quienes participan a título personal como <strong>revisores clínicos</strong>. Su participación se limita a la validación del contenido y no implica coautoría sobre la aplicación ni vinculación institucional de la misma.</p>
-    <ul id="aviso-revisores" style="font-size:0.85rem; line-height:1.8; color:#333; padding-left:1.2rem;">
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">Los contenidos clínicos han sido revisados por profesionales del Servicio de Hematología y Hemoterapia del HUNSC, quienes participan a título personal como <strong>revisores clínicos</strong>. Su participación se limita a la validación del contenido y no implica coautoría sobre la aplicación ni vinculación institucional de la misma.</p>
+    <ul id="aviso-revisores" style="font-size:0.85rem; line-height:1.8; color:var(--txt); padding-left:1.2rem;">
       <!-- Lista generada automáticamente desde DEFAULT_COLLABORATORS (fuente única).
            No editar a mano aquí: actualizar el equipo en DEFAULT_COLLABORATORS. -->
       <li>Cargando equipo de revisores…</li>
     </ul>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Fuentes y actualización</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">El contenido se basa en guías clínicas de organismos reconocidos (ELN, ESMO, NCCN, SEHH y otros) y en literatura científica de acceso público. La autora se compromete a mantener el contenido actualizado, si bien no garantiza la concordancia en tiempo real con las últimas publicaciones. El profesional sanitario es responsable de verificar la vigencia de la información antes de aplicarla.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">El contenido se basa en guías clínicas de organismos reconocidos (ELN, ESMO, NCCN, SEHH y otros) y en literatura científica de acceso público. La autora se compromete a mantener el contenido actualizado, si bien no garantiza la concordancia en tiempo real con las últimas publicaciones. El profesional sanitario es responsable de verificar la vigencia de la información antes de aplicarla.</p>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Limitación de responsabilidad</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Esta herramienta es un apoyo a la decisión clínica. No sustituye el juicio del facultativo responsable, los protocolos oficiales del centro, ni la ficha técnica de los medicamentos. La autora no asume responsabilidad por decisiones clínicas derivadas del uso de esta aplicación.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">Esta herramienta es un apoyo a la decisión clínica. No sustituye el juicio del facultativo responsable, los protocolos oficiales del centro, ni la ficha técnica de los medicamentos. La autora no asume responsabilidad por decisiones clínicas derivadas del uso de esta aplicación.</p>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Uso permitido</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">HemoPocket se ofrece para consulta personal y gratuita por parte de profesionales sanitarios, en el ejercicio de su actividad asistencial o formativa. Las <strong>credenciales de acceso son personales e intransferibles</strong>. Este uso no implica la cesión de derecho alguno sobre la aplicación ni sobre su contenido. Cualquier uso distinto —en particular la redistribución, el alojamiento de copias o el uso comercial— requiere autorización expresa y por escrito de la autora.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">HemoPocket se ofrece para consulta personal y gratuita por parte de profesionales sanitarios, en el ejercicio de su actividad asistencial o formativa. Las <strong>credenciales de acceso son personales e intransferibles</strong>. Este uso no implica la cesión de derecho alguno sobre la aplicación ni sobre su contenido. Cualquier uso distinto —en particular la redistribución, el alojamiento de copias o el uso comercial— requiere autorización expresa y por escrito de la autora.</p>
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Privacidad y protección de datos</h3>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">HemoPocket <strong>no trata datos identificativos de pacientes</strong>. No solicita ni almacena nombre, número de historia clínica, DNI ni diagnóstico nominativo. Las calculadoras funcionan únicamente con parámetros clínicos <strong>no identificativos</strong> (edad, sexo, peso, talla, creatinina), que se guardan <strong>solo en el propio dispositivo</strong> y <strong>no se transmiten</strong> a ningún servidor.</p>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;">Los únicos datos asociados a la cuenta son el <strong>correo electrónico y el identificador de usuario</strong> (para el inicio de sesión) y las <strong>preferencias de uso</strong> (favoritos y elementos recientes), que se sincronizan entre los dispositivos del propio profesional. El servicio de autenticación y la base de datos están configurados en <strong>región europea</strong> y el tráfico viaja siempre cifrado (HTTPS). La aplicación <strong>no incorpora analítica de uso ni telemetría</strong> hacia terceros.</p>
-    <p style="font-size:0.85rem; line-height:1.6; color:#333;"><strong>Recomendación de uso:</strong> no introduzca datos identificativos de pacientes en ningún campo de la aplicación. Para registrar información clínica del paciente, utilice siempre la historia clínica electrónica corporativa.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">HemoPocket <strong>no trata datos identificativos de pacientes</strong>. No solicita ni almacena nombre, número de historia clínica, DNI ni diagnóstico nominativo. Las calculadoras funcionan únicamente con parámetros clínicos <strong>no identificativos</strong> (edad, sexo, peso, talla, creatinina), que se guardan <strong>solo en el propio dispositivo</strong> y <strong>no se transmiten</strong> a ningún servidor.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">Los únicos datos asociados a la cuenta son el <strong>correo electrónico y el identificador de usuario</strong> (para el inicio de sesión) y las <strong>preferencias de uso</strong> (favoritos y elementos recientes), que se sincronizan entre los dispositivos del propio profesional. El servicio de autenticación y la base de datos están configurados en <strong>región europea</strong> y el tráfico viaja siempre cifrado (HTTPS). La aplicación <strong>no incorpora analítica de uso ni telemetría</strong> hacia terceros.</p>
+    <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);"><strong>Recomendación de uso:</strong> no introduzca datos identificativos de pacientes en ningún campo de la aplicación. Para registrar información clínica del paciente, utilice siempre la historia clínica electrónica corporativa.</p>
 
     <div id="aviso-aceptar-wrap" style="display:none; margin-top:1.5rem; padding-top:1rem; border-top:1px solid #f0d0d5; text-align:center;">
-      <p style="font-size:0.85rem; line-height:1.6; color:#333; margin-bottom:0.8rem;">Para usar HemoPocket, confirme que ha leído y acepta este Aviso Legal y que utilizará la aplicación como <strong>herramienta de apoyo</strong>, sin que sustituya el juicio clínico ni los protocolos oficiales del centro.</p>
+      <p style="font-size:0.85rem; line-height:1.6; color:var(--txt); margin-bottom:0.8rem;">Para usar HemoPocket, confirme que ha leído y acepta este Aviso Legal y que utilizará la aplicación como <strong>herramienta de apoyo</strong>, sin que sustituya el juicio clínico ni los protocolos oficiales del centro.</p>
       <button onclick="aceptarLegal()" style="background:#c41e3a; color:#fff; border:none; border-radius:8px; padding:0.6rem 1.4rem; font-size:0.9rem; font-weight:600; cursor:pointer;">He leído y acepto</button>
     </div>
 
