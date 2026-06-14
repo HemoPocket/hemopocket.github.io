@@ -5189,7 +5189,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 91;
+const HP_BUILD = 92;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6922,11 +6922,13 @@ const OPIO_NLP=[
 ];
 function opioRouteAt(s){
   if(/transdermic|parche| td /.test(s))return 'td';
-  if(/endovenos|intravenos|subcutane|parenteral| iv | ev | sc | im /.test(s))return 'iv';
+  if(/subcutane| sc /.test(s))return 'sc';
+  if(/endovenos|intravenos|parenteral| iv | ev | im /.test(s))return 'iv';
   if(/ oral | vo | boca |comprimid|capsul|sublingual/.test(s))return 'vo';
   return null;
 }
 function opioPick(o,route){
+  if(route==='sc')route='iv';   // subcutáneo ≈ intravenoso (parenteral, ≈1:1) para el mismo opioide
   if(route==='td'&&o.td)return o.td;
   if(route==='iv'&&o.iv)return o.iv;
   if(route==='vo'&&o.vo)return o.vo;
@@ -6944,29 +6946,53 @@ function opioInline(q){
   if(!drugs.length)return null;drugs.sort((a,b)=>a.pos-b.pos);
   const dm=s.match(/(\d+(?:[.,]\d+)?)/);if(!dm)return null;
   const dose=parseFloat(dm[1].replace(',','.'));if(!(dose>0))return null;
-  let fromKey,toKey;
+  let fromKey,toKey,routeChanged=false;
   if(drugs.length===1){
     const o=drugs[0].o,dp=drugs[0].pos,hits=[];
-    [['td',/transdermic|parche| td /g],['iv',/endovenos|intravenos|subcutane|parenteral| iv | ev | sc | im /g],['vo',/ oral | vo | boca |comprimid|capsul|sublingual/g]]
+    [['td',/transdermic|parche| td /g],['sc',/subcutane| sc /g],['iv',/endovenos|intravenos|parenteral| iv | ev | im /g],['vo',/ oral | vo | boca |comprimid|capsul|sublingual/g]]
       .forEach(([r,re])=>{let m;while((m=re.exec(s)))hits.push({r,pos:m.index});});
     const uniq=[];hits.forEach(h=>{if(!uniq.some(u=>u.r===h.r))uniq.push(h);});
     if(uniq.length<2)return null;   // p.ej. solo "morfina oral" sin vía destino → ambiguo
     const src=uniq.slice().sort((a,b)=>Math.abs(a.pos-dp)-Math.abs(b.pos-dp))[0];
     const dst=uniq.find(u=>u.r!==src.r);
+    routeChanged=true;
     fromKey=opioPick(o,src.r);toKey=opioPick(o,dst.r);
   }else{
     const rA=opioRouteAt(' '+s.slice(drugs[0].pos,drugs[0].pos+24)+' ');
     const rB=opioRouteAt(' '+s.slice(drugs[1].pos,drugs[1].pos+24)+' ');
     fromKey=opioPick(drugs[0].o,rA);toKey=opioPick(drugs[1].o,rB);
   }
-  if(!fromKey||!toKey||fromKey===toKey)return null;
+  if(!fromKey||!toKey)return null;
+  if(fromKey===toKey){
+    // Mismo opioide y dos vías parenterales equivalentes (IV↔SC) → misma dosis (≈1:1).
+    if(routeChanged&&/_iv$/.test(fromKey)){const mme=opioMME(fromKey,dose);return {dose,fromKey,toKey,mme,toDose:dose,isRot:false,meta:false,sameDose:true};}
+    return null;   // misma vía exacta: nada que convertir
+  }
   const mme=opioMME(fromKey,dose),toDose=opioDoseFromMME(toKey,mme);
   if(!isFinite(toDose)||toDose<=0)return null;
   return {dose,fromKey,toKey,mme,toDose,isRot:fromKey.split('_')[0]!==toKey.split('_')[0],meta:fromKey==='meta_vo'||toKey==='meta_vo'};
 }
+// ¿menciona un opioide con intención de conversión? (para redirigir a la calculadora si no se pudo calcular)
+function chatOpioidIntent(q){
+  const s=' '+chatNormCalc(q)+' ';
+  if(!/(morfina|oxicodona|fentanil|tramadol|tapentadol|metadona|hidromorfona|buprenorfina|codeina)/.test(s))return false;
+  return /(cuant|equival|convert|convier|conversi|rota|rotar|pasar|paso|seria|sale|corresponde|\bmme\b| a | en |subcutane|transdermic|parche| oral | vo | iv | ev | sc | im )/.test(s);
+}
 function opioInlineCard(r){
   const fU=opioUnitMin(r.fromKey),tU=opioUnitMin(r.toKey);
   let main,note;
+  if(r.sameDose){
+    main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong style="color:var(--c1)">${fmtOpioNum(r.toDose)} ${tU}</strong> por vía subcutánea.`;
+    note='La vía intravenosa y la subcutánea se consideran equivalentes (≈ 1:1) para el mismo opioide; ajustar según la respuesta clínica.';
+    const metaW0='';
+    return `<div style="${CHAT_CARD};border-left-color:#b91c1c">
+    <div style="${CHAT_TTL}">🧮 Conversión de opioides</div>
+    <div style="font-size:13.5px;line-height:1.55">${main}</div>
+    <div style="font-size:12px;color:var(--mut);margin-top:5px">≈ <strong>${fmtOpioNum(r.mme)} MME/día</strong> de morfina oral.</div>
+    <div style="font-size:12px;color:var(--txt);margin-top:6px;line-height:1.5">${note}</div>${metaW0}
+    <button onclick="closeChat();go('opioides')" style="${CHAT_LINK}">📍 Abrir calculadora de opioides →</button>
+  </div>`;
+  }
   if(r.isRot){
     main=`${chatEsc(opioName(r.fromKey))} <strong>${fmtOpioNum(r.dose)} ${fU}</strong> ≈ <strong style="color:var(--c1)">${fmtOpioNum(r.toDose)} ${tU}</strong> de ${chatEsc(opioName(r.toKey))}.`;
     note='Ajustar según la respuesta clínica y la dosis de rescate.';
@@ -7383,6 +7409,10 @@ function chatSend(preset){
   if(!_chatBase)_chatBase=chatBuildBase();
   let oi=null;try{oi=opioInline(q);}catch(e){oi=null;}
   if(oi){chatPushHTML(`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">${opioInlineCard(oi)}</div></div>`);return;}
+  // Menciona un opioide con intención de conversión pero no se pudo calcular (faltan datos o vía
+  // poco habitual): redirige a la calculadora de opioides en vez de caer en una búsqueda sin sentido.
+  let oint=false;try{oint=chatOpioidIntent(q);}catch(e){oint=false;}
+  if(oint){chatPushHTML(`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">${chatCalcRouter('opioides','🧮','Conversión de opioides','Para el cálculo dime el opioide de <strong>origen</strong> y <strong>destino</strong> con la <strong>dosis</strong> y la <strong>vía</strong> — p. ej. «120 mg de morfina oral a oxicodona» o «fentanilo 25 µg/h en parche a morfina oral». Te abro la calculadora.')}</div></div>`);return;}
   let cc=null;try{cc=chatCalc(q);}catch(e){cc=null;}
   if(cc){chatPushHTML(`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">${cc}</div></div>`);return;}
   // memoria de contexto: recuerda la enfermedad mencionada para poder seguir la conversación
