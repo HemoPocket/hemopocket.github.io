@@ -5252,7 +5252,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 93;
+const HP_BUILD = 94;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11120,6 +11120,7 @@ window.hpSubmitReport = async function(texto, meta){
     texto: (texto || '').toString().slice(0, 4000),
     tipo: meta.tipo || 'usuario',
     vista: meta.vista || null,
+    vistaId: meta.vistaId || null,
     build: (meta.build != null) ? meta.build : (typeof HP_BUILD !== 'undefined' ? HP_BUILD : null),
     online: (meta.online != null) ? !!meta.online : navigator.onLine,
     userAgent: meta.ua || navigator.userAgent || null,
@@ -11308,6 +11309,14 @@ window.hpTogglePw = function() {
 (function(){
   function $id(x){return document.getElementById(x);}
   function curView(){try{return (typeof S!=='undefined'&&S)?(S.view||null):null;}catch(e){return null;}}
+  // Nombre legible de la sección (p. ej. 'nf' → 'Algoritmo de neutropenia febril').
+  function curViewName(){
+    var id=curView();if(!id)return null;
+    if(id==='home')return 'Inicio';
+    if(id==='viewer')return 'Visor de guía (PDF)';
+    try{if(typeof getAll==='function'){var it=(getAll()||[]).find(function(x){return x.id===id;});if(it&&it.name)return it.name;}}catch(e){}
+    return id;
+  }
   function curBuild(){try{return (typeof HP_BUILD!=='undefined')?HP_BUILD:null;}catch(e){return null;}}
   function queueReport(meta){try{var q=JSON.parse(localStorage.getItem('hp_reportQueue')||'[]');q.push(meta);localStorage.setItem('hp_reportQueue',JSON.stringify(q.slice(-50)));}catch(e){}}
   window.hpFlushReportQueue=async function(){
@@ -11321,7 +11330,7 @@ window.hpTogglePw = function() {
     var m=$id('hp-report-modal');if(!m)return;
     var t=$id('hp_report_text');if(t)t.value=prefill||'';
     var msg=$id('hp_report_msg');if(msg){msg.textContent='';msg.style.color='';}
-    var c=$id('hp_report_ctx');if(c){var v=curView();c.textContent=v?('Se enviará indicando la sección actual: '+v):'';}
+    var c=$id('hp_report_ctx');if(c){var v=curViewName();c.textContent=v?('Se enviará indicando la sección actual: '+v):'';}
     var b=$id('hp_report_send');if(b){b.disabled=false;b.textContent='Enviar';}
     m.style.display='flex';
     setTimeout(function(){try{if(t)t.focus();}catch(e){}},60);
@@ -11332,7 +11341,7 @@ window.hpTogglePw = function() {
     var txt=((t&&t.value)||'').trim();
     if(txt.length<3){if(msg){msg.style.color='#b00020';msg.textContent='Escribe un poco más de detalle, por favor.';}return;}
     if(b){b.disabled=true;b.textContent='Enviando…';}
-    var meta={texto:txt,tipo:'usuario',vista:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
+    var meta={texto:txt,tipo:'usuario',vista:curViewName(),vistaId:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
     var ok=false;
     if(navigator.onLine&&window.hpSubmitReport){try{await window.hpSubmitReport(txt,meta);ok=true;}catch(e){queueReport(meta);}}
     else{queueReport(meta);}
@@ -11346,7 +11355,7 @@ window.hpTogglePw = function() {
     try{
       if(_autoCount>=8)return;                 // límite por sesión: no saturar
       var key=(text||'').slice(0,160);if(_seen[key])return;_seen[key]=1;_autoCount++;
-      var meta={texto:text,tipo:'auto',vista:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
+      var meta={texto:text,tipo:'auto',vista:curViewName(),vistaId:curView(),build:curBuild(),online:navigator.onLine,ua:navigator.userAgent,ts:Date.now()};
       if(navigator.onLine&&window.hpSubmitReport){window.hpSubmitReport(text,meta).catch(function(){queueReport(meta);});}
       else{queueReport(meta);}
     }catch(e){}
