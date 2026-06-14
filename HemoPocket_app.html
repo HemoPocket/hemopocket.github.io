@@ -952,7 +952,8 @@ if(it.admin&&!isAdminUI)return;
 if(it.sub){inSub=true;h+=`<div class="menu-sub">${it.name}</div>`;return}
 const isFav=S.favs.includes(it.id);
 const isNew=it.new && isRecentlyNew(it.new);
-h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${it.name}</span>${isNew?'<span class="tag-new">nuevo</span>':''}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
+const repBadge=(it.id==='reportes'&&window._hpRepNew)?`<span class="tag-new" style="background:#c41e3a" title="reportes sin resolver">${window._hpRepNew}</span>`:'';
+h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${it.name}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
 });
 h+='</div></div>';
 });
@@ -4143,6 +4144,7 @@ if(!nuevos.length) h+='<div class="team-empty">No hay reportes nuevos. 🎉</div
 nuevos.forEach(r=>{ h+=repCard(r); });
 if(hechos.length){ h+='<h3 style="margin-top:18px">Resueltos ('+hechos.length+')</h3>'; hechos.forEach(r=>{ h+=repCard(r); }); }
 box.innerHTML=h;
+window._hpRepNew=nuevos.length; if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||'');
 };
 async function _hpRepAccion(id,acc){
 try{
@@ -4325,7 +4327,17 @@ if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&(v.indexOf('g_')===0||v==='sync'||v==='solicitudes'))go(v)};
+window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&(v.indexOf('g_')===0||v==='sync'||v==='solicitudes'||v==='reportes'))go(v);if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();};
+// Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
+window.hpUpdateRepBadge=async function(){
+  try{
+    if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){window._hpRepNew=0;return;}
+    if(!navigator.onLine||!window.hpListReportes)return;
+    const list=await window.hpListReportes();
+    window._hpRepNew=list.filter(r=>r.estado!=='resuelto').length;
+    if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  }catch(e){}
+};
 
 // Subir una guía a una sección (solo editor de esa sección o admin).
 window.hcUpload=function(section,subtypeId){
@@ -5271,7 +5283,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 95;
+const HP_BUILD = 96;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -7158,7 +7170,11 @@ function chatCalcRouter(view,emoji,title,hint){return `<div style="${CHAT_CALC_C
 function chatCalcCard(emoji,title,view,mainHtml,subHtml){return `<div style="${CHAT_CALC_CARD}"><div style="${CHAT_TTL}">${emoji} ${chatEsc(title)}</div><div style="font-size:13.5px;line-height:1.55">${mainHtml}</div>${subHtml?`<div style="font-size:12px;color:var(--mut);margin-top:5px">${subHtml}</div>`:''}<button onclick="closeChat();go('${view}')" style="${CHAT_LINK}">📍 Abrir calculadora →</button></div>`;}
 function calcioInline(s,toks){
   if(!(/calcio/.test(s)&&/(corregi|payne|album|proteina)/.test(s)))return null;
-  const ca=_hpNearLabel(toks,t=>t==='calcio',5);
+  let ca=null;
+  // "8.5 calcio" (valor pegado justo antes, sin «de»), salvo que ese número sea de otra etiqueta.
+  const ci=toks.indexOf('calcio');
+  if(ci>0){const pv=_hpVal(toks[ci-1]),prevTok=ci>=2?toks[ci-2]:'';if(pv!=null&&pv>=3&&pv<=20&&!/^(album|proteina)/.test(prevTok||''))ca=pv;}
+  if(ca==null)ca=_hpNearLabel(toks,t=>t==='calcio',5);
   const alb=_hpNearLabel(toks,t=>/^album/.test(t),4);
   const prot=_hpNearLabel(toks,t=>/^proteina/.test(t),4);
   if(ca==null||ca<3||ca>20||(alb==null&&prot==null))return chatCalcRouter('cacorr','🧪','Calcio corregido','Dame el <strong>calcio total</strong> y la <strong>albúmina</strong> (o proteínas) y te lo calculo. Mientras, te abro la calculadora.');
@@ -7530,10 +7546,26 @@ const CHAT_FAQ=[
   {v:'opioides',t:'Conversión de opioides',rx:/tabla.*opioides|equivalencia.*opioides|factor.*conversion.*opioide|conversion.*opioide/,
    a:'La calculadora convierte entre opioides usando <strong>equivalentes de morfina (MME)</strong>. También puedes pedírmelo directo (p. ej. «120 mg de morfina oral a oxicodona»).'}
 ];
+// Fuente / referencia de cada FAQ (por la vista a la que enlaza). Se muestra si existe.
+const CHAT_FAQ_SRC={
+  nf:'Guías ECIL · ASCO/IDSA',mascc:'MASCC (Klastersky)',ifi:'EORTC/MSGERC',
+  plasmic:'PLASMIC (Bendapudi 2017)',tma_dif:'ISTH',cid:'ISTH (score CID)',tt:'4T (Lo/Warkentin)',
+  wells:'Wells',hb:'HAS-BLED',isthbat:'ISTH-BAT',crs:'ASTCT 2019',icans:'ASTCT 2019',
+  trans_ch:'PBM · umbral restrictivo',trans_pq:'Guías de transfusión de plaquetas',
+  eln:'ELN 2022',eln24:'ELN 2024',ferrara:'Ferrara 2013',nmp_dx:'OMS 2022',
+  ipssr:'IPSS-R (Greenberg 2012)',sokal:'Sokal',dipss:'DIPSS',mipss70:'MIPSS70',
+  imwg:'IMWG 2014',riss:'R-ISS (IMWG)',ipsswm:'IPSS-WM',
+  ripi:'R-IPI',flipi:'FLIPI',mipi:'MIPI',ips:'IPS (Hasenclever)',aa:'Ann Arbor (Lugano)',
+  llc_dx:'iwCLL 2018',cllipi:'CLL-IPI',binet_rai:'Binet / Rai',
+  citoclas:'ICC / OMS 2022',qtc:'Fridericia',crcl:'Cockcroft-Gault',cacorr:'Payne',
+  bsa:'Mosteller / DuBois',cb:'Cairo-Bishop',light:'Criterios de Light'
+};
 function chatFaqCard(f){
+  const src=CHAT_FAQ_SRC[f.v];
   return `<div style="${CHAT_CARD}">
     <div style="${CHAT_TTL}">💡 ${chatEsc(f.t)}</div>
     <div style="font-size:13.5px;color:var(--txt);line-height:1.55;margin:5px 0">${f.a}</div>
+    ${src?`<div style="font-size:11.5px;color:var(--mut);margin-top:2px">📚 Fuente: ${chatEsc(src)} · consulta la app para el detalle.</div>`:''}
     ${f.v?`<button onclick="closeChat();go('${f.v}')" style="${CHAT_LINK}">📍 Abrir ${chatEsc(f.t)} →</button>`:''}
   </div>`;
 }
