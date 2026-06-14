@@ -5189,7 +5189,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 87;
+const HP_BUILD = 88;
 const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10922,43 +10922,33 @@ window.hpTogglePw = function() {
 });
 </script>
 <script>
-/* Red de seguridad para el login en modo sin conexión.
-   El SDK de Firebase se importa desde Google (gstatic.com). Sin conexión —o tras un
-   proxy de hospital que bloquee ese dominio— ese módulo no llega a ejecutarse, así que
-   onAuthStateChanged nunca corre y la pantalla de login no se ocultaría jamás: la app
-   quedaría inservible offline. Este script NO depende de Firebase. Si pasados unos
-   segundos Firebase no ha resuelto el estado de sesión y este equipo YA inició sesión
-   antes (marca 'hp_everLoggedIn'), revelamos la app para consultar las guías offline.
-   Si nunca se inició sesión aquí, se mantiene el login (la seguridad no cambia). */
+/* Apertura inmediata con la última validación hecha (sin re-login en el día a día).
+   En el hospital, llegar a la intranet/Firebase obliga a validarse cada vez y es engorroso.
+   Por eso: si este equipo YA inició sesión correctamente alguna vez (marca 'hp_everLoggedIn'),
+   la app se abre AL INSTANTE en modo consulta con esa última validación guardada, sin esperar
+   a Firebase ni volver a pedir credenciales. Firebase sigue resolviendo en segundo plano: si
+   confirma la sesión, se entra del todo (loadCloud, rol, etc.); SOLO si confirma que ya NO hay
+   sesión (cierre real) vuelve a aparecer el login. Para ACTUALIZAR sí hay que conectarse (y, por
+   tanto, validarse en la intranet), que es justo lo deseado. Si el equipo NUNCA se validó aquí,
+   se mantiene el login (la seguridad no cambia). Este script NO depende de Firebase, así que
+   funciona aunque el SDK de Google esté bloqueado o sin conexión. */
 (function(){
   function everLogged(){ try { return localStorage.getItem('hp_everLoggedIn') === '1'; } catch(e) { return false; } }
-  // Acceso directo para un equipo YA validado (botón "Continuar sin conexión").
-  window.hpOfflineEnter = function(){
-    var ov = document.getElementById('hp-auth-overlay');
-    if (ov) ov.classList.add('hidden');
-  };
-  // Si Firebase no resuelve y el equipo ya se validó, mostramos pronto la opción
-  // explícita de continuar (sin volver a pedir credenciales).
+  function hideOverlay(){ var ov = document.getElementById('hp-auth-overlay'); if (ov) ov.classList.add('hidden'); }
+  // Botón "Continuar sin conexión" (respaldo manual).
+  window.hpOfflineEnter = hideOverlay;
+  // Revela de inmediato si el equipo ya está validado; si no, deja el login.
+  function revealNow(){ if (everLogged()) hideOverlay(); }
+  if (document.readyState !== 'loading') revealNow();
+  else document.addEventListener('DOMContentLoaded', revealNow);
+  // Respaldo: muestra también el botón explícito por si en algún caso conviene.
   function showOption(){
-    if (window.__hpFirebaseReady) return;                 // Firebase sí cargó: no intervenir
-    if (!everLogged()) return;                            // nunca validado aquí: se mantiene el login
+    if (window.__hpFirebaseReady) return;
+    if (!everLogged()) return;
     var box = document.getElementById('hp_offline_box');
     if (box) box.style.display = 'block';
   }
-  // Último recurso: si tras más margen sigue sin resolver, revelamos la app (consulta).
-  function reveal(){
-    if (window.__hpFirebaseReady) return;
-    if (!everLogged()) return;
-    var ov = document.getElementById('hp-auth-overlay');
-    if (ov) ov.classList.add('hidden');
-  }
-  // Offline: el SDK falla casi al instante. Online (proxy que bloquea gstatic): damos
-  // un poco más de margen a que Firebase resuelva por sí mismo antes de actuar.
-  var optDelay = navigator.onLine ? 2000 : 900;
-  var revDelay = navigator.onLine ? 4000 : 1500;
-  function arm(){ setTimeout(showOption, optDelay); setTimeout(reveal, revDelay); }
-  if (document.readyState === 'complete') arm();
-  else window.addEventListener('load', arm);
+  setTimeout(showOption, navigator.onLine ? 2000 : 900);
 })();
 </script>
 </body>
