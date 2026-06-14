@@ -591,8 +591,8 @@ body{font-size:13px}
 </div>
 <div id="content"></div>
 <footer class="app-footer" style="text-align:center; padding:0.8rem; font-size:0.75rem; color:#666; border-top:1px solid #eee; margin-top:1rem;">
-  Herramienta de apoyo clínico.<br>
-  No sustituye protocolos oficiales.
+  Herramienta de apoyo clínico<br>
+  No sustituye protocolos oficiales
   <br>
   <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
   <br><span id="app-build-stamp" style="color:#bbb; font-size:0.7rem"></span>
@@ -5187,7 +5187,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 
 // Sello de versión de la app (HTML). Sirve para confirmar de un vistazo si el
 // dispositivo ya tiene la última versión. Subir al cambiar contenido relevante.
-const APP_BUILD='2026.06.09 (build 81)';
+const APP_BUILD='2026.06.14 (build 85)';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -10388,7 +10388,7 @@ if(document.readyState!=='loading')init();
   // (?ts=) que ningún proxy reutiliza: si la versión real publicada es más nueva que la
   // que está corriendo en esta pestaña, limpiamos SW + cachés y recargamos limpio.
   // HP_BUILD debe ir SIEMPRE igual que la versión del CACHE en sw.js.
-  var HP_BUILD = 81;
+  var HP_BUILD = 85;
   async function hpVersionGuard(){
     try{
       if(!navigator.onLine) return;
