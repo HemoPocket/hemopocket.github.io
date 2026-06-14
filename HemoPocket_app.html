@@ -591,7 +591,8 @@ body{font-size:13px}
 </div>
 <div id="content"></div>
 <footer class="app-footer" style="text-align:center; padding:0.8rem; font-size:0.75rem; color:#666; border-top:1px solid #eee; margin-top:1rem;">
-  Herramienta de apoyo clínico. No sustituye protocolos oficiales.
+  Herramienta de apoyo clínico.<br>
+  No sustituye protocolos oficiales.
   <br>
   <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:#c41e3a; cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
   <br><span id="app-build-stamp" style="color:#bbb; font-size:0.7rem"></span>
@@ -10158,8 +10159,10 @@ setTimeout(cleanELN,100);
 renderMenu();
 (function deepLink(){   // atajos del icono PWA / enlaces #vista
   const h=(location.hash||'').replace(/^#/,'').trim();
+  // Páginas de info/sincronización: no se restauran al abrir; siempre arranca en la principal
+  const noRestore=['sync','acerca','solicitudes'];
   if(h==='buscar'||h==='__cmd'){go('home');setTimeout(()=>{try{openCmd()}catch(e){}},150);return;}
-  if(h && (h==='phone'||getAll().some(x=>x.id===h))){go(h);return;}
+  if(h && !noRestore.includes(h) && (h==='phone'||getAll().some(x=>x.id===h))){go(h);return;}
   go('home');
 })();
 updateSyncInd();
