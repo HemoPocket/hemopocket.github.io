@@ -5365,7 +5365,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 120;
+const HP_BUILD = 121;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6894,7 +6894,7 @@ const CHAT_SYN={
 };
 function chatNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ñ\s]/g,' ').replace(/\s+/g,' ').trim();}
 // resalta los términos buscados (q en minúsculas) dentro de un texto, ya escapado a HTML
-function hlMark(text,q){const esc=chatEsc(text);if(!q)return esc;const _ax={a:'[aáà]',e:'[eéè]',i:'[iíì]',o:'[oóò]',u:'[uúùü]',n:'[nñ]',c:'[cç]'};const toks=q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/\s+/).filter(t=>t.length>=2).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\function hlMark(text,q){const esc=chatEsc(text);if(!q)return esc;const toks=q.split(/\s+/).filter(t=>t.length>=2).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));if(!toks.length)return esc;try{return esc.replace(new RegExp('('+toks.join('|')+')','gi'),'<mark>$1</mark>');}catch(e){return esc;}}').replace(/[aeiounc]/g,ch=>_ax[ch]||ch));if(!toks.length)return esc;try{return esc.replace(new RegExp('('+toks.join('|')+')','gi'),'<mark>$1</mark>');}catch(e){return esc;}}
+function hlMark(text,q){const esc=chatEsc(text);if(!q)return esc;const _ax={a:'[aáà]',e:'[eéè]',i:'[iíì]',o:'[oóò]',u:'[uúùü]',n:'[nñ]',c:'[cç]'};const toks=q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/\s+/).filter(t=>t.length>=2).map(function(t){return t.replace(/[.*+?^${}()|[\]\\]/g,function(m){return '\\'+m;}).replace(/[aeiounc]/g,function(ch){return _ax[ch]||ch;});});if(!toks.length)return esc;try{return esc.replace(new RegExp('('+toks.join('|')+')','gi'),'<mark>$1</mark>');}catch(e){return esc;}}
 function chatTokens(s){return chatNorm(s).split(' ').filter(t=>t.length>=2);}
 function chatEsc(s){return (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function chatExpand(tokens){const out=[],seen=new Set();tokens.forEach(t=>{if(!seen.has(t)){seen.add(t);out.push({t,w:1});}if(CHAT_SYN[t])CHAT_SYN[t].split(' ').forEach(s=>{if(s&&!seen.has(s)){seen.add(s);out.push({t:s,w:.5});}});});return out;}
