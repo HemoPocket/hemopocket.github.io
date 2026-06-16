@@ -5365,7 +5365,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 117;
+const HP_BUILD = 118;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6121,7 +6121,7 @@ const QT_SCHEMES = {
     ]
   },
   'CBF-AML': {
-    label: 'IA + GO – CBF-AML PETHEMA (t(8;21) / inv(16))',
+    label: 'IA + GO – CBF-AML PETHEMA (t(8;21) / inv(16))', short:'Ida-ARAc-GO',
     drugs: [
       {name:'Idarubicina',               dose:'12 mg/m²',              route:'IV', days:[1,2,3]},
       {name:'Citarabina',                dose:'200 mg/m²',             route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]},
@@ -6161,7 +6161,7 @@ const QT_SCHEMES = {
     ]
   },
   'IA-3+7': {
-    label: 'Ida-ARAc (3+7) – Idarubicina + Citarabina (inducción LMA)',
+    label: 'Ida-ARAc (3+7) – Idarubicina + Citarabina (inducción LMA)', short:'Ida-ARAc (3+7)',
     drugs: [
       {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV 10 min', days:[1,2,3]},
       {name:'Citarabina',    dose:'200 mg/m²', route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]}
@@ -6171,7 +6171,7 @@ const QT_SCHEMES = {
     ]
   },
   'IA-MIDOSTAURIN': {
-    label: 'Ida-ARAc (3+7) + Midostaurin – inducción LMA FLT3+ (RATIFY)',
+    label: 'Ida-ARAc (3+7) + Midostaurin – inducción LMA FLT3+ (RATIFY)', short:'Ida-ARAc-Midostaurin',
     drugs: [
       {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV 10 min', days:[1,2,3]},
       {name:'Citarabina',    dose:'200 mg/m²', route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]},
@@ -7909,7 +7909,7 @@ if(scheme.conditioning){
     }
   });
 } else {
-  lines.push(cycle+'º ciclo '+key+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
+  lines.push(cycle+'º ciclo '+(scheme.short||key)+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
   drugsList.forEach(drug=>{
     lines.push(fmtDrugLine(drug,qtFmtDates(groupDays(drug.days))));
   });
