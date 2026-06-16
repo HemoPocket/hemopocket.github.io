@@ -10085,9 +10085,21 @@ function RXtranscribe(raw){
     if(dfound.length){c=c.replace(dayRe,' ');daysTxt='todos los '+(dfound.length>1?dfound.slice(0,-1).join(', ')+' y '+dfound[dfound.length-1]:dfound[0]);}
 
     // 1c) MOMENTO DE LA TOMA (con el desayuno / almuerzo / comida / cena)
-    let meal='';
-    const mealM=c.match(/\bcon\s+(?:el|la|las|los)?\s*(desayunos?|almuerzos?|comidas?|cenas?|meriendas?)\b/i);
-    if(mealM){let w=mealM[1].toLowerCase().replace(/s$/,'');const art=(w==='comida'||w==='cena'||w==='merienda')?'la':'el';meal='con '+art+' '+w;c=c.replace(mealM[0],' ');}
+    const mealPhrase=w=>{w=w.toLowerCase().replace(/s$/,'');const art=(w==='comida'||w==='cena'||w==='merienda')?'la':'el';return 'con '+art+' '+w;};
+    let meal='',mealForm='',mealQty='';
+    const pkgForms=[...c.matchAll(FORM)];const pkgNoun=pkgForms.length?pkgForms[pkgForms.length-1][2]:null;
+    // 1c-bis) VARIAS TOMAS con cantidad por momento: "2 caps con el desayuno, 2 con la merienda, 2 con la cena" → conservar todas
+    const segRe=/(\d+(?:[.,]\d+)?)\s*(comprimidos?|comp|c[aá]psulas?|caps|tabletas?|grageas?|sobres?|gotas?|pulsaci[oó]n(?:es)?|inhalaci[oó]n(?:es)?|aplicaci[oó]n(?:es)?|ml|unidad(?:es)?)?\s*con\s+(?:el|la|las|los)?\s*(desayunos?|almuerzos?|comidas?|cenas?|meriendas?)\b/gi;
+    const segs=[...c.matchAll(segRe)];
+    if(segs.length>=2){
+      const defNoun=(segs.find(m=>m[2])||[])[2]||pkgNoun||null;
+      const parts=segs.map(m=>{const qty=m[1];const noun=m[2]||defNoun;const f=noun?normForm(qty,noun):qty;return f+' '+mealPhrase(m[3]);});
+      mealForm=parts.length>1?parts.slice(0,-1).join(', ')+' y '+parts[parts.length-1]:parts[0];
+      c=c.replace(segRe,' ');
+    } else {
+      const mealM=c.match(/(\d+(?:[.,]\d+)?)?\s*\bcon\s+(?:el|la|las|los)?\s*(desayunos?|almuerzos?|comidas?|cenas?|meriendas?)\b/i);
+      if(mealM){meal=mealPhrase(mealM[2]);if(mealM[1])mealQty=mealM[1];c=c.replace(mealM[0],' ');}
+    }
 
     // 2) FRECUENCIA
     c=c.replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*h\b/gi,' cada $1 h');
@@ -10114,12 +10126,14 @@ function RXtranscribe(raw){
     // 3) FORMA (pauta) y CABECERA (nombre+dosis, conservando compuestos "A - B")
     const formsAll=[...c.matchAll(FORM)];
     let head=c, form='';
-    if(formsAll.length){ head=c.slice(0,formsAll[0].index); const last=formsAll[formsAll.length-1]; form=normForm(last[1],last[2]); }
+    if(formsAll.length){ head=c.slice(0,formsAll[0].index); if(!mealForm){ const last=formsAll[formsAll.length-1]; form=normForm(mealQty||last[1],last[2]); } }
     const nameDose=fmtHead(head);
     if(!nameDose) continue;
 
     // 4) ensamblar: forma + vía + frecuencia + momento + días
-    const tail=[form,route,freq,meal,daysTxt].filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/[\s,\-]+$/,'').trim();
+    const tail=mealForm
+      ? [mealForm+(route?', '+route:''),freq,daysTxt].filter(Boolean).join(' ').replace(/\s+/g,' ').trim()
+      : [form,route,freq,meal,daysTxt].filter(Boolean).join(' ').replace(/\s+/g,' ').replace(/[\s,\-]+$/,'').trim();
     out.push(tail?`${nameDose}: ${tail}`:nameDose);
   }
   return out.join('\n');
