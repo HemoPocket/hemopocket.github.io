@@ -5266,8 +5266,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 102;
-const APP_BUILD = '2026.06.14 (build ' + HP_BUILD + ')';
+const HP_BUILD = 103;
+const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -5296,13 +5296,20 @@ const btnText=!online?'Sin Internet':'Descargar todo ahora';
 // ¿Está la app guardada en el dispositivo para funcionar sin conexión?
 // Si el service worker ya controla la página, el "armazón" de la app está cacheado.
 const swReady=('serviceWorker' in navigator)&&!!navigator.serviceWorker.controller;
+// Persistencia: ¿el navegador se ha comprometido a NO borrar la caché/datos de este equipo?
+const persisted=window.__hpPersisted;
+const persistNote=(persisted===true)
+  ? '<br>🔒 <strong>Almacenamiento protegido:</strong> este equipo recordará la app y tu acceso aunque cierres o apagues.'
+  : (persisted===false)
+    ? '<br>⚠️ <strong>Este navegador podría borrar los datos al cerrar.</strong> Si al volver te vuelve a pedir conexión, instala la app (menú del navegador → «Instalar HemoPocket») o pide a Informática que no borre los datos del sitio al cerrar sesión.'
+    : '';
 const offlineReady='<div class="alert '+(swReady?'g':'y')+'" style="margin:14px 0">'+
   (swReady
     ? '✅ <strong>Listo para usar sin conexión.</strong> La app está guardada en este dispositivo.'
     : '⏳ <strong>Aún no está guardada del todo para sin conexión.</strong> Mantén la app abierta unos segundos con Internet y vuelve a esta pantalla.')+
   (lastUpd
     ? '<br>Guías y PDF: guardados (última descarga: '+new Date(lastUpd).toLocaleString('es-ES')+').'
-    : '<br>Pulsa «Descargar todo ahora» para guardar también las guías y los PDF.')+
+    : '<br>Pulsa «Descargar todo ahora» para guardar también las guías y los PDF.')+persistNote+
   '</div>';
 return `<div class="card">
 <h2>Actualizar la app</h2>
@@ -10701,6 +10708,61 @@ finally{_autoCheckBusy=false}
 document.addEventListener('DOMContentLoaded',init);
 if(document.readyState!=='loading')init();
 </script>
+<script>
+/* Persistencia DURADERA del modo sin conexión (clave en los ordenadores del hospital).
+   Problema: por defecto, localStorage y la caché del service worker son "desechables": el
+   navegador —y muy especialmente los equipos compartidos o bloqueados del hospital— pueden
+   BORRARLOS al cerrar sesión de Windows, reiniciar o por falta de espacio. Cuando eso ocurre,
+   se pierden a la vez la marca de "equipo ya validado" y el armazón cacheado, y la app vuelve a
+   pedir conexión/validación como si fuera la primera vez. Eso es justo lo que se quería evitar.
+   Solución (dos capas):
+     1) Pedir al navegador almacenamiento PERSISTENTE: se compromete a NO desalojar nuestra
+        caché/IndexedDB/localStorage. En PWA instaladas suele concederse solo.
+     2) Guardar la marca de validación por DUPLICADO (localStorage + cookie de larga duración) y
+        leer de cualquiera de las dos: si un soporte se borra pero el otro sobrevive, la app
+        sigue abriéndose sola, sin conexión y sin volver a validar. */
+(function(){
+  window.__hpPersisted = null; // null = aún sin resolver; true/false = respuesta del navegador
+  // Reclama almacenamiento persistente. No estorba si el navegador lo deniega o no lo soporta.
+  function requestPersist(){
+    try{
+      if(navigator.storage && navigator.storage.persist){
+        navigator.storage.persisted().then(function(already){
+          if(already){ window.__hpPersisted = true; return; }
+          navigator.storage.persist().then(function(granted){ window.__hpPersisted = !!granted; }).catch(function(){});
+        }).catch(function(){});
+      }
+    }catch(e){}
+  }
+  window.hpRequestPersist = requestPersist;
+  requestPersist();
+
+  // Marca de "equipo ya validado" con doble soporte (localStorage + cookie de ~2 años).
+  var CK = 'hp_everLoggedIn';
+  function setCookie(){ try{ document.cookie = CK+'=1; path=/; max-age=63072000; SameSite=Lax'; }catch(e){} }
+  function delCookie(){ try{ document.cookie = CK+'=; path=/; max-age=0; SameSite=Lax'; }catch(e){} }
+  function hasCookie(){ try{ return ('; '+document.cookie).indexOf('; '+CK+'=1') !== -1; }catch(e){ return false; } }
+  // ¿Se validó este equipo alguna vez? Sí si CUALQUIERA de los dos soportes lo recuerda.
+  window.hpEverValidated = function(){
+    var inLS = false; try{ inLS = localStorage.getItem(CK) === '1'; }catch(e){}
+    return inLS || hasCookie();
+  };
+  // Recordar validación: escribe en AMBOS soportes y reclama persistencia (el login es señal
+  // fuerte de implicación, cuando el navegador es más proclive a conceder almacenamiento durable).
+  window.hpMarkValidated = function(){
+    try{ localStorage.setItem(CK, '1'); }catch(e){}
+    setCookie();
+    requestPersist();
+  };
+  // Olvidar validación (SOLO en cierre de sesión deliberado): borra AMBOS soportes.
+  window.hpClearValidated = function(){
+    try{ localStorage.removeItem(CK); }catch(e){}
+    delCookie();
+  };
+  // Migración: si versiones anteriores ya dejaron la marca en localStorage, reflejarla en cookie.
+  try{ if(localStorage.getItem(CK) === '1') setCookie(); }catch(e){}
+})();
+</script>
    <script>
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', () => {
@@ -11116,7 +11178,7 @@ function revealAndEnter(user){
   curUid = user.uid;
   // Solo recordamos el inicio de sesión OFFLINE para cuentas YA autorizadas: así una
   // cuenta pendiente nunca obtiene acceso de consulta a través de la red de seguridad.
-  try { localStorage.setItem('hp_everLoggedIn', '1'); } catch(e) {}
+  try { (window.hpMarkValidated ? window.hpMarkValidated() : localStorage.setItem('hp_everLoggedIn', '1')); } catch(e) {}
   hidePending();
   overlay.classList.add('hidden');
   userBtn.classList.add('visible');
@@ -11263,7 +11325,7 @@ onAuthStateChanged(auth, user => {
     HemoCloud.role = null;
     pending = {};
     hidePending();
-    let everLogged = false; try { everLogged = localStorage.getItem('hp_everLoggedIn') === '1'; } catch(e) {}
+    const everLogged = !!(window.hpEverValidated && window.hpEverValidated());
     if (everLogged && !window.__hpExplicitSignOut) {
       // Sin sesión disponible (p. ej. tras apagar el equipo, o intranet que bloquea Firebase),
       // pero este equipo YA se validó antes: NO volvemos a pedir credenciales. Seguimos en modo
@@ -11335,7 +11397,7 @@ window.hpSignOut = function() {
   // credenciales (distinto de una sesión perdida por apagar el equipo, que NO pide login).
   const doIt = () => {
     window.__hpExplicitSignOut = true;
-    try { localStorage.removeItem('hp_everLoggedIn'); } catch(e) {}
+    try { if (window.hpClearValidated) window.hpClearValidated(); else localStorage.removeItem('hp_everLoggedIn'); } catch(e) {}
     signOut(auth);
   };
   if (window.hpConfirm) window.hpConfirm('¿Cerrar sesión? Tendrás que iniciar sesión de nuevo para volver a entrar.', doIt);
@@ -11383,7 +11445,7 @@ window.hpTogglePw = function() {
    se mantiene el login (la seguridad no cambia). Este script NO depende de Firebase, así que
    funciona aunque el SDK de Google esté bloqueado o sin conexión. */
 (function(){
-  function everLogged(){ try { return localStorage.getItem('hp_everLoggedIn') === '1'; } catch(e) { return false; } }
+  function everLogged(){ return !!(window.hpEverValidated && window.hpEverValidated()); }
   function hideOverlay(){ var ov = document.getElementById('hp-auth-overlay'); if (ov) ov.classList.add('hidden'); }
   // Botón "Continuar sin conexión" (respaldo manual).
   window.hpOfflineEnter = hideOverlay;
@@ -11473,7 +11535,7 @@ window.hpTogglePw = function() {
       else{queueReport(meta);}
     }catch(e){}
   };
-  window.addEventListener('error',function(e){if(!e||!e.message)return;try{var src=e.filename?(' @ '+(''+e.filename).split('/').pop()+':'+e.lineno+':'+e.colno):'';autoReport('[JS] '+e.message+src);}catch(_){}});
+  window.addEventListener('error',function(e){if(!e||!e.message)return;try{var m=''+e.message;if(!e.filename&&!e.error&&/^script error\.?$/i.test(m.trim()))return;var src=e.filename?(' @ '+(''+e.filename).split('/').pop()+':'+e.lineno+':'+e.colno):'';autoReport('[JS] '+m+src);}catch(_){}});
   window.addEventListener('unhandledrejection',function(e){try{var r=e&&e.reason;var m=(r&&r.message)||(''+r)||'promesa rechazada';autoReport('[Promise] '+m);}catch(_){}});
   // Vacía la cola pendiente al cargar y al reconectar.
   function flush(){try{if(window.hpFlushReportQueue)window.hpFlushReportQueue();}catch(e){}}
