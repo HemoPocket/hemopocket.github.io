@@ -5266,7 +5266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 103;
+const HP_BUILD = 104;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10991,8 +10991,15 @@ function cerrarAvisoLegal() {
   document.body.style.overflow = '';
 }
 // Aceptación del Aviso Legal en el primer uso (una sola vez por dispositivo).
-window.mostrarAceptacionLegal = function() {
-  try { if (localStorage.getItem('hp_legalAccepted')) return; } catch (e) {}
+window.mostrarAceptacionLegal = async function() {
+  // Una sola vez POR USUARIO: si ya aceptó los términos vigentes (en este equipo o en su
+  // cuenta, comprobándolo en la nube), no se le vuelve a pedir aunque sea un ordenador nuevo.
+  try {
+    if (window.hpHasAcceptedTerms) { if (await window.hpHasAcceptedTerms()) return; }
+    else if (localStorage.getItem('hp_legalAccepted')) return;
+  } catch (e) {
+    try { if (localStorage.getItem('hp_legalAccepted')) return; } catch (_) {}
+  }
   window._hpLegalForcing = true;
   abrirAvisoLegal();
   var x = document.getElementById('aviso-cerrar-x'); if (x) x.style.display = 'none';
@@ -11000,6 +11007,8 @@ window.mostrarAceptacionLegal = function() {
 };
 window.aceptarLegal = function() {
   try { localStorage.setItem('hp_legalAccepted', '1'); } catch (e) {}
+  // Registra la aceptación en la cuenta del usuario, para que valga en cualquier ordenador.
+  try { if (window.hpRecordTermsAcceptance) window.hpRecordTermsAcceptance(); } catch (e) {}
   window._hpLegalForcing = false;
   var x = document.getElementById('aviso-cerrar-x'); if (x) x.style.display = '';
   var w = document.getElementById('aviso-aceptar-wrap'); if (w) w.style.display = 'none';
@@ -11157,6 +11166,32 @@ function loadCloud(uid) {
 // ── Registro de cuentas con aprobación del administrador ──
 // Versión del texto legal aceptado (queda registrada con cada cuenta).
 const TERMS_VERSION = '2026-06-09';
+
+// ── Aceptación legal POR USUARIO (no por dispositivo) ──
+// Si el usuario ya aceptó los términos vigentes —en su ficha de 'cuentas', escrita al
+// registrarse o al aceptar— NO se le vuelve a pedir aunque entre en un ordenador nuevo.
+window.hpHasAcceptedTerms = async function(){
+  // Vía rápida sin red: este equipo ya lo recuerda ('1' heredado o la versión vigente).
+  try { var la = localStorage.getItem('hp_legalAccepted'); if (la === TERMS_VERSION || la === '1') return true; } catch(e){}
+  const uid = (auth.currentUser && auth.currentUser.uid) || curUid;
+  if (!uid || !navigator.onLine) return false;
+  try {
+    const s = await getDoc(doc(fs, 'cuentas', uid));
+    if (s.exists() && s.data().aceptaTerminos === true && s.data().versionTerminos === TERMS_VERSION){
+      try { localStorage.setItem('hp_legalAccepted', TERMS_VERSION); } catch(e){}  // cachea local
+      return true;
+    }
+  } catch(e){ /* offline o reglas: no bloquear, se mostrará el aviso */ }
+  return false;
+};
+// Guarda la aceptación en la CUENTA del usuario (vale para cualquier equipo). updateDoc NO
+// crea ficha: en un usuario heredado sin ficha falla sin riesgo y basta la marca local.
+window.hpRecordTermsAcceptance = async function(){
+  try { localStorage.setItem('hp_legalAccepted', TERMS_VERSION); } catch(e){}
+  const uid = (auth.currentUser && auth.currentUser.uid) || curUid;
+  if (!uid || !navigator.onLine) return;
+  try { await updateDoc(doc(fs, 'cuentas', uid), { aceptaTerminos: true, versionTerminos: TERMS_VERSION, fechaAceptacion: serverTimestamp() }); } catch(e){}
+};
 
 function hidePending(){
   const pe = document.getElementById('hp-pending-overlay');

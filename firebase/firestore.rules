@@ -78,7 +78,16 @@ service cloud.firestore {
                     && request.resource.data.estado == 'pendiente'
                     && request.resource.data.aceptaTerminos == true;
       allow read:   if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow update, delete: if isAdmin();
+      // El propietario puede registrar SU aceptación de términos (una sola vez por usuario,
+      // válida en cualquier equipo) SIN tocar su estado de aprobación ni otros campos: así un
+      // usuario pendiente no puede "auto-aprobarse". Cualquier otro cambio, solo el admin.
+      allow update: if isAdmin()
+                    || ( request.auth != null
+                         && request.auth.uid == uid
+                         && request.resource.data.diff(resource.data).affectedKeys()
+                              .hasOnly(['aceptaTerminos', 'versionTerminos', 'fechaAceptacion'])
+                         && request.resource.data.aceptaTerminos == true );
+      allow delete: if isAdmin();
     }
 
     match /config/{doc} {
