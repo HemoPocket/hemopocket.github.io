@@ -4031,32 +4031,45 @@ VIEWS.solicitudes_post=()=>{ if(window.hpRenderSolicitudes) window.hpRenderSolic
 
 const HP_PRINCIPAL_UID='oHgd0fQBUfQV1NxGKbFHkHNZSWz1'; // admin principal intocable (busnegomt@gmail.com)
 function solCard(c,withActions,roleInfo){
-const nom=((c.nombre||'')+' '+(c.apellido||'')).trim()||'(sin nombre)';
-let fecha='';
-try{ if(c.fechaAceptacion&&c.fechaAceptacion.seconds) fecha=new Date(c.fechaAceptacion.seconds*1000).toLocaleString('es-ES'); }catch(e){}
+const nom=((c.nombre||'')+' '+(c.apellido||'')).trim();
+let fecha=''; try{ if(c.fechaAceptacion&&c.fechaAceptacion.seconds) fecha=new Date(c.fechaAceptacion.seconds*1000).toLocaleString('es-ES'); }catch(e){}
+let acceso=''; try{ if(c.ultimoAcceso&&c.ultimoAcceso.seconds) acceso=new Date(c.ultimoAcceso.seconds*1000).toLocaleString('es-ES'); }catch(e){}
 const estado=c.estado||'';
-const badge=estado==='aprobada'?'<span style="color:#1a7f37;font-weight:600">✔ aprobada</span>'
-  :estado==='rechazada'?'<span style="color:#b00020;font-weight:600">✕ rechazada</span>'
-  :'<span style="color:#b8860b;font-weight:600">⏳ pendiente</span>';
-let h='<div class="team-card"><h3 style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>'+nom+'</span>'+badge+'</h3>';
-h+='<div style="font-size:13px;line-height:1.7">';
-h+='<div><strong>Correo:</strong> '+(c.email||'')+'</div>';
-if(fecha) h+='<div><strong>Aceptó los términos:</strong> '+fecha+(c.versionTerminos?(' (v'+c.versionTerminos+')'):'')+'</div>';
-h+='</div>';
-// Perfil/rol: al aprobar (pendientes) y, en cuentas ya aprobadas, para cambiarlo.
-if(withActions || estado==='aprobada'){ h+=hpRoleSelector(c.uid, roleInfo); }
+const manageable=estado!=='pendiente'&&estado!=='rechazada';
+const badge=estado==='aprobada'?'<span style="color:#1a7f37;font-weight:600;font-size:11.5px">✔ aprobada</span>'
+  :estado==='rechazada'?'<span style="color:#b00020;font-weight:600;font-size:11.5px">✕ rechazada</span>'
+  :estado==='pendiente'?'<span style="color:#b8860b;font-weight:600;font-size:11.5px">⏳ pendiente</span>'
+  :'<span style="color:#5a6a85;font-weight:600;font-size:11.5px">🔑 acceso directo</span>';
+const resumen=hpRolResumen(c.uid,roleInfo);
+let h='<div class="coll'+(withActions?' open':'')+'" style="margin-bottom:8px">';
+h+='<div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')">';
+h+='<span style="display:flex;flex-direction:column;gap:1px;min-width:0;overflow:hidden"><span style="font-weight:600;color:var(--c2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c.email||nom||'(sin correo)')+'</span>'+(nom?'<span style="font-size:11px;color:var(--mut);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nom+'</span>':'')+'</span>';
+h+='<span style="display:flex;align-items:center;gap:7px;flex-shrink:0">'+badge+'<span style="font-size:11px;color:var(--mut)">'+resumen+'</span><span class="ar">▶</span></span>';
+h+='</div><div class="coll-c">';
+if(c.origen==='manual') h+='<div style="font-size:11.5px;color:#5a6a85;margin-bottom:4px">Usuario creado a mano en consola (sin solicitud en la app).</div>';
+if(fecha) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>Aceptó términos:</strong> '+fecha+(c.versionTerminos?(' (v'+c.versionTerminos+')'):'')+'</div>';
+if(acceso) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>Último acceso:</strong> '+acceso+'</div>';
+if(withActions||manageable){ h+=hpRoleSelector(c.uid,roleInfo); }
 if(withActions){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpRechazarUI(\''+c.uid+'\')">Rechazar</button>';
 h+='</div>';
-} else if(estado==='aprobada' && c.uid!==HP_PRINCIPAL_UID){
+} else if(manageable && c.uid!==HP_PRINCIPAL_UID){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpGuardarRol(\''+c.uid+'\')">Guardar perfil</button>';
 h+='</div>';
 }
-h+='</div>';
+h+='</div></div>';
 return h;
+}
+// Resumen corto del perfil para la cabecera plegada de cada usuario.
+function hpRolResumen(uid,roleInfo){
+if(uid===HP_PRINCIPAL_UID) return '👑 Principal';
+const r=roleInfo&&roleInfo.role;
+if(r==='admin') return 'Administrador';
+if(r==='editor'){ const n=(roleInfo&&roleInfo.sections&&roleInfo.sections.length)||0; return 'Editor·'+n+' secc.'; }
+return 'Usuario';
 }
 // Selector de perfil reutilizable (pendientes y aprobadas). Muestra las secciones si es Editor.
 function hpRoleSelector(uid, roleInfo){
@@ -4120,14 +4133,27 @@ box.innerHTML='Cargando…';
 let list;
 try{ list=await window.hpListCuentas(); }
 catch(e){ box.innerHTML='<div class="alert y">No se pudieron cargar las solicitudes. '+(e.message||'')+'</div>'; return; }
-let roles={};
-try{ if(window.hpListRoles) roles=await window.hpListRoles(); }catch(e){}
-const pend=list.filter(c=>c.estado==='pendiente');
-const otras=list.filter(c=>c.estado!=='pendiente').sort((a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0));
+let roles={}; try{ if(window.hpListRoles) roles=await window.hpListRoles(); }catch(e){}
+let usuarios={}; try{ if(window.hpListUsuarios) usuarios=await window.hpListUsuarios(); }catch(e){}
+// Une cuentas (registradas) + usuarios (todo el que ha entrado, incl. creados a mano) por uid.
+const byUid={};
+list.forEach(c=>{ byUid[c.uid]=Object.assign({},c); });
+Object.keys(usuarios).forEach(uid=>{
+  if(byUid[uid]){ if(usuarios[uid].ultimoAcceso) byUid[uid].ultimoAcceso=usuarios[uid].ultimoAcceso; if(!byUid[uid].email) byUid[uid].email=usuarios[uid].email; }
+  else { byUid[uid]=Object.assign({uid:uid,origen:'manual'},usuarios[uid]); }
+});
+const all=Object.values(byUid);
+const pend=all.filter(c=>c.estado==='pendiente');
+const rech=all.filter(c=>c.estado==='rechazada');
+const activos=all.filter(c=>c.estado!=='pendiente'&&c.estado!=='rechazada').sort((a,b)=>((a.email||'')<(b.email||'')?-1:1));
 let h='<h3>Pendientes ('+pend.length+')</h3>';
 if(!pend.length) h+='<div class="team-empty">No hay solicitudes pendientes.</div>';
 pend.forEach(c=>{ h+=solCard(c,true,roles[c.uid]); });
-if(otras.length){ h+='<h3 style="margin-top:18px">Historial ('+otras.length+')</h3>'; otras.forEach(c=>{ h+=solCard(c,false,roles[c.uid]); }); }
+h+='<h3 style="margin-top:18px">Usuarios con acceso ('+activos.length+')</h3>';
+h+='<p style="font-size:12px;color:var(--mut);margin:-2px 0 8px">Cuentas aprobadas y usuarios creados a mano. Pulsa uno para ver o cambiar su perfil.</p>';
+if(!activos.length) h+='<div class="team-empty">Aún no hay usuarios; aparecerán al iniciar sesión.</div>';
+activos.forEach(c=>{ h+=solCard(c,false,roles[c.uid]); });
+if(rech.length){ h+='<h3 style="margin-top:18px">Rechazadas ('+rech.length+')</h3>'; rech.forEach(c=>{ h+=solCard(c,false,roles[c.uid]); }); }
 box.innerHTML=h;
 };
 async function _hpDoAccion(uid,acc,role,secs){
@@ -5339,7 +5365,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 114;
+const HP_BUILD = 115;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11298,6 +11324,10 @@ function revealAndEnter(user){
   const userLabel = document.getElementById('hp_user_label');
   const loginBtn = document.getElementById('hp_login_btn');
   curUid = user.uid;
+  // Registra al usuario en 'usuarios' (su propia ficha) para que la administradora lo vea y
+  // pueda asignarle perfil desde la app — también a los creados a mano en consola, que no
+  // tienen ficha en 'cuentas'. Cada uno escribe SOLO su documento. No bloquea si falla.
+  if(navigator.onLine){ try { setDoc(doc(fs,'usuarios',user.uid), { email:user.email||null, nombre:user.displayName||null, ultimoAcceso:serverTimestamp() }, { merge:true }); } catch(e){} }
   // Solo recordamos el inicio de sesión OFFLINE para cuentas YA autorizadas: así una
   // cuenta pendiente nunca obtiene acceso de consulta a través de la red de seguridad.
   try { (window.hpMarkValidated ? window.hpMarkValidated() : localStorage.setItem('hp_everLoggedIn', '1')); } catch(e) {}
@@ -11412,6 +11442,12 @@ window.hpAsignarRol = async function(uid, role, sections){
 window.hpListRoles = async function(){
   const snap = await getDocs(collection(fs, 'roles'));
   const out = {}; snap.forEach(d => { out[d.id] = d.data(); }); return out;
+};
+// Lee 'usuarios' (todo el que ha iniciado sesión, incl. los creados a mano en consola).
+// Solo la administradora. Devuelve uid -> { email, nombre, ultimoAcceso }.
+window.hpListUsuarios = async function(){
+  const snap = await getDocs(collection(fs, 'usuarios'));
+  const out = {}; snap.forEach(d => { out[d.id] = Object.assign({ uid:d.id }, d.data()); }); return out;
 };
 
 // ── Reportes de errores / incidencias ──

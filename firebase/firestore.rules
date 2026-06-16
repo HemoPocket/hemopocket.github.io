@@ -95,6 +95,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── Directorio de usuarios que han iniciado sesión ──
+    // Cada usuario registra/actualiza SU PROPIA ficha al entrar (correo, nombre, último acceso).
+    // Sirve para que la administradora vea y gestione TODOS los usuarios desde la app, incluidos
+    // los creados a mano en la consola (que no tienen ficha en 'cuentas'). Solo el admin los lee.
+    match /usuarios/{uid} {
+      allow read:   if isAdmin();
+      allow write:  if request.auth != null && request.auth.uid == uid;
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
