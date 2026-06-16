@@ -5266,7 +5266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 108;
+const HP_BUILD = 109;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9731,6 +9731,9 @@ const DICT=[
 {a:'Proteína C',u:'%',c:'coagulacion',k:'num',pats:['proteina\\s+c\\b(?!\\s*reactiva)(?:\\s*(?:funcional|actividad|activ\\w*|anticoagulante))?']},
 {a:'Proteína S',u:'%',c:'coagulacion',k:'num',pats:['proteina\\s+s\\b(?:\\s*(?:libre|total|funcional|actividad|activ\\w*))?']},
 {a:'Anti-Xa',u:'UI/ml',c:'coagulacion',k:'num',keepUnit:1,pats:['(?:actividad\\s+)?anti[\\s-]?xa']},
+{a:'FvW:Ag',u:'%',c:'coagulacion',k:'num',pats:['(?:factor\\s*)?von\\s*willebrand\\s*[:\\(]?\\s*(?:antigeno|ag)\\b','(?:fvw|vwf)\\s*[:\\(]?\\s*(?:antigeno|ag)\\b','antigeno\\s+(?:del\\s+)?(?:factor\\s+)?von\\s*willebrand']},
+{a:'FvW:RCo',u:'%',c:'coagulacion',k:'num',pats:['(?:factor\\s*)?von\\s*willebrand\\s*[:\\(]?\\s*(?:cofactor\\s*(?:de\\s*)?ristocetina|ristocetina|rco|actividad)\\b','(?:fvw|vwf)\\s*[:\\(]?\\s*(?:rco|actividad)\\b','cofactor\\s*(?:de\\s*)?ristocetina','actividad\\s+(?:del\\s+)?(?:factor\\s+)?von\\s*willebrand']},
+{a:'FvW',u:'%',c:'coagulacion',k:'num',pats:['(?:factor\\s*)?von\\s*willebrand','\\bfvw\\b','\\bvwf\\b']},
 {a:'TT',u:'seg',c:'coagulacion',k:'num',pats:['tiempo de trombina','\\btt\\b']},
 {a:'Beta-2 microglobulina',u:'mg/l',c:'proteinograma',k:'num',pats:['beta-2 microglobulina','beta 2 microglobulina','b2 microglobulina','\\bb2m\\b']},
 {a:'Cociente kappa/lambda',u:'',c:'proteinograma',k:'num',pats:['cociente kappa\\s*/\\s*lambda(?:\\s+libres?)?','ratio kappa\\s*/\\s*lambda(?:\\s+libres?)?','indice kappa\\s*/\\s*lambda(?:\\s+libres?)?','cociente k\\s*/\\s*l','kappa\\s*/\\s*lambda(?:\\s+libres?)?']},
