@@ -65,10 +65,13 @@ service cloud.firestore {
 
     match /roles/{uid} {
       // Cada usuario puede leer su propio rol; la administradora puede leerlos y asignarlos
-      // todos (al aprobar una solicitud puede dar perfil de editor o administrador desde la
-      // app). SOLO un admin escribe: un usuario nunca puede otorgarse permisos a sí mismo.
+      // todos (al aprobar una solicitud puede dar perfil de editor o administrador desde la app).
       allow read:  if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow write: if isAdmin();
+      // Solo un admin escribe roles; un usuario nunca puede otorgarse permisos a sí mismo.
+      // La admin PRINCIPAL es INTOCABLE: su documento de rol solo lo puede modificar ella misma;
+      // ningún otro administrador puede degradarla.
+      allow write: if isAdmin()
+                   && (uid != 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1' || request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1');
     }
 
     // ── Cuentas de usuario y registro de aceptación de términos ──

@@ -4029,6 +4029,7 @@ return `<div class="card">
 };
 VIEWS.solicitudes_post=()=>{ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); };
 
+const HP_PRINCIPAL_UID='oHgd0fQBUfQV1NxGKbFHkHNZSWz1'; // admin principal intocable (busnegomt@gmail.com)
 function solCard(c,withActions,roleInfo){
 const nom=((c.nombre||'')+' '+(c.apellido||'')).trim()||'(sin nombre)';
 let fecha='';
@@ -4049,7 +4050,7 @@ h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpRechazarUI(\''+c.uid+'\')">Rechazar</button>';
 h+='</div>';
-} else if(estado==='aprobada'){
+} else if(estado==='aprobada' && c.uid!==HP_PRINCIPAL_UID){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpGuardarRol(\''+c.uid+'\')">Guardar perfil</button>';
 h+='</div>';
@@ -4059,12 +4060,13 @@ return h;
 }
 // Selector de perfil reutilizable (pendientes y aprobadas). Muestra las secciones si es Editor.
 function hpRoleSelector(uid, roleInfo){
+  if(uid===HP_PRINCIPAL_UID) return '<div style="margin-top:10px;padding:9px 10px;border:1px solid #d8b400;border-radius:8px;background:#fffbe6;font-size:12.5px;color:#7a5d00">\uD83D\uDC51 <strong>Administradora principal</strong> \u2014 perfil fijo, no modificable.</div>';
   const cur=(roleInfo&&roleInfo.role)||'usuario';
   const isEd=roleInfo&&roleInfo.role==='editor';
   const allKeys=Object.keys(GUIDES_TITLES);
-  // Editor existente: sus secciones. Nuevo editor: TODAS por defecto ("solo subir/bajar PDF").
-  const secs=isEd&&Array.isArray(roleInfo.sections)?roleInfo.sections:allKeys;
-  const allOn=allKeys.every(function(k){return secs.indexOf(k)!==-1;});
+  // Editor existente: sus secciones. Nuevo editor: NINGUNA por defecto (la admin elige cuáles).
+  const secs=isEd&&Array.isArray(roleInfo.sections)?roleInfo.sections:[];
+  const allOn=allKeys.length>0&&allKeys.every(function(k){return secs.indexOf(k)!==-1;});
   const opt=(v,t)=>'<option value="'+v+'"'+(cur===v?' selected':'')+'>'+t+'</option>';
   let s='<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--bd,#e2e2e2);border-radius:8px;background:var(--bg,#f7f8fa)">';
   s+='<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">Perfil de acceso</label>';
@@ -4099,6 +4101,7 @@ window.hpSecSync=function(uid){
   all.checked = boxes.length>0 && boxes.every(function(x){ return x.checked; });
 };
 window.hpGuardarRol=function(uid){
+  if(uid===HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('La administradora principal es un perfil fijo, no se puede modificar'); return; }
   const sel=document.getElementById('rol_'+uid), role=sel?sel.value:'usuario';
   if(uid===window.__hpUid && role!=='admin'){ if(typeof toast==='function')toast('No puedes quitarte a ti misma el rol de administradora'); return; }
   const secs=role==='editor'?hpReadSecs(uid):[];
@@ -5336,7 +5339,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 113;
+const HP_BUILD = 114;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
