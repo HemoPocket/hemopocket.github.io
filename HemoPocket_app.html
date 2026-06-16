@@ -4029,7 +4029,7 @@ return `<div class="card">
 };
 VIEWS.solicitudes_post=()=>{ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); };
 
-function solCard(c,withActions){
+function solCard(c,withActions,roleInfo){
 const nom=((c.nombre||'')+' '+(c.apellido||'')).trim()||'(sin nombre)';
 let fecha='';
 try{ if(c.fechaAceptacion&&c.fechaAceptacion.seconds) fecha=new Date(c.fechaAceptacion.seconds*1000).toLocaleString('es-ES'); }catch(e){}
@@ -4042,14 +4042,58 @@ h+='<div style="font-size:13px;line-height:1.7">';
 h+='<div><strong>Correo:</strong> '+(c.email||'')+'</div>';
 if(fecha) h+='<div><strong>Aceptó los términos:</strong> '+fecha+(c.versionTerminos?(' (v'+c.versionTerminos+')'):'')+'</div>';
 h+='</div>';
+// Perfil/rol: al aprobar (pendientes) y, en cuentas ya aprobadas, para cambiarlo.
+if(withActions || estado==='aprobada'){ h+=hpRoleSelector(c.uid, roleInfo); }
 if(withActions){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpRechazarUI(\''+c.uid+'\')">Rechazar</button>';
 h+='</div>';
+} else if(estado==='aprobada'){
+h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
+h+='<button class="btn btn-sm" onclick="hpGuardarRol(\''+c.uid+'\')">Guardar perfil</button>';
+h+='</div>';
 }
 h+='</div>';
 return h;
+}
+// Selector de perfil reutilizable (pendientes y aprobadas). Muestra las secciones si es Editor.
+function hpRoleSelector(uid, roleInfo){
+  const cur=(roleInfo&&roleInfo.role)||'usuario';
+  const secs=(roleInfo&&Array.isArray(roleInfo.sections))?roleInfo.sections:[];
+  const opt=(v,t)=>'<option value="'+v+'"'+(cur===v?' selected':'')+'>'+t+'</option>';
+  let s='<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--bd,#e2e2e2);border-radius:8px;background:var(--bg,#f7f8fa)">';
+  s+='<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">Perfil de acceso</label>';
+  s+='<select id="rol_'+uid+'" onchange="hpRolChange(\''+uid+'\')" style="width:100%;padding:7px;border:1px solid var(--bd,#ccc);border-radius:7px;font-size:13px;background:var(--card,#fff);color:var(--txt,#222)">';
+  s+=opt('usuario','Usuario — solo consulta')+opt('editor','Editor — edita guías de sus secciones')+opt('admin','Administrador — control total');
+  s+='</select>';
+  s+='<div id="secs_'+uid+'" style="display:'+(cur==='editor'?'block':'none')+';margin-top:8px">';
+  s+='<div style="font-size:12px;color:var(--mut,#666);margin-bottom:4px">Secciones que podrá editar:</div>';
+  s+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 10px">'+hpSecChecks(uid,secs)+'</div></div></div>';
+  return s;
+}
+function hpSecChecks(uid, checked){
+  checked=checked||[];
+  return Object.keys(GUIDES_TITLES).map(function(sid){return '<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" value="'+sid+'"'+(checked.indexOf(sid)!==-1?' checked':'')+'> '+GUIDES_TITLES[sid]+'</label>';}).join('');
+}
+function hpReadSecs(uid){
+  const box=document.getElementById('secs_'+uid); if(!box) return [];
+  return Array.from(box.querySelectorAll('input[type=checkbox]:checked')).map(function(x){return x.value;});
+}
+window.hpRolChange=function(uid){
+  const sel=document.getElementById('rol_'+uid), box=document.getElementById('secs_'+uid);
+  if(box) box.style.display=(sel&&sel.value==='editor')?'block':'none';
+};
+window.hpGuardarRol=function(uid){
+  const sel=document.getElementById('rol_'+uid), role=sel?sel.value:'usuario';
+  const secs=role==='editor'?hpReadSecs(uid):[];
+  if(role==='editor'&&!secs.length){ if(typeof toast==='function')toast('Marca al menos una sección'); return; }
+  const msg=role==='admin'?'¿Asignar perfil ADMINISTRADOR? Tendrá control total, incluido gestionar cuentas y otros administradores.':role==='editor'?('¿Guardar como EDITOR de '+secs.length+' sección(es)?'):'¿Dejar como usuario, sin permisos de edición?';
+  if(window.hpConfirm) window.hpConfirm(msg,function(){_hpDoRol(uid,role,secs);}); else _hpDoRol(uid,role,secs);
+};
+async function _hpDoRol(uid,role,secs){
+  try{ if(window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs); if(typeof toast==='function')toast('✔ Perfil actualizado'); if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); }
+  catch(e){ if(typeof toast==='function')toast('Error: '+(e.message||'')); }
 }
 window.hpRenderSolicitudes=async function(){
 const box=document.getElementById('sol_list'); if(!box) return;
@@ -4058,22 +4102,33 @@ box.innerHTML='Cargando…';
 let list;
 try{ list=await window.hpListCuentas(); }
 catch(e){ box.innerHTML='<div class="alert y">No se pudieron cargar las solicitudes. '+(e.message||'')+'</div>'; return; }
+let roles={};
+try{ if(window.hpListRoles) roles=await window.hpListRoles(); }catch(e){}
 const pend=list.filter(c=>c.estado==='pendiente');
 const otras=list.filter(c=>c.estado!=='pendiente').sort((a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0));
 let h='<h3>Pendientes ('+pend.length+')</h3>';
 if(!pend.length) h+='<div class="team-empty">No hay solicitudes pendientes.</div>';
-pend.forEach(c=>{ h+=solCard(c,true); });
-if(otras.length){ h+='<h3 style="margin-top:18px">Historial ('+otras.length+')</h3>'; otras.forEach(c=>{ h+=solCard(c,false); }); }
+pend.forEach(c=>{ h+=solCard(c,true,roles[c.uid]); });
+if(otras.length){ h+='<h3 style="margin-top:18px">Historial ('+otras.length+')</h3>'; otras.forEach(c=>{ h+=solCard(c,false,roles[c.uid]); }); }
 box.innerHTML=h;
 };
-async function _hpDoAccion(uid,acc){
+async function _hpDoAccion(uid,acc,role,secs){
 try{
-if(acc==='aprobar') await window.hpAprobarCuenta(uid); else await window.hpRechazarCuenta(uid);
+if(acc==='aprobar'){
+await window.hpAprobarCuenta(uid);
+if((role==='editor'||role==='admin') && window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs);
+} else await window.hpRechazarCuenta(uid);
 if(typeof toast==='function') toast(acc==='aprobar'?'✔ Cuenta aprobada':'Cuenta rechazada');
 if(window.hpRenderSolicitudes) window.hpRenderSolicitudes();
 }catch(e){ if(typeof toast==='function') toast('Error: '+(e.message||'')); }
 }
-window.hpAprobarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Aprobar esta cuenta? El usuario podrá acceder a la app.',()=>_hpDoAccion(uid,'aprobar')); else _hpDoAccion(uid,'aprobar'); };
+window.hpAprobarUI=function(uid){
+const sel=document.getElementById('rol_'+uid), role=sel?sel.value:'usuario';
+const secs=role==='editor'?hpReadSecs(uid):[];
+if(role==='editor'&&!secs.length){ if(typeof toast==='function')toast('Marca al menos una sección para el editor'); return; }
+const msg=role==='admin'?'¿Aprobar y asignar ADMINISTRADOR? Tendrá control total, incluido gestionar cuentas.':role==='editor'?('¿Aprobar como EDITOR de '+secs.length+' sección(es)?'):'¿Aprobar esta cuenta? El usuario podrá acceder a la app.';
+if(window.hpConfirm) window.hpConfirm(msg,()=>_hpDoAccion(uid,'aprobar',role,secs)); else _hpDoAccion(uid,'aprobar',role,secs);
+};
 window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
 
 // === ERRORES REPORTADOS (solo administradora) ===
@@ -5266,7 +5321,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 111;
+const HP_BUILD = 112;
 const APP_BUILD = '2026.06.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11320,6 +11375,25 @@ window.hpAprobarCuenta = async function(uid){
 };
 window.hpRechazarCuenta = async function(uid){
   await updateDoc(doc(fs, 'cuentas', uid), { estado: 'rechazada', revisadaPor: curUid || null, fechaRevision: serverTimestamp() });
+};
+// Asignar/quitar perfil (rol) a una cuenta. Solo la administradora (lo refuerzan las reglas):
+//  - 'admin'  -> roles/{uid} = { role:'admin' }
+//  - 'editor' -> roles/{uid} = { role:'editor', sections:[...] }
+//  - otro     -> se elimina el documento de rol (queda como usuario de consulta)
+window.hpAsignarRol = async function(uid, role, sections){
+  if(role === 'admin'){
+    await setDoc(doc(fs, 'roles', uid), { role:'admin', asignadoPor: curUid || null, fechaAsignacion: serverTimestamp() });
+  } else if(role === 'editor'){
+    const secs = Array.isArray(sections) ? sections.filter(Boolean) : [];
+    await setDoc(doc(fs, 'roles', uid), { role:'editor', sections: secs, asignadoPor: curUid || null, fechaAsignacion: serverTimestamp() });
+  } else {
+    await deleteDoc(doc(fs, 'roles', uid));
+  }
+};
+// Lee todos los roles (solo administradora). Devuelve un mapa uid -> { role, sections }.
+window.hpListRoles = async function(){
+  const snap = await getDocs(collection(fs, 'roles'));
+  const out = {}; snap.forEach(d => { out[d.id] = d.data(); }); return out;
 };
 
 // ── Reportes de errores / incidencias ──

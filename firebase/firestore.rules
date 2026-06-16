@@ -64,9 +64,11 @@ service cloud.firestore {
     }
 
     match /roles/{uid} {
-      // Cada usuario puede leer su propio rol; nadie escribe roles desde la app.
-      allow read:  if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+      // Cada usuario puede leer su propio rol; la administradora puede leerlos y asignarlos
+      // todos (al aprobar una solicitud puede dar perfil de editor o administrador desde la
+      // app). SOLO un admin escribe: un usuario nunca puede otorgarse permisos a sí mismo.
+      allow read:  if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow write: if isAdmin();
     }
 
     // ── Cuentas de usuario y registro de aceptación de términos ──
