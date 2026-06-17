@@ -923,7 +923,8 @@ const MENU=[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
-{id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true}
+{id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
+{id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura',admin:true}
 ]}
 ];
 
@@ -959,6 +960,13 @@ h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" on
 });
 h+='</div></div>';
 });
+// Secciones de guías NUEVAS (creadas por admin): categorías propias al final del menú.
+try{ if(typeof hpNewSectionsOrdered==='function'){ hpNewSectionsOrdered().forEach(function(s){
+  if(s.oculta) return;
+  if(f && !(('guias clinicas '+(s.titulo||'')).toLowerCase().includes(f))) return;
+  const vid='g_'+s.id; const act=(S.view===vid); const op=(f||act);
+  h+='<div class="menu-section"><div class="menu-cat'+(op?' open':'')+'" onclick="this.classList.toggle(\'open\')"><span>'+(s.titulo||'').toUpperCase()+'</span><span class="ar">▶</span></div><div class="menu-items"><div class="menu-item '+(act?'active':'')+'" onclick="go(\''+vid+'\')"><span class="nm-wrap"><span>Guías clínicas</span></span></div></div></div>';
+}); } }catch(e){}
 $('menu').innerHTML=h;
 }
 
@@ -3951,7 +3959,7 @@ const DEFAULT_SUBTYPES={"lf": [{"id": "fol", "name": "Linfoma Folicular", "pdfs"
 function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 // ── Capa dinámica de SECCIONES de guías (título / visibilidad), compartida ──
-window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catch(e){} };
+window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catch(e){} try{ Object.keys(map||{}).forEach(function(id){ if(!(id in GUIDES_TITLES) && typeof VIEWS!=='undefined' && !VIEWS['g_'+id]) VIEWS['g_'+id]=function(){return guidesView(id);}; }); }catch(e){} };
 function hpSecMap(){ try{ return ls.g('secOverrides')||{}; }catch(e){ return {}; } }
 function hpSecTitle(id){ const o=hpSecMap()[id]; return (o&&o.titulo)||GUIDES_TITLES[id]||id; }
 function hpSecHidden(id){ const o=hpSecMap()[id]; return !!(o&&o.oculta); }
@@ -3959,17 +3967,82 @@ async function hpRenombrarSeccion(id){
   const nuevo=prompt('Nombre de la sección (se aplica a TODOS):', hpSecTitle(id));
   if(nuevo==null) return; const t=nuevo.trim(); if(!t) return;
   const m=hpSecMap(); m[id]=Object.assign({},m[id],{titulo:t}); try{ls.s('secOverrides',m);}catch(e){}
-  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go('g_'+id);
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go((typeof S!=='undefined'&&S.view==='gsecciones')?'gsecciones':'g_'+id);
   if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{titulo:t}); toast('✓ Sección renombrada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
   else toast('✓ Renombrada');
 }
 async function hpOcultarSeccion(id){
   const nuevo=!hpSecHidden(id);
   const m=hpSecMap(); m[id]=Object.assign({},m[id],{oculta:nuevo}); try{ls.s('secOverrides',m);}catch(e){}
-  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go('g_'+id);
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go((typeof S!=='undefined'&&S.view==='gsecciones')?'gsecciones':'g_'+id);
   if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{oculta:nuevo}); toast(nuevo?'✓ Sección oculta del menú · para todos':'✓ Sección visible · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
   else toast(nuevo?'✓ Oculta':'✓ Visible');
 }
+// Lista de TODAS las secciones (de fábrica + nuevas). Las nuevas = ids que no están en GUIDES_TITLES.
+function hpAllSections(){
+  const ov=hpSecMap(); const out=[];
+  Object.keys(GUIDES_TITLES).forEach(function(id){ const o=ov[id]||{}; out.push({id:id,titulo:o.titulo||GUIDES_TITLES[id],oculta:!!o.oculta,nueva:false}); });
+  Object.keys(ov).forEach(function(id){ if(!(id in GUIDES_TITLES)){ const o=ov[id]||{}; if(o.titulo||o.nueva) out.push({id:id,titulo:o.titulo||id,oculta:!!o.oculta,nueva:true,orden:(o.orden!=null?o.orden:9999)}); } });
+  return out;
+}
+function hpNewSectionsOrdered(){ return hpAllSections().filter(function(s){return s.nueva;}).sort(function(a,b){return (a.orden||0)-(b.orden||0);}); }
+async function hpCrearSeccion(){
+  const nombre=prompt('Nombre de la nueva sección de guías (se crea para TODOS):'); if(nombre==null) return; const t=nombre.trim(); if(!t) return;
+  const id='x_'+Date.now();
+  const orden=hpNewSectionsOrdered().reduce(function(m,s){return Math.max(m,s.orden||0);},0)+1;
+  const m=hpSecMap(); m[id]={titulo:t,nueva:true,orden:orden}; try{ls.s('secOverrides',m);}catch(e){}
+  if(window.hpApplySecciones) window.hpApplySecciones(m);
+  if(typeof renderMenu==='function')renderMenu('');
+  if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{titulo:t,nueva:true,orden:orden}); toast('✓ Sección creada · para todos'); }catch(e){ toast('Creada solo en este equipo (sin permiso o sin conexión)'); } }
+  else toast('✓ Creada');
+  go('gsecciones');
+}
+async function hpBorrarSeccionNueva(id){
+  if(!confirm('¿Eliminar esta sección y sus apartados? (Solo secciones creadas por ti.)')) return;
+  const m=hpSecMap(); delete m[id]; try{ls.s('secOverrides',m);}catch(e){}
+  try{ localStorage.removeItem('hc_subtypes_'+id); }catch(e){}
+  if(typeof renderMenu==='function')renderMenu('');
+  if(window.hpBorrarSeccion){ try{ await window.hpBorrarSeccion(id); if(window.hpResetSubtipos) await window.hpResetSubtipos(id); toast('✓ Sección eliminada · para todos'); }catch(e){ toast('Eliminada solo en este equipo'); } }
+  else toast('✓ Eliminada');
+  go('gsecciones');
+}
+async function hpMoverSeccion(id,dir){
+  const list=hpNewSectionsOrdered(); const i=list.findIndex(function(s){return s.id===id;}); if(i<0) return;
+  const j=i+dir; if(j<0||j>=list.length) return;
+  const a=list[i], b=list[j];
+  const m=hpSecMap(); m[a.id]=Object.assign({},m[a.id],{orden:b.orden}); m[b.id]=Object.assign({},m[b.id],{orden:a.orden}); try{ls.s('secOverrides',m);}catch(e){}
+  if(typeof renderMenu==='function')renderMenu('');
+  if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(a.id,{orden:b.orden}); await window.hpSaveSeccion(b.id,{orden:a.orden}); }catch(e){} }
+  go('gsecciones');
+}
+function _hpSecRow(s,esNueva,i,total){
+  let r='<div class="team-card" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+  r+='<span style="flex:1;min-width:140px"><strong>'+_hpEsc(s.titulo)+'</strong>'+(s.oculta?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+(esNueva?' <span style="color:#5a6a85;font-size:11px">· nueva</span>':'')+'</span>';
+  r+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+s.id+'\')">Renombrar</button>';
+  r+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+s.id+'\')">'+(s.oculta?'Mostrar':'Ocultar')+'</button>';
+  if(esNueva){
+    r+='<button class="btn btn-out btn-sm" onclick="hpMoverSeccion(\''+s.id+'\',-1)"'+(i===0?' disabled':'')+'>↑</button>';
+    r+='<button class="btn btn-out btn-sm" onclick="hpMoverSeccion(\''+s.id+'\',1)"'+(i===total-1?' disabled':'')+'>↓</button>';
+    r+='<button class="btn btn-out btn-sm" onclick="go(\'g_'+s.id+'\')">Abrir</button>';
+    r+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="hpBorrarSeccionNueva(\''+s.id+'\')">Eliminar</button>';
+  }
+  r+='</div>';
+  return r;
+}
+VIEWS.gsecciones=()=>{
+  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Gestionar secciones</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
+  const all=hpAllSections(); const built=all.filter(function(s){return !s.nueva;}); const nuevas=hpNewSectionsOrdered();
+  let h='<div class="card"><h2>🗂️ Gestionar secciones de guías</h2>';
+  h+='<p class="intro">Renombra, oculta, crea o reordena las secciones de guías. Los cambios son <strong>efectivos para todos</strong>. Las calculadoras/escalas no se ven afectadas.</p>';
+  h+='<button class="btn" style="margin-bottom:14px" onclick="hpCrearSeccion()">➕ Crear sección nueva</button>';
+  h+='<h3>De fábrica ('+built.length+')</h3>';
+  built.forEach(function(s){ h+=_hpSecRow(s,false); });
+  h+='<h3 style="margin-top:16px">Nuevas ('+nuevas.length+')</h3>';
+  if(!nuevas.length) h+='<div class="team-empty">Ninguna todavía. Crea una con el botón de arriba.</div>';
+  nuevas.forEach(function(s,i){ h+=_hpSecRow(s,true,i,nuevas.length); });
+  h+='</div>';
+  return h;
+};
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
 window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls.s('subtypes_'+section,items); }catch(e){} };
 // Propaga a la nube (efectivo para todos) un cambio de apartados. Best-effort con aviso.
@@ -5426,7 +5499,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 125;
+const HP_BUILD = 126;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11586,6 +11659,7 @@ window.hpSyncSecciones = async function(){
     return true;
   }catch(e){ return false; }
 };
+window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones', id)); };
 
 // ── Reportes de errores / incidencias ──
 // Crear: cualquier usuario autenticado. Leer/gestionar: solo administradora (reglas Firestore).
