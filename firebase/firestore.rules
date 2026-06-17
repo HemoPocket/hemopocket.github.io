@@ -151,6 +151,17 @@ service cloud.firestore {
       allow delete: if canEdit(resource.data.seccion);
     }
 
+    // ── Calculadoras propias (puntuaciones/fórmulas), por sección ──
+    // Mismas reglas que los algoritmos: las lee cualquier usuario autorizado; las crea/edita/
+    // mueve/borra quien puede editar ESA sección (admin de cualquiera, o editor de la sección).
+    // Para MOVERLAS hace falta permiso en la sección de origen y en la de destino.
+    match /calculadoras/{id} {
+      allow read:   if isApproved();
+      allow create: if canEdit(request.resource.data.seccion);
+      allow update: if canEdit(resource.data.seccion) && canEdit(request.resource.data.seccion);
+      allow delete: if canEdit(resource.data.seccion);
+    }
+
     // ── Directorio: contactos personalizados del hospital (listín telefónico) ──
     // Editable SOLO por administradores; efectivo para todos los usuarios autorizados.
     match /directorio/{id} {
