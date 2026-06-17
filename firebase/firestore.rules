@@ -157,6 +157,14 @@ service cloud.firestore {
       allow write:  if request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1';
     }
 
+    // ── Identidad del hospital (nombre, color y demás ajustes de marca) ──
+    // Editable por administradores (principal y co-admins); efectiva para todos.
+    // Permite que cada hospital personalice el aspecto de la app sin tocar el código.
+    match /ajustes/{id} {
+      allow read:   if isApproved();
+      allow write:  if isAdmin();
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
