@@ -155,6 +155,13 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── Esquemas de quimioterapia propios ──
+    // Editable SOLO por administradores; efectivo para todos.
+    match /qtschemes/{id} {
+      allow read:   if isApproved();
+      allow write:  if isAdmin();
+    }
+
     // ── Algoritmos interactivos, por sección ──
     // Los lee cualquier usuario autorizado; los crea/edita/borra quien puede editar ESA sección
     // (admin de cualquier sección, o editor de la sección), igual que las guías PDF.

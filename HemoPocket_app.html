@@ -1020,7 +1020,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit']);
 function hpVerifyBanner(id){
   if(!VIEWS[id]||HP_NO_BANNER.has(id)||HP_VERIFIED.has(id))return '';
   return '<div class="verify-note" role="note"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Contenido en proceso de verificación</span></div>';
@@ -6182,7 +6182,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 147;
+const HP_BUILD = 148;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6290,6 +6290,7 @@ if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncCatOrden){try{await window.hpSyncCatOrden();}catch(e){}}
 if(window.hpSyncChecklist){try{await window.hpSyncChecklist();}catch(e){}}
+if(window.hpSyncQt){try{await window.hpSyncQt();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
@@ -7562,6 +7563,51 @@ const QT_GROUPS = [
   {label:'Acondicionamiento TASPE – LMA',     keys:['BEA']}
 ];
 
+
+// ── Asistente de quimioterapia: ESQUEMAS editables (admin) ──
+// Los esquemas propios se fusionan con los de fábrica (QT_SCHEMES). Un esquema guardado con la misma
+// clave sustituye al de fábrica; con clave nueva, se añade (grupo «Personalizados»). El calendario
+// (qtCalc) usa la versión fusionada. Todo el texto se escapa. Se guardan en Firestore ('qtschemes').
+function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {}; } }
+function qtSchemes(){ return Object.assign({}, QT_SCHEMES, qtOverride()); }
+window.hpApplyQt=function(map){ try{ ls.s('qtOverride', map||{}); }catch(e){} try{ if(typeof S!=='undefined' && S && S.view==='qt' && typeof go==='function') go('qt'); }catch(e){} };
+let _qtDraft=null;
+function qtEditSel(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){toast('Solo administradores');return;} const sel=$('qt_scheme'); const key=sel?sel.value:''; if(!key){ toast('Elige primero un esquema'); return; } const sc=qtSchemes()[key]; if(!sc){ toast('Esquema no encontrado'); return; } _qtDraft=Object.assign({key:key,_isCustom:!QT_SCHEMES[key]}, JSON.parse(JSON.stringify(sc))); go('qtedit'); }
+function qtNuevo(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){toast('Solo administradores');return;} _qtDraft={key:'',_isNew:true,_isCustom:true,label:'',drugs:[{name:'',dose:'',route:'IV',days:[1]}],premed:[],notes:[]}; go('qtedit'); }
+VIEWS.qtedit=()=>{
+  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
+  const d=_qtDraft; if(!d) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">Nada que editar.</div></div>';
+  let h='<div class="card"><h2>💊 Editar esquema de quimioterapia</h2>';
+  h+='<p class="intro">Define los fármacos (dosis, vía y días). El calendario con fechas lo calcula la app. Es <strong>efectivo para todos</strong>.</p>';
+  if(d._isNew){ h+='<div class="fld"><label class="lbl">Clave (id corto, sin espacios)</label><input value="'+_hpEsc(d.key||'')+'" onchange="qtDraftKey(this.value)" placeholder="MI-ESQUEMA"></div>'; }
+  else { h+='<div class="fld"><label class="lbl">Clave</label><input value="'+_hpEsc(d.key||'')+'" disabled style="opacity:.6"></div>'; }
+  h+='<div class="fld"><label class="lbl">Nombre visible</label><input value="'+_hpEsc(d.label||'')+'" onchange="qtDraftField(\'label\',this.value)" placeholder="Ej: MI-ESQUEMA (cada 21 días)"></div>';
+  h+='<h3>Fármacos ('+(d.drugs||[]).length+')</h3>';
+  (d.drugs||[]).forEach(function(dr,i){
+    h+='<div class="team-card" style="display:block;margin-bottom:8px">';
+    h+='<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input style="flex:1" value="'+_hpEsc(dr.name||'')+'" onchange="qtDrugField('+i+',\'name\',this.value)" placeholder="Fármaco"><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="qtDelDrug('+i+')">×</button></div>';
+    h+='<div style="display:flex;gap:4px;flex-wrap:wrap"><input style="flex:2;min-width:130px" value="'+_hpEsc(dr.dose||'')+'" onchange="qtDrugField('+i+',\'dose\',this.value)" placeholder="Dosis (ej: 750 mg/m²)"><input style="width:90px" value="'+_hpEsc(dr.route||'')+'" onchange="qtDrugField('+i+',\'route\',this.value)" placeholder="Vía"><input style="width:120px" value="'+_hpEsc((dr.days||[]).join(','))+'" onchange="qtDrugDays('+i+',this.value)" placeholder="Días (1,2,3)"></div>';
+    h+='</div>';
+  });
+  h+='<button class="btn btn-out btn-sm" onclick="qtAddDrug()">➕ Añadir fármaco</button>';
+  h+='<div class="fld" style="margin-top:12px"><label class="lbl">Premedicación / notas de infusión (una por línea)</label><textarea style="min-height:60px" onchange="qtDraftLines(\'premed\',this.value)">'+_hpEsc((d.premed||[]).join('\n'))+'</textarea></div>';
+  h+='<div class="fld"><label class="lbl">Notas (una por línea)</label><textarea style="min-height:60px" onchange="qtDraftLines(\'notes\',this.value)">'+_hpEsc((d.notes||[]).join('\n'))+'</textarea></div>';
+  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-out" onclick="qtCancelar()">✖ Cancelar</button>';
+  if(d._isCustom && !d._isNew) h+='<button class="btn btn-out" style="color:#c41e3a" onclick="qtEliminar()">Eliminar esquema</button>';
+  h+='<button class="btn btn-g" onclick="qtGuardar()">💾 Guardar para todos</button></div>';
+  h+='</div>'; return h;
+};
+function qtDraftKey(v){ if(_qtDraft) _qtDraft.key=(''+v).trim().toUpperCase().replace(/[^A-Z0-9\-]+/g,'-'); }
+function qtDraftField(f,v){ if(_qtDraft) _qtDraft[f]=v; }
+function qtDraftLines(f,v){ if(_qtDraft) _qtDraft[f]=(''+v).split('\n').map(function(s){return s.trim();}).filter(Boolean); }
+function qtAddDrug(){ if(!_qtDraft.drugs)_qtDraft.drugs=[]; _qtDraft.drugs.push({name:'',dose:'',route:'IV',days:[1]}); go('qtedit'); }
+function qtDelDrug(i){ _qtDraft.drugs.splice(i,1); go('qtedit'); }
+function qtDrugField(i,f,v){ const dr=_qtDraft.drugs[i]; if(dr) dr[f]=v; }
+function qtDrugDays(i,v){ const dr=_qtDraft.drugs[i]; if(dr) dr.days=(''+v).split(',').map(function(s){return parseInt(s.trim(),10);}).filter(function(n){return !isNaN(n);}); }
+function qtCancelar(){ _qtDraft=null; go('qt'); }
+async function qtGuardar(){ const d=_qtDraft; if(!d) return; if(!d.key||!d.key.trim()){ toast('Ponle una clave al esquema'); return; } if(!d.label||!d.label.trim()){ toast('Ponle un nombre visible'); return; } const key=d.key.trim(); const sc=JSON.parse(JSON.stringify(d)); delete sc.key; delete sc._isNew; delete sc._isCustom; const m=qtOverride(); m[key]=sc; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Esquema guardado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _qtDraft=null; go('qt'); }
+async function qtEliminar(){ const d=_qtDraft; if(!d||!d.key) return; if(QT_SCHEMES[d.key]){ toast('Es un esquema de fábrica; edítalo (no se puede eliminar)'); return; } if(!confirm('¿Eliminar el esquema "'+(d.label||d.key)+'" para todos?'))return; const m=qtOverride(); delete m[d.key]; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } _qtDraft=null; go('qt'); }
+
 VIEWS.qt=()=>{
 const today=new Date();
 const dd=String(today.getDate()).padStart(2,'0');
@@ -7569,11 +7615,15 @@ const mm=String(today.getMonth()+1).padStart(2,'0');
 const yy=String(today.getFullYear()).slice(-2);
 const todayVal=`${today.getFullYear()}-${mm}-${dd}`;
 let selOpts='<option value="">— Selecciona un esquema —</option>';
+const _qS=qtSchemes();
 QT_GROUPS.forEach(g=>{
   selOpts+=`<optgroup label="${g.label}">`;
-  g.keys.forEach(k=>{ selOpts+=`<option value="${k}">${QT_SCHEMES[k].label}</option>`; });
+  g.keys.forEach(k=>{ if(_qS[k]) selOpts+=`<option value="${k}">${(_qS[k].label||k)}</option>`; });
   selOpts+=`</optgroup>`;
 });
+const _qGrouped={}; QT_GROUPS.forEach(g=>g.keys.forEach(k=>{_qGrouped[k]=1;}));
+const _qCustom=Object.keys(_qS).filter(k=>!_qGrouped[k]);
+if(_qCustom.length){ selOpts+=`<optgroup label="Personalizados">`; _qCustom.forEach(k=>{ selOpts+=`<option value="${k}">${(_qS[k].label||k)}</option>`; }); selOpts+=`</optgroup>`; }
 return `<div class="card">
 <h2>💊 Asistente de quimioterapia</h2>
 <p class="intro">Selecciona el esquema, introduce la fecha del día +1 y obtén el calendario de administración con fechas reales.</p>
@@ -7581,6 +7631,7 @@ return `<div class="card">
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
 </select></div>
+${(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button></div>':''}
 <div class="row2">
 <div class="fld"><label class="lbl">Fecha día +1</label>
 <input type="date" id="qt_d1" value="${todayVal}" oninput="qtCalc()" style="font-family:inherit"></div>
@@ -7734,7 +7785,7 @@ function chatBuildBase(){
     if(!CHAT_SKIP_RENDER.has(it.id)){try{const html=VIEWS[it.id]?VIEWS[it.id]():'';if(typeof html==='string'){const tmp=document.createElement('div');tmp.innerHTML=html;body+=' '+(tmp.textContent||'').replace(/\s+/g,' ');tmp.querySelectorAll('.ref').forEach(r=>{const t=(r.textContent||'').replace(/\s+/g,' ').trim();if(t)refs.push(t);});}}catch(e){}}
     docs.push({type:'tool',id:it.id,title:it.name,body:chatNorm(body),kwn:chatNorm(it.name+' '+(it.kw||'')),refs:refs});
   });}catch(e){}
-  try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];const dt=(s.drugs||[]).map(d=>d.name+' '+(d.dose||'')+' '+(d.route||'')).join(' ');docs.push({type:'scheme',id:k,title:s.label,body:chatNorm(k+' '+s.label+' '+dt+' '+(s.kw||'')),kwn:chatNorm(s.label+' '+(s.kw||'')+' '+k),data:s});});}catch(e){}
+  try{Object.keys(qtSchemes()).forEach(k=>{const s=qtSchemes()[k];const dt=(s.drugs||[]).map(d=>d.name+' '+(d.dose||'')+' '+(d.route||'')).join(' ');docs.push({type:'scheme',id:k,title:s.label,body:chatNorm(k+' '+s.label+' '+dt+' '+(s.kw||'')),kwn:chatNorm(s.label+' '+(s.kw||'')+' '+k),data:s});});}catch(e){}
   // Guías/protocolos por NOMBRE (desde la estructura): así son localizables aunque el PDF no esté descargado.
   // Si luego se descarga, chatIndexGuides añade el doc 'pdf' (con texto completo) y chatIndexAll descarta este stub.
   try{Object.keys(GUIDES_TITLES).forEach(sec=>{const secName=GUIDES_TITLES[sec]||'';(getSubtypes(sec)||[]).forEach(st=>{(st.pdfs||[]).forEach(p=>{if(!p||!p.url||!p.name)return;const ttl=secName+' · '+p.name;docs.push({type:'guide',id:sec,url:p.url,name:p.name,title:ttl,body:chatNorm(ttl+' '+(st.name||''))});});});});}catch(e){}
@@ -8685,7 +8736,7 @@ const bsa=(peso>0&&talla>0)?qtBSA(peso,talla):0;
 const wrap=$('qt_out_wrap');const info=$('qt_info');
 if(!wrap||!info)return;
 if(!key||!d1str){wrap.style.display='none';info.innerHTML='';return;}
-const scheme=QT_SCHEMES[key];if(!scheme){wrap.style.display='none';return;}
+const scheme=qtSchemes()[key];if(!scheme){wrap.style.display='none';return;}
 const base=new Date(d1str+'T00:00:00');
 function groupDays(days_arr){
   const dates=days_arr.map(d=>({day:d,date:qtAddDays(base,d-1)}));
@@ -11580,7 +11631,7 @@ function cmdBuildIndex(){
 const idx=[];
 try{MENU.forEach(sec=>sec.items.forEach(it=>{if(it.sub)return;
   idx.push({kind:'tool',id:it.id,name:it.name,sec:sec.h,_new:it.new,adm:!!it.admin,nf:chatNorm(it.name),nb:chatNorm(it.name+' '+(it.kw||'')+' '+sec.h)});}));}catch(e){}
-try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];
+try{Object.keys(qtSchemes()).forEach(k=>{const s=qtSchemes()[k];
   idx.push({kind:'scheme',id:k,name:s.label,sec:'Esquema QT',nf:chatNorm(s.label),nb:chatNorm(s.label+' '+k+' '+(s.kw||''))});});}catch(e){}
 try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{const nm=(e[0]||'').replace(/\n/g,' ');
   idx.push({kind:'phone',name:nm,sec:sn,ext:e[3],phone:e[2],loc:e[1],nf:chatNorm(nm),nb:chatNorm(sn+' '+nm+' '+(e[1]||'')+' '+(e[3]||''))});});});}catch(e){}
@@ -12301,6 +12352,7 @@ function revealAndEnter(user){
   if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
   if (window.hpSyncCatOrden) setTimeout(() => window.hpSyncCatOrden(), 1010);
   if (window.hpSyncChecklist) setTimeout(() => window.hpSyncChecklist(), 1020);
+  if (window.hpSyncQt) setTimeout(() => window.hpSyncQt(), 1030);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
@@ -12472,6 +12524,10 @@ window.hpSaveCatOrden = async function(m){ await setDoc(doc(fs, 'menuconfig', 'o
 // ── Check list de ingreso (estructura). Lo edita un admin; lo leen todos. ──
 window.hpSaveChecklist = async function(arr){ await setDoc(doc(fs, 'checklists', 'ingreso'), { sections: arr||[], actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
 window.hpDeleteChecklist = async function(){ await deleteDoc(doc(fs, 'checklists', 'ingreso')); };
+// ── Esquemas de QT propios. Los edita un admin; los leen todos. ──
+window.hpSaveQt = async function(map){ await setDoc(doc(fs, 'qtschemes', 'custom'), { schemes: map||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschemes', 'custom')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQt) window.hpApplyQt(d.schemes||{}); } return true; }catch(e){ return false; } };
+
 window.hpSyncChecklist = async function(){
   try{
     const s = await getDoc(doc(fs, 'checklists', 'ingreso'));
