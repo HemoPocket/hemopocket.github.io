@@ -867,6 +867,7 @@ const MENU=[
 {id:'eln',name:'ELN 2022 (LMA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
 {id:'eln24',name:'ELN 2024 (LMA baja intensidad)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
 {id:'ferrara',name:'Ferrara (aptitud para QT intensiva)',kw:'ferrara fit unfit frail aptitud fragilidad candidato quimioterapia intensiva baja intensidad lma anciano comorbilidad ecog fraccion eyeccion viale-a',new:'2026-06-12'},
+{id:'ferrara_bi',name:'Ferrara (aptitud para QT de baja intensidad)',kw:'ferrara baja intensidad no intensiva soporte frail unfit azacitidina decitabina venetoclax mejor tratamiento soporte hidroxiurea neoplasia no controlada lma',new:'2026-06-17'},
 {id:'prism_aml',name:'PRISM (LMA con venetoclax · info)',kw:'prism lma leucemia mieloide aguda venetoclax azacitidina hma pronostico riesgo supervivencia tp53 asxl1 flt3 score 2025',new:'2026-06-12'},
 {id:'g_leuc_ag',name:'Guías clínicas',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
 ]},
@@ -1664,15 +1665,33 @@ items:[
 {q:'Diálisis y edad > 60 años, o carcinoma renal no controlado',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'Cirrosis Child B/C, o hepatopatía con transaminasas > 3× normal y edad > 60 años, o carcinoma biliar/hepático no controlado, o hepatitis viral aguda',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'Infección activa resistente al tratamiento antiinfeccioso',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Enfermedad mental que requiere hospitalización/manejo psiquiátrico intensivo, o deterioro cognitivo con dependencia no controlada por el cuidador',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enfermedad mental que requiere hospitalización psiquiátrica, institucionalización o manejo ambulatorio intensivo; o deterioro cognitivo que produce dependencia (confirmado por el especialista) no controlado por el cuidador',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'ECOG ≥ 3 no relacionado con la leucemia',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'Cualquier otra comorbilidad que el clínico juzgue incompatible con la quimioterapia intensiva',type:'check',opts:[{l:'Sí',p:1}]}
 ],
 ranges:[
 {min:0,max:0,cls:'lo',label:'Apto (fit) para QT intensiva',info:'<div class="res-s">Ningún criterio presente. Candidato a quimioterapia intensiva si así lo indican el resto de factores (citogenética/molecular, valoración geriátrica, objetivos y preferencias del paciente).</div><div class="alert b" style="margin-top:8px;font-size:12px"><strong>Adaptación operativa (VIALE-A):</strong> en la práctica, para indicar esquema basado en venetoclax suele considerarse <strong>no apto</strong> a todo paciente con edad ≥ 75 años, o de 18–74 años con ≥ 1 de: ECOG 2–3, FEVI ≤ 50% / ICC en tratamiento / angina estable crónica, DLCO ≤ 65% o FEV1 ≤ 65%, aclaramiento de creatinina < 45 mL/min, bilirrubina > 1,5 × LSN, u otra comorbilidad incompatible con QT intensiva.</div>'},
-{min:1,max:99,cls:'hi',label:'NO apto (unfit) para QT intensiva',info:'<div class="res-s">Al menos un criterio presente. Considerar esquema de <strong>baja intensidad</strong> (p. ej. azacitidina/decitabina + venetoclax). La decisión final integra comorbilidad, valoración geriátrica, perfil molecular y preferencias del paciente.</div><details class="alert y" style="margin-top:8px;font-size:12px"><summary style="cursor:pointer;font-weight:600">¿No apto tampoco para QT de baja intensidad? → mejor tratamiento de soporte (≥ 1 de 6)</summary><div style="margin-top:6px">Lista separada del consenso para indicar <strong>mejor tratamiento de soporte</strong>; son los mismos dominios pero con el umbral en <strong>fallo orgánico grave/terminal</strong>. Basta UNO:<ol style="margin:6px 0 0;padding-left:18px"><li>ECOG ≥ 3 no atribuible a la leucemia.</li><li>Insuficiencia cardíaca grave (NYHA III–IV) o cardiopatía terminal no controlable.</li><li>Insuficiencia respiratoria grave: disnea de reposo u O₂-dependiente (DLCO ≤ 65% o FEV1 ≤ 65% con insuficiencia respiratoria).</li><li>Insuficiencia renal grave dependiente de diálisis.</li><li>Insuficiencia hepática grave: cirrosis descompensada (Child C) o hiperbilirrubinemia marcada.</li><li>Infección activa no controlada resistente al tratamiento; y/o enfermedad mental con hospitalización psiquiátrica o deterioro cognitivo con dependencia.</li></ol><div style="margin-top:6px">Más el comodín: cualquier otra comorbilidad que el clínico juzgue incompatible incluso con la QT de baja intensidad.</div><div style="margin-top:6px;color:var(--mut)"><small>Dominios del consenso SIE/SIES/GITMO 2013; conviene confirmar los puntos de corte exactos en el artículo original (referencia abajo).</small></div></div></details>'}
+{min:1,max:99,cls:'hi',label:'NO apto (unfit) para QT intensiva',info:'<div class="res-s">Al menos un criterio presente. Considerar esquema de <strong>baja intensidad</strong> (p. ej. azacitidina/decitabina + venetoclax). La decisión final integra comorbilidad, valoración geriátrica, perfil molecular y preferencias del paciente.</div><div class="res-s" style="margin-top:6px"><small>¿Tampoco apto para QT de <strong>baja</strong> intensidad? El consenso define una lista separada (6 criterios operativos) que orienta a <strong>mejor tratamiento de soporte</strong>.</small></div><div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="go(\'ferrara_bi\')">Evaluar aptitud para QT de baja intensidad →</button></div>'}
 ],
 ref:'Ferrara F, Barosi G, Venditti A, et al. Consensus-based definition of unfitness to intensive and non-intensive chemotherapy in acute myeloid leukemia (SIE/SIES/GITMO). Leukemia. 2013;27(5):997-999. https://www.nature.com/articles/leu2012303 · Validación: Palmieri R, et al. Accuracy of SIE/SIES/GITMO consensus criteria for unfitness… J Clin Oncol. 2021;39(suppl). https://pmc.ncbi.nlm.nih.gov/articles/PMC8462659/ · Adaptación operativa: DiNardo CD, et al. Azacitidine and Venetoclax in Previously Untreated AML (VIALE-A). N Engl J Med. 2020;383(7):617-629. https://www.nejm.org/doi/full/10.1056/NEJMoa2012971'
+});
+
+VIEWS.ferrara_bi=()=>pointCalc({
+id:'ferrara_bi',title:'Ferrara (SIE/SIES/GITMO) – Aptitud para QT de baja intensidad (LMA)',
+intro:'Definición de consenso de <strong>no aptitud (unfit) para quimioterapia NO INTENSIVA / de baja intensidad</strong> en LMA (azacitidina/decitabina ± venetoclax, dosis bajas de citarabina). Pensada para el paciente ya considerado <strong>no apto para QT intensiva</strong>. Marca los criterios presentes: <strong>basta UNO</strong> para clasificarlo como NO apto tampoco para baja intensidad, lo que orienta a <strong>mejor tratamiento de soporte</strong> (hidroxiurea, soporte transfusional, cuidados). Son los <strong>6 criterios operativos</strong> del consenso (Tabla 4).',
+items:[
+{q:'Insuficiencia cardíaca congestiva refractaria',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enf. pulmonar documentada con DLCO ≤ 65% o FEV1 ≤ 65%, disnea de reposo o necesidad de O₂, o neoplasia pleural/pulmonar no controlada',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Cirrosis hepática Child B o C, o hepatitis viral aguda',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Infección activa resistente al tratamiento antiinfeccioso',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enfermedad mental que requiere hospitalización psiquiátrica, institucionalización o manejo ambulatorio intensivo; o deterioro cognitivo que produce dependencia (confirmado por el especialista) no controlado por el cuidador',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Neoplasia concomitante no controlada',type:'check',opts:[{l:'Sí',p:1}]}
+],
+ranges:[
+{min:0,max:0,cls:'lo',label:'Apto para QT de baja intensidad',info:'<div class="res-s">Ningún criterio presente. El paciente —aun no siendo candidato a QT intensiva— puede recibir un esquema de <strong>baja intensidad</strong> (azacitidina/decitabina ± venetoclax, dosis bajas de citarabina). La decisión final integra la valoración geriátrica, el perfil molecular y las preferencias del paciente.</div>'},
+{min:1,max:99,cls:'hi',label:'NO apto para QT de baja intensidad',info:'<div class="res-s">Al menos un criterio presente → se orienta a <strong>mejor tratamiento de soporte</strong> (terapias dirigidas a la calidad de vida: citorreducción con hidroxiurea, soporte transfusional y cuidados). La decisión final integra los objetivos y preferencias del paciente.</div>'}
+],
+ref:'Ferrara F, Barosi G, Venditti A, et al. Consensus-based definition of unfitness to intensive and non-intensive chemotherapy in acute myeloid leukemia (SIE/SIES/GITMO). Leukemia. 2013;27(5):997-999 — Tabla 4 (criterios operativos de no aptitud para QT no intensiva). https://www.nature.com/articles/leu2012303 · Validación: Palmieri R, et al. Accuracy of SIE/SIES/GITMO consensus criteria for unfitness… J Clin Oncol. 2021. https://pmc.ncbi.nlm.nih.gov/articles/PMC8462659/'
 });
 
 // === PRISM: pronóstico en LMA tratada con venetoclax (informativo) ===
@@ -5854,7 +5873,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 136;
+const HP_BUILD = 138;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
