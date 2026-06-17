@@ -104,6 +104,15 @@ service cloud.firestore {
       allow write:  if request.auth != null && request.auth.uid == uid;
     }
 
+    // ── Colaboradores acreditados por tema (Aviso Legal) ──
+    // La administradora asigna editores; su crédito (nombre + secciones) se publica aquí para
+    // que el Aviso Legal —que ve TODO el mundo— refleje quién mantiene cada sección. Lo leen
+    // los usuarios autorizados; solo un admin lo escribe.
+    match /colaboradores/{uid} {
+      allow read:   if isApproved();
+      allow write:  if isAdmin();
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
