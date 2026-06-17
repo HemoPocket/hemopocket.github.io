@@ -162,6 +162,16 @@ service cloud.firestore {
       allow delete: if canEdit(resource.data.seccion);
     }
 
+    // ── Contenido informativo (notas/fichas), por sección ──
+    // Mismas reglas que algoritmos y calculadoras: lo lee cualquier usuario autorizado; lo crea/
+    // edita/mueve/borra quien puede editar ESA sección. Mover exige permiso en origen y destino.
+    match /infos/{id} {
+      allow read:   if isApproved();
+      allow create: if canEdit(request.resource.data.seccion);
+      allow update: if canEdit(resource.data.seccion) && canEdit(request.resource.data.seccion);
+      allow delete: if canEdit(resource.data.seccion);
+    }
+
     // ── Directorio: contactos personalizados del hospital (listín telefónico) ──
     // Editable SOLO por administradores; efectivo para todos los usuarios autorizados.
     match /directorio/{id} {

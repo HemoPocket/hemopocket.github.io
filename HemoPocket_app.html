@@ -1020,7 +1020,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit']);
 function hpVerifyBanner(id){
   if(!VIEWS[id]||HP_NO_BANNER.has(id)||HP_VERIFIED.has(id))return '';
   return '<div class="verify-note" role="note"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Contenido en proceso de verificación</span></div>';
@@ -4087,8 +4087,7 @@ function _hpContenidoTema(sec){
     body+='<div class="team-card" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
     if(esGuia){
       const sid=it.id.slice(2); const oc=hpSecHidden(sid); n++;
-      body+='<span style="flex:1;min-width:130px">📄 '+_hpEsc(hpSecTitle(sid))+(oc?' <span style="color:var(--mut);font-size:11px">(oculto)</span>':'')+'</span>';
-      body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">Renombrar</button>';
+      body+='<span style="flex:1;min-width:130px">📄 Guías clínicas (PDF)'+(oc?' <span style="color:var(--mut);font-size:11px">(oculto)</span>':'')+'</span>';
       body+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
     } else {
       const oc=hpItemHidden(it.id); n++;
@@ -4113,18 +4112,18 @@ VIEWS.gsecciones=()=>{
     const nombre = sid?hpSecTitle(sid):(sec.h||'');
     const oc = sid?hpSecHidden(sid):false;
     h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
-    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(nombre)+(oc?' <span style="color:var(--mut);font-size:11px">(sección oculta)</span>':'')+'</summary>';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(nombre)+'</summary>';
     h+='<div style="margin-top:8px">';
     if(sid){
       h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
       h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">✏️ Renombrar sección</button>';
-      h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'👁️ Mostrar sección':'🚫 Ocultar sección')+'</button>';
       h+='</div>';
     } else {
       h+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px">Sección general del menú (sin apartado de guías). Su nombre forma parte de la app; aquí gestionas sus calculadoras.</div>';
     }
     const cont=_hpContenidoTema(sec);
     h+=cont||'<div style="font-size:12px;color:var(--mut)">Sin calculadoras en esta sección.</div>';
+    if(sid) h+=_hpAddContenido(sid);
     h+='</div></details>';
   }); }catch(e){}
   // Secciones nuevas creadas por la administración
@@ -4143,7 +4142,7 @@ VIEWS.gsecciones=()=>{
     h+='<button class="btn btn-out btn-sm" onclick="go(\'g_'+s.id+'\')">Abrir</button>';
     h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="hpBorrarSeccionNueva(\''+s.id+'\')">Eliminar</button>';
     h+='</div>';
-    h+='<div style="font-size:12px;color:var(--mut)">Para añadir calculadoras o guías a esta sección, ábrela y usa «➕ Crear calculadora» o sube guías.</div>';
+    h+=_hpAddContenido(s.id);
     h+='</div></details>';
   });
   h+='</div>';
@@ -4216,12 +4215,13 @@ VIEWS.algoedit=()=>{
   h+='<div class="fld"><label class="lbl">Título</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="algoSetField(\'titulo\',this.value)" placeholder="Ej: Diagnóstico diferencial de AHAI"></div>';
   h+='<div class="fld"><label class="lbl">Introducción (opcional)</label><textarea onchange="algoSetField(\'intro\',this.value)" placeholder="Contexto breve...">'+_hpEsc(d.intro||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Sección (puedes moverlo)</label><select onchange="algoMover(this.value)">'+hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(d.seccion===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join('')+'</select></div>';
-  h+='<div class="fld"><label class="lbl">Paso inicial</label><select onchange="algoSetField(\'inicio\',this.value)"><option value="">— elige —</option>'+nodeIds.map(function(nid){return '<option value="'+nid+'"'+(d.inicio===nid?' selected':'')+'>'+_hpEsc(_algoNodeLabel(d.nodos[nid]))+'</option>';}).join('')+'</select></div>';
+  if(nodeIds.length){ h+='<div class="fld"><label class="lbl">Paso inicial</label><select onchange="algoSetField(\'inicio\',this.value)"><option value="">— elige —</option>'+nodeIds.map(function(nid){return '<option value="'+nid+'"'+(d.inicio===nid?' selected':'')+'>'+_hpEsc(_algoNodeLabel(d.nodos[nid]))+'</option>';}).join('')+'</select></div>'; }
+  else { h+='<div class="alert b" style="margin-bottom:8px">Empieza añadiendo una <strong>Pregunta</strong> o un <strong>Resultado</strong> con los botones de abajo. El primero será el paso inicial (luego puedes cambiarlo).</div>'; }
   h+='<h3>Pasos ('+nodeIds.length+')</h3>';
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
-  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn" onclick="algoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="algoComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="algoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="algoPublicar()">✅ Publicar</button></div>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="algoCancelar()">✖ Cancelar</button><button class="btn" onclick="algoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="algoComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="algoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="algoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
 function _algoEditNode(d,nid,nodeIds){
@@ -4251,6 +4251,7 @@ function algoAddOpt(nid){ const n=_algoDraft.nodos[nid]; if(!n.opciones)n.opcion
 function algoDelOpt(nid,i){ const n=_algoDraft.nodos[nid]; if(n.opciones)n.opciones.splice(i,1); go('algoedit'); }
 function algoOptLabel(nid,i,v){ const n=_algoDraft.nodos[nid]; if(n.opciones&&n.opciones[i])n.opciones[i].etiqueta=v; }
 function algoOptDest(nid,i,v){ const n=_algoDraft.nodos[nid]; if(!n.opciones||!n.opciones[i])return; if(v==='__new'){ const rid='n_'+Date.now(); _algoDraft.nodos[rid]={id:rid,tipo:'resultado',texto:'Nuevo resultado',opciones:[],cuerpo:''}; n.opciones[i].destino=rid; go('algoedit'); } else { n.opciones[i].destino=v; } }
+function algoCancelar(){ const s=_algoDraft&&_algoDraft.seccion; _algoDraft=null; if(s) go('g_'+s); else go('home'); }
 function algoVistaPrevia(){ if(!_algoDraft.inicio){toast('Elige el paso inicial');return;} _algoState={algo:JSON.parse(JSON.stringify(_algoDraft)),current:_algoDraft.inicio,history:[],preview:true}; go('algo'); }
 function _algoValidar(d){
   const errs=[], warns=[]; const ids=Object.keys((d&&d.nodos)||{});
@@ -4504,7 +4505,7 @@ VIEWS.calcedit=()=>{
   }
   (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
-  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn" onclick="calcVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="calcComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="calcGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="calcPublicar()">✅ Publicar</button></div>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="calcCancelar()">✖ Cancelar</button><button class="btn" onclick="calcVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="calcComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="calcGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="calcPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
 function _calcEditCampo(campo,ci,calcTipo){
@@ -4554,6 +4555,7 @@ function calcOptValor(ci,oi,v){ const c=_calcDraft.campos[ci]; if(c&&c.opciones&
 function calcAddResultado(){ if(!_calcDraft.resultados)_calcDraft.resultados=[]; _calcDraft.resultados.push({min:0,max:0,etiqueta:'',detalle:''}); go('calcedit'); }
 function calcDelResultado(ri){ _calcDraft.resultados.splice(ri,1); go('calcedit'); }
 function calcResField(ri,f,v){ const r=_calcDraft.resultados[ri]; if(!r)return; if(f==='min'||f==='max')r[f]=(+v||0); else r[f]=v; }
+function calcCancelar(){ const s=_calcDraft&&_calcDraft.seccion; _calcDraft=null; if(s) go('g_'+s); else go('home'); }
 function calcVistaPrevia(){ _calcState={calc:JSON.parse(JSON.stringify(_calcDraft)),vals:{},preview:true}; go('calc'); }
 function _calcValidar(d){
   const errs=[], warns=[];
@@ -4586,6 +4588,73 @@ function calcComprobar(){ const v=_calcValidar(_calcDraft); if(!v.errs.length&&!
 async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
 async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
 async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; const _st=_calcsStored(); if(DEFAULT_CALCS[id] && !_st[id]){ toast('Es una calculadora de ejemplo integrada en la app; edítala para personalizarla.'); return; } if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=_calcsStored(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
+
+// ════════════════ CONTENIDO INFORMATIVO (notas / fichas por sección) ════════════════
+// Un "info" = título + texto (SIN HTML; se muestra escapado y respetando saltos de línea). Se guarda
+// en Firestore ('infos'), se gestiona por canEdit(seccion), se mueve de sección y se publica a todos.
+function hpInfos(){ try{ return ls.g('infos')||{}; }catch(e){ return {}; } }
+window.hpApplyInfos=function(map){ try{ ls.s('infos', map||{}); }catch(e){} };
+function infosForSection(sec){ const m=hpInfos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x&&x.seccion===sec;}); }
+function renderInfosBlock(sec){
+  const canEd=!!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec));
+  const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';});
+  if(!pub.length && !canEd) return '';
+  let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Información y notas</span><span class="ar">▶</span></div><div class="coll-c">';
+  (canEd?list:pub).forEach(function(x){
+    const draft=x.estado!=='publicado';
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(x.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+'</span>';
+    h+='<button class="btn btn-out btn-sm" onclick="infoOpen(\''+x.id+'\')">Abrir</button>';
+    if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="infoEditOpen(\''+x.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="infoEliminar(\''+x.id+'\')">×</button>'; }
+    h+='</div>';
+  });
+  if(canEd) h+='<button class="btn btn-out btn-sm" style="margin-top:10px" onclick="infoNuevo(\''+sec+'\')">➕ Crear información</button>';
+  h+='</div></div>'; return h;
+}
+let _infoState=null;
+VIEWS.info=()=>{
+  const x=_infoState; if(!x) return '<div class="card"><h2>Información</h2><div class="alert y">No se pudo cargar.</div></div>';
+  let h='<div class="card"><h2>'+_hpEsc(x.titulo||'Información')+'</h2>';
+  if(x.preview) h+='<div class="alert b" style="margin-bottom:10px">Vista previa. <a onclick="go(\'infoedit\')" style="cursor:pointer;text-decoration:underline">← Volver a editar</a></div>';
+  h+='<div style="white-space:pre-wrap;line-height:1.55">'+_hpEsc(x.cuerpo||'')+'</div>';
+  if(x.fuente) h+='<p style="font-size:11px;color:var(--mut);margin-top:12px">Fuente: '+_hpEsc(x.fuente)+'</p>';
+  h+='</div>'; return h;
+};
+function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); go('info'); }
+let _infoDraft=null;
+function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador'}; go('infoedit'); }
+function infoEditOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoDraft=JSON.parse(JSON.stringify(x)); go('infoedit'); }
+function _infoSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
+VIEWS.infoedit=()=>{
+  const d=_infoDraft; if(!d) return '<div class="card"><h2>Editar información</h2><div class="alert y">Nada que editar.</div></div>';
+  if(!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(d.seccion))) return '<div class="card"><h2>Editar información</h2><div class="alert y">No tienes permiso para editar en esta sección.</div></div>';
+  let h='<div class="card"><h2>📋 Editar información</h2>';
+  h+='<p class="intro">Escribe el texto tal cual (sin HTML); se respetan los saltos de línea. Prueba con <strong>Vista previa</strong> y <strong>Publica</strong> cuando esté listo.</p>';
+  h+='<div class="fld"><label class="lbl">Título</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="infoSetField(\'titulo\',this.value)" placeholder="Ej: Profilaxis antifúngica — resumen"></div>';
+  h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="infoSetField(\'seccion\',this.value)">'+_infoSecOptions(d.seccion)+'</select></div>';
+  h+='<div class="fld"><label class="lbl">Contenido</label><textarea style="min-height:220px" onchange="infoSetField(\'cuerpo\',this.value)" placeholder="Escribe aquí la información...">'+_hpEsc(d.cuerpo||'')+'</textarea></div>';
+  h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="infoCancelar()">✖ Cancelar</button><button class="btn" onclick="infoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="infoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="infoPublicar()">✅ Publicar</button></div>';
+  h+='</div>'; return h;
+};
+function infoSetField(f,v){ if(!_infoDraft)return; _infoDraft[f]=v; if(f==='seccion') go('infoedit'); }
+function infoVistaPrevia(){ _infoState=Object.assign({},JSON.parse(JSON.stringify(_infoDraft)),{preview:true}); go('info'); }
+function infoCancelar(){ const s=_infoDraft&&_infoDraft.seccion; _infoDraft=null; if(s) go('g_'+s); else go('home'); }
+async function infoGuardar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
+async function infoPublicar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!(d.cuerpo||'').trim() && !confirm('No has escrito contenido. ¿Publicar igualmente?'))return; d.estado='publicado'; const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
+async function infoEliminar(id){ const x=hpInfos()[id]; if(!x)return; if(!confirm('¿Eliminar "'+(x.titulo||'')+'" para todos?'))return; const sec=x.seccion; const m=hpInfos(); delete m[id]; try{ls.s('infos',m);}catch(e){} if(window.hpDeleteInfo){ try{ await window.hpDeleteInfo(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
+// Botonera unificada para AÑADIR contenido a una sección (calculadora, algoritmo, información, PDF).
+function _hpAddContenido(sec){
+  let h='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px;padding-top:8px;border-top:1px dashed var(--bd)">';
+  h+='<span style="font-size:12px;color:var(--mut);width:100%;font-weight:600">➕ Añadir contenido a esta sección:</span>';
+  h+='<button class="btn btn-out btn-sm" onclick="calcNuevo(\''+sec+'\',\'score\')">🧮 Calculadora (puntos)</button>';
+  h+='<button class="btn btn-out btn-sm" onclick="calcNuevo(\''+sec+'\',\'formula\')">🧮 Calculadora (fórmula)</button>';
+  h+='<button class="btn btn-out btn-sm" onclick="algoNuevo(\''+sec+'\')">🧩 Algoritmo</button>';
+  h+='<button class="btn btn-out btn-sm" onclick="infoNuevo(\''+sec+'\')">📋 Información</button>';
+  h+='<button class="btn btn-out btn-sm" onclick="go(\'g_'+sec+'\')">📄 Subir PDF (abrir sección)</button>';
+  h+='</div>';
+  return h;
+}
+
 
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
 window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls.s('subtypes_'+section,items); }catch(e){} };
@@ -4969,6 +5038,7 @@ h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.
 }
 h+=renderAlgosBlock(id);
 h+=renderCalcsBlock(id);
+h+=renderInfosBlock(id);
 h+='</div>';
 return h;
 }
@@ -6045,7 +6115,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 141;
+const HP_BUILD = 142;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6156,6 +6226,7 @@ if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
 if(window.hpSyncItems){try{await window.hpSyncItems();}catch(e){}}
 if(window.hpSyncCalcs){try{await window.hpSyncCalcs();}catch(e){}}
+if(window.hpSyncInfos){try{await window.hpSyncInfos();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -12164,6 +12235,7 @@ function revealAndEnter(user){
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
   if (window.hpSyncItems) setTimeout(() => window.hpSyncItems(), 1250);
   if (window.hpSyncCalcs) setTimeout(() => window.hpSyncCalcs(), 1300);
+  if (window.hpSyncInfos) setTimeout(() => window.hpSyncInfos(), 1350);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -12350,6 +12422,19 @@ window.hpSyncCalcs = async function(){
     return true;
   }catch(e){ return false; }
 };
+
+// ── Contenido informativo (por sección). Lo edita quien edita esa sección; lo leen todos.
+window.hpSaveInfo = async function(x){ await setDoc(doc(fs, 'infos', x.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, x)); };
+window.hpDeleteInfo = async function(id){ await deleteDoc(doc(fs, 'infos', id)); };
+window.hpSyncInfos = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'infos'));
+    const map = {}; snap.forEach(d => { map[d.id] = Object.assign({ id:d.id }, d.data()); });
+    if(window.hpApplyInfos) window.hpApplyInfos(map);
+    return true;
+  }catch(e){ return false; }
+};
+
 
 // ── Directorio: contactos personalizados del hospital. Solo admin escribe; lo leen todos.
 window.hpSaveContacto = async function(id, data){ await setDoc(doc(fs, 'directorio', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data)); };
