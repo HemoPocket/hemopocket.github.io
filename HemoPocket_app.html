@@ -4326,6 +4326,23 @@ const DEFAULT_CALCS={
       {min:18.5,max:24.9,etiqueta:'Normopeso',detalle:''},
       {min:25,max:29.9,etiqueta:'Sobrepeso',detalle:''},
       {min:30,max:100000,etiqueta:'Obesidad',detalle:''}
+    ]},
+  'cal_ej_mascc':{ id:'cal_ej_mascc', seccion:'inf', tipo:'score', estado:'publicado',
+    titulo:'MASCC (riesgo en neutropenia febril) · ejemplo',
+    intro:'Identifica la neutropenia febril de BAJO riesgo (posible manejo simplificado). Máximo 26 puntos; ≥21 = bajo riesgo.',
+    fuente:'Klastersky J et al. J Clin Oncol 2000',
+    campos:[
+      {id:'m_burden', tipo:'select', etiqueta:'Carga de la enfermedad (síntomas)', opciones:[{etiqueta:'Sin síntomas o leves',puntos:5},{etiqueta:'Síntomas moderados',puntos:3},{etiqueta:'Síntomas graves',puntos:0}]},
+      {id:'m_hipo', tipo:'check', etiqueta:'Sin hipotensión (TAS > 90 mmHg)', puntos:5},
+      {id:'m_epoc', tipo:'check', etiqueta:'Sin EPOC', puntos:4},
+      {id:'m_tumor', tipo:'check', etiqueta:'Tumor sólido o hematológico sin infección fúngica previa', puntos:4},
+      {id:'m_deshi', tipo:'check', etiqueta:'Sin deshidratación que requiera fluidos IV', puntos:3},
+      {id:'m_ambul', tipo:'check', etiqueta:'Ambulatorio al inicio de la fiebre', puntos:3},
+      {id:'m_edad', tipo:'check', etiqueta:'Edad < 60 años', puntos:2}
+    ],
+    resultados:[
+      {min:0,max:20,etiqueta:'ALTO riesgo (<21)',detalle:'Ingreso y antibioterapia IV de amplio espectro según protocolo.'},
+      {min:21,max:26,etiqueta:'BAJO riesgo (≥21)',detalle:'Posible candidato a antibioterapia oral / manejo ambulatorio en pacientes seleccionados, según criterio clínico y protocolo del centro.'}
     ]}
 };
 function _calcsStored(){ try{ return ls.g('calcs')||{}; }catch(e){ return {}; } }
@@ -6028,7 +6045,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 140;
+const HP_BUILD = 141;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
