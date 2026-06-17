@@ -1004,9 +1004,12 @@ function go(id, params) {
     renderMenu($('search').value);
     
     const v = VIEWS[id];
-    $('content').innerHTML = hpVerifyBanner(id) + (v ? v(params) : homeView());
+    let _base = (v ? v(params) : homeView());
+    let _skipPost = false;
+    try{ const _pw = hpPageWrap(id, _base); _base = _pw.html; _skipPost = _pw.skipPost; }catch(e){}
+    $('content').innerHTML = hpVerifyBanner(id) + _base;
     if (typeof wrapTbls==='function') wrapTbls($('content'));
-    if (VIEWS[id + '_post']) VIEWS[id + '_post'](params);
+    if (!_skipPost && VIEWS[id + '_post']) VIEWS[id + '_post'](params);
     document.body.classList.toggle('view-home', !!document.querySelector('#content .home-screen'));
     const _ew = $('eriWrap');
     if (_ew) { _ew._manual = false; if (typeof eriAnchor === 'function') requestAnimationFrame(eriAnchor); }
@@ -1020,7 +1023,67 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','pageedit']);
+// ── Edición de CUALQUIER página de contenido (algoritmos, info) por usuarios autorizados ──
+// Una "página editada" sustituye al contenido del código con HTML saneado (sin scripts ni handlers).
+// Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
+// original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
+// paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','pageedit','qt','labconv','checklist']);
+function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
+let _hpPageSec=null;
+function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
+function hpPageSection(id){ return _hpPageSecMap()[id]||null; }
+function hpCanEditPage(id){ if(!hpPageEditable(id)) return false; const sec=hpPageSection(id); if(sec) return !!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec)); return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
+function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
+window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
+function hpPageWrap(id, base){
+  const ov=hpPages()[id]; const canEd=hpCanEditPage(id);
+  if(ov && ov.html && ov.estado==='publicado'){
+    let h='<div class="card">';
+    h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:11px;color:var(--mut)">✏️ Contenido editado por el equipo</span>';
+    if(canEd){ h+='<span style="flex:1"></span><button class="btn btn-out btn-sm" onclick="hpEditPage(\''+id+'\')">Editar</button><button class="btn btn-out btn-sm" onclick="hpRestaurarPage(\''+id+'\')">↺ Restaurar original</button>'; }
+    h+='</div><div class="hp-page-body">'+_hpSanHtml(ov.html)+'</div></div>';
+    return {html:h, skipPost:true};
+  }
+  let h=base;
+  if(canEd){ h+='<div class="btns" style="margin:10px 0 4px"><button class="btn btn-out btn-sm" onclick="hpEditPage(\''+id+'\')">✏️ Editar esta página</button></div>'; }
+  return {html:h, skipPost:false};
+}
+let _pageDraft=null;
+function hpEditPage(id){
+  if(!hpCanEditPage(id)){ toast('No tienes permiso para editar esta página'); return; }
+  const ov=hpPages()[id]; let html;
+  if(ov && ov.html) html=ov.html; else { const v=VIEWS[id]; try{ html=v?v():''; }catch(e){ html=''; } }
+  _pageDraft={ id:id, seccion:hpPageSection(id), html:html }; go('pageedit');
+}
+function _pageCmd(cmd,val){ try{ var a=document.getElementById('page-edit-area'); if(a){ a.focus(); document.execCommand(cmd,false,val||null); } }catch(e){} }
+function _pageToolbar(){
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)">'
+    +'<span style="font-size:12px;color:var(--mut);width:100%">Edita el contenido como en un procesador de textos:</span>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'bold\')" title="Negrita"><strong>N</strong></button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'italic\')" title="Cursiva"><em>C</em></button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'formatBlock\',\'&lt;h3&gt;\')" title="Título">Título</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'formatBlock\',\'&lt;p&gt;\')" title="Texto normal">Texto</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'insertUnorderedList\')" title="Lista">• Lista</button>'
+    +'</div>';
+}
+VIEWS.pageedit=()=>{
+  const d=_pageDraft; if(!d) return '<div class="card"><h2>Editar página</h2><div class="alert y">Nada que editar.</div></div>';
+  if(!hpCanEditPage(d.id)) return '<div class="card"><h2>Editar página</h2><div class="alert y">No tienes permiso para editar esta página.</div></div>';
+  const interactive=!!VIEWS[d.id+'_post'];
+  let h='<div class="card"><h2>✏️ Editar página</h2>';
+  h+='<p class="intro">Edita el contenido y guárdalo: sustituye al original <strong>para todos</strong> y siempre puedes <strong>restaurar el original</strong>.</p>';
+  if(interactive) h+='<div class="alert y" style="font-size:12px">⚠️ Esta página tiene elementos interactivos (cálculos o botones). Si la editas como texto, esos elementos dejarán de funcionar. Úsalo solo para contenido informativo o algoritmos.</div>';
+  h+=_pageToolbar();
+  h+='<div id="page-edit-area" contenteditable="true" style="border:1px solid var(--bd);border-radius:8px;padding:10px;min-height:300px;outline:none">'+_hpSanHtml(d.html||'')+'</div>';
+  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-out" onclick="pageCancelar()">✖ Cancelar</button><button class="btn btn-out" onclick="hpRestaurarPage(\''+d.id+'\')">↺ Restaurar original</button><button class="btn btn-g" onclick="pageGuardar()">💾 Guardar para todos</button></div>';
+  h+='</div>'; return h;
+};
+function pageCancelar(){ const id=_pageDraft&&_pageDraft.id; _pageDraft=null; if(id) go(id); else go('home'); }
+async function pageGuardar(){ const d=_pageDraft; if(!d) return; const a=document.getElementById('page-edit-area'); if(!a) return; const html=_hpSanHtml(a.innerHTML); const data={html:html, seccion:d.seccion||null, estado:'publicado'}; const m=hpPages(); m[d.id]=data; try{ls.s('pageOv',m);}catch(e){} if(window.hpSavePage){ try{ await window.hpSavePage(d.id, data); toast('✓ Página actualizada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _pageDraft=null; go(d.id); }
+async function hpRestaurarPage(id){ if(!confirm('¿Restaurar el contenido original de esta página? Se perderá la edición para todos.'))return; const m=hpPages(); delete m[id]; try{ls.s('pageOv',m);}catch(e){} if(window.hpDeletePage){ try{ await window.hpDeletePage(id); toast('✓ Original restaurado'); }catch(e){ toast('Restaurado solo en este equipo'); } } _pageDraft=null; go(id); }
+
 function hpVerifyBanner(id){
   if(!VIEWS[id]||HP_NO_BANNER.has(id)||HP_VERIFIED.has(id))return '';
   return '<div class="verify-note" role="note"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Contenido en proceso de verificación</span></div>';
@@ -6182,7 +6245,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 149;
+const HP_BUILD = 150;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6292,6 +6355,7 @@ if(window.hpSyncCatOrden){try{await window.hpSyncCatOrden();}catch(e){}}
 if(window.hpSyncChecklist){try{await window.hpSyncChecklist();}catch(e){}}
 if(window.hpSyncQt){try{await window.hpSyncQt();}catch(e){}}
 if(window.hpSyncLc){try{await window.hpSyncLc();}catch(e){}}
+if(window.hpSyncPages){try{await window.hpSyncPages();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
@@ -12419,6 +12483,7 @@ function revealAndEnter(user){
   if (window.hpSyncChecklist) setTimeout(() => window.hpSyncChecklist(), 1020);
   if (window.hpSyncQt) setTimeout(() => window.hpSyncQt(), 1030);
   if (window.hpSyncLc) setTimeout(() => window.hpSyncLc(), 1040);
+  if (window.hpSyncPages) setTimeout(() => window.hpSyncPages(), 1050);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
@@ -12597,6 +12662,12 @@ window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschem
 // ── Diccionario/plantilla del asistente de redacción. Los edita un admin; los leen todos. ──
 window.hpSaveLc = async function(o){ await setDoc(doc(fs, 'menuconfig', 'redaccion'), { data: o||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
 window.hpSyncLc = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'redaccion')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyLc) window.hpApplyLc(d.data||{}); } return true; }catch(e){ return false; } };
+
+// ── Páginas editadas (override de contenido). Las edita quien edita esa sección (o admin). ──
+window.hpSavePage = async function(id, data){ await setDoc(doc(fs, 'paginas', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{})); };
+window.hpDeletePage = async function(id){ await deleteDoc(doc(fs, 'paginas', id)); };
+window.hpSyncPages = async function(){ try{ const snap = await getDocs(collection(fs, 'paginas')); const map = {}; snap.forEach(d => { map[d.id] = d.data()||{}; }); if(window.hpApplyPages) window.hpApplyPages(map); return true; }catch(e){ return false; } };
+
 
 
 window.hpSyncChecklist = async function(){
