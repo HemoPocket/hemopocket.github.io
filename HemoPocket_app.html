@@ -5620,7 +5620,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 129;
+const HP_BUILD = 130;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -5728,6 +5728,7 @@ if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
+if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -11331,6 +11332,8 @@ if(document.readyState!=='loading')init();
     <button id="aviso-cerrar-x" onclick="cerrarAvisoLegal()" style="position:absolute; top:0.8rem; right:0.8rem; background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--mut);" aria-label="Cerrar">✕</button>
 
     <h2 style="color:#c41e3a; margin-bottom:1rem; font-size:1.1rem;">⚖️ Aviso Legal — HemoPocket</h2>
+    <button id="aviso-edit-btn" onclick="hpEditarAviso()" style="display:none; margin-bottom:0.8rem; background:none; border:1px solid #f0c0c5; color:#c41e3a; border-radius:6px; padding:0.3rem 0.7rem; font-size:0.8rem; cursor:pointer;">✏️ Editar texto legal</button>
+    <div id="aviso-cuerpo">
 
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Autoría y titularidad</h3>
     <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">HemoPocket es una aplicación desarrollada de forma independiente por <strong>María Teresa Busnego Barreto</strong>, facultativa especialista en Hematología y Hemoterapia. Constituye un proyecto personal de innovación clínica, no vinculado a ningún encargo institucional. No es un producto oficial del Hospital Universitario Nuestra Señora de Candelaria ni del Servicio Canario de la Salud.</p>
@@ -11369,6 +11372,7 @@ if(document.readyState!=='loading')init();
     <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">Los únicos datos asociados a la cuenta son el <strong>correo electrónico y el identificador de usuario</strong> (para el inicio de sesión) y las <strong>preferencias de uso</strong> (favoritos y elementos recientes), que se sincronizan entre los dispositivos del propio profesional. El servicio de autenticación y la base de datos están configurados en <strong>región europea</strong> y el tráfico viaja siempre cifrado (HTTPS). La aplicación <strong>no incorpora analítica de uso ni telemetría</strong> hacia terceros.</p>
     <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);"><strong>Recomendación de uso:</strong> no introduzca datos identificativos de pacientes en ningún campo de la aplicación. Para registrar información clínica del paciente, utilice siempre la historia clínica electrónica corporativa.</p>
 
+    </div>
     <div id="aviso-aceptar-wrap" style="display:none; margin-top:1.5rem; padding-top:1rem; border-top:1px solid #f0d0d5; text-align:center;">
       <p style="font-size:0.85rem; line-height:1.6; color:var(--txt); margin-bottom:0.8rem;">Para usar HemoPocket, confirme que ha leído y acepta este Aviso Legal y que utilizará la aplicación como <strong>herramienta de apoyo</strong>, sin que sustituya el juicio clínico ni los protocolos oficiales del centro.</p>
       <button onclick="aceptarLegal()" style="background:#c41e3a; color:#fff; border:none; border-radius:8px; padding:0.6rem 1.4rem; font-size:0.9rem; font-weight:600; cursor:pointer;">He leído y acepto</button>
@@ -11408,8 +11412,24 @@ function poblarRevisoresAviso() {
   });
   ul.innerHTML = items.join('');
 }
+// ── Aviso Legal editable (SOLO la admin principal) ──
+let _AVISO_DEFAULT='';
+function hpAvisoOverride(){ try{ return ls.g('avisoLegal'); }catch(e){ return null; } }
+window.hpApplyAviso=function(html){ try{ ls.s('avisoLegal', html||''); }catch(e){} };
+function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
+  s=s.replace(/<\s*(script|style|iframe|object|embed|link|meta|form|input)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,'');
+  s=s.replace(/<\s*(script|style|iframe|object|embed|link|meta|form|input)\b[^>]*>/gi,'');
+  s=s.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,'');
+  s=s.replace(/(href|src)\s*=\s*("\s*javascript:[^"]*"|'\s*javascript:[^']*')/gi,'$1="#"');
+  return s;
+}
+function _avisoRenderCuerpo(){ const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); cu.innerHTML=(ov&&ov.trim())?_hpSanHtml(ov):_AVISO_DEFAULT; }
+function hpEditarAviso(){ if(window.__hpUid!==HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('Solo la administradora principal puede editar el Aviso Legal'); return; } const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); const val=(ov&&ov.trim())?ov:_AVISO_DEFAULT; cu.innerHTML='<div style="font-size:12px;color:var(--mut);margin-bottom:6px">Edita el texto legal (HTML básico: p, strong, ul, li, h3…). Deja <code>&lt;ul id=&quot;aviso-revisores&quot;&gt;&lt;/ul&gt;</code> donde quieras la lista de revisores.</div><textarea id="aviso-edit" style="width:100%;min-height:320px;font-family:ui-monospace,monospace;font-size:12px;box-sizing:border-box">'+_hpEsc(val)+'</textarea><div class="btns" style="margin-top:8px"><button class="btn btn-g" onclick="hpGuardarAviso()">💾 Guardar para todos</button><button class="btn btn-out" onclick="_avisoRenderCuerpo();poblarRevisoresAviso();">Cancelar</button></div>'; }
+async function hpGuardarAviso(){ const ta=document.getElementById('aviso-edit'); if(!ta) return; const html=ta.value; try{ls.s('avisoLegal',html);}catch(e){} _avisoRenderCuerpo(); poblarRevisoresAviso(); if(window.hpSaveAviso){ try{ await window.hpSaveAviso(html); if(typeof toast==='function')toast('✓ Aviso Legal actualizado · para todos'); }catch(e){ if(typeof toast==='function')toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else if(typeof toast==='function')toast('✓ Guardado'); }
 function abrirAvisoLegal() {
+  _avisoRenderCuerpo();
   poblarRevisoresAviso();
+  var _eb=document.getElementById('aviso-edit-btn'); if(_eb) _eb.style.display=(window.__hpUid===HP_PRINCIPAL_UID)?'inline-block':'none';
   const m = document.getElementById('modal-aviso-legal');
   m.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -11664,6 +11684,7 @@ function revealAndEnter(user){
   if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
+  if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -11829,6 +11850,9 @@ window.hpDeleteAlgo = async function(id){ await deleteDoc(doc(fs, 'algoritmos', 
 // ── Directorio: contactos personalizados del hospital. Solo admin escribe; lo leen todos.
 window.hpSaveContacto = async function(id, data){ await setDoc(doc(fs, 'directorio', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data)); };
 window.hpDelContactoCloud = async function(id){ await deleteDoc(doc(fs, 'directorio', id)); };
+// ── Aviso Legal (texto): lo escribe SOLO la admin principal; lo leen todos.
+window.hpSaveAviso = async function(html){ await setDoc(doc(fs, 'textos', 'avisolegal'), { html: html||'', actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSyncAviso = async function(){ try{ const s = await getDoc(doc(fs, 'textos', 'avisolegal')); if(s.exists() && window.hpApplyAviso) window.hpApplyAviso((s.data()||{}).html||''); return true; }catch(e){ return false; } };
 window.hpSyncDirectorio = async function(){
   try{ const snap = await getDocs(collection(fs, 'directorio')); const map = {}; snap.forEach(d => { map[d.id] = d.data(); }); if(window.hpApplyDirectorio) window.hpApplyDirectorio(map); return true; }catch(e){ return false; }
 };

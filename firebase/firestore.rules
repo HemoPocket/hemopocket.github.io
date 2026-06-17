@@ -150,6 +150,13 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── Textos legales (Aviso Legal): solo la admin PRINCIPAL los edita ──
+    // Protege la autoría/propiedad intelectual: ningún co-admin puede alterar el texto legal.
+    match /textos/{id} {
+      allow read:   if isApproved();
+      allow write:  if request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1';
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
