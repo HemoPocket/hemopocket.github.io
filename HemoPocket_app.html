@@ -5620,7 +5620,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 128;
+const HP_BUILD = 129;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -5727,6 +5727,7 @@ sectionsUpdated++;
 if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
+if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -8216,9 +8217,11 @@ copy(v);
 
 
 VIEWS.phone=()=>{
+const _adm=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
 return `<div class="card">
 <h2>Listín Telefónico</h2>
 <p class="intro">Directorio de extensiones del HUNSC y red de centros. Agrupado por servicio. Usa el buscador para filtrar por servicio, ubicación o extensión.</p>
+${_adm?'<button class="btn btn-out btn-sm" style="margin-bottom:10px" onclick="hpAddContacto()">➕ Añadir contacto</button>':''}
 <div class="search-wrap"><input type="text" class="search" id="ph_q" placeholder="Buscar servicio, descripción, planta o extensión..." oninput="renderDir()"></div>
 <div id="ph_meta" style="font-size:12px;color:var(--mut);margin:-4px 0 10px"></div>
 <div id="ph_list"></div>
@@ -8230,8 +8233,10 @@ function renderDir(){
 const q=($('ph_q')?.value||'').toLowerCase().trim();
 const _strip=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');const qn=_strip(q);
 const el=$('ph_list'); if(!el) return;
+const _EDIR=hpEffectiveDir();
+const _esAdm=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
 let groups=0, rows=0, html='';
-for(const [svc,items] of HOSP_DIR){
+for(const [svc,items] of _EDIR){
   let matched=items;
   const svcMatch = !q || _strip(svc.toLowerCase()).includes(qn);
   if(q && !svcMatch){
@@ -8241,7 +8246,7 @@ for(const [svc,items] of HOSP_DIR){
   groups++; rows+=matched.length;
   const open = q ? ' open' : '';
   let inner='<div class="dir-rows">';
-  for(const [d,l,t,s] of matched){
+  for(const [d,l,t,s,cid] of matched){
     const show = s || t || '';
     let right='';
     if(t){
@@ -8250,6 +8255,7 @@ for(const [svc,items] of HOSP_DIR){
     } else if(s){
       right=`<button class="dir-ext-btn" onclick="event.stopPropagation();copy('${s}')" title="Copiar ${s}">${s}</button><span class="dir-int-badge">interna</span>`;
     }
+    if(cid && _esAdm) right+='<button class="dir-ext-btn" style="color:#c41e3a" onclick="event.stopPropagation();hpDelContacto(\''+cid+'\')" title="Eliminar contacto">×</button>';
     inner+=`<div class="dir-row">
       <div class="dir-main"><div class="dir-name">${d==='—'?'·':hlMark(d.replace(/\n/g,' '),q)}</div>${l?`<div class="dir-sub">${hlMark(l,q)}</div>`:''}</div>
       <div class="dir-right">${right}</div>
@@ -8264,8 +8270,41 @@ for(const [svc,items] of HOSP_DIR){
   </div>`;
 }
 if(!groups){ el.innerHTML='<div style="padding:16px;text-align:center;color:var(--mut);font-size:13px">Sin resultados.</div>'; $('ph_meta').textContent=''; return; }
-$('ph_meta').textContent = q ? `${rows} extensiones en ${groups} servicios` : `${HOSP_DIR.length} servicios · ${HOSP_DIR.reduce((a,g)=>a+g[1].length,0)} extensiones`;
+$('ph_meta').textContent = q ? `${rows} extensiones en ${groups} servicios` : `${_EDIR.length} servicios · ${_EDIR.reduce((a,g)=>a+g[1].length,0)} extensiones`;
 el.innerHTML=html;
+}
+// ── Listín editable: contactos personalizados (admin), sincronizados a todos ──
+function hpDirAdd(){ try{ return ls.g('dirAdd')||{}; }catch(e){ return {}; } }
+window.hpApplyDirectorio=function(map){ try{ ls.s('dirAdd', map||{}); }catch(e){} };
+function hpEffectiveDir(){
+  const map=new Map();
+  HOSP_DIR.forEach(function(sec){ map.set(sec[0], (sec[1]||[]).slice()); });
+  const add=hpDirAdd();
+  Object.keys(add).forEach(function(id){ const x=add[id]; if(!x||(!x.nombre&&!x.ext&&!x.tel))return; const svc=(x.servicio||'Otros'); if(!map.has(svc))map.set(svc,[]); map.get(svc).push([x.nombre||'—', x.loc||'', x.tel||'', x.ext||'', id]); });
+  const norm=function(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();};
+  const out=Array.from(map.entries());
+  out.forEach(function(sec){ sec[1].sort(function(a,b){return norm(a[0]).localeCompare(norm(b[0]),'es');}); });
+  out.sort(function(a,b){return norm(a[0]).localeCompare(norm(b[0]),'es');});
+  return out;
+}
+async function hpAddContacto(){
+  const servicio=prompt('Servicio (p. ej. Hematología):'); if(servicio==null)return;
+  const nombre=prompt('Nombre / descripción del contacto:'); if(nombre==null)return;
+  const ext=(prompt('Extensión interna (opcional):')||'').trim();
+  const tel=(prompt('Teléfono externo (opcional):')||'').trim();
+  const loc=(prompt('Ubicación / planta (opcional):')||'').trim();
+  if(!servicio.trim()&&!nombre.trim()&&!ext&&!tel){ return; }
+  const id='ct_'+Date.now(); const data={nombre:nombre.trim(),servicio:servicio.trim()||'Otros',ext:ext,tel:tel,loc:loc};
+  const m=hpDirAdd(); m[id]=data; try{ls.s('dirAdd',m);}catch(e){}
+  renderDir();
+  if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto añadido · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  else toast('✓ Añadido');
+}
+async function hpDelContacto(id){
+  if(!confirm('¿Eliminar este contacto para todos?'))return;
+  const m=hpDirAdd(); delete m[id]; try{ls.s('dirAdd',m);}catch(e){}
+  renderDir();
+  if(window.hpDelContactoCloud){ try{ await window.hpDelContactoCloud(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } }
 }
 
 // ================================================================
@@ -11624,6 +11663,7 @@ function revealAndEnter(user){
   if (window.hpSyncSubtipos) setTimeout(() => window.hpSyncSubtipos(), 950);
   if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
+  if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -11786,6 +11826,12 @@ window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones'
 // ── Algoritmos interactivos (por sección). Lo escribe quien edita esa sección; lo leen todos.
 window.hpSaveAlgo = async function(algo){ await setDoc(doc(fs, 'algoritmos', algo.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, algo)); };
 window.hpDeleteAlgo = async function(id){ await deleteDoc(doc(fs, 'algoritmos', id)); };
+// ── Directorio: contactos personalizados del hospital. Solo admin escribe; lo leen todos.
+window.hpSaveContacto = async function(id, data){ await setDoc(doc(fs, 'directorio', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data)); };
+window.hpDelContactoCloud = async function(id){ await deleteDoc(doc(fs, 'directorio', id)); };
+window.hpSyncDirectorio = async function(){
+  try{ const snap = await getDocs(collection(fs, 'directorio')); const map = {}; snap.forEach(d => { map[d.id] = d.data(); }); if(window.hpApplyDirectorio) window.hpApplyDirectorio(map); return true; }catch(e){ return false; }
+};
 window.hpSyncAlgos = async function(){
   try{
     const snap = await getDocs(collection(fs, 'algoritmos'));

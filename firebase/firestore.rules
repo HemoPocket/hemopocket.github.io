@@ -143,6 +143,13 @@ service cloud.firestore {
       allow delete: if canEdit(resource.data.seccion);
     }
 
+    // ── Directorio: contactos personalizados del hospital (listín telefónico) ──
+    // Editable SOLO por administradores; efectivo para todos los usuarios autorizados.
+    match /directorio/{id} {
+      allow read:   if isApproved();
+      allow write:  if isAdmin();
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
