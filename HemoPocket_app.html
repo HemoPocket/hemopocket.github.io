@@ -5019,7 +5019,7 @@ h+='</div>';
 if(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()){
 h+='<div class="btns" style="margin-bottom:12px">';
 h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección</button>';
-h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🙈 Ocultar del menú')+'</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🚫 Ocultar del menú')+'</button>';
 h+='</div>';
 }
 if(editing){
@@ -6130,7 +6130,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 143;
+const HP_BUILD = 144;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
