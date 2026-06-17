@@ -148,6 +148,13 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── Check list de ingreso (estructura editable) ──
+    // Editable SOLO por administradores; efectivo para todos.
+    match /checklists/{id} {
+      allow read:   if isApproved();
+      allow write:  if isAdmin();
+    }
+
     // ── Algoritmos interactivos, por sección ──
     // Los lee cualquier usuario autorizado; los crea/edita/borra quien puede editar ESA sección
     // (admin de cualquier sección, o editor de la sección), igual que las guías PDF.

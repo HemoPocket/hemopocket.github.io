@@ -1020,7 +1020,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit']);
 function hpVerifyBanner(id){
   if(!VIEWS[id]||HP_NO_BANNER.has(id)||HP_VERIFIED.has(id))return '';
   return '<div class="verify-note" role="note"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Contenido en proceso de verificación</span></div>';
@@ -2324,7 +2324,7 @@ function clRenderBody(){
   const st=clState(),op=clOpen();
   // El progreso global cuenta SOLO la sección obligatoria "TODOS LOS INGRESOS";
   // el resto de apartados son opcionales según las circunstancias y no suman al total.
-  const genSec=CL_SECTIONS.find(s=>s.id==='general');
+  const genSec=clSections().find(s=>s.id==='general');
   const genItems=genSec?genSec.items:[];
   const total=genItems.length;
   const done=genItems.filter(i=>st[i.id]).length,pct=total?Math.round(done/total*100):0;
@@ -2332,7 +2332,7 @@ function clRenderBody(){
   if(bar)bar.style.width=pct+'%';
   if(pctEl)pctEl.textContent=done+'/'+total+' · '+pct+'%';
   let h='';
-  CL_SECTIONS.forEach((sec,idx)=>{
+  clSections().forEach((sec,idx)=>{
     if(idx===1)h+='<div class="cl-subhead">Según el caso · despliega lo que aplique</div>';
     const open=(op[sec.id]!==undefined)?op[sec.id]:(sec.id==='general');
     const sc=sec.items.filter(i=>st[i.id]).length;
@@ -2360,11 +2360,63 @@ VIEWS.checklist=()=>`<div class="card">
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
 <div style="flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;height:8px;overflow:hidden"><div id="cl_bar" style="height:100%;width:0;background:var(--c1);transition:width .35s"></div></div>
 <span id="cl_pct" class="small muted" style="white-space:nowrap"></span>
-<button class="btn btn-out btn-sm" onclick="clReset()">Reiniciar</button>
+<button class="btn btn-out btn-sm" onclick="clReset()">Reiniciar</button>${(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())?'<button class="btn btn-out btn-sm" onclick="clEditOpen()">✏️ Editar</button>':''}
 </div>
 <div id="cl_body"></div>
 </div>`;
 VIEWS.checklist_post=()=>clRenderBody();
+
+// ── Check list de ingreso EDITABLE (admin) ──
+// Estructura = apartados con ítems. La versión editada se guarda en Firestore ('checklists/ingreso')
+// y se fusiona en local; si no hay versión editada, se usa CL_SECTIONS (valores de fábrica). El estado
+// de marcado (qué ítems están tildados) sigue siendo por dispositivo. Todo el texto se escapa.
+function clSections(){ try{ const o=ls.g('clOverride'); return (Array.isArray(o)&&o.length)?o:CL_SECTIONS; }catch(e){ return CL_SECTIONS; } }
+window.hpApplyChecklist=function(arr){ try{ if(Array.isArray(arr)&&arr.length) ls.s('clOverride', arr); }catch(e){} try{ if(typeof clRenderBody==='function' && document.getElementById('cl_body')) clRenderBody(); }catch(e){} };
+let _clDraft=null;
+function clEditOpen(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){ toast('Solo la administradora puede editar el check list'); return; } _clDraft=JSON.parse(JSON.stringify(clSections())); go('checklistedit'); }
+VIEWS.checklistedit=()=>{
+  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Editar check list</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
+  const d=_clDraft||[]; let h='<div class="card"><h2>📋 Editar check list de ingreso</h2>';
+  h+='<p class="intro">Añade, edita, reordena o elimina apartados e ítems. Es <strong>efectivo para todos</strong>. El apartado <code>general</code> («Todos los ingresos») es el que cuenta para la barra de progreso.</p>';
+  d.forEach(function(sec,si){
+    h+='<div class="coll open" style="margin-bottom:10px"><div class="coll-h" style="cursor:default;gap:6px;flex-wrap:wrap">';
+    h+='<input style="width:48px" value="'+_hpEsc(sec.icon||'')+'" onchange="clEditSecField('+si+',\'icon\',this.value)" title="Icono (emoji)">';
+    h+='<input style="flex:1;min-width:120px" value="'+_hpEsc(sec.title||'')+'" onchange="clEditSecField('+si+',\'title\',this.value)" placeholder="Título del apartado">';
+    h+='<button class="btn btn-out btn-sm" onclick="clEditMoverSec('+si+',-1)"'+(si===0?' disabled':'')+'>↑</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="clEditMoverSec('+si+',1)"'+(si===d.length-1?' disabled':'')+'>↓</button>';
+    h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="clEditDelSec('+si+')" title="Eliminar apartado">×</button>';
+    h+='</div><div class="coll-c">';
+    h+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px">id: '+_hpEsc(sec.id||'')+'</div>';
+    (sec.items||[]).forEach(function(it,ii){
+      h+='<div class="team-card" style="display:block;margin-bottom:8px">';
+      h+='<div style="display:flex;gap:4px;align-items:flex-start;margin-bottom:4px"><textarea style="flex:1;min-height:40px" onchange="clEditItemField('+si+','+ii+',\'text\',this.value)" placeholder="Texto del ítem">'+_hpEsc(it.text||'')+'</textarea>';
+      h+='<button class="btn btn-out btn-sm" onclick="clEditMoverItem('+si+','+ii+',-1)"'+(ii===0?' disabled':'')+'>↑</button>';
+      h+='<button class="btn btn-out btn-sm" onclick="clEditMoverItem('+si+','+ii+',1)"'+(ii===(sec.items.length-1)?' disabled':'')+'>↓</button>';
+      h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="clEditDelItem('+si+','+ii+')">×</button></div>';
+      h+='<input style="width:100%;box-sizing:border-box;margin-bottom:4px" value="'+_hpEsc(it.sub||'')+'" onchange="clEditItemField('+si+','+ii+',\'sub\',this.value)" placeholder="Nota aclaratoria (opcional)">';
+      h+='<label style="font-size:12px;margin-right:14px"><input type="checkbox" '+(it.hl?'checked':'')+' onchange="clEditItemField('+si+','+ii+',\'hl\',this.checked)"> Resaltar</label>';
+      h+='<label style="font-size:12px"><input type="checkbox" '+(it.cond?'checked':'')+' onchange="clEditItemField('+si+','+ii+',\'cond\',this.checked)"> «Si aplica»</label>';
+      h+='</div>';
+    });
+    h+='<button class="btn btn-out btn-sm" onclick="clEditAddItem('+si+')">➕ Añadir ítem</button>';
+    h+='</div></div>';
+  });
+  h+='<button class="btn btn-out" style="margin:6px 0 12px" onclick="clEditAddSec()">➕ Añadir apartado</button>';
+  h+='<hr style="margin:8px 0"><div class="btns"><button class="btn btn-out" onclick="clEditCancelar()">✖ Cancelar</button><button class="btn btn-out" onclick="clEditReset()">Restablecer de fábrica</button><button class="btn btn-g" onclick="clEditGuardar()">💾 Guardar para todos</button></div>';
+  h+='</div>'; return h;
+};
+function clEditSecField(si,f,v){ if(_clDraft&&_clDraft[si]) _clDraft[si][f]=v; }
+function clEditAddSec(){ if(!_clDraft)_clDraft=[]; _clDraft.push({id:'cs_'+Date.now(),title:'Nuevo apartado',icon:'📌',items:[]}); go('checklistedit'); }
+function clEditDelSec(si){ if(!confirm('¿Eliminar este apartado y todos sus ítems?'))return; _clDraft.splice(si,1); go('checklistedit'); }
+function clEditMoverSec(si,dir){ const j=si+dir; if(j<0||j>=_clDraft.length)return; const t=_clDraft[si]; _clDraft[si]=_clDraft[j]; _clDraft[j]=t; go('checklistedit'); }
+function clEditAddItem(si){ const s=_clDraft[si]; if(!s.items)s.items=[]; s.items.push({id:'ci_'+Date.now()+'_'+Math.floor(Math.random()*1000),text:''}); go('checklistedit'); }
+function clEditDelItem(si,ii){ _clDraft[si].items.splice(ii,1); go('checklistedit'); }
+function clEditMoverItem(si,ii,dir){ const items=_clDraft[si].items; const j=ii+dir; if(j<0||j>=items.length)return; const t=items[ii]; items[ii]=items[j]; items[j]=t; go('checklistedit'); }
+function clEditItemField(si,ii,f,v){ const it=_clDraft[si]&&_clDraft[si].items[ii]; if(!it)return; if(f==='hl'||f==='cond'){ if(v) it[f]=true; else delete it[f]; } else it[f]=v; }
+function clEditCancelar(){ _clDraft=null; go('checklist'); }
+async function clEditGuardar(){ const arr=_clDraft||[]; if(!arr.length){ toast('Añade al menos un apartado'); return; } try{ls.s('clOverride',arr);}catch(e){} if(window.hpSaveChecklist){ try{ await window.hpSaveChecklist(arr); toast('✓ Check list actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _clDraft=null; go('checklist'); }
+async function clEditReset(){ if(!confirm('¿Restablecer el check list de fábrica? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_clOverride'); }catch(e){} if(window.hpDeleteChecklist){ try{ await window.hpDeleteChecklist(); }catch(e){} } _clDraft=JSON.parse(JSON.stringify(CL_SECTIONS)); toast('✓ Restablecido de fábrica'); go('checklistedit'); }
+
 
 // === CITODIAGNÓSTICO: tubos/muestras para estudios ===
 const CITODX_TUBES=[
@@ -6130,7 +6182,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 146;
+const HP_BUILD = 147;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6237,6 +6289,7 @@ sectionsUpdated++;
 if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncCatOrden){try{await window.hpSyncCatOrden();}catch(e){}}
+if(window.hpSyncChecklist){try{await window.hpSyncChecklist();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
@@ -12247,6 +12300,7 @@ function revealAndEnter(user){
   if (window.hpSyncSubtipos) setTimeout(() => window.hpSyncSubtipos(), 950);
   if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
   if (window.hpSyncCatOrden) setTimeout(() => window.hpSyncCatOrden(), 1010);
+  if (window.hpSyncChecklist) setTimeout(() => window.hpSyncChecklist(), 1020);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
@@ -12414,6 +12468,19 @@ window.hpSyncSecciones = async function(){
 window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones', id)); };
 // ── Orden de las categorías del menú. Lo escribe un admin; lo leen todos.
 window.hpSaveCatOrden = async function(m){ await setDoc(doc(fs, 'menuconfig', 'orden'), { orden: m||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+
+// ── Check list de ingreso (estructura). Lo edita un admin; lo leen todos. ──
+window.hpSaveChecklist = async function(arr){ await setDoc(doc(fs, 'checklists', 'ingreso'), { sections: arr||[], actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpDeleteChecklist = async function(){ await deleteDoc(doc(fs, 'checklists', 'ingreso')); };
+window.hpSyncChecklist = async function(){
+  try{
+    const s = await getDoc(doc(fs, 'checklists', 'ingreso'));
+    if(s.exists()){ const d=s.data()||{}; if(Array.isArray(d.sections) && window.hpApplyChecklist) window.hpApplyChecklist(d.sections); }
+    else { try{ localStorage.removeItem('hc_clOverride'); }catch(e){} if(typeof clRenderBody==='function' && document.getElementById('cl_body')) clRenderBody(); }
+    return true;
+  }catch(e){ return false; }
+};
+
 window.hpSyncCatOrden = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'orden')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyCatOrden) window.hpApplyCatOrden(d.orden||{}); } return true; }catch(e){ return false; } };
 
 
