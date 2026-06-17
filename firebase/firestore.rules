@@ -113,6 +113,15 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── Apartados (subtipos) de las guías clínicas, por sección ──
+    // Estructura de apartados de cada sección (crear/renombrar/eliminar), efectiva para TODOS.
+    // La leen los usuarios autorizados; la escribe quien puede editar ESA sección: el admin
+    // (cualquier sección) o el editor asignado a esa sección (misma regla que las guías PDF).
+    match /subtipos/{section} {
+      allow read:   if isApproved();
+      allow write:  if canEdit(section);
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
