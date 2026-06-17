@@ -940,11 +940,14 @@ h+='</div>';
 }
 MENU.forEach((sec,si)=>{
 const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
-const realItems=sec.items.filter(it=>!it.sub && !(it.admin&&!isAdminUI) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
+const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&hpSecHidden(it.id.slice(2)));
+const realItems=sec.items.filter(it=>!it.sub && !(it.admin&&!isAdminUI) && !isGuideHidden(it) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
 if(!realItems.length)return;
-const visible=f?realItems:sec.items;
+const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it));
 const open=f||sec._o||sec.o;
-h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${sec.h}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
+// Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
+let _hdr=sec.h; const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=_t.toUpperCase();}
+h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
 let inSub=false;
 visible.forEach(it=>{
 if(it.admin&&!isAdminUI)return;
@@ -3947,6 +3950,26 @@ const DEFAULT_CONTACTS=[
 const DEFAULT_SUBTYPES={"lf": [{"id": "fol", "name": "Linfoma Folicular", "pdfs": [{"name": "Guía Linfoma Folicular GELTAMO", "url": "guias/Folicular.pdf"}]}, {"id": "lbdcg", "name": "Linfoma B Difuso de Células Grandes (LBDCG)", "pdfs": [{"name": "Guía LDCGB GELTAMO 2022", "url": "guias/LCGBD.pdf"}]}, {"id": "manto", "name": "Linfoma del Manto", "pdfs": [{"name": "Guía Linfoma del Manto GELTAMO", "url": "guias/LCM.pdf"}]}, {"id": "hodgkin", "name": "Linfoma de Hodgkin", "pdfs": [{"name": "Guía Linfoma Hodgkin GELTAMO", "url": "guias/Hodgkin.pdf"}]}, {"id": "marg", "name": "Zona Marginal / MALT", "pdfs": []}, {"id": "burkitt", "name": "Burkitt / High-grade B-cell", "pdfs": [{"name": "Protocolo Burkimab", "url": "guias/BURKIMAB.pdf"}]}, {"id": "tcell", "name": "Linfomas T", "pdfs": [{"name": "Guía Linfoma T-NK GELTAMO 2024", "url": "guias/Linfoma_T_NK_2024.pdf"}]}, {"id": "snc", "name": "Linfoma primario del SNC", "pdfs": [{"name": "Guía Linfoma cerebral primario GELTAMO 2019", "url": "guias/MATRIX.pdf"}]}, {"id": "general", "name": "Generales / Otros esquemas QT", "pdfs": [{"name": "Guía profilaxis SNC LDCGB GELTAMO", "url": "guias/Profilaxis_SNC.pdf"}, {"name": "Normograma de Bleyer", "url": "guias/Bleyer.pdf"}]}], "mm": [{"id": "mm", "name": "Mieloma Múltiple", "pdfs": [{"name": "Guía MM - GEM 2025", "url": "guias/MM.pdf"}]}, {"id": "amyl", "name": "Amiloidosis AL", "pdfs": []}, {"id": "mgus", "name": "GMSI", "pdfs": []}, {"id": "wm", "name": "Macroglobulinemia de Waldenström", "pdfs": [{"name": "Guía Linfoma linfoplasmocítico/MW GELTAMO 2025", "url": "guias/MW.pdf"}]}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "llc": [{"id": "llc", "name": "Leucemia Linfática Crónica", "pdfs": [{"name": "Guía LLC GELL 2024", "url": "guias/LLC.pdf"}]}, {"id": "tric", "name": "Tricoleucemia", "pdfs": []}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "leuc_ag": [{"id": "lma_int", "name": "LMA: QT intensiva", "pdfs": [{"name": "Protocolo PETHEMA LMA FLOW 2026", "url": "guias/FLOW.pdf"}, {"name": "Protocolo PETHEMA LMA CBF 2016 (Enmienda 2019)", "url": "guias/CBF.pdf"}, {"name": "Protocolo PETHEMA LMA NPM1 2017 (Enmienda 2019)", "url": "guias/NPM1.pdf"}, {"name": "Protocolo PETHEMA LPA 2017", "url": "guias/LPA.pdf"}, {"name": "Protocolo PETHEMA LMA MIX 2021", "url": "guias/MIX.pdf"}]}, {"id": "lma_bi", "name": "LMA: QT de baja intensidad", "pdfs": [{"name": "Protocolo LMA Unfit HUNSC", "url": "guias/LMA_UNFIT_HUNSC.pdf"}, {"name": "Protocolo PETHEMA LMA PAPU 2025", "url": "guias/PAPU.pdf"}, {"name": "Protocolo LMA CETLAM", "url": "guias/LMA_CETLAM.pdf"}]}, {"id": "lma_rec", "name": "LMA en recaída", "pdfs": [{"name": "Protocolo LMA-RRon 2024", "url": "guias/LMArron.pdf"}]}, {"id": "lla", "name": "LLA", "pdfs": [{"name": "Protocolo LLA Ph negativo", "url": "guias/LAL.pdf"}, {"name": "Protocolo LLA Ph positivo", "url": "guias/LALPh.pdf"}, {"name": "Protocolo Burkimab", "url": "guias/BURKIMAB.pdf"}, {"name": "LLA en recaída", "url": "guias/LALR.pdf"}]}, {"id": "otros", "name": "Otros", "pdfs": [{"name": "Síndrome de obstrucción sinusoidal 2019", "url": "guias/EVOH.pdf"}]}], "mieloide": [{"id": "smd", "name": "SMD", "pdfs": []}, {"id": "mfp", "name": "Mielofibrosis / NMP", "pdfs": []}, {"id": "lmmc", "name": "LMMC", "pdfs": []}, {"id": "otros", "name": "Otros", "pdfs": []}], "cito": [{"id": "pti", "name": "PTI - Púrpura Trombocitopénica Inmune", "pdfs": [{"name": "Protocolo PTI HUNSC", "url": "guias/PTI_2023.pdf"}, {"name": "Guía Trombocitopenia SEHH 2025", "url": "guias/TROMBOCIT.pdf"}, {"name": "Guía PTI 2023", "url": "guias/GEPTI.pdf"}]}, {"id": "ahai", "name": "AHAI - Anemia Hemolítica Autoinmune", "pdfs": []}, {"id": "erit", "name": "Eritropatología (Falciforme, Talasemias...)", "pdfs": []}, {"id": "aplasia", "name": "Aplasia Medular / HPN", "pdfs": [{"name": "Guía AM", "url": "guias/AM.pdf"}]}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "ped": [{"id": "lla_ped", "name": "LLA pediátrica", "pdfs": []}, {"id": "lma_ped", "name": "LMA pediátrica", "pdfs": []}, {"id": "falc_ped", "name": "Anemia Falciforme", "pdfs": [{"name": "Guía Enfermedad de células falciformes SEHOP 2019", "url": "guias/Falciforme.pdf"}]}, {"id": "tal_ped", "name": "Talasemia", "pdfs": [{"name": "Guía Talasemia SEHOP 2015", "url": "guias/Talasemia.pdf"}]}, {"id": "aplasia_ped", "name": "Aplasia Medular", "pdfs": [{"name": "Guía AM", "url": "guias/AM.pdf"}]}, {"id": "general_ped", "name": "Generales / Soporte", "pdfs": []}], "cart": [{"id": "cart_ind", "name": "CAR-T - Indicaciones y manejo", "pdfs": []}, {"id": "biesp", "name": "Anticuerpos Biespecíficos", "pdfs": [{"name": "AcBs HUNSC 2025", "url": "guias/Biespecificos.pdf"}, {"name": "AcBs GELTAMO", "url": "guias/Biespecificos_GELTAMO.pdf"}]}, {"id": "taspe", "name": "TASPE - Trasplante Autólogo", "pdfs": [{"name": "Protocolo TASPE HUNSC", "url": "guias/TASPE.pdf"}, {"name": "Guía acondicionamiento GETH 2024", "url": "guias/geth.pdf"}]}, {"id": "otros", "name": "Otros", "pdfs": []}], "bs": [{"id": "transf_comp", "name": "Transfusión de componentes (CH / Plaquetas / PFC / Crioprecipitados)", "pdfs": []}, {"id": "inmunohem", "name": "Inmunohematología (ABO/Rh, AAII, discrepancias)", "pdfs": [{"name": "Inmunohematología básica y aplicada", "url": "guias/Inmunobanco.pdf"}]}, {"id": "react_transf", "name": "Reacciones transfusionales y hemovigilancia", "pdfs": [{"name": "Estándares en Hemoterapia", "url": "guias/Hemoterapia.pdf"}]}, {"id": "pbm", "name": "Patient Blood Management / Optimización preoperatoria", "pdfs": []}, {"id": "aferesis", "name": "Aféresis terapéutica", "pdfs": []}, {"id": "situ_esp", "name": "Situaciones especiales (neonatos, embarazo, TPH, drepanocitosis)", "pdfs": []}, {"id": "transf_masiva", "name": "Transfusión masiva / Hemorragia crítica", "pdfs": []}, {"id": "autoinmune", "name": "AHAI y panaglutinación", "pdfs": []}, {"id": "general", "name": "Generales / Procedimientos del servicio", "pdfs": []}], "th": [{"id": "anticoag", "name": "Anticoagulación", "pdfs": []}, {"id": "rotem", "name": "ROTEM", "pdfs": [{"name": "Protocolo ROTEM", "url": "guias/ROTEM.pdf"}]}, {"id": "ecmo", "name": "ECMO", "pdfs": [{"name": "Protocolo ECMO", "url": "guias/ECMO.pdf"}]}, {"id": "mat", "name": "MAT (PTT / SHU)", "pdfs": [{"name": "Guía PTT", "url": "guias/PTT.pdf"}]}, {"id": "cid", "name": "CID", "pdfs": []}, {"id": "hemof", "name": "Hemofilia y Coagulopatías", "pdfs": []}, {"id": "saf", "name": "SAF / Trombofilia", "pdfs": []}, {"id": "antic", "name": "Manejo perioperatorio anticoagulación", "pdfs": []}, {"id": "general", "name": "Generales / Reversión", "pdfs": []}], "inf": [{"id": "nf_protocolo", "name": "Neutropenia febril — protocolos", "pdfs": []}, {"id": "ecil", "name": "Guías ECIL (bacterianas y fúngicas)", "pdfs": []}, {"id": "ifi_guias", "name": "IFI / Aspergilosis / Candidiasis", "pdfs": []}, {"id": "profilaxis_atb", "name": "Profilaxis antimicrobiana", "pdfs": []}, {"id": "profilaxis_viral", "name": "Profilaxis viral (VHS/VVZ/CMV/PJP)", "pdfs": []}, {"id": "cmv_pcr", "name": "CMV / EBV / BK virus", "pdfs": []}, {"id": "tuberculosis", "name": "Tuberculosis e inmunodeprimidos", "pdfs": []}, {"id": "inf_general", "name": "Generales / Soporte infeccioso", "pdfs": []}], "uh": [{"id": "leucost", "name": "Leucostasis / Hiperleucocitosis", "pdfs": []}, {"id": "lisis", "name": "Síndrome de lisis tumoral", "pdfs": []}, {"id": "cid_urg", "name": "CID urgente", "pdfs": []}, {"id": "mat_urg", "name": "MAT (PTT / SHU)", "pdfs": []}, {"id": "compr", "name": "Compresión Medular / Sd. VCS", "pdfs": []}, {"id": "sangr", "name": "Sangrado Mayor / Reversión", "pdfs": []}, {"id": "sind_dif", "name": "Síndrome de diferenciación (LPA)", "pdfs": []}, {"id": "general", "name": "Generales / Soporte UCI", "pdfs": []}, {"id": "otros", "name": "Otros", "pdfs": [{"name": "Citología óptica - Woessner", "url": "guias/Citologia.pdf"}, {"name": "Pregrado de Hematología 2017", "url": "guias/Pregrado.pdf"}]}]};
 function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
+// ── Capa dinámica de SECCIONES de guías (título / visibilidad), compartida ──
+window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catch(e){} };
+function hpSecMap(){ try{ return ls.g('secOverrides')||{}; }catch(e){ return {}; } }
+function hpSecTitle(id){ const o=hpSecMap()[id]; return (o&&o.titulo)||GUIDES_TITLES[id]||id; }
+function hpSecHidden(id){ const o=hpSecMap()[id]; return !!(o&&o.oculta); }
+async function hpRenombrarSeccion(id){
+  const nuevo=prompt('Nombre de la sección (se aplica a TODOS):', hpSecTitle(id));
+  if(nuevo==null) return; const t=nuevo.trim(); if(!t) return;
+  const m=hpSecMap(); m[id]=Object.assign({},m[id],{titulo:t}); try{ls.s('secOverrides',m);}catch(e){}
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go('g_'+id);
+  if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{titulo:t}); toast('✓ Sección renombrada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  else toast('✓ Renombrada');
+}
+async function hpOcultarSeccion(id){
+  const nuevo=!hpSecHidden(id);
+  const m=hpSecMap(); m[id]=Object.assign({},m[id],{oculta:nuevo}); try{ls.s('secOverrides',m);}catch(e){}
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go('g_'+id);
+  if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{oculta:nuevo}); toast(nuevo?'✓ Sección oculta del menú · para todos':'✓ Sección visible · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
+  else toast(nuevo?'✓ Oculta':'✓ Visible');
+}
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
 window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls.s('subtypes_'+section,items); }catch(e){} };
 // Propaga a la nube (efectivo para todos) un cambio de apartados. Best-effort con aviso.
@@ -4115,7 +4138,7 @@ function hpRoleSelector(uid, roleInfo, credName){
 }
 function hpSecChecks(uid, checked){
   checked=checked||[];
-  return Object.keys(GUIDES_TITLES).map(function(sid){return '<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" value="'+sid+'" onchange="hpSecSync(\''+uid+'\')"'+(checked.indexOf(sid)!==-1?' checked':'')+'> '+GUIDES_TITLES[sid]+'</label>';}).join('');
+  return Object.keys(GUIDES_TITLES).map(function(sid){return '<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" value="'+sid+'" onchange="hpSecSync(\''+uid+'\')"'+(checked.indexOf(sid)!==-1?' checked':'')+'> '+hpSecTitle(sid)+'</label>';}).join('');
 }
 function hpReadSecs(uid){
   const box=document.getElementById('secs_'+uid); if(!box) return [];
@@ -4269,7 +4292,7 @@ window.hpReporteBorrarUI=function(id){ if(window.hpConfirm) window.hpConfirm('¿
 let _editGuide=null;
 
 function guidesView(id){
-const title=GUIDES_TITLES[id];
+const title=hpSecTitle(id);
 const subs=getSubtypes(id);
 const lastUpd=ls.g('lastUpdate');
 // Solo admin o editor de ESTA sección pueden gestionar (editar apartados / subir guías).
@@ -4289,6 +4312,13 @@ if(editing){
 h+=`<button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">➕ Añadir</button>
 <button class="btn btn-out btn-sm" onclick="resetSubtypes('${id}')">Restaurar default</button>`;
 }
+h+='</div>';
+}
+// Gestión de la SECCIÓN (renombrar / ocultar del menú): SOLO administradores, no editores. Efectivo para todos.
+if(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()){
+h+='<div class="btns" style="margin-bottom:12px">';
+h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🙈 Ocultar del menú')+'</button>';
 h+='</div>';
 }
 if(editing){
@@ -5396,7 +5426,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 124;
+const HP_BUILD = 125;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -5501,6 +5531,7 @@ sectionsUpdated++;
 }
 // Los apartados editados desde la app (colección 'subtipos') prevalecen sobre el JSON estático.
 if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
+if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -11396,6 +11427,7 @@ function revealAndEnter(user){
   if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
   if (window.hpSyncSubtipos) setTimeout(() => window.hpSyncSubtipos(), 950);
+  if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -11539,6 +11571,18 @@ window.hpSyncSubtipos = async function(){
   try{
     const snap = await getDocs(collection(fs, 'subtipos'));
     snap.forEach(d => { const x = d.data()||{}; if(Array.isArray(x.items) && window.hpApplySubtipos) window.hpApplySubtipos(d.id, x.items); });
+    return true;
+  }catch(e){ return false; }
+};
+// ── Secciones de guías (título/visibilidad), por sección. Solo admin escribe; lee cualquier autorizado.
+window.hpSaveSeccion = async function(id, data){
+  await setDoc(doc(fs, 'secciones', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true });
+};
+window.hpSyncSecciones = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'secciones'));
+    const map = {}; snap.forEach(d => { map[d.id] = d.data()||{}; });
+    if(window.hpApplySecciones) window.hpApplySecciones(map);
     return true;
   }catch(e){ return false; }
 };
