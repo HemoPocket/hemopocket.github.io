@@ -940,7 +940,7 @@ h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercas
 favs.forEach(id=>{const it=getAll().find(x=>x.id===id);if(it)h+=`<div class="menu-item ${S.view===id?'active':''}" onclick="go('${id}')"><span>${it.name}</span></div>`});
 h+='</div>';
 }
-MENU.forEach((sec,si)=>{
+_hpMenuCats().forEach(({sec,si})=>{
 const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
 const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&hpSecHidden(it.id.slice(2)));
 const realItems=sec.items.filter(it=>!it.sub && !(it.admin&&!isAdminUI) && !isGuideHidden(it) && !hpItemHidden(it.id) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
@@ -3980,6 +3980,22 @@ function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 // ── Capa dinámica de SECCIONES de guías (título / visibilidad), compartida ──
 window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catch(e){} try{ Object.keys(map||{}).forEach(function(id){ if(!(id in GUIDES_TITLES) && typeof VIEWS!=='undefined' && !VIEWS['g_'+id]) VIEWS['g_'+id]=function(){return guidesView(id);}; }); }catch(e){} };
 function hpSecMap(){ try{ return ls.g('secOverrides')||{}; }catch(e){ return {}; } }
+// Orden de las CATEGORÍAS del menú (reordenable por admin, efectivo para todos).
+function hpCatOrden(h){ try{ const m=ls.g('catOrden')||{}; return (h in m)?m[h]:null; }catch(e){ return null; } }
+window.hpApplyCatOrden=function(m){ try{ ls.s('catOrden', m||{}); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
+function _hpMenuCats(){ const arr=MENU.map(function(sec,si){return {sec:sec,si:si};}); arr.sort(function(a,b){ var oa=hpCatOrden(a.sec.h), ob=hpCatOrden(b.sec.h); var va=(oa==null?a.si:oa), vb=(ob==null?b.si:ob); return (va-vb)||(a.si-b.si); }); return arr; }
+async function hpMoverCategoria(h,dir){
+  const cats=_hpMenuCats().filter(function(e){return (e.sec.h||'')!=='AJUSTES';});
+  const i=cats.findIndex(function(e){return e.sec.h===h;}); if(i<0) return;
+  const j=i+dir; if(j<0||j>=cats.length) return;
+  const m=ls.g('catOrden')||{};
+  cats.forEach(function(e,idx){ m[e.sec.h]=idx; });
+  const a=cats[i].sec.h, b=cats[j].sec.h; const t=m[a]; m[a]=m[b]; m[b]=t;
+  try{ls.s('catOrden',m);}catch(e){}
+  if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||'');
+  if(window.hpSaveCatOrden){ try{ await window.hpSaveCatOrden(m); toast('✓ Orden del menú actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
+  go('gsecciones');
+}
 function hpSecTitle(id){ const o=hpSecMap()[id]; return (o&&o.titulo)||GUIDES_TITLES[id]||id; }
 function hpSecHidden(id){ const o=hpSecMap()[id]; return !!(o&&o.oculta); }
 
@@ -4106,21 +4122,20 @@ VIEWS.gsecciones=()=>{
   h+='<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>mostrar/ocultar o renombrar</strong> sus calculadoras y el apartado de guías. Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>';
   h+='<button class="btn" style="margin-bottom:14px" onclick="hpCrearSeccion()">➕ Crear sección nueva</button>';
   // Temas del menú (categorías de fábrica), excepto Ajustes
-  try{ MENU.forEach(function(sec){
-    if((sec.h||'')==='AJUSTES') return;
+  try{ _hpMenuCats().filter(function(e){return (e.sec.h||'')!=='AJUSTES';}).forEach(function(e,_ci,_arr){
+    const sec=e.sec;
     const sid=_hpSecGuiaId(sec);
     const nombre = sid?hpSecTitle(sid):(sec.h||'');
     const oc = sid?hpSecHidden(sid):false;
     h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
     h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(nombre)+'</summary>';
     h+='<div style="margin-top:8px">';
-    if(sid){
-      h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
-      h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">✏️ Renombrar sección</button>';
-      h+='</div>';
-    } else {
-      h+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px">Sección general del menú (sin apartado de guías). Su nombre forma parte de la app; aquí gestionas sus calculadoras.</div>';
-    }
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+    h+='<button class="btn btn-out btn-sm" onclick="hpMoverCategoria(\''+sec.h+'\',-1)"'+(_ci===0?' disabled':'')+' title="Subir en el menú">↑</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="hpMoverCategoria(\''+sec.h+'\',1)"'+(_ci===_arr.length-1?' disabled':'')+' title="Bajar en el menú">↓</button>';
+    if(sid) h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">✏️ Renombrar sección</button>';
+    h+='</div>';
+    if(!sid) h+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px">Sección general del menú (sin apartado de guías).</div>';
     const cont=_hpContenidoTema(sec);
     h+=cont||'<div style="font-size:12px;color:var(--mut)">Sin calculadoras en esta sección.</div>';
     if(sid) h+=_hpAddContenido(sid);
@@ -6115,7 +6130,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 142;
+const HP_BUILD = 143;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6221,6 +6236,7 @@ sectionsUpdated++;
 // Los apartados editados desde la app (colección 'subtipos') prevalecen sobre el JSON estático.
 if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
+if(window.hpSyncCatOrden){try{await window.hpSyncCatOrden();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
@@ -12230,6 +12246,7 @@ function revealAndEnter(user){
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
   if (window.hpSyncSubtipos) setTimeout(() => window.hpSyncSubtipos(), 950);
   if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
+  if (window.hpSyncCatOrden) setTimeout(() => window.hpSyncCatOrden(), 1010);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
@@ -12395,6 +12412,10 @@ window.hpSyncSecciones = async function(){
   }catch(e){ return false; }
 };
 window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones', id)); };
+// ── Orden de las categorías del menú. Lo escribe un admin; lo leen todos.
+window.hpSaveCatOrden = async function(m){ await setDoc(doc(fs, 'menuconfig', 'orden'), { orden: m||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSyncCatOrden = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'orden')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyCatOrden) window.hpApplyCatOrden(d.orden||{}); } return true; }catch(e){ return false; } };
+
 
 // ── Elementos del menú (calculadoras): visibilidad/nombre por hospital. Solo admin escribe; lo leen todos.
 window.hpSaveItem = async function(id, data){ await setDoc(doc(fs, 'menuitems', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true }); };
