@@ -4043,6 +4043,110 @@ VIEWS.gsecciones=()=>{
   h+='</div>';
   return h;
 };
+
+// ════════════════ CONSTRUCTOR DE ALGORITMOS INTERACTIVOS (MVP) ════════════════
+// Un algoritmo = árbol de decisión guiado por datos: nodos 'pregunta' (texto + opciones que
+// llevan a otro nodo) y 'resultado' (recomendación). Se guarda en Firestore ('algoritmos'),
+// se gestiona por canEdit(seccion) y se publica a todos. Todo el contenido se ESCAPA al
+// mostrarlo (sin HTML) → sin riesgo de inyección. Formato enriquecido: mejora futura.
+function hpAlgos(){ try{ return ls.g('algos')||{}; }catch(e){ return {}; } }
+window.hpApplyAlgos=function(map){ try{ ls.s('algos', map||{}); }catch(e){} };
+function algosForSection(sec){ const m=hpAlgos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(a){return a&&a.seccion===sec;}); }
+function renderAlgosBlock(sec){
+  const canEd=!!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec));
+  const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';});
+  if(!pub.length && !canEd) return '';
+  let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧩 Algoritmos interactivos</span><span class="ar">▶</span></div><div class="coll-c">';
+  (canEd?list:pub).forEach(function(a){
+    const draft=a.estado!=='publicado';
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(a.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+'</span>';
+    h+='<button class="btn btn-out btn-sm" onclick="algoOpen(\''+a.id+'\')">Abrir</button>';
+    if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="algoEditOpen(\''+a.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="algoEliminar(\''+a.id+'\')">×</button>'; }
+    h+='</div>';
+  });
+  if(canEd) h+='<button class="btn btn-out btn-sm" style="margin-top:10px" onclick="algoNuevo(\''+sec+'\')">➕ Crear algoritmo</button>';
+  h+='</div></div>';
+  return h;
+}
+// ── Motor (reproductor) ──
+let _algoState=null;
+VIEWS.algo=()=>{
+  const st=_algoState; if(!st||!st.algo) return '<div class="card"><h2>Algoritmo</h2><div class="alert y">No se pudo cargar.</div></div>';
+  const a=st.algo; const node=a.nodos&&a.nodos[st.current];
+  let h='<div class="card"><h2>'+_hpEsc(a.titulo||'Algoritmo')+'</h2>';
+  if(st.preview) h+='<div class="alert b" style="margin-bottom:10px">Vista previa. <a onclick="go(\'algoedit\')" style="cursor:pointer;text-decoration:underline">← Volver a editar</a></div>';
+  if(a.intro && st.current===a.inicio) h+='<p class="intro">'+_hpEsc(a.intro)+'</p>';
+  h+='<div class="btns" style="margin-bottom:6px">';
+  if(st.history&&st.history.length) h+='<button class="btn btn-out btn-sm" onclick="algoBack()">← Atrás</button>';
+  h+='<button class="btn btn-out btn-sm" onclick="algoReset()">↺ Reiniciar</button></div>';
+  if(!node){ h+='<div class="alert r">Paso no encontrado.</div></div>'; return h; }
+  if(node.tipo==='resultado'){
+    h+='<div class="alert g" style="margin-top:8px"><strong>'+_hpEsc(node.texto||'Resultado')+'</strong>'+(node.cuerpo?'<div style="margin-top:6px;white-space:pre-wrap">'+_hpEsc(node.cuerpo)+'</div>':'')+'</div>';
+  } else {
+    h+='<div style="margin:12px 0;font-size:15px;font-weight:600;white-space:pre-wrap">'+_hpEsc(node.texto||'')+'</div>';
+    h+='<div style="display:flex;flex-direction:column;gap:8px">';
+    (node.opciones||[]).forEach(function(o,i){ h+='<button class="btn btn-out" style="text-align:left" onclick="algoChoose('+i+')">'+_hpEsc(o.etiqueta||('Opción '+(i+1)))+'</button>'; });
+    if(!(node.opciones||[]).length) h+='<div class="alert y">Este paso aún no tiene opciones.</div>';
+    h+='</div>';
+  }
+  h+='</div>'; return h;
+};
+function algoChoose(i){ const st=_algoState; if(!st)return; const node=st.algo.nodos[st.current]; const o=(node.opciones||[])[i]; if(!o||!o.destino){toast('Esta opción no lleva a ningún paso');return;} st.history.push(st.current); st.current=o.destino; go('algo'); }
+function algoBack(){ const st=_algoState; if(st&&st.history.length){ st.current=st.history.pop(); go('algo'); } }
+function algoReset(){ const st=_algoState; if(st){ st.current=st.algo.inicio; st.history=[]; go('algo'); } }
+function algoOpen(id){ const a=hpAlgos()[id]; if(!a){toast('Algoritmo no encontrado');return;} _algoState={algo:JSON.parse(JSON.stringify(a)),current:a.inicio,history:[]}; go('algo'); }
+// ── Editor por formulario ──
+let _algoDraft=null;
+function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{}}; go('algoedit'); }
+function algoEditOpen(id){ const a=hpAlgos()[id]; if(!a){toast('No encontrado');return;} _algoDraft=JSON.parse(JSON.stringify(a)); if(!_algoDraft.nodos)_algoDraft.nodos={}; go('algoedit'); }
+function _algoNodeLabel(n){ if(!n)return '(paso)'; const t=(n.texto||'').replace(/\s+/g,' ').trim(); return (t?t.slice(0,32):(n.tipo==='resultado'?'(resultado)':'(pregunta)')); }
+VIEWS.algoedit=()=>{
+  const d=_algoDraft; if(!d) return '<div class="card"><h2>Editar algoritmo</h2><div class="alert y">Nada que editar.</div></div>';
+  if(!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(d.seccion))) return '<div class="card"><h2>Editar algoritmo</h2><div class="alert y">No tienes permiso para editar en esta sección.</div></div>';
+  const nodeIds=Object.keys(d.nodos);
+  let h='<div class="card"><h2>🧩 Editar algoritmo</h2>';
+  h+='<p class="intro">Construye el árbol: añade preguntas con opciones que llevan a otros pasos, y resultados con la recomendación. Prueba con <strong>Vista previa</strong> y, cuando esté listo, <strong>Publica</strong>.</p>';
+  h+='<div class="fld"><label class="lbl">Título</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="algoSetField(\'titulo\',this.value)" placeholder="Ej: Diagnóstico diferencial de AHAI"></div>';
+  h+='<div class="fld"><label class="lbl">Introducción (opcional)</label><textarea onchange="algoSetField(\'intro\',this.value)" placeholder="Contexto breve...">'+_hpEsc(d.intro||'')+'</textarea></div>';
+  h+='<div class="fld"><label class="lbl">Paso inicial</label><select onchange="algoSetField(\'inicio\',this.value)"><option value="">— elige —</option>'+nodeIds.map(function(nid){return '<option value="'+nid+'"'+(d.inicio===nid?' selected':'')+'>'+_hpEsc(_algoNodeLabel(d.nodos[nid]))+'</option>';}).join('')+'</select></div>';
+  h+='<h3>Pasos ('+nodeIds.length+')</h3>';
+  if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
+  nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
+  h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn" onclick="algoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="algoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="algoPublicar()">✅ Publicar</button></div>';
+  h+='</div>'; return h;
+};
+function _algoEditNode(d,nid,nodeIds){
+  const n=d.nodos[nid];
+  let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+(n.tipo==='resultado'?'🟢 Resultado':'❓ Pregunta')+'</span><button class="btn btn-out btn-sm" onclick="algoDelNode(\''+nid+'\')" title="Eliminar paso">×</button></div><div class="coll-c">';
+  h+='<textarea onchange="algoNodeText(\''+nid+'\',this.value)" placeholder="'+(n.tipo==='resultado'?'Título del resultado':'Texto de la pregunta')+'">'+_hpEsc(n.texto||'')+'</textarea>';
+  if(n.tipo==='resultado'){
+    h+='<textarea onchange="algoNodeBody(\''+nid+'\',this.value)" placeholder="Recomendación / detalle">'+_hpEsc(n.cuerpo||'')+'</textarea>';
+  } else {
+    h+='<div style="font-size:12px;color:var(--mut);margin:6px 0 2px">Opciones:</div>';
+    (n.opciones||[]).forEach(function(o,i){
+      h+='<div style="display:flex;gap:4px;margin-top:4px;align-items:center"><input style="flex:1" value="'+_hpEsc(o.etiqueta||'')+'" onchange="algoOptLabel(\''+nid+'\','+i+',this.value)" placeholder="Etiqueta (ej: Sí)">';
+      h+='<select onchange="algoOptDest(\''+nid+'\','+i+',this.value)" style="max-width:45%"><option value="">→ paso…</option>'+nodeIds.filter(function(x){return x!==nid;}).map(function(x){return '<option value="'+x+'"'+(o.destino===x?' selected':'')+'>'+_hpEsc(_algoNodeLabel(d.nodos[x]))+'</option>';}).join('')+'<option value="__new">＋ nuevo resultado</option></select>';
+      h+='<button class="btn btn-out btn-sm" onclick="algoDelOpt(\''+nid+'\','+i+')">×</button></div>';
+    });
+    h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="algoAddOpt(\''+nid+'\')">➕ Opción</button>';
+  }
+  h+='</div></div>'; return h;
+}
+function algoSetField(f,v){ if(_algoDraft) _algoDraft[f]=v; }
+function algoAddNode(tipo){ const id='n_'+Date.now(); _algoDraft.nodos[id]={id:id,tipo:tipo,texto:'',opciones:[],cuerpo:''}; if(!_algoDraft.inicio)_algoDraft.inicio=id; go('algoedit'); }
+function algoDelNode(nid){ delete _algoDraft.nodos[nid]; if(_algoDraft.inicio===nid)_algoDraft.inicio=''; Object.keys(_algoDraft.nodos).forEach(function(k){const n=_algoDraft.nodos[k];(n.opciones||[]).forEach(function(o){if(o.destino===nid)o.destino='';});}); go('algoedit'); }
+function algoNodeText(nid,v){ if(_algoDraft.nodos[nid])_algoDraft.nodos[nid].texto=v; }
+function algoNodeBody(nid,v){ if(_algoDraft.nodos[nid])_algoDraft.nodos[nid].cuerpo=v; }
+function algoAddOpt(nid){ const n=_algoDraft.nodos[nid]; if(!n.opciones)n.opciones=[]; n.opciones.push({etiqueta:'',destino:''}); go('algoedit'); }
+function algoDelOpt(nid,i){ const n=_algoDraft.nodos[nid]; if(n.opciones)n.opciones.splice(i,1); go('algoedit'); }
+function algoOptLabel(nid,i,v){ const n=_algoDraft.nodos[nid]; if(n.opciones&&n.opciones[i])n.opciones[i].etiqueta=v; }
+function algoOptDest(nid,i,v){ const n=_algoDraft.nodos[nid]; if(!n.opciones||!n.opciones[i])return; if(v==='__new'){ const rid='n_'+Date.now(); _algoDraft.nodos[rid]={id:rid,tipo:'resultado',texto:'Nuevo resultado',opciones:[],cuerpo:''}; n.opciones[i].destino=rid; go('algoedit'); } else { n.opciones[i].destino=v; } }
+function algoVistaPrevia(){ if(!_algoDraft.inicio){toast('Elige el paso inicial');return;} _algoState={algo:JSON.parse(JSON.stringify(_algoDraft)),current:_algoDraft.inicio,history:[],preview:true}; go('algo'); }
+async function algoGuardar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
+async function algoPublicar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!d.inicio||!d.nodos[d.inicio]){toast('Elige un paso inicial válido');return;} d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } go('g_'+d.seccion); }
+async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!confirm('¿Eliminar el algoritmo "'+(a.titulo||'')+'" para todos?'))return; const sec=a.seccion; const m=hpAlgos(); delete m[id]; try{ls.s('algos',m);}catch(e){} if(window.hpDeleteAlgo){ try{ await window.hpDeleteAlgo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_'+sec); }
+
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
 window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls.s('subtypes_'+section,items); }catch(e){} };
 // Propaga a la nube (efectivo para todos) un cambio de apartados. Best-effort con aviso.
@@ -4423,6 +4527,7 @@ h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.
 });
 }
 }
+h+=renderAlgosBlock(id);
 h+='</div>';
 return h;
 }
@@ -5499,7 +5604,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 126;
+const HP_BUILD = 127;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -5605,6 +5710,7 @@ sectionsUpdated++;
 // Los apartados editados desde la app (colección 'subtipos') prevalecen sobre el JSON estático.
 if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
+if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -11501,6 +11607,7 @@ function revealAndEnter(user){
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
   if (window.hpSyncSubtipos) setTimeout(() => window.hpSyncSubtipos(), 950);
   if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
+  if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -11660,6 +11767,17 @@ window.hpSyncSecciones = async function(){
   }catch(e){ return false; }
 };
 window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones', id)); };
+// ── Algoritmos interactivos (por sección). Lo escribe quien edita esa sección; lo leen todos.
+window.hpSaveAlgo = async function(algo){ await setDoc(doc(fs, 'algoritmos', algo.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, algo)); };
+window.hpDeleteAlgo = async function(id){ await deleteDoc(doc(fs, 'algoritmos', id)); };
+window.hpSyncAlgos = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'algoritmos'));
+    const map = {}; snap.forEach(d => { map[d.id] = Object.assign({ id:d.id }, d.data()); });
+    if(window.hpApplyAlgos) window.hpApplyAlgos(map);
+    return true;
+  }catch(e){ return false; }
+};
 
 // ── Reportes de errores / incidencias ──
 // Crear: cualquier usuario autenticado. Leer/gestionar: solo administradora (reglas Firestore).
