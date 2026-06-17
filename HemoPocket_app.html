@@ -919,13 +919,12 @@ const MENU=[
 {id:'citomol',name:'Seguimiento molecular / EMR',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
 {id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'}
 ]},
-{h:'INFORMACIÓN Y SINCRONIZACIÓN',items:[
-{id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones'},
+{h:'AJUSTES',items:[
+{id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones ajustes configuracion'},
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
-{id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura',admin:true},
-{id:'marca',name:'Identidad del hospital',kw:'identidad marca nombre color logo hospital personalizar tema re-skin aspecto',admin:true}
+{id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura',admin:true}
 ]}
 ];
 
@@ -5621,7 +5620,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 131;
+const HP_BUILD = 132;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -5730,7 +5729,6 @@ if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
-if(window.hpSyncMarca){try{await window.hpSyncMarca();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -8308,38 +8306,6 @@ async function hpDelContacto(id){
   const m=hpDirAdd(); delete m[id]; try{ls.s('dirAdd',m);}catch(e){}
   renderDir();
   if(window.hpDelContactoCloud){ try{ await window.hpDelContactoCloud(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } }
-}
-// ── Identidad del hospital (re-skin): nombre + color principal, editable por admins ──
-function hpApplyMarca(cfg){
-  cfg=cfg||{}; const nombre=((cfg.nombre||'').toString().trim())||'HemoPocket'; const color=(cfg.color||'').toString().trim();
-  try{ if(color && /^#[0-9a-fA-F]{3,8}$/.test(color)) document.documentElement.style.setProperty('--c1', color); else document.documentElement.style.removeProperty('--c1'); }catch(e){}
-  try{ document.title=nombre; document.querySelectorAll('.hp-login-title').forEach(function(el){ el.textContent=nombre; }); }catch(e){}
-  try{ ls.s('marca', cfg); }catch(e){}
-}
-window.hpApplyMarcaSync=function(cfg){ try{ hpApplyMarca(cfg||{}); }catch(e){} };
-VIEWS.marca=()=>{
-  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Identidad del hospital</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
-  const m=ls.g('marca')||{};
-  let h='<div class="card"><h2>🎨 Identidad del hospital</h2>';
-  h+='<p class="intro">Personaliza el <strong>nombre</strong> y el <strong>color principal</strong> de la app para tu hospital. Efectivo para todos los usuarios. (Logo y otros ajustes finos llegarán después.)</p>';
-  h+='<div class="fld"><label class="lbl">Nombre de la app</label><input id="marca_nombre" value="'+_hpEsc(m.nombre||'')+'" placeholder="HemoPocket"></div>';
-  h+='<div class="fld"><label class="lbl">Color principal</label><div style="display:flex;align-items:center;gap:10px"><input id="marca_color" type="color" value="'+(/^#[0-9a-fA-F]{6}$/.test(m.color||'')?m.color:'#c41e3a')+'" style="width:54px;height:38px;padding:2px;border:1px solid var(--bd);border-radius:6px;cursor:pointer"><span style="font-size:12px;color:var(--mut)">Toca para elegir el color de marca</span></div></div>';
-  h+='<div class="btns" style="margin-top:6px"><button class="btn btn-g" onclick="hpGuardarMarca()">💾 Guardar para todos</button><button class="btn btn-out" onclick="hpRestablecerMarca()">Restablecer (HemoPocket)</button></div>';
-  h+='<p style="font-size:11.5px;color:var(--mut);margin-top:10px">Algunos detalles con color fijo no cambian aún; el grueso de la interfaz sí toma este color.</p>';
-  h+='</div>';
-  return h;
-};
-async function hpGuardarMarca(){
-  const cfg={ nombre:($('marca_nombre')?$('marca_nombre').value.trim():''), color:($('marca_color')?$('marca_color').value:'') };
-  hpApplyMarca(cfg);
-  if(window.hpSaveMarca){ try{ await window.hpSaveMarca(cfg); toast('✓ Identidad actualizada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
-  else toast('✓ Guardado');
-}
-async function hpRestablecerMarca(){
-  if(!confirm('¿Restablecer a HemoPocket (nombre y color por defecto)?'))return;
-  const cfg={nombre:'',color:''}; hpApplyMarca(cfg);
-  if(window.hpSaveMarca){ try{ await window.hpSaveMarca(cfg); }catch(e){} }
-  go('marca');
 }
 
 // ================================================================
@@ -10933,7 +10899,6 @@ S.theme=ls.g('theme')||'light';
 S.favs=ls.g('favs')||[];
 S.recent=ls.g('recent')||[];
 document.documentElement.dataset.t=S.theme;
-try{ if(typeof hpApplyMarca==='function') hpApplyMarca(ls.g('marca')); }catch(e){}
 // Limpiar URLs antiguas (pinchadas a commit concreto, nombre antiguo del Gist, propietario antiguo)
 const savedUrl=ls.g('updateUrl');
 const isStaleUrl=savedUrl&&(
@@ -11449,6 +11414,8 @@ function poblarRevisoresAviso() {
 }
 // ── Aviso Legal editable (SOLO la admin principal) ──
 let _AVISO_DEFAULT='';
+// Marcador no editable que ocupa el lugar de la lista de revisores (se rellena sola) mientras se edita.
+const _AVISO_REV_PH='<div class="aviso-rev-ph" contenteditable="false" style="border:1px dashed var(--bd);border-radius:6px;padding:8px;margin:8px 0;color:var(--mut);font-size:0.8rem;background:var(--bg)">👥 Lista de revisores — se rellena automáticamente con el equipo. No hace falta tocar nada aquí.</div>';
 function hpAvisoOverride(){ try{ return ls.g('avisoLegal'); }catch(e){ return null; } }
 window.hpApplyAviso=function(html){ try{ ls.s('avisoLegal', html||''); }catch(e){} };
 function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
@@ -11459,8 +11426,56 @@ function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
   return s;
 }
 function _avisoRenderCuerpo(){ const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); cu.innerHTML=(ov&&ov.trim())?_hpSanHtml(ov):_AVISO_DEFAULT; }
-function hpEditarAviso(){ if(window.__hpUid!==HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('Solo la administradora principal puede editar el Aviso Legal'); return; } const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); const val=(ov&&ov.trim())?ov:_AVISO_DEFAULT; cu.innerHTML='<div style="font-size:12px;color:var(--mut);margin-bottom:6px">Edita el texto legal (HTML básico: p, strong, ul, li, h3…). Deja <code>&lt;ul id=&quot;aviso-revisores&quot;&gt;&lt;/ul&gt;</code> donde quieras la lista de revisores.</div><textarea id="aviso-edit" style="width:100%;min-height:320px;font-family:ui-monospace,monospace;font-size:12px;box-sizing:border-box">'+_hpEsc(val)+'</textarea><div class="btns" style="margin-top:8px"><button class="btn btn-g" onclick="hpGuardarAviso()">💾 Guardar para todos</button><button class="btn btn-out" onclick="_avisoRenderCuerpo();poblarRevisoresAviso();">Cancelar</button></div>'; }
-async function hpGuardarAviso(){ const ta=document.getElementById('aviso-edit'); if(!ta) return; const html=ta.value; try{ls.s('avisoLegal',html);}catch(e){} _avisoRenderCuerpo(); poblarRevisoresAviso(); if(window.hpSaveAviso){ try{ await window.hpSaveAviso(html); if(typeof toast==='function')toast('✓ Aviso Legal actualizado · para todos'); }catch(e){ if(typeof toast==='function')toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else if(typeof toast==='function')toast('✓ Guardado'); }
+// Editor VISUAL (sin HTML): se edita el texto como en un procesador de textos.
+function _avisoCmd(cmd,val){ try{ var cu=document.getElementById('aviso-cuerpo'); if(cu){ cu.focus(); document.execCommand(cmd,false,val||null); } }catch(e){} }
+function _avisoToolbar(){
+  return '<div id="aviso-toolbar" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)">'
+    +'<span style="font-size:12px;color:var(--mut);width:100%;margin-bottom:2px">Escribe directamente sobre el texto. Para dar formato, selecciona y pulsa un botón:</span>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_avisoCmd(\'bold\')" title="Negrita"><strong>N</strong></button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_avisoCmd(\'italic\')" title="Cursiva"><em>C</em></button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_avisoCmd(\'formatBlock\',\'&lt;h3&gt;\')" title="Convertir en título de sección">Título</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_avisoCmd(\'formatBlock\',\'&lt;p&gt;\')" title="Texto normal">Texto</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_avisoCmd(\'insertUnorderedList\')" title="Lista con viñetas">• Lista</button>'
+    +'<span style="flex:1;min-width:8px"></span>'
+    +'<button type="button" class="btn btn-g btn-sm" onclick="hpGuardarAviso()">💾 Guardar para todos</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onclick="hpCancelarAviso()">Cancelar</button>'
+    +'</div>';
+}
+function hpEditarAviso(){
+  if(window.__hpUid!==HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('Solo la administradora principal puede editar el Aviso Legal'); return; }
+  const cu=document.getElementById('aviso-cuerpo'); if(!cu) return;
+  if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML;
+  const ov=hpAvisoOverride(); let html=(ov&&ov.trim())?_hpSanHtml(ov):_AVISO_DEFAULT;
+  // Protege la lista de revisores (automática) sustituyéndola por un bloque no editable.
+  html=html.replace(/<ul[^>]*id=["']aviso-revisores["'][\s\S]*?<\/ul>/i,_AVISO_REV_PH);
+  cu.innerHTML=html;
+  cu.setAttribute('contenteditable','true');
+  cu.style.border='1px solid var(--bd)'; cu.style.borderRadius='8px'; cu.style.padding='10px'; cu.style.outline='none';
+  var eb=document.getElementById('aviso-edit-btn'); if(eb) eb.style.display='none';
+  var old=document.getElementById('aviso-toolbar'); if(old) old.remove();
+  cu.insertAdjacentHTML('beforebegin',_avisoToolbar());
+}
+function hpCancelarAviso(){
+  const cu=document.getElementById('aviso-cuerpo'); if(cu){ cu.setAttribute('contenteditable','false'); cu.style.border=''; cu.style.padding=''; }
+  var tb=document.getElementById('aviso-toolbar'); if(tb) tb.remove();
+  _avisoRenderCuerpo(); poblarRevisoresAviso();
+  var eb=document.getElementById('aviso-edit-btn'); if(eb) eb.style.display=(window.__hpUid===HP_PRINCIPAL_UID)?'inline-block':'none';
+}
+async function hpGuardarAviso(){
+  const cu=document.getElementById('aviso-cuerpo'); if(!cu) return;
+  cu.setAttribute('contenteditable','false');
+  var tb=document.getElementById('aviso-toolbar'); if(tb) tb.remove();
+  let html=cu.innerHTML;
+  // Devuelve el marcador de revisores a su <ul> real (lo rellena poblarRevisoresAviso).
+  html=html.replace(/<div[^>]*class=["'][^"']*aviso-rev-ph[^"']*["'][\s\S]*?<\/div>/i,'<ul id="aviso-revisores"></ul>');
+  if(html.indexOf('aviso-revisores')===-1) html+='<ul id="aviso-revisores"></ul>';
+  html=_hpSanHtml(html);
+  cu.style.border=''; cu.style.padding='';
+  try{ls.s('avisoLegal',html);}catch(e){}
+  _avisoRenderCuerpo(); poblarRevisoresAviso();
+  var eb=document.getElementById('aviso-edit-btn'); if(eb) eb.style.display=(window.__hpUid===HP_PRINCIPAL_UID)?'inline-block':'none';
+  if(window.hpSaveAviso){ try{ await window.hpSaveAviso(html); if(typeof toast==='function')toast('✓ Aviso Legal actualizado · para todos'); }catch(e){ if(typeof toast==='function')toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  else if(typeof toast==='function')toast('✓ Guardado'); }
 function abrirAvisoLegal() {
   _avisoRenderCuerpo();
   poblarRevisoresAviso();
@@ -11720,7 +11735,6 @@ function revealAndEnter(user){
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
-  if (window.hpSyncMarca) setTimeout(() => window.hpSyncMarca(), 1200);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -11889,9 +11903,6 @@ window.hpDelContactoCloud = async function(id){ await deleteDoc(doc(fs, 'directo
 // ── Aviso Legal (texto): lo escribe SOLO la admin principal; lo leen todos.
 window.hpSaveAviso = async function(html){ await setDoc(doc(fs, 'textos', 'avisolegal'), { html: html||'', actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
 window.hpSyncAviso = async function(){ try{ const s = await getDoc(doc(fs, 'textos', 'avisolegal')); if(s.exists() && window.hpApplyAviso) window.hpApplyAviso((s.data()||{}).html||''); return true; }catch(e){ return false; } };
-// ── Identidad del hospital (nombre/color). La editan los admins; la leen todos.
-window.hpSaveMarca = async function(cfg){ await setDoc(doc(fs, 'ajustes', 'marca'), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, cfg||{})); };
-window.hpSyncMarca = async function(){ try{ const s = await getDoc(doc(fs, 'ajustes', 'marca')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyMarcaSync) window.hpApplyMarcaSync({nombre:d.nombre||'', color:d.color||''}); } return true; }catch(e){ return false; } };
 window.hpSyncDirectorio = async function(){
   try{ const snap = await getDocs(collection(fs, 'directorio')); const map = {}; snap.forEach(d => { map[d.id] = d.data(); }); if(window.hpApplyDirectorio) window.hpApplyDirectorio(map); return true; }catch(e){ return false; }
 };
