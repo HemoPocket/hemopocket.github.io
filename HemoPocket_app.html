@@ -4113,7 +4113,7 @@ VIEWS.algoedit=()=>{
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
-  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn" onclick="algoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="algoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="algoPublicar()">✅ Publicar</button></div>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn" onclick="algoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="algoComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="algoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="algoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
 function _algoEditNode(d,nid,nodeIds){
@@ -4143,8 +4143,24 @@ function algoDelOpt(nid,i){ const n=_algoDraft.nodos[nid]; if(n.opciones)n.opcio
 function algoOptLabel(nid,i,v){ const n=_algoDraft.nodos[nid]; if(n.opciones&&n.opciones[i])n.opciones[i].etiqueta=v; }
 function algoOptDest(nid,i,v){ const n=_algoDraft.nodos[nid]; if(!n.opciones||!n.opciones[i])return; if(v==='__new'){ const rid='n_'+Date.now(); _algoDraft.nodos[rid]={id:rid,tipo:'resultado',texto:'Nuevo resultado',opciones:[],cuerpo:''}; n.opciones[i].destino=rid; go('algoedit'); } else { n.opciones[i].destino=v; } }
 function algoVistaPrevia(){ if(!_algoDraft.inicio){toast('Elige el paso inicial');return;} _algoState={algo:JSON.parse(JSON.stringify(_algoDraft)),current:_algoDraft.inicio,history:[],preview:true}; go('algo'); }
+function _algoValidar(d){
+  const errs=[], warns=[]; const ids=Object.keys((d&&d.nodos)||{});
+  if(!d.titulo||!d.titulo.trim()) errs.push('Falta el título.');
+  if(!ids.length) errs.push('No hay ningún paso.');
+  if(!d.inicio||!d.nodos[d.inicio]) errs.push('Falta elegir un paso inicial válido.');
+  ids.forEach(function(nid){ const n=d.nodos[nid]; const lbl=_algoNodeLabel(n);
+    if(n.tipo==='pregunta'){ const ops=n.opciones||[];
+      if(!ops.length) errs.push('La pregunta "'+lbl+'" no tiene opciones (sin salida).');
+      ops.forEach(function(o){ if(!o.etiqueta||!o.etiqueta.trim()) warns.push('Una opción de "'+lbl+'" no tiene etiqueta.'); if(!o.destino) errs.push('Una opción de "'+lbl+'" no lleva a ningún paso.'); else if(!d.nodos[o.destino]) errs.push('Una opción de "'+lbl+'" apunta a un paso inexistente.'); });
+    } else { if(!n.texto||!n.texto.trim()) warns.push('Un resultado no tiene texto.'); }
+  });
+  if(d.inicio&&d.nodos[d.inicio]){ const seen={}; const stack=[d.inicio]; while(stack.length){ const x=stack.pop(); if(seen[x])continue; seen[x]=1; const n=d.nodos[x]; if(n&&n.tipo==='pregunta')(n.opciones||[]).forEach(function(o){if(o.destino&&!seen[o.destino])stack.push(o.destino);}); }
+    ids.forEach(function(nid){ if(!seen[nid]) warns.push('El paso "'+_algoNodeLabel(d.nodos[nid])+'" no es alcanzable desde el inicio.'); }); }
+  return {errs:errs, warns:warns};
+}
+function algoComprobar(){ const v=_algoValidar(_algoDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, listo para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
 async function algoGuardar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
-async function algoPublicar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!d.inicio||!d.nodos[d.inicio]){toast('Elige un paso inicial válido');return;} d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } go('g_'+d.seccion); }
+async function algoPublicar(){ const d=_algoDraft; const _v=_algoValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } go('g_'+d.seccion); }
 async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!confirm('¿Eliminar el algoritmo "'+(a.titulo||'')+'" para todos?'))return; const sec=a.seccion; const m=hpAlgos(); delete m[id]; try{ls.s('algos',m);}catch(e){} if(window.hpDeleteAlgo){ try{ await window.hpDeleteAlgo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_'+sec); }
 
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
@@ -5604,7 +5620,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 127;
+const HP_BUILD = 128;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
