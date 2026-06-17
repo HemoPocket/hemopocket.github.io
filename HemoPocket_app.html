@@ -4071,7 +4071,7 @@ h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpRechazarUI(\''+c.uid+'\')">Rechazar</button>';
 h+='</div>';
-} else if(manageable && c.uid!==HP_PRINCIPAL_UID){
+} else if(manageable && c.uid!==HP_PRINCIPAL_UID && !((roleInfo&&roleInfo.role==='admin') && window.__hpUid!==HP_PRINCIPAL_UID)){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpGuardarRol(\''+c.uid+'\')">Guardar perfil</button>';
 h+='</div>';
@@ -4090,6 +4090,9 @@ return 'Usuario';
 // Selector de perfil reutilizable (pendientes y aprobadas). Muestra las secciones si es Editor.
 function hpRoleSelector(uid, roleInfo, credName){
   if(uid===HP_PRINCIPAL_UID) return '<div style="margin-top:10px;padding:9px 10px;border:1px solid #d8b400;border-radius:8px;background:#fffbe6;font-size:12.5px;color:#7a5d00">\uD83D\uDC51 <strong>Administradora principal</strong> \u2014 perfil fijo, no modificable.</div>';
+  const soyPrincipal=(window.__hpUid===HP_PRINCIPAL_UID);
+  // El nivel "administrador" solo lo gestiona la principal: un co-admin no puede cambiar el perfil de otro admin.
+  if(roleInfo&&roleInfo.role==='admin'&&!soyPrincipal) return '<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--bd,#e2e2e2);border-radius:8px;background:var(--bg,#f7f8fa);font-size:12px;color:var(--mut,#666)">Administrador: solo la <strong>admin principal</strong> puede cambiar este perfil.</div>';
   const cur=(roleInfo&&roleInfo.role)||'usuario';
   const isEd=roleInfo&&roleInfo.role==='editor';
   const allKeys=Object.keys(GUIDES_TITLES);
@@ -4100,7 +4103,7 @@ function hpRoleSelector(uid, roleInfo, credName){
   let s='<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--bd,#e2e2e2);border-radius:8px;background:var(--bg,#f7f8fa)">';
   s+='<label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">Perfil de acceso</label>';
   s+='<select id="rol_'+uid+'" onchange="hpRolChange(\''+uid+'\')" style="width:100%;padding:7px;border:1px solid var(--bd,#ccc);border-radius:7px;font-size:13px;background:var(--card,#fff);color:var(--txt,#222)">';
-  s+=opt('usuario','Usuario — solo consulta')+opt('editor','Editor — solo subir/bajar guías PDF')+opt('admin','Administrador — control total');
+  s+=opt('usuario','Usuario — solo consulta')+opt('editor','Editor — solo subir/bajar guías PDF')+(soyPrincipal?opt('admin','Administrador — control total'):'');
   s+='</select>';
   s+='<div id="secs_'+uid+'" style="display:'+(cur==='editor'?'block':'none')+';margin-top:8px">';
   s+='<div style="font-size:12px;color:var(--mut,#666);margin-bottom:4px">Secciones cuyas guías PDF podrá subir/bajar:</div>';
@@ -4135,12 +4138,13 @@ window.hpSecSync=function(uid){
 window.hpGuardarRol=function(uid){
   if(uid===HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('La administradora principal es un perfil fijo, no se puede modificar'); return; }
   const sel=document.getElementById('rol_'+uid), role=sel?sel.value:'usuario';
+  if(role==='admin' && window.__hpUid!==HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('Solo la admin principal puede asignar administradores'); return; }
   if(uid===window.__hpUid && role!=='admin'){ if(typeof toast==='function')toast('No puedes quitarte a ti misma el rol de administradora'); return; }
   const secs=role==='editor'?hpReadSecs(uid):[];
   if(role==='editor'&&!secs.length){ if(typeof toast==='function')toast('Marca al menos una sección'); return; }
   const nombre=role==='editor'?hpReadCred(uid):'';
   if(role==='editor'&&!nombre){ if(typeof toast==='function')toast('Escribe el nombre para créditos del editor'); return; }
-  const msg=role==='admin'?'¿Asignar perfil ADMINISTRADOR? Tendrá control total, incluido gestionar cuentas y otros administradores.':role==='editor'?('¿Guardar como EDITOR de '+secs.length+' sección(es)? Figurará como colaborador en el Aviso Legal.'):'¿Dejar como usuario, sin permisos de edición?';
+  const msg=role==='admin'?'¿Asignar perfil ADMINISTRADOR (co-admin)? Podrá gestionar secciones, contenido, editores y cuentas, pero NO a otros administradores (eso solo tú).':role==='editor'?('¿Guardar como EDITOR de '+secs.length+' sección(es)? Figurará como colaborador en el Aviso Legal.'):'¿Dejar como usuario, sin permisos de edición?';
   if(window.hpConfirm) window.hpConfirm(msg,function(){_hpDoRol(uid,role,secs,nombre);}); else _hpDoRol(uid,role,secs,nombre);
 };
 async function _hpDoRol(uid,role,secs,nombre){
@@ -4191,6 +4195,7 @@ if(window.hpRenderSolicitudes) window.hpRenderSolicitudes();
 }
 window.hpAprobarUI=function(uid){
 const sel=document.getElementById('rol_'+uid), role=sel?sel.value:'usuario';
+if(role==='admin' && window.__hpUid!==HP_PRINCIPAL_UID){ if(typeof toast==='function')toast('Solo la admin principal puede asignar administradores'); return; }
 const secs=role==='editor'?hpReadSecs(uid):[];
 if(role==='editor'&&!secs.length){ if(typeof toast==='function')toast('Marca al menos una sección para el editor'); return; }
 const nombre=role==='editor'?hpReadCred(uid):'';
@@ -5391,7 +5396,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 123;
+const HP_BUILD = 124;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:

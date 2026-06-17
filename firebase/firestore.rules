@@ -64,14 +64,17 @@ service cloud.firestore {
     }
 
     match /roles/{uid} {
-      // Cada usuario puede leer su propio rol; la administradora puede leerlos y asignarlos
-      // todos (al aprobar una solicitud puede dar perfil de editor o administrador desde la app).
+      // Cada usuario puede leer su propio rol; cualquier administrador los lee y los gestiona.
       allow read:  if request.auth != null && (request.auth.uid == uid || isAdmin());
-      // Solo un admin escribe roles; un usuario nunca puede otorgarse permisos a sí mismo.
-      // La admin PRINCIPAL es INTOCABLE: su documento de rol solo lo puede modificar ella misma;
-      // ningún otro administrador puede degradarla.
-      allow write: if isAdmin()
-                   && (uid != 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1' || request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1');
+      // La admin PRINCIPAL puede TODO. Un CO-ADMIN (otro administrador) solo gestiona EDITORES:
+      // no puede tocar a la principal, ni crear/modificar/eliminar administradores. Así el nivel
+      // "administrador" (las llaves de la casa) es exclusivo de la principal, y los co-admins se
+      // ocupan de lo operativo (editores, contenido) para que la app siga viva sin ella.
+      allow write: if request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1'
+                   || ( isAdmin()
+                        && uid != 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1'
+                        && (resource == null || resource.data.role != 'admin')
+                        && (request.resource == null || request.resource.data.role != 'admin') );
     }
 
     // ── Cuentas de usuario y registro de aceptación de términos ──
