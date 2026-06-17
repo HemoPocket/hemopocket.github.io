@@ -1665,7 +1665,7 @@ items:[
 {q:'Diálisis y edad > 60 años, o carcinoma renal no controlado',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'Cirrosis Child B/C, o hepatopatía con transaminasas > 3× normal y edad > 60 años, o carcinoma biliar/hepático no controlado, o hepatitis viral aguda',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'Infección activa resistente al tratamiento antiinfeccioso',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Enfermedad mental que requiere hospitalización/manejo psiquiátrico intensivo, o deterioro cognitivo con dependencia no controlada por el cuidador',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enfermedad mental que requiere hospitalización psiquiátrica, institucionalización o manejo ambulatorio intensivo; o deterioro cognitivo que produce dependencia (confirmado por el especialista) no controlado por el cuidador',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'ECOG ≥ 3 no relacionado con la leucemia',type:'check',opts:[{l:'Sí',p:1}]},
 {q:'Cualquier otra comorbilidad que el clínico juzgue incompatible con la quimioterapia intensiva',type:'check',opts:[{l:'Sí',p:1}]}
 ],
@@ -5845,7 +5845,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 136;
+const HP_BUILD = 137;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
