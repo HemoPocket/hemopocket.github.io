@@ -133,6 +133,14 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── Elementos del menú (calculadoras): visibilidad y nombre, por tema ──
+    // Editable SOLO por administradores; efectiva para todos. Permite a cada hospital
+    // mostrar/ocultar o renombrar las calculadoras de cada sección sin tocar el código.
+    match /menuitems/{id} {
+      allow read:   if isApproved();
+      allow write:  if isAdmin();
+    }
+
     // ── Algoritmos interactivos, por sección ──
     // Los lee cualquier usuario autorizado; los crea/edita/borra quien puede editar ESA sección
     // (admin de cualquier sección, o editor de la sección), igual que las guías PDF.

@@ -942,9 +942,9 @@ h+='</div>';
 MENU.forEach((sec,si)=>{
 const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
 const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&hpSecHidden(it.id.slice(2)));
-const realItems=sec.items.filter(it=>!it.sub && !(it.admin&&!isAdminUI) && !isGuideHidden(it) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
+const realItems=sec.items.filter(it=>!it.sub && !(it.admin&&!isAdminUI) && !isGuideHidden(it) && !hpItemHidden(it.id) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
 if(!realItems.length)return;
-const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it));
+const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidden(it.id));
 const open=f||sec._o||sec.o;
 // Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
 let _hdr=sec.h; const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=_t.toUpperCase();}
@@ -956,7 +956,7 @@ if(it.sub){inSub=true;h+=`<div class="menu-sub">${it.name}</div>`;return}
 const isFav=S.favs.includes(it.id);
 const isNew=it.new && isRecentlyNew(it.new);
 const repBadge=(it.id==='reportes'&&window._hpRepNew)?`<span class="tag-new" style="background:#c41e3a" title="reportes sin resolver">${window._hpRepNew}</span>`:'';
-h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${it.name}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
+h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${_hpEsc(hpItemName(it.id,it.name))}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
 });
 h+='</div></div>';
 });
@@ -3963,6 +3963,33 @@ window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catc
 function hpSecMap(){ try{ return ls.g('secOverrides')||{}; }catch(e){ return {}; } }
 function hpSecTitle(id){ const o=hpSecMap()[id]; return (o&&o.titulo)||GUIDES_TITLES[id]||id; }
 function hpSecHidden(id){ const o=hpSecMap()[id]; return !!(o&&o.oculta); }
+
+// ── Capa de ELEMENTOS del menú (calculadoras): visibilidad y nombre por hospital, efectiva para TODOS ──
+window.hpApplyItems=function(map){ try{ ls.s('itemOverrides', map||{}); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
+function hpItemMap(){ try{ return ls.g('itemOverrides')||{}; }catch(e){ return {}; } }
+function hpItemHidden(id){ const o=hpItemMap()[id]; return !!(o&&o.oculta); }
+function hpItemName(id,def){ const o=hpItemMap()[id]; return (o&&o.nombre)||def; }
+async function hpOcultarItem(id){
+  const nuevo=!hpItemHidden(id);
+  const m=hpItemMap(); m[id]=Object.assign({},m[id],{oculta:nuevo}); try{ls.s('itemOverrides',m);}catch(e){}
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go('gsecciones');
+  if(window.hpSaveItem){ try{ await window.hpSaveItem(id,{oculta:nuevo}); toast(nuevo?'✓ Oculta del menú · para todos':'✓ Visible · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
+  else toast(nuevo?'✓ Oculta':'✓ Visible');
+}
+async function hpRenombrarItem(id){
+  const def=(getAll().find(function(x){return x.id===id;})||{}).name||'';
+  const actual=hpItemName(id,def);
+  const nuevo=prompt('Nombre visible de la calculadora (deja vacío para restablecer):', actual);
+  if(nuevo==null) return; const t=nuevo.trim();
+  const m=hpItemMap();
+  if(!t || t===def){ if(m[id]){ delete m[id].nombre; if(!Object.keys(m[id]).length) delete m[id]; } }
+  else { m[id]=Object.assign({},m[id],{nombre:t}); }
+  try{ls.s('itemOverrides',m);}catch(e){}
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go('gsecciones');
+  if(window.hpSaveItem){ try{ await window.hpSaveItem(id,{nombre:(!t||t===def)?'':t}); toast('✓ Renombrada · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
+  else toast('✓ Guardada');
+}
+
 async function hpRenombrarSeccion(id){
   const nuevo=prompt('Nombre de la sección (se aplica a TODOS):', hpSecTitle(id));
   if(nuevo==null) return; const t=nuevo.trim(); if(!t) return;
@@ -4029,6 +4056,37 @@ function _hpSecRow(s,esNueva,i,total){
   r+='</div>';
   return r;
 }
+function _hpTemaBlock(sec){
+  let body=''; let n=0;
+  sec.items.forEach(function(it){
+    if(it.admin) return;
+    if(it.sub){ body+='<div style="font-size:12px;color:var(--mut);font-weight:600;margin:8px 0 2px">'+_hpEsc(it.name)+'</div>'; return; }
+    const esGuia=!!(it.id&&it.id.indexOf('g_')===0);
+    body+='<div class="team-card" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+    if(esGuia){
+      const sid=it.id.slice(2); const oc=hpSecHidden(sid); n++;
+      body+='<span style="flex:1;min-width:130px">📄 '+_hpEsc(hpSecTitle(sid))+(oc?' <span style="color:var(--mut);font-size:11px">(oculto)</span>':'')+'</span>';
+      body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">Renombrar</button>';
+      body+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
+    } else {
+      const oc=hpItemHidden(it.id); n++;
+      body+='<span style="flex:1;min-width:130px">'+_hpEsc(hpItemName(it.id,it.name))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</span>';
+      body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarItem(\''+it.id+'\')">Renombrar</button>';
+      body+='<button class="btn btn-out btn-sm" onclick="hpOcultarItem(\''+it.id+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
+    }
+    body+='</div>';
+  });
+  if(!n) return '';
+  return '<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(sec.h||'')+'</summary><div style="margin-top:8px">'+body+'</div></details>';
+}
+function _hpTemasCard(){
+  let h='<div class="card" style="margin-top:14px"><h2>🧮 Calculadoras y apartados por tema</h2>';
+  h+='<p class="intro">Despliega un tema para <strong>mostrar u ocultar</strong> cada calculadora y el apartado de <strong>Guías clínicas</strong>, o <strong>renombrarlos</strong>. Es efectivo para <strong>todos</strong>. Las calculadoras llevan su cálculo programado: aquí eliges cuáles ve tu hospital (para crear una calculadora nueva, pídemelo).</p>';
+  try{ MENU.forEach(function(sec){ if((sec.h||'')==='AJUSTES') return; h+=_hpTemaBlock(sec); }); }catch(e){}
+  h+='</div>';
+  return h;
+}
+
 VIEWS.gsecciones=()=>{
   if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Gestionar secciones</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
   const all=hpAllSections(); const built=all.filter(function(s){return !s.nueva;}); const nuevas=hpNewSectionsOrdered();
@@ -4041,6 +4099,7 @@ VIEWS.gsecciones=()=>{
   if(!nuevas.length) h+='<div class="team-empty">Ninguna todavía. Crea una con el botón de arriba.</div>';
   nuevas.forEach(function(s,i){ h+=_hpSecRow(s,true,i,nuevas.length); });
   h+='</div>';
+  h+=_hpTemasCard();
   return h;
 };
 
@@ -5620,7 +5679,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 132;
+const HP_BUILD = 133;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -5729,6 +5788,7 @@ if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
+if(window.hpSyncItems){try{await window.hpSyncItems();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -11735,6 +11795,7 @@ function revealAndEnter(user){
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
+  if (window.hpSyncItems) setTimeout(() => window.hpSyncItems(), 1250);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -11894,6 +11955,18 @@ window.hpSyncSecciones = async function(){
   }catch(e){ return false; }
 };
 window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones', id)); };
+
+// ── Elementos del menú (calculadoras): visibilidad/nombre por hospital. Solo admin escribe; lo leen todos.
+window.hpSaveItem = async function(id, data){ await setDoc(doc(fs, 'menuitems', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true }); };
+window.hpSyncItems = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'menuitems'));
+    const map = {}; snap.forEach(d => { map[d.id] = d.data()||{}; });
+    if(window.hpApplyItems) window.hpApplyItems(map);
+    return true;
+  }catch(e){ return false; }
+};
+
 // ── Algoritmos interactivos (por sección). Lo escribe quien edita esa sección; lo leen todos.
 window.hpSaveAlgo = async function(algo){ await setDoc(doc(fs, 'algoritmos', algo.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, algo)); };
 window.hpDeleteAlgo = async function(id){ await deleteDoc(doc(fs, 'algoritmos', id)); };
