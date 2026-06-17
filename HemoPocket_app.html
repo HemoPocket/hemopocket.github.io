@@ -932,7 +932,7 @@ function getAll(){return MENU.flatMap(s=>s.items)}
 
 function renderMenu(filter=''){
 const f=filter.toLowerCase().trim();
-const favs=S.favs.filter(function(id){return !hpItemOculto(id);}).slice(0,4);
+const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id);}).slice(0,4);
 let h='';
 if(favs.length){
 h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px">Acceso Rápido</div>';
@@ -1030,8 +1030,8 @@ const ICON_PHONE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 
 function homeView() {
     const byId=id=>getAll().find(x=>x.id===id);
-    const favs=(S.favs||[]).map(byId).filter(Boolean).filter(function(it){return !hpItemOculto(it.id);});
-    const rec=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return !hpItemOculto(it.id);}).slice(0,6);
+    const favs=(S.favs||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id);});
+    const rec=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id);}).slice(0,6);
     const tile=(it,ic)=>{const fav=(S.favs||[]).includes(it.id);return `<div class="home-tile" role="button" tabindex="0" onclick="go('${it.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('${it.id}')}">${ic?'<span class="ht-ic">'+ic+'</span>':''}<span class="ht-nm">${it.name}</span><button class="ht-fav ${fav?'on':''}" onclick="event.stopPropagation();homeFav('${it.id}')" aria-label="${fav?'Quitar de favoritos':'Añadir a favoritos'}" title="${fav?'Quitar de favoritos':'Añadir a favoritos'}">${fav?'★':'☆'}</button></div>`;};
     let secs='';
     if(favs.length) secs+=`<div class="home-sec"><div class="home-sec-h">★ Favoritos</div><div class="home-tiles">${favs.map(it=>tile(it,'')).join('')}</div></div>`;
@@ -3970,6 +3970,8 @@ function hpItemMap(){ try{ return ls.g('itemOverrides')||{}; }catch(e){ return {
 function hpItemHidden(id){ const o=hpItemMap()[id]; return !!(o&&o.oculta); }
 function hpItemName(id,def){ const o=hpItemMap()[id]; return (o&&o.nombre)||def; }
 function hpItemOculto(id){ if(!id) return false; if((''+id).indexOf('g_')===0) return hpSecHidden((''+id).slice(2)); return hpItemHidden(id); }
+function _hpAdminUI(){ return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
+function _hpItemAllowed(it){ if(!it) return false; if(it.admin && !_hpAdminUI()) return false; return true; }
 async function hpOcultarItem(id){
   const nuevo=!hpItemHidden(id);
   const m=hpItemMap(); m[id]=Object.assign({},m[id],{oculta:nuevo}); try{ls.s('itemOverrides',m);}catch(e){}
@@ -4057,7 +4059,7 @@ function _hpSecRow(s,esNueva,i,total){
   r+='</div>';
   return r;
 }
-function _hpTemaBlock(sec){
+function _hpContenidoTema(sec){
   let body=''; let n=0;
   sec.items.forEach(function(it){
     if(it.admin) return;
@@ -4077,32 +4079,58 @@ function _hpTemaBlock(sec){
     }
     body+='</div>';
   });
-  if(!n) return '';
-  return '<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(sec.h||'')+'</summary><div style="margin-top:8px">'+body+'</div></details>';
+  return body;
 }
-function _hpTemasCard(){
-  let h='<div class="card" style="margin-top:14px"><h2>🧮 Calculadoras y apartados por tema</h2>';
-  h+='<p class="intro">Despliega un tema para <strong>mostrar u ocultar</strong> cada calculadora y el apartado de <strong>Guías clínicas</strong>, o <strong>renombrarlos</strong>. Es efectivo para <strong>todos</strong>. Las calculadoras llevan su cálculo programado: aquí eliges cuáles ve tu hospital (para crear una calculadora nueva, pídemelo).</p>';
-  try{ MENU.forEach(function(sec){ if((sec.h||'')==='AJUSTES') return; h+=_hpTemaBlock(sec); }); }catch(e){}
-  h+='</div>';
-  return h;
-}
-
+function _hpSecGuiaId(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); return gi?gi.id.slice(2):null; }
 VIEWS.gsecciones=()=>{
   if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Gestionar secciones</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
-  const all=hpAllSections(); const built=all.filter(function(s){return !s.nueva;}); const nuevas=hpNewSectionsOrdered();
-  let h='<div class="card"><h2>🗂️ Gestionar secciones de guías</h2>';
-  h+='<p class="intro">Renombra, oculta, crea o reordena las secciones de guías. Los cambios son <strong>efectivos para todos</strong>. Las calculadoras/escalas no se ven afectadas.</p>';
+  let h='<div class="card"><h2>🗂️ Secciones y su contenido</h2>';
+  h+='<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>mostrar/ocultar o renombrar</strong> sus calculadoras y el apartado de guías. Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>';
   h+='<button class="btn" style="margin-bottom:14px" onclick="hpCrearSeccion()">➕ Crear sección nueva</button>';
-  h+='<h3>De fábrica ('+built.length+')</h3>';
-  built.forEach(function(s){ h+=_hpSecRow(s,false); });
-  h+='<h3 style="margin-top:16px">Nuevas ('+nuevas.length+')</h3>';
+  // Temas del menú (categorías de fábrica), excepto Ajustes
+  try{ MENU.forEach(function(sec){
+    if((sec.h||'')==='AJUSTES') return;
+    const sid=_hpSecGuiaId(sec);
+    const nombre = sid?hpSecTitle(sid):(sec.h||'');
+    const oc = sid?hpSecHidden(sid):false;
+    h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(nombre)+(oc?' <span style="color:var(--mut);font-size:11px">(sección oculta)</span>':'')+'</summary>';
+    h+='<div style="margin-top:8px">';
+    if(sid){
+      h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+      h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">✏️ Renombrar sección</button>';
+      h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'👁️ Mostrar sección':'🚫 Ocultar sección')+'</button>';
+      h+='</div>';
+    } else {
+      h+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px">Sección general del menú (sin apartado de guías). Su nombre forma parte de la app; aquí gestionas sus calculadoras.</div>';
+    }
+    const cont=_hpContenidoTema(sec);
+    h+=cont||'<div style="font-size:12px;color:var(--mut)">Sin calculadoras en esta sección.</div>';
+    h+='</div></details>';
+  }); }catch(e){}
+  // Secciones nuevas creadas por la administración
+  const nuevas=hpNewSectionsOrdered();
+  h+='<h3 style="margin-top:16px">Secciones nuevas creadas por ti ('+nuevas.length+')</h3>';
   if(!nuevas.length) h+='<div class="team-empty">Ninguna todavía. Crea una con el botón de arriba.</div>';
-  nuevas.forEach(function(s,i){ h+=_hpSecRow(s,true,i,nuevas.length); });
+  nuevas.forEach(function(s,i){
+    const oc=hpSecHidden(s.id);
+    h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(hpSecTitle(s.id))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</summary>';
+    h+='<div style="margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+    h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+s.id+'\')">✏️ Renombrar</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+s.id+'\')">'+(oc?'👁️ Mostrar':'🚫 Ocultar')+'</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="hpMoverSeccion(\''+s.id+'\',-1)"'+(i===0?' disabled':'')+'>↑</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="hpMoverSeccion(\''+s.id+'\',1)"'+(i===nuevas.length-1?' disabled':'')+'>↓</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="go(\'g_'+s.id+'\')">Abrir</button>';
+    h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="hpBorrarSeccionNueva(\''+s.id+'\')">Eliminar</button>';
+    h+='</div>';
+    h+='<div style="font-size:12px;color:var(--mut)">Para añadir calculadoras o guías a esta sección, ábrela y usa «➕ Crear calculadora» o sube guías.</div>';
+    h+='</div></details>';
+  });
   h+='</div>';
-  h+=_hpTemasCard();
   return h;
 };
+
 
 // ════════════════ CONSTRUCTOR DE ALGORITMOS INTERACTIVOS (MVP) ════════════════
 // Un algoritmo = árbol de decisión guiado por datos: nodos 'pregunta' (texto + opciones que
@@ -5826,7 +5854,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 135;
+const HP_BUILD = 136;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11220,7 +11248,7 @@ function closeCmd(){$('cmd_bg')?.classList.remove('show')}
 function cmdBuildIndex(){
 const idx=[];
 try{MENU.forEach(sec=>sec.items.forEach(it=>{if(it.sub)return;
-  idx.push({kind:'tool',id:it.id,name:it.name,sec:sec.h,_new:it.new,nf:chatNorm(it.name),nb:chatNorm(it.name+' '+(it.kw||'')+' '+sec.h)});}));}catch(e){}
+  idx.push({kind:'tool',id:it.id,name:it.name,sec:sec.h,_new:it.new,adm:!!it.admin,nf:chatNorm(it.name),nb:chatNorm(it.name+' '+(it.kw||'')+' '+sec.h)});}));}catch(e){}
 try{Object.keys(QT_SCHEMES).forEach(k=>{const s=QT_SCHEMES[k];
   idx.push({kind:'scheme',id:k,name:s.label,sec:'Esquema QT',nf:chatNorm(s.label),nb:chatNorm(s.label+' '+k+' '+(s.kw||''))});});}catch(e){}
 try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{const nm=(e[0]||'').replace(/\n/g,' ');
@@ -11253,19 +11281,19 @@ const list=$('cmd_list');_cmdResults=[];
 if(!qtokens.length){   // estado vacío: recientes + favoritos
   let html='';
   const byId=id=>getAll().find(x=>x.id===id);
-  const recents=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return !hpItemOculto(it.id);}).slice(0,5);
-  const favs=(S.favs||[]).map(byId).filter(Boolean).filter(function(it){return !hpItemOculto(it.id);}).filter(f=>!recents.some(r=>r.id===f.id));
+  const recents=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id);}).slice(0,5);
+  const favs=(S.favs||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id);}).filter(f=>!recents.some(r=>r.id===f.id));
   const grp=(title,arr)=>{if(!arr.length)return '';let h=`<div class="cmd-grp">${title}</div>`;arr.forEach(it=>{const i=_cmdResults.length;_cmdResults.push({kind:'tool',id:it.id,name:it.name,sec:''});h+=cmdRow(_cmdResults[i],i);});return h;};
   html+=grp('Recientes',recents);
   html+=grp('Favoritos',favs);
-  if(!_cmdResults.length)html+=grp('Sugerencias',getAll().filter(it=>!it.sub).slice(0,6));
+  if(!_cmdResults.length)html+=grp('Sugerencias',getAll().filter(it=>!it.sub&&_hpItemAllowed(it)&&!hpItemOculto(it.id)).slice(0,6));
   if(_cmdSel>=_cmdResults.length)_cmdSel=0;
   list.innerHTML=html;return;
 }
 const scored=[];
 _cmdIndex.forEach(it=>{const sc=cmdScore(it,qtokens,raw);if(sc>0)scored.push({it,sc});});
 scored.sort((a,b)=>b.sc-a.sc);
-_cmdResults=scored.slice(0,40).map(x=>x.it);
+const _admC=_hpAdminUI();_cmdResults=scored.map(x=>x.it).filter(function(it){ if(it.kind!=='tool')return true; if(it.adm&&!_admC)return false; if(hpItemOculto(it.id))return false; return true; }).slice(0,40);
 if(_cmdSel>=_cmdResults.length)_cmdSel=Math.max(0,_cmdResults.length-1);
 if(!_cmdResults.length){list.innerHTML='<div class="cmd-empty">Sin resultados</div>';return}
 list.innerHTML=_cmdResults.map((it,i)=>cmdRow(it,i)).join('');
