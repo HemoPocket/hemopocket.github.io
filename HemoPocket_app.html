@@ -4280,7 +4280,56 @@ async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!confir
 // y se publican a todos. Todo el texto se ESCAPA (sin HTML). Las fórmulas se evalúan con un parser
 // PROPIO y seguro (_calcEval): solo números y una lista blanca de funciones, SIN eval/Function ni
 // acceso a variables del navegador → sin riesgo de inyección.
-function hpCalcs(){ try{ return ls.g('calcs')||{}; }catch(e){ return {}; } }
+// Calculadoras de EJEMPLO integradas (plantillas). Se fusionan con las de Firestore: una
+// calculadora guardada con el mismo id sustituye a su ejemplo. Sirven de muestra del constructor.
+const DEFAULT_CALCS={
+  'cal_ej_crcl':{ id:'cal_ej_crcl', seccion:'mm', tipo:'formula', estado:'publicado',
+    titulo:'Aclaramiento de creatinina (Cockcroft-Gault) · ejemplo',
+    intro:'Estimación del aclaramiento de creatinina. Ejemplo creado con el constructor de fórmulas.',
+    fuente:'Cockcroft DW, Gault MH. Nephron 1976',
+    campos:[
+      {id:'cg_edad', clave:'edad', tipo:'number', etiqueta:'Edad', unidad:'años'},
+      {id:'cg_peso', clave:'peso', tipo:'number', etiqueta:'Peso', unidad:'kg'},
+      {id:'cg_creat', clave:'creat', tipo:'number', etiqueta:'Creatinina sérica', unidad:'mg/dL'},
+      {id:'cg_sexo', clave:'sexo', tipo:'select', etiqueta:'Sexo', opciones:[{etiqueta:'Hombre',valor:0},{etiqueta:'Mujer',valor:1}]}
+    ],
+    formula:'(((140-edad)*peso)/(72*creat))*si(sexo==1,0.85,1)',
+    unidadResultado:'mL/min', decimales:0,
+    resultados:[
+      {min:0,max:29,etiqueta:'Insuficiencia renal grave (<30)',detalle:'Ajustar la dosis de fármacos de eliminación renal.'},
+      {min:30,max:59,etiqueta:'Insuficiencia renal moderada (30–59)',detalle:''},
+      {min:60,max:89,etiqueta:'Ligeramente reducido (60–89)',detalle:''},
+      {min:90,max:100000,etiqueta:'Normal (≥90)',detalle:''}
+    ]},
+  'cal_ej_bsa':{ id:'cal_ej_bsa', seccion:'mm', tipo:'formula', estado:'publicado',
+    titulo:'Superficie corporal (Mosteller) · ejemplo',
+    intro:'Superficie corporal para dosificación de quimioterapia. Ejemplo del constructor de fórmulas.',
+    fuente:'Mosteller RD. N Engl J Med 1987',
+    campos:[
+      {id:'bsa_talla', clave:'talla', tipo:'number', etiqueta:'Talla', unidad:'cm'},
+      {id:'bsa_peso', clave:'peso', tipo:'number', etiqueta:'Peso', unidad:'kg'}
+    ],
+    formula:'raiz((talla*peso)/3600)',
+    unidadResultado:'m²', decimales:2, resultados:[]},
+  'cal_ej_imc':{ id:'cal_ej_imc', seccion:'mm', tipo:'formula', estado:'publicado',
+    titulo:'Índice de masa corporal (IMC) · ejemplo',
+    intro:'IMC = peso / talla². Ejemplo del constructor de fórmulas.',
+    fuente:'OMS',
+    campos:[
+      {id:'imc_peso', clave:'peso', tipo:'number', etiqueta:'Peso', unidad:'kg'},
+      {id:'imc_talla', clave:'talla', tipo:'number', etiqueta:'Talla', unidad:'cm'}
+    ],
+    formula:'peso/((talla/100)^2)',
+    unidadResultado:'kg/m²', decimales:1,
+    resultados:[
+      {min:0,max:18.4,etiqueta:'Bajo peso',detalle:''},
+      {min:18.5,max:24.9,etiqueta:'Normopeso',detalle:''},
+      {min:25,max:29.9,etiqueta:'Sobrepeso',detalle:''},
+      {min:30,max:100000,etiqueta:'Obesidad',detalle:''}
+    ]}
+};
+function _calcsStored(){ try{ return ls.g('calcs')||{}; }catch(e){ return {}; } }
+function hpCalcs(){ return Object.assign({}, DEFAULT_CALCS, _calcsStored()); }
 window.hpApplyCalcs=function(map){ try{ ls.s('calcs', map||{}); }catch(e){} };
 function calcsForSection(sec){ const m=hpCalcs(); return Object.keys(m).map(function(k){return m[k];}).filter(function(c){return c&&c.seccion===sec;}); }
 function renderCalcsBlock(sec){
@@ -4517,9 +4566,9 @@ function _calcValidar(d){
   return {errs:errs,warns:warns};
 }
 function calcComprobar(){ const v=_calcValidar(_calcDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, lista para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
-async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpCalcs(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
-async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=hpCalcs(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
-async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=hpCalcs(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
+async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
+async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
+async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; const _st=_calcsStored(); if(DEFAULT_CALCS[id] && !_st[id]){ toast('Es una calculadora de ejemplo integrada en la app; edítala para personalizarla.'); return; } if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=_calcsStored(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
 
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
 window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls.s('subtypes_'+section,items); }catch(e){} };
@@ -5979,7 +6028,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 139;
+const HP_BUILD = 140;
 const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
