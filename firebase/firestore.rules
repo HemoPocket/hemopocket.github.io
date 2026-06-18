@@ -98,6 +98,18 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── Registro DURADERO de aceptación del Aviso Legal, por usuario ──
+    // Ficha propia de cada usuario (incluidas las cuentas creadas en consola, que NO tienen ficha
+    // en 'cuentas'). Permite que la aceptación valga en CUALQUIER equipo y no se vuelva a pedir tras
+    // borrar la caché. Cada uno escribe SOLO la suya y siempre con aceptaTerminos=true; el admin las lee.
+    match /aceptaciones/{uid} {
+      allow read:           if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create, update: if request.auth != null
+                            && request.auth.uid == uid
+                            && request.resource.data.aceptaTerminos == true;
+      allow delete:         if isAdmin();
+    }
+
     // ── Directorio de usuarios que han iniciado sesión ──
     // Cada usuario registra/actualiza SU PROPIA ficha al entrar (correo, nombre, último acceso).
     // Sirve para que la administradora vea y gestione TODOS los usuarios desde la app, incluidos
