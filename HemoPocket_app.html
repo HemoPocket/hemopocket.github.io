@@ -6261,7 +6261,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 169;
+const HP_BUILD = 170;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11098,9 +11098,11 @@ function rxPreClean(raw){
   }
   if(cur) drugs.push(cur);
   if(drugs.length<2) return null;
+  for(let i=drugs.length-1;i>0;i--) drugs[i].pos=drugs[i-1].pos;
+  drugs[0].pos='';
   return drugs.map(d=>{
     let nm=d.name.replace(/\s*\d+\s*(?:u|unidades?)\s*\/\s*ml\b/gi,' ').replace(/,?\s*\d+\s*(c[aá]psulas?|comprimidos?|grageas?|sobres?|tiras?|plumas?(?:\s+precargadas?)?|agujas?|unidades?|viales?|ampollas?|envases?|bolsas?|parches?|[oó]vulos?|supositorios?|solucion\s+inyect\w*)\b.*$/i,'').replace(/\s*,\s*$/,'').replace(/\s+\/\s+/g,' - ').replace(/\s+/g,' ').trim();
-    return nm;
+    return (nm+(d.pos?' '+d.pos:'')).trim();
   }).join('\n');
 }
 function RXtranscribe(raw){
@@ -11132,7 +11134,7 @@ function RXtranscribe(raw){
     [/v[ií]a\s+oral(?:es)?|\boral(?:es)?\b|\bv\.?\s*o\.?\b/i,'vía oral']
   ];
   // formas farmacéuticas (regex base) + normalización singular/plural con tildes
-  const FORM=/(\d+(?:[.,]\d+)?)?\s*\b(comprimidos?|comp\b|c[aá]psulas?|caps\b|tabletas?|grageas?|inyecci[oó]n(?:es)?|jeringuillas?|jeringas?|amp(?:ollas?)?|vial(?:es)?|sobres?|parches?|gotas?|pulsaci[oó]n(?:es)?|inhalaci[oó]n(?:es)?|aplicaci[oó]n(?:es)?|supositorios?|[oó]vulos?|nebulizaci[oó]n(?:es)?|ml\b|unidad(?:es)?|frascos?|envases?|cajas?)\b/gi;
+  const FORM=/(\d+(?:[.,]\d+)?)?\s*\b(comprimidos?|comp\b|c[aá]psulas?|caps\b|tabletas?|grageas?|inyecci[oó]n(?:es)?|jeringuillas?|jeringas?|amp(?:ollas?)?|vial(?:es)?|sobres?|parches?|gotas?|pulsaci[oó]n(?:es)?|inhalaci[oó]n(?:es)?|aplicaci[oó]n(?:es)?|supositorios?|[oó]vulos?|nebulizaci[oó]n(?:es)?|tiras?|agujas?|ui\b|ml\b|unidad(?:es)?|frascos?|envases?|cajas?)\b/gi;
   const FORM_NOUN=[
     [/^comp/,'comprimido','comprimidos'],
     [/^c[aá]ps|^caps/,'cápsula','cápsulas'],
@@ -11152,7 +11154,7 @@ function RXtranscribe(raw){
     [/^[oó]vulo/,'óvulo','óvulos'],
     [/^nebuliz/,'nebulización','nebulizaciones'],
     [/^ml/,'ml','ml'],
-    [/^unidad/,'unidad','unidades'],
+    [/^unidad/,'unidad','unidades'],[/^tira/,'tira','tiras'],[/^aguja/,'aguja','agujas'],[/^ui$|^u\.?i\.?$/,'UI','UI'],
     [/^frasco/,'frasco','frascos'],
     [/^envase/,'envase','envases'],
     [/^caja/,'caja','cajas']
@@ -11243,7 +11245,7 @@ function RXtranscribe(raw){
     }
 
     // 2) FRECUENCIA
-    c=c.replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*h\b/gi,' cada $1 h');
+    c=c.replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*h\b/gi,' cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*d[ií]as?\b/gi,function(m,n){return n==='1'?' diario':' cada '+n+' días';});
     let freq='';
     const pm=c.match(/\bcada\s+(\d+)\s*([a-záéíóúñ]+)/i); // periódica: cada N <unidad> (tolera erratas tipo "hotas")
     if(pm){
@@ -11267,7 +11269,7 @@ function RXtranscribe(raw){
     // 3) FORMA (pauta) y CABECERA (nombre+dosis, conservando compuestos "A - B")
     const formsAll=[...c.matchAll(FORM)];
     let head=c, form='';
-    if(formsAll.length){ head=c.slice(0,formsAll[0].index); if(!mealForm){ const last=formsAll[formsAll.length-1]; form=normForm(mealQty||last[1],last[2]); } }
+    if(formsAll.length){ const fi=formsAll.find(f=>f.index>0)||formsAll[0]; head=c.slice(0,fi.index); if(!mealForm){ const last=formsAll[formsAll.length-1]; form=normForm(mealQty||last[1],last[2]); } }
     const nameDose=fmtHead(head);
     if(!nameDose) continue;
 
