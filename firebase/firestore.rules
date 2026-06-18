@@ -157,7 +157,9 @@ service cloud.firestore {
     // Editable SOLO por administradores; efectivo para todos.
     match /menuconfig/{id} {
       allow read:   if isApproved();
-      allow write:  if isAdmin();
+      // 'orden' sigue siendo solo-admin; 'redaccion' y 'recetas' (asistentes) los pueden editar
+      // también los editores del área 'asistentes'.
+      allow write:  if isAdmin() || ((id == 'redaccion' || id == 'recetas') && canEdit('asistentes'));
     }
 
     // ── Check list de ingreso (estructura editable) ──
@@ -171,7 +173,7 @@ service cloud.firestore {
     // Editable SOLO por administradores; efectivo para todos.
     match /qtschemes/{id} {
       allow read:   if isApproved();
-      allow write:  if isAdmin();
+      allow write:  if isAdmin() || canEdit('asistentes');
     }
 
     // ── Algoritmos interactivos, por sección ──

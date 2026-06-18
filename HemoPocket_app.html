@@ -1026,18 +1026,20 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','pageedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','rxedit','pageedit']);
 // ── Edición de CUALQUIER página de contenido (algoritmos, info) por usuarios autorizados ──
 // Una "página editada" sustituye al contenido del código con HTML saneado (sin scripts ni handlers).
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
 // original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
 // paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','pageedit','qt','labconv','checklist']);
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','rxedit','pageedit','qt','labconv','checklist']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
 function hpPageSection(id){ return _hpPageSecMap()[id]||null; }
 function hpCanEditPage(id){ if(!hpPageEditable(id)) return false; const sec=hpPageSection(id); if(sec) return !!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec)); return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
+// ¿Puede editar los ASISTENTES (quimio, redacción, recetas)? Admin o editor del área 'asistentes'.
+function hpCanEditAsist(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&window.HemoCloud.canEdit('asistentes')))); }
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
 function hpPageWrap(id, base){
@@ -4961,6 +4963,7 @@ function hpRoleSelector(uid, roleInfo, credName){
   s+='<div style="font-size:12px;color:var(--mut,#666);margin-bottom:4px">Secciones cuyas guías PDF podrá subir/bajar:</div>';
   s+='<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600;margin-bottom:3px"><input type="checkbox" id="secall_'+uid+'" onchange="hpSecToggleAll(\''+uid+'\')"'+(allOn?' checked':'')+'> Todas las secciones</label>';
   s+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 10px">'+hpSecChecks(uid,secs)+'</div>';
+  s+='<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd,#e2e2e2)"><input type="checkbox" id="asist_'+uid+'"'+(secs.indexOf('asistentes')!==-1?' checked':'')+'> ✏️ <strong>Editar asistentes</strong> (quimioterapia, redacción y recetas)</label>';
   s+='<div style="margin-top:8px"><label style="font-size:12px;color:var(--mut,#666);display:block;margin-bottom:3px">Nombre para créditos (figurará como colaborador en el Aviso Legal)</label><input id="cred_'+uid+'" type="text" value="'+(credName?String(credName).replace(/"/g,'&quot;'):'')+'" placeholder="Ej: Dra. Nombre Apellido" style="width:100%;padding:6px 8px;border:1px solid var(--bd,#ccc);border-radius:6px;font-size:12.5px;background:var(--card,#fff);color:var(--txt,#222)"></div>';
   s+='</div></div>';
   return s;
@@ -4971,7 +4974,9 @@ function hpSecChecks(uid, checked){
 }
 function hpReadSecs(uid){
   const box=document.getElementById('secs_'+uid); if(!box) return [];
-  return Array.from(box.querySelectorAll('input[type=checkbox][value]:checked')).map(function(x){return x.value;});
+  const out=Array.from(box.querySelectorAll('input[type=checkbox][value]:checked')).map(function(x){return x.value;});
+  const a=document.getElementById('asist_'+uid); if(a&&a.checked) out.push('asistentes');
+  return out;
 }
 function hpReadCred(uid){ const el=document.getElementById('cred_'+uid); return el?el.value.trim():''; }
 window.hpRolChange=function(uid){
@@ -6261,7 +6266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 171;
+const HP_BUILD = 172;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6371,6 +6376,7 @@ if(window.hpSyncCatOrden){try{await window.hpSyncCatOrden();}catch(e){}}
 if(window.hpSyncChecklist){try{await window.hpSyncChecklist();}catch(e){}}
 if(window.hpSyncQt){try{await window.hpSyncQt();}catch(e){}}
 if(window.hpSyncLc){try{await window.hpSyncLc();}catch(e){}}
+if(window.hpSyncRx){try{await window.hpSyncRx();}catch(e){}}
 if(window.hpSyncPages){try{await window.hpSyncPages();}catch(e){}}
 if(window.hpSyncAlgos){try{await window.hpSyncAlgos();}catch(e){}}
 if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
@@ -7653,10 +7659,10 @@ function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {};
 function qtSchemes(){ return Object.assign({}, QT_SCHEMES, qtOverride()); }
 window.hpApplyQt=function(map){ try{ ls.s('qtOverride', map||{}); }catch(e){} try{ if(typeof S!=='undefined' && S && S.view==='qt' && typeof go==='function') go('qt'); }catch(e){} };
 let _qtDraft=null;
-function qtEditSel(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){toast('Solo administradores');return;} const sel=$('qt_scheme'); const key=sel?sel.value:''; if(!key){ toast('Elige primero un esquema'); return; } const sc=qtSchemes()[key]; if(!sc){ toast('Esquema no encontrado'); return; } _qtDraft=Object.assign({key:key,_isCustom:!QT_SCHEMES[key]}, JSON.parse(JSON.stringify(sc))); go('qtedit'); }
-function qtNuevo(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){toast('Solo administradores');return;} _qtDraft={key:'',_isNew:true,_isCustom:true,label:'',drugs:[{name:'',dose:'',route:'IV',days:[1]}],premed:[],notes:[]}; go('qtedit'); }
+function qtEditSel(){ if(!hpCanEditAsist()){toast('Sin permiso para editar');return;} const sel=$('qt_scheme'); const key=sel?sel.value:''; if(!key){ toast('Elige primero un esquema'); return; } const sc=qtSchemes()[key]; if(!sc){ toast('Esquema no encontrado'); return; } _qtDraft=Object.assign({key:key,_isCustom:!QT_SCHEMES[key]}, JSON.parse(JSON.stringify(sc))); go('qtedit'); }
+function qtNuevo(){ if(!hpCanEditAsist()){toast('Sin permiso para editar');return;} _qtDraft={key:'',_isNew:true,_isCustom:true,label:'',drugs:[{name:'',dose:'',route:'IV',days:[1]}],premed:[],notes:[]}; go('qtedit'); }
 VIEWS.qtedit=()=>{
-  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
+  if(!hpCanEditAsist()) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
   const d=_qtDraft; if(!d) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">Nada que editar.</div></div>';
   let h='<div class="card"><h2>💊 Editar esquema de quimioterapia</h2>';
   h+='<p class="intro">Define los fármacos (dosis, vía y días). El calendario con fechas lo calcula la app. Es <strong>efectivo para todos</strong>.</p>';
@@ -7712,7 +7718,7 @@ return `<div class="card">
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
 </select></div>
-${(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button></div>':''}
+${hpCanEditAsist()?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button></div>':''}
 <div class="row2">
 <div class="fld"><label class="lbl">Fecha día +1</label>
 <input type="date" id="qt_d1" value="${todayVal}" oninput="qtCalc()" style="font-family:inherit"></div>
@@ -11000,9 +11006,9 @@ function lcCatLabel(){ return Object.assign({}, CAT_LABEL, (lcOverride().catLabe
 function lcCatOrder(){ const ov=lcOverride(); let order=(Array.isArray(ov.catOrder)&&ov.catOrder.length)?ov.catOrder.slice():CAT_ORDER.slice(); CAT_ORDER.forEach(function(c){ if(order.indexOf(c)<0) order.push(c); }); (ov.custom||[]).forEach(function(p){ const c=p&&p.c; if(c&&order.indexOf(c)<0) order.push(c); }); return order; }
 window.hpApplyLc=function(o){ try{ ls.s('lcOverride', o||{}); }catch(e){} };
 let _lcDraft=null;
-function lcEditOpen(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){ toast('Solo la administradora'); return; } const ov=lcOverride(); _lcDraft={ syn:Object.assign({},ov.syn||{}), custom:JSON.parse(JSON.stringify(ov.custom||[])), catLabel:lcCatLabel(), catOrder:lcCatOrder(), hidden:Object.assign({},ov.hidden||{}), fmt:Object.assign({sep:'coma',date:true}, ov.fmt||{}) }; go('lcedit'); }
+function lcEditOpen(){ if(!hpCanEditAsist()){ toast('Sin permiso para editar'); return; } const ov=lcOverride(); _lcDraft={ syn:Object.assign({},ov.syn||{}), custom:JSON.parse(JSON.stringify(ov.custom||[])), catLabel:lcCatLabel(), catOrder:lcCatOrder(), hidden:Object.assign({},ov.hidden||{}), fmt:Object.assign({sep:'coma',date:true}, ov.fmt||{}) }; go('lcedit'); }
 VIEWS.lcedit=()=>{
-  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Editar asistente</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
+  if(!hpCanEditAsist()) return '<div class="card"><h2>Editar asistente</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
   const d=_lcDraft; if(!d) return '<div class="card"><h2>Editar asistente</h2><div class="alert y">Nada que editar.</div></div>';
   let h='<div class="card"><h2>📝 Editar el asistente de redacción</h2>';
   h+='<p class="intro"><strong>Oculta</strong> los parámetros que no uses, añade <strong>sinónimos</strong> para que reconozca la nomenclatura de tu laboratorio, crea <strong>parámetros nuevos</strong> y ajusta el <strong>orden y los nombres</strong> de las secciones del informe. Efectivo para todos. (El reconocimiento del texto pegado sigue siendo automático.)</p>';
@@ -11105,9 +11111,25 @@ function rxPreClean(raw){
     return (nm+(d.pos?' '+d.pos:'')).trim();
   }).join('\n');
 }
+// ── Asistente de recetas: DICCIONARIO editable (correcciones de nombre y abreviaturas) ──
+// Se aplica al texto ANTES de transcribir. Lo editan admin o editores del área "Asistentes";
+// lo leen todos. Se guarda en menuconfig/recetas. El reconocimiento del texto sigue en código.
+function rxOverride(){ try{ return ls.g('rxOverride')||{}; }catch(e){ return {}; } }
+window.hpApplyRx=function(o){ try{ ls.s('rxOverride', o||{}); }catch(e){} };
+function _rxEsc(s){ return (''+s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function rxApplyDict(raw){
+  const ov=rxOverride(); let t=''+raw;
+  (ov.abbr||[]).concat(ov.rename||[]).forEach(function(p){
+    if(p&&(p.from!=null)&&(''+p.from).trim()&&(p.to!=null)){
+      try{ t=t.replace(new RegExp('\\b'+_rxEsc((''+p.from).trim())+'\\b','gi'), (''+p.to)); }catch(e){}
+    }
+  });
+  return t;
+}
 function RXtranscribe(raw){
   if(!raw||!raw.trim()) return '';
   { const _pre=rxPreClean(raw); if(_pre) raw=_pre; }
+  try{ raw=rxApplyDict(raw); }catch(e){}
   // separar medicamentos por salto de línea o ; (la coma es ambigua: puede separar med o ir dentro)
   let chunks=raw.replace(/\r/g,'').split(/\n|;/);
   // si no hay saltos ni ;, intentar separar por coma SOLO cuando vaya seguida de algo que parece nuevo fármaco (palabra en mayúsculas larga)
@@ -11296,6 +11318,7 @@ function setLCmode(m){LC_MODE=m;
   }
   $('lc_out').value='';
   ph.value='';
+  try{ var _el=$('lc_edit_lab'), _er=$('lc_edit_rx'); if(_el)_el.style.display=(m==='rx')?'none':''; if(_er)_er.style.display=(m==='rx')?'':'none'; }catch(e){}
 }
 
 const LC_HELP_LAB=`<ul style="padding-left:18px;line-height:1.7;font-size:12.5px">
@@ -11331,7 +11354,7 @@ return `<div class="card">
 <textarea id="lc_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px"></textarea></div>
 <div id="lc_guard" style="margin-top:6px"></div>
 <div class="btns"><button class="btn btn-g" onclick="copyLabConv()">📋 Copiar resultado</button></div>
-${(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())?'<div class="btns" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="lcEditOpen()">✏️ Editar diccionario y plantilla</button></div>':''}
+${hpCanEditAsist()?'<div class="btns" style="margin-top:6px"><button id="lc_edit_lab" class="btn btn-out btn-sm" onclick="lcEditOpen()">✏️ Editar diccionario y plantilla</button><button id="lc_edit_rx" class="btn btn-out btn-sm" style="display:none" onclick="rxEditOpen()">✏️ Editar diccionario de recetas</button></div>':''}
 
 <div class="coll" style="margin-top:14px">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>ℹ️ Qué hace y reglas aplicadas</span><span class="ar">▶</span></div>
@@ -11340,6 +11363,31 @@ ${(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())?'<div
 </div>`;
 };
 VIEWS.labconv_post=()=>setLCmode('lab');
+
+// ── Editor del DICCIONARIO de recetas (correcciones de nombre + abreviaturas) ──
+let _rxDraft=null;
+function rxEditOpen(){ if(!hpCanEditAsist()){ toast('Sin permiso para editar'); return; } const ov=rxOverride(); _rxDraft={ rename:JSON.parse(JSON.stringify(ov.rename||[])), abbr:JSON.parse(JSON.stringify(ov.abbr||[])) }; go('rxedit'); }
+VIEWS.rxedit=()=>{
+  if(!hpCanEditAsist()) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">No tienes permiso para editar este asistente.</div></div>';
+  const d=_rxDraft; if(!d) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">Nada que editar.</div></div>';
+  const row=(list,p,i)=>'<div style=\"display:flex;gap:4px;align-items:center;margin-bottom:4px\"><input style=\"flex:1;min-width:90px\" value=\"'+_hpEsc(p.from||'')+'\" onchange=\"rxField(\''+list+'\','+i+',\'from\',this.value)\" placeholder=\"'+(list==='abbr'?'abreviatura':'lo que aparece')+'\"><span>→</span><input style=\"flex:1;min-width:90px\" value=\"'+_hpEsc(p.to||'')+'\" onchange=\"rxField(\''+list+'\','+i+',\'to\',this.value)\" placeholder=\"'+(list==='abbr'?'texto completo':'cómo debe quedar')+'\"><button class=\"btn btn-out btn-sm\" style=\"color:#c41e3a\" onclick=\"rxDel(\''+list+'\','+i+')\">×</button></div>';
+  let h='<div class=\"card\"><h2>💊 Editar el diccionario de recetas</h2>';
+  h+='<p class=\"intro\">Corrige cómo el asistente transcribe los medicamentos. <strong>Efectivo para todos.</strong> El reconocimiento del texto pegado sigue siendo automático; aquí solo añades correcciones.</p>';
+  h+='<h3>Correcciones de nombre</h3><p style=\"font-size:12px;color:var(--mut)\">Sustituye un término por otro (p. ej. «Losartan»→«Losartán», «AAS»→«Ácido acetilsalicílico»). No distingue mayúsculas; se aplica a palabras completas.</p>';
+  (d.rename||[]).forEach(function(p,i){ h+=row('rename',p,i); });
+  h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'rename\')\">➕ Añadir corrección</button>';
+  h+='<h3 style=\"margin-top:14px\">Abreviaturas</h3><p style=\"font-size:12px;color:var(--mut)\">Expande abreviaturas de forma, vía o frecuencia (p. ej. «cp»→«comprimido», «sc»→«subcutánea», «ev»→«intravenosa»).</p>';
+  (d.abbr||[]).forEach(function(p,i){ h+=row('abbr',p,i); });
+  h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'abbr\')\">➕ Añadir abreviatura</button>';
+  h+='<hr style=\"margin:12px 0\"><div class=\"btns\"><button class=\"btn btn-out\" onclick=\"rxEditCancelar()\">✖ Cancelar</button><button class=\"btn btn-out\" onclick=\"rxEditReset()\">Restablecer</button><button class=\"btn btn-g\" onclick=\"rxEditGuardar()\">💾 Guardar para todos</button></div>';
+  h+='</div>'; return h;
+};
+function rxField(list,i,f,v){ if(!_rxDraft||!_rxDraft[list]||!_rxDraft[list][i])return; _rxDraft[list][i][f]=v; }
+function rxAdd(list){ if(!_rxDraft)return; if(!_rxDraft[list])_rxDraft[list]=[]; _rxDraft[list].push({from:'',to:''}); go('rxedit'); }
+function rxDel(list,i){ if(!_rxDraft||!_rxDraft[list])return; _rxDraft[list].splice(i,1); go('rxedit'); }
+function rxEditCancelar(){ _rxDraft=null; go('labconv'); }
+async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ rename:clean(d.rename), abbr:clean(d.abbr) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
+async function rxEditReset(){ if(!confirm('¿Restablecer el diccionario de recetas? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_rxOverride'); }catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx({}); }catch(e){} } _rxDraft={rename:[],abbr:[]}; toast('✓ Restablecido'); go('rxedit'); }
 
 // ── Blindaje del asistente de redacción: verificación de integridad numérica ──
 // Garantiza que el asistente SOLO reordena/reformatea: ningún número del
@@ -12795,6 +12843,10 @@ window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschem
 // ── Diccionario/plantilla del asistente de redacción. Los edita un admin; los leen todos. ──
 window.hpSaveLc = async function(o){ await setDoc(doc(fs, 'menuconfig', 'redaccion'), { data: o||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
 window.hpSyncLc = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'redaccion')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyLc) window.hpApplyLc(d.data||{}); } return true; }catch(e){ return false; } };
+
+// ── Diccionario del asistente de recetas. Lo editan admin/editores del área "Asistentes"; lo leen todos. ──
+window.hpSaveRx = async function(o){ await setDoc(doc(fs, 'menuconfig', 'recetas'), { data: o||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSyncRx = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'recetas')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyRx) window.hpApplyRx(d.data||{}); } return true; }catch(e){ return false; } };
 
 // ── Páginas editadas (override de contenido). Las edita quien edita esa sección (o admin). ──
 window.hpSavePage = async function(id, data){ await setDoc(doc(fs, 'paginas', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{})); };
