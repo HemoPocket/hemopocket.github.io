@@ -5329,10 +5329,11 @@ toast('⏳ Subiendo «'+finalName+'»…');
 try{
 if(!HemoCloud.token){ try{ await HemoCloud.loadToken(); }catch(_t){} }
 if(!HemoCloud.token){ alert('No se puede subir: falta configurar el token de GitHub (config/github en Firebase). Es un ajuste único que hace quien administra la app.'); return; }
-const {id,path}=await HemoCloud.uploadGuide(section,subtypeId,file,finalName);
+const {id,path,indexError}=await HemoCloud.uploadGuide(section,subtypeId,file,finalName);
 try{ const key=`${section}_${subtypeId}|cloud:${path}`; await idb.set(key,{name:finalName,size:file.size,blob:file,cloud:true,docId:id,path}); }catch(_i){}
-toast('✓ Guía subida correctamente');
 const k=`${section}_${subtypeId}`;const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';loadPDFs(k,section)}
+if(indexError){ const ie=String((indexError&&(indexError.message||indexError.code))||''); const r2=/permission|insufficient|denied|missing/i.test(ie)?'permiso de la base de datos: revisa que tu cuenta tenga rol de editor de esta sección (o admin) y que las reglas de «guias» estén publicadas en Firebase':/(unavailable|offline|network|deadline)/i.test(ie)?'no se pudo conectar con la base de datos; revisa la conexión':ie||'desconocido'; alert('⚠️ La guía SE SUBIÓ y ya la ves en este dispositivo, pero no se pudo registrar para que la vea el resto del equipo.\n\nMotivo: '+r2+'\n\nDetalle técnico: '+(ie||'(sin detalle)')+'\n\nNo se ha perdido nada: reinténtalo cuando se resuelva.'); }
+else { toast('✓ Guía subida correctamente'); }
 }catch(e){console.error('hcUpload',e); const em=String((e&&(e.message||e.code))||'');
 const why=/token/i.test(em)?'falta el token de GitHub (config/github).':/(40[13]|bad credentials)/i.test(em)?'el token de GitHub no es válido o no tiene permiso de escritura en el repositorio.':/(413|too large|size)/i.test(em)?'el archivo es demasiado grande para GitHub.':/(quota|exceeded|memory)/i.test(em)?'memoria insuficiente en el dispositivo; usa un PDF más pequeño.':/(network|fetch|load failed|networkerror)/i.test(em)?'fallo de red; revisa la conexión e inténtalo de nuevo.':'error inesperado.';
 alert('❌ No se pudo subir la guía.\n\nMotivo: '+why+'\n\nDetalle técnico (cuéntamelo para arreglarlo): '+(em||'(sin detalle)'));}
@@ -6260,7 +6261,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 155;
+const HP_BUILD = 156;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12389,11 +12390,17 @@ window.HemoCloud = {
     const path = `guias/subidas/${section}/${Date.now()}_${safe}`;
     const b64 = await fileToBase64(file);
     await ghPutFile(this.token, path, b64, `App: subir guía "${name}" (${section})`);
-    const r = await addDoc(collection(fs,'guias'), {
-      section, subtype: subtypeId, name: name || safe, path,
-      updatedAt: serverTimestamp(), uploadedBy: curUid || null
-    });
-    return { id: r.id, path };
+    // El archivo ya está en GitHub. El índice en Firestore (para que lo vean los demás) se intenta
+    // aparte: si falla, NO se pierde el archivo; se avisa y se puede reintentar.
+    let id=null, indexError=null;
+    try{
+      const r = await addDoc(collection(fs,'guias'), {
+        section, subtype: subtypeId, name: name || safe, path,
+        updatedAt: serverTimestamp(), uploadedBy: curUid || null
+      });
+      id = r.id;
+    }catch(e){ indexError = e; }
+    return { id, path, indexError };
   },
   async deleteGuide(docId, path){
     if(path){
