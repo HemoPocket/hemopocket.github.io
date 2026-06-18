@@ -6266,7 +6266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 172;
+const HP_BUILD = 173;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10949,7 +10949,7 @@ function readUnit(after){let a=normSup(after).replace(/^[\s↑↓▲▼*=:]+/,''
 function readVal(orig,idx){const base=orig.slice(idx,idx+90);const skip=skipDT(base);const sub=base.slice(skip);const m=sub.match(/^[\s:=\-#*↑↓▲▼]*(?:\([^)]{0,14}\)\s*)?([<>≤≥]?\s*(?:\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?))/);if(!m)return null;let raw=m[1].replace(/\s+/g,'');const after=sub.slice(m[0].length);if(/^\s*[\/\-]\s*\d{1,4}/.test(after))return null;const afterC=after.replace(/^[\s↑↓▲▼*]+/,'');const isPct=/^\s*%/.test(afterC);return {raw,after:afterC,isPct,f:sp2f(raw),countUnit:detUnit(afterC),end:idx+skip+m[0].length};}
 function readValAbs(orig,idx){const v=readVal(orig,idx);if(!v)return null;if(!v.isPct)return v;const sub=orig.slice(v.end,v.end+44);const nl=sub.search(/[\n\r]/);const seg=nl>=0?sub.slice(0,nl):sub;const m=seg.match(/([<>≤≥]?\s*(?:\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?))\s*[↑↓▲▼*]*\s*((?:[x×·*]?10[\^eE\*]?[0-9]\/?(?:u?l|µl|l))|(?:mil(?:es)?\.?\/?(?:µl|ul))|(?:\/?(?:µl|ul|mm3|mm³)))/i);if(m){const raw=m[1].replace(/\s+/g,'');return {raw,after:' '+m[2],isPct:false,f:sp2f(raw),countUnit:detUnit(m[2]),end:v.end};}return v;}
 function readTxt(orig,idx,maxLen){let sub=orig.slice(idx);let nl=sub.search(/[\n\r]/);if(nl>=0)sub=sub.slice(0,nl);sub=sub.slice(0,(maxLen||300));sub=sub.replace(/^[\s:=.\-–—…*·]+/,'');sub=sub.replace(/\((?:valor(?:es)?\s+normal|v\.?n\.?|ref(?:erencia)?|rango|negativo\s*<|\s*<\s*\d)[^)]*\)/gi,'');sub=sub.replace(/\(\s*\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\s*\)/g,'');sub=sub.replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?\b/g,' ');sub=sub.replace(/\b\d{1,2}:\d{2}:\d{2}\b/g,' ');sub=sub.replace(/\s+/g,' ');return sub.trim().replace(/[;,\s]+$/,'').trim();}
-function seroResult(orig,idx){let s=orig.slice(idx);const nl=s.search(/[\n\r]/);if(nl>=0)s=s.slice(0,nl);s=s.replace(/\([^)]*\)/g,' ');const m=s.match(/\b(?:no\s+reactivo|reactivo|positivo|negativo|indetectable|detectable|indeterminado|dudoso|equivoco|d[eé]bil|ausente|presente|no\s+inmune|inmune)\b/i)||s.match(/t[íi]tulo\s*1\s*[\/:]\s*\d+/i)||s.match(/\b1\s*[\/:]\s*\d{1,4}\b/);return m?m[0].toLowerCase().replace(/\s+/g,' ').trim():'';}
+function seroResult(orig,idx){let s=orig.slice(idx);const nl=s.search(/[\n\r]/);if(nl>=0)s=s.slice(0,nl);s=s.replace(/\([^)]*\)/g,' ');const m=s.match(/\b(?:no\s+reactivo|reactivo|positivo|negativo|no\s+se\s+detectan?|se\s+detectan?|no\s+detectad[oa]s?|detectad[oa]s?|indetectable|detectable|no\s+mutad[oa]s?|mutad[oa]s?|wild[\s-]?type|nativo|indeterminado|dudoso|equivoco|d[eé]bil|ausente|presente|no\s+inmune|inmune)\b/i)||s.match(/t[íi]tulo\s*1\s*[\/:]\s*\d+/i)||s.match(/\b1\s*[\/:]\s*\d{1,4}\b/);return m?m[0].toLowerCase().replace(/\s+/g,' ').trim():'';}
 function lcAtLineStart(s,ns){for(var i=ns-1;i>=0;i--){var ch=s[i];if(ch==='\n'||ch==='\r')return true;if(' \t├│└─*↑↓▲▼'.indexOf(ch)>=0)continue;return false;}return true;}
 function lineNums(orig,idx){let sub=orig.slice(idx,idx+120);let nl=sub.search(/[\n\r]/);if(nl>=0)sub=sub.slice(0,nl);const out=[];const re=/([<>≤≥]?\s*(?:\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?))/g;let m;while((m=re.exec(sub))!==null){const raw=m[1].replace(/\s+/g,'');const after=sub.slice(m.index+m[0].length);if(/^\s*[\/\-]\s*\d{1,4}/.test(after))continue;out.push({raw,isPct:/^\s*%/.test(after),countUnit:detUnit(after),f:sp2f(raw)});}return out;}
 function lineEndIdx(orig,ne){const rest=orig.slice(ne);const p=rest.search(/[\n\r]/);return p>=0?ne+p:Math.min(orig.length,ne+120);}
@@ -10995,11 +10995,12 @@ window.LCtranscribe=transcribe;window.LCbuild=build;
 // secciones del informe. El reconocimiento del texto sigue en código. Se guarda en menuconfig/redaccion.
 function lcOverride(){ try{ return ls.g('lcOverride')||{}; }catch(e){ return {}; } }
 function _lcSyn(s){ try{ return foldText(s).trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }catch(e){ return (''+s).toLowerCase().trim(); } }
+function _lcSynLoose(s){ try{ return foldText(s).trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/[-\s]+/g,'[\\s\\-]*'); }catch(e){ return ''; } }
 function _lcA(s){ return (''+s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function lcDict(){
   const ov=lcOverride(); const syn=ov.syn||{}; const hidden=ov.hidden||{}; const out=[];
   DICT.forEach(function(e){ if((e.a in hidden)?hidden[e.a]:!!e.defHidden) return; const cp=Object.assign({},e); if(syn[e.a]&&syn[e.a].length){ const extra=syn[e.a].map(_lcSyn).filter(Boolean); if(extra.length) cp.pats=e.pats.concat(extra); } out.push(cp); });
-  (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(p.a+'').trim()){ if(hidden[p.a]) return; const pats=(p.pats||[]).map(_lcSyn).filter(Boolean); if(pats.length) out.push({a:p.a,u:p.u||'',c:p.c||'bioquimica',k:'num',pats:pats}); } });
+  (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(p.a+'').trim()){ if(hidden[p.a]) return; const pats=[_lcSynLoose(p.a)].concat((p.pats||[]).map(_lcSyn)).filter(Boolean); if(pats.length) out.push({a:p.a,u:p.u||'',c:p.c||'bioquimica',k:(p.k==='sero'?'sero':'num'),pats:pats}); } });
   return out;
 }
 function lcCatLabel(){ return Object.assign({}, CAT_LABEL, (lcOverride().catLabel||{})); }
@@ -11026,12 +11027,13 @@ VIEWS.lcedit=()=>{
     h+='</div></details>';
   });
   h+='<h3 style="margin-top:14px">Parámetros nuevos ('+(d.custom||[]).length+')</h3>';
-  h+='<p style="font-size:12px;color:var(--mut)">Se reconocen como valor numérico. Indica el nombre, la unidad, la sección y sus sinónimos.</p>';
+  h+='<p style="font-size:12px;color:var(--mut)">Indica el nombre, el <strong>tipo de resultado</strong> (numérico, o cualitativo: positivo/negativo) y la sección. El propio nombre ya se reconoce en el texto; los sinónimos son opcionales.</p>';
   (d.custom||[]).forEach(function(p,i){
     h+='<div class="team-card" style="display:block;margin-bottom:8px">';
     h+='<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input style="flex:1" value="'+_hpEsc(p.a||'')+'" onchange="lcCustomField('+i+',\'a\',this.value)" placeholder="Nombre (ej: Ferritina)"><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcDelCustom('+i+')">×</button></div>';
-    h+='<div style="display:flex;gap:4px;flex-wrap:wrap"><input style="width:100px" value="'+_hpEsc(p.u||'')+'" onchange="lcCustomField('+i+',\'u\',this.value)" placeholder="Unidad"><select onchange="lcCustomField('+i+',\'c\',this.value)">'+d.catOrder.map(function(c){return '<option value="'+_hpEsc(c)+'"'+((p.c||'bioquimica')===c?' selected':'')+'>'+_hpEsc(d.catLabel[c]||c)+'</option>';}).join('')+'</select></div>';
-    h+='<input style="width:100%;box-sizing:border-box;margin-top:4px" value="'+_hpEsc((p.pats||[]).join(', '))+'" onchange="lcCustomField('+i+',\'pats\',this.value)" placeholder="Sinónimos para reconocerlo (separados por comas)">';
+    var isSero=(p.k==='sero');
+    h+='<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><select onchange="lcCustomField('+i+',\'k\',this.value)" title="Tipo de resultado"><option value="num"'+(isSero?'':' selected')+'>Num\u00e9rico</option><option value="sero"'+(isSero?' selected':'')+'>Cualitativo (pos/neg)</option></select><input style="width:90px'+(isSero?';display:none':'')+'" value="'+_hpEsc(p.u||'')+'" onchange="lcCustomField('+i+',\'u\',this.value)" placeholder="Unidad"><select onchange="lcCustomField('+i+',\'c\',this.value)">'+d.catOrder.map(function(c){return '<option value="'+_hpEsc(c)+'"'+((p.c||'bioquimica')===c?' selected':'')+'>'+_hpEsc(d.catLabel[c]||c)+'</option>';}).join('')+'</select></div>';
+    h+='<input style="width:100%;box-sizing:border-box;margin-top:4px" value="'+_hpEsc((p.pats||[]).join(', '))+'" onchange="lcCustomField('+i+',\'pats\',this.value)" placeholder="Otros nombres para reconocerlo (opcional, separados por comas)">';
     h+='</div>';
   });
   h+='<button class="btn btn-out btn-sm" onclick="lcAddCustom()">➕ Añadir parámetro</button>';
@@ -11055,9 +11057,9 @@ VIEWS.lcedit=()=>{
 function _lcSplit(v){ return (''+v).split(',').map(function(s){return s.trim();}).filter(Boolean); }
 function lcSynField(a,v){ if(!_lcDraft)return; const arr=_lcSplit(v); if(arr.length) _lcDraft.syn[a]=arr; else delete _lcDraft.syn[a]; }
 function lcToggleHide(a,on){ if(!_lcDraft)return; if(!_lcDraft.hidden)_lcDraft.hidden={}; _lcDraft.hidden[a]=!!on; go('lcedit'); }
-function lcAddCustom(){ if(!_lcDraft.custom)_lcDraft.custom=[]; _lcDraft.custom.push({a:'',u:'',c:'bioquimica',pats:[]}); go('lcedit'); }
+function lcAddCustom(){ if(!_lcDraft.custom)_lcDraft.custom=[]; _lcDraft.custom.push({a:'',u:'',c:'bioquimica',k:'num',pats:[]}); go('lcedit'); }
 function lcDelCustom(i){ _lcDraft.custom.splice(i,1); go('lcedit'); }
-function lcCustomField(i,f,v){ const p=_lcDraft.custom[i]; if(!p)return; if(f==='pats') p.pats=_lcSplit(v); else p[f]=v; }
+function lcCustomField(i,f,v){ const p=_lcDraft.custom[i]; if(!p)return; if(f==='pats') p.pats=_lcSplit(v); else p[f]=v; if(f==='k'){ var _y=(typeof window!=='undefined'&&window.scrollY)||0; go('lcedit'); try{ window.scrollTo(0,_y); }catch(e){} } }
 function lcCatLabelField(c,v){ if(!_lcDraft)return; _lcDraft.catLabel[c]=v; var _y=(typeof window!=='undefined'&&window.scrollY)||0; go('lcedit'); try{ window.scrollTo(0,_y); }catch(e){} }
 function lcMoveCat(i,dir){ const a=_lcDraft.catOrder; const j=i+dir; if(j<0||j>=a.length)return; const t=a[i]; a[i]=a[j]; a[j]=t; go('lcedit'); }
 function lcAddCat(){ if(!_lcDraft)return; if(!Array.isArray(_lcDraft.catOrder))_lcDraft.catOrder=lcCatOrder(); if(!_lcDraft.catLabel)_lcDraft.catLabel={}; var k='sec_'+Date.now().toString(36); while(_lcDraft.catOrder.indexOf(k)>=0)k+='x'; _lcDraft.catOrder.push(k); _lcDraft.catLabel[k]='Nueva sección'; go('lcedit'); }
