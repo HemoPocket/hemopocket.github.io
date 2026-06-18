@@ -6261,7 +6261,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 168;
+const HP_BUILD = 169;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11072,8 +11072,40 @@ window.lcEditGuardar=lcEditGuardar;
 })();
 
 // ===== ASISTENTE DE REDACCIÓN · motor de recetas =====
+// Pre-limpieza de volcados de receta electrónica (Receta XXI / Diraya): quita el ruido
+// administrativo (|Financiado|, RAM|, Deshacer, Detalle, prescriptor, fechas, "N/M días"…) y
+// deja una línea por fármaco "NOMBRE DOSIS pauta". La pauta es la que aparece en el bloque de
+// cada fármaco (en estos pegados suele venir DESPLAZADA una posición respecto al fármaco).
+function rxPreClean(raw){
+  // Solo actúa sobre volcados de receta electrónica (Receta XXI / Diraya). En cualquier otra
+  // entrada devuelve null y el asistente funciona como siempre.
+  if(!/\|\s*financiado\s*\||realizada desde|cargar\s+i\b|ram\s*\|\s*obs|\bpai\s+hsc\b/i.test(raw)) return null;
+  const lines=raw.replace(/\r/g,'').split('\n');
+  const drugs=[]; let cur=null;
+  const NOISE=/^(deshacer|detalle|visado|cr|se|rt|rd|r|a|pai|hsc|financiado|ram)$/i;
+  for(let ln of lines){
+    ln=ln.trim();
+    if(!ln) continue;
+    if(/^\(/.test(ln)){ const m=ln.match(/^\(([^)]*)\)/); if(m&&cur&&!cur.pos) cur.pos=m[1].replace(/\s+/g,' ').trim(); continue; }
+    if(ln.indexOf('|')>=0) continue;
+    if(NOISE.test(ln)) continue;
+    if(/realizada desde|asociada a un episodio|^\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4}$|\d+\s*\/\s*\d+\s*d[ií]as|\bm[eé]dico\b|enfermer|hospital|cardiolog|salobre|gonzalez|carrasco|perez|sabatel|general\b/i.test(ln)) continue;
+    const hasLower=/[a-záéíóúñü]/.test(ln);
+    if(!hasLower && /\d/.test(ln) && ln.replace(/[^a-zñ]/gi,'').length>=4){
+      if(cur) drugs.push(cur);
+      cur={name:ln,pos:''}; continue;
+    }
+  }
+  if(cur) drugs.push(cur);
+  if(drugs.length<2) return null;
+  return drugs.map(d=>{
+    let nm=d.name.replace(/\s*\d+\s*(?:u|unidades?)\s*\/\s*ml\b/gi,' ').replace(/,?\s*\d+\s*(c[aá]psulas?|comprimidos?|grageas?|sobres?|tiras?|plumas?(?:\s+precargadas?)?|agujas?|unidades?|viales?|ampollas?|envases?|bolsas?|parches?|[oó]vulos?|supositorios?|solucion\s+inyect\w*)\b.*$/i,'').replace(/\s*,\s*$/,'').replace(/\s+\/\s+/g,' - ').replace(/\s+/g,' ').trim();
+    return nm;
+  }).join('\n');
+}
 function RXtranscribe(raw){
   if(!raw||!raw.trim()) return '';
+  { const _pre=rxPreClean(raw); if(_pre) raw=_pre; }
   // separar medicamentos por salto de línea o ; (la coma es ambigua: puede separar med o ir dentro)
   let chunks=raw.replace(/\r/g,'').split(/\n|;/);
   // si no hay saltos ni ;, intentar separar por coma SOLO cuando vaya seguida de algo que parece nuevo fármaco (palabra en mayúsculas larga)
@@ -11142,9 +11174,9 @@ function RXtranscribe(raw){
     head=(head||'').replace(/\([^)]*\)/g,' ');
     let comps=head.split(/\s+-\s+/).map(s=>s.trim()).filter(Boolean);
     comps=comps.map(comp=>{
-      const dmm=comp.match(/(\d+(?:[.,]\d+)?)\s*(mg\/ml|mcg\/ml|µg\/ml|mg|mcg|µg|g|ml|ui|u\.?\s*i\.?|%)\b/i);
+      const dmm=comp.match(/(\d+(?:[.,]\d+)?)\s*(mg\/ml|mcg\/ml|µg\/ml|u(?:nidades)?\/ml|mg|mcg|µg|g|ml|ui|u\.?\s*i\.?|%)\b/i);
       let cname=comp,cdose='';
-      if(dmm){let u=dmm[2].toLowerCase().replace(/\s+/g,'');if(/^u\.?i\.?$/.test(u))u='UI';cdose=dmm[1]+' '+u;cname=comp.slice(0,dmm.index);}
+      if(dmm){let u=dmm[2].toLowerCase().replace(/\s+/g,'');if(/^u\.?i\.?$/.test(u))u='UI';else if(/^u(?:nidades)?\/ml$/.test(u))u='U/ml';cdose=dmm[1].replace(/(,\d*?)0+$/,'$1').replace(/,$/,'')+' '+u;cname=comp.slice(0,dmm.index);}
       cname=cname.replace(FORM,' ').replace(/[.,;:()]+/g,' ').replace(/\s+/g,' ').trim();
       let toks=cname.toLowerCase().split(/\s+/).filter(Boolean);
       const ai=toks.findIndex(t=>/^[áa]cido$/.test(t));if(ai>0){toks.splice(ai,1);toks.unshift('acido');}
