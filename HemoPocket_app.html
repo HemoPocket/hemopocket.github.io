@@ -5322,6 +5322,7 @@ inp.onchange=async()=>{
 const file=inp.files&&inp.files[0];
 if(!file)return;
 if(file.type&&file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){toast('Selecciona un archivo PDF');return}
+if(file.size>40*1024*1024){toast('El PDF pesa '+(file.size/1048576).toFixed(1)+' MB; el máximo es ~40 MB. Comprímelo e inténtalo de nuevo.');return}
 const defName=(file.name||'').replace(/\.pdf$/i,'');
 const name=prompt('Nombre que verán los usuarios para esta guía:',defName);
 if(name===null)return;
@@ -5333,7 +5334,9 @@ const key=`${section}_${subtypeId}|cloud:${path}`;
 await idb.set(key,{name:finalName,size:file.size,blob:file,cloud:true,docId:id,path});
 toast('✓ Guía subida');
 const k=`${section}_${subtypeId}`;const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';loadPDFs(k,section)}
-}catch(e){console.error('hcUpload',e);toast('❌ Error al subir: '+(e.code||e.message||''))}
+}catch(e){console.error('hcUpload',e); var em=String((e&&(e.message||e.code))||'');
+var msg=/token/i.test(em)?'falta configurar el token de GitHub (config/github)':/40[13]/.test(em)?'el token de GitHub no tiene permiso o no es válido':/(413|too large|size)/i.test(em)?'el archivo es demasiado grande para GitHub':/quota|exceeded/i.test(em)?'memoria del móvil insuficiente; usa un PDF más pequeño':em||'revisa la conexión e inténtalo otra vez';
+toast('❌ No se pudo subir: '+msg);}
 };
 inp.click();
 };
@@ -6258,7 +6261,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 153;
+const HP_BUILD = 154;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12317,11 +12320,17 @@ const fs = getFirestore(fbApp);
 // (servidos por GitHub Pages, igual que las guías ya existentes) y el índice de
 // guías + los permisos viven en Firestore (que el hospital sí permite).
 const GH_REPO = 'hemopocket/hemopocket.github.io';
-async function fileToBase64(file){
-  const buf = new Uint8Array(await file.arrayBuffer());
-  let bin = ''; const chunk = 0x8000;
-  for(let i=0;i<buf.length;i+=chunk){ bin += String.fromCharCode.apply(null, buf.subarray(i,i+chunk)); }
-  return btoa(bin);
+function fileToBase64(file){
+  // FileReader.readAsDataURL: base64 nativo, robusto en MÓVIL (no desborda la pila con
+  // String.fromCharCode.apply en PDFs grandes). Devuelve solo la parte base64.
+  return new Promise(function(resolve,reject){
+    try{
+      const r = new FileReader();
+      r.onload = function(){ const s = String(r.result||''); const i = s.indexOf(','); resolve(i>=0 ? s.slice(i+1) : s); };
+      r.onerror = function(){ reject(r.error || new Error('No se pudo leer el archivo')); };
+      r.readAsDataURL(file);
+    }catch(e){ reject(e); }
+  });
 }
 async function ghGetSha(token, path){
   const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`,
