@@ -5300,7 +5300,7 @@ if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&(v.indexOf('g_')===0||v==='sync'||v==='solicitudes'||v==='reportes'))go(v);if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();};
+window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
 window.hpUpdateRepBadge=async function(){
   try{
@@ -6261,7 +6261,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 156;
+const HP_BUILD = 157;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12371,8 +12371,13 @@ window.HemoCloud = {
     return r.role === 'editor' && Array.isArray(r.sections) && r.sections.indexOf(section) !== -1;
   },
   async loadRole(uid){
-    try{ const s = await getDoc(doc(fs,'roles',uid)); this.role = s.exists() ? s.data() : null; }
-    catch(e){ this.role = null; console.warn('[hp] role', e.message); }
+    // Reintenta: en móvil la 1ª lectura puede fallar por conexión y dejar al admin/editor SIN rol
+    // (y por tanto sin permisos: subir guías, gestionar secciones…). Si carga, devuelve el rol.
+    for(let i=0;i<3;i++){
+      try{ const s = await getDoc(doc(fs,'roles',uid)); this.role = s.exists() ? s.data() : null; return this.role; }
+      catch(e){ console.warn('[hp] role intento '+(i+1), e.message); if(i<2) await new Promise(r=>setTimeout(r, 800*(i+1))); }
+    }
+    this.role = null; return null;
   },
   async loadToken(){
     try{ const s = await getDoc(doc(fs,'config','github')); this.token = s.exists() ? (s.data().token||null) : null; }
@@ -12803,6 +12808,10 @@ window.hpDeleteReporte = async function(id){
 };
 
 // Auth state: show/hide overlay and user badge
+// Red de seguridad: si el rol no llegó a cargarse (conexión móvil intermitente), reintentar al
+// volver ONLINE o al REANUDAR la app, para recuperar permisos sin tener que reiniciar.
+function hpReloadRoleIfNeeded(){ try{ const u=window.__hpUid; if(u && HemoCloud && !HemoCloud.role){ HemoCloud.loadRole(u).then(function(){ if(window.hpOnRoleLoaded) window.hpOnRoleLoaded(); }); } }catch(e){} }
+try{ window.addEventListener('online', hpReloadRoleIfNeeded); document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible') hpReloadRoleIfNeeded(); }); }catch(e){}
 onAuthStateChanged(auth, user => {
   // Firebase ya ha resuelto el estado de sesión (haya o no usuario): lo señalamos
   // para que la red de seguridad offline sepa que NO hace falta intervenir.
