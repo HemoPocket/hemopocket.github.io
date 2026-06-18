@@ -3126,7 +3126,7 @@ qt=n($('qt_qms').value);rr=n($('qt_rms').value);
 if(qt==null||rr==null||qt<=0||rr<=0){$('qtc_res').style.display='none';return}
 }
 const fc=Math.round(60000/rr);
-const qtc=Math.round(qt/Math.cbrt(rr/1000));
+const qtc=Math.round(qt/Math.cbrt(rr/1000)*100)/100;
 let cat,cls;
 const sex=S.p.sex;
 const lim=sex==='F'?{n:460,p:480}:sex==='M'?{n:450,p:470}:{n:450,p:470};
@@ -3136,7 +3136,7 @@ else if(qtc<lim.p){cat='Limítrofe';cls='md'}
 else if(qtc<500){cat='Prolongado';cls='md'}
 else{cat='QTc ≥ 500 ms — RIESGO ALTO de Torsade';cls='hi'}
 const el=$('qtc_res');el.style.display='block';el.className='res '+cls;
-el.innerHTML=`<div class="res-h"><span class="score">QTc ${qtc} ms</span><span>${cat}</span></div><div class="res-s">QT ${qt} ms · RR ${rr} ms · FC ${fc} lpm · Fridericia: QT/∛(RR/1000)<br>Umbrales${sexLbl}: normal &lt;${lim.n} · limítrofe ${lim.n}–${lim.p-1} · prolongado ≥${lim.p}</div>`;
+el.innerHTML=`<div class="res-h"><span class="score">QTc ${qtc.toFixed(2)} ms</span><span>${cat}</span></div><div class="res-s">QT ${qt} ms · RR ${rr} ms · FC ${fc} lpm · Fridericia: QT/∛(RR/1000)<br>Umbrales${sexLbl}: normal &lt;${lim.n} · limítrofe ${lim.n}–${lim.p-1} · prolongado ≥${lim.p}</div>`;
 }
 function copyQTc(){
 const r=$('qtc_res');if(r.style.display==='none')return;
@@ -3151,7 +3151,7 @@ const txt=`Intervalo QT corregido – Fórmula de Fridericia
 ─────────────────────────────────────────────
 ${patientHeader()}Se calcula el QTc por la fórmula de Fridericia (QT/∛(RR/1000)) a partir del ECG basal del paciente.
 
-QTc obtenido: ${qtc} ms (${cat||result}).${extra}
+QTc obtenido: ${qtc.toFixed(2)} ms (${cat||result}).${extra}
 
 [Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
 copy(txt);
@@ -3222,30 +3222,30 @@ else if(cg>=45){cat='Disminución leve-moderada (G3a)';cls='md'}
 else if(cg>=30){cat='Disminución moderada-severa (G3b)';cls='md'}
 else if(cg>=15){cat='Disminución severa (G4)';cls='hi'}
 else{cat='Fallo renal (G5)';cls='hi'}
-const ibwTxt=ibw!==null?` · IBW ${ibw.toFixed(1)} kg · ABW ${abw.toFixed(1)} kg`:'';
-const bmiTxt=bmi!==null?` · IMC ${bmi.toFixed(1)}`:'';
+const ibwTxt=ibw!==null?` · IBW ${ibw.toFixed(2)} kg · ABW ${abw.toFixed(2)} kg`:'';
+const bmiTxt=bmi!==null?` · IMC ${bmi.toFixed(2)}`:'';
 const calvCap=cg>125?'<small style="color:var(--wn)"> (capado a 125 mL/min para Calvert)</small>':'';
 const el=$('cg_res');el.style.display='block';el.className='res '+cls;
-el.innerHTML=`<div class="res-h"><span class="score">${cg.toFixed(0)} mL/min</span><span>${cat}</span></div>
+el.innerHTML=`<div class="res-h"><span class="score">${cg.toFixed(2)} mL/min</span><span>${cat}</span></div>
 <div class="res-s" style="margin-top:8px">
-<strong>Cockcroft-Gault:</strong> ${cg.toFixed(1)} mL/min <small>(usando ${pesoLabel}${pesoUsado!==w?` ${pesoUsado.toFixed(1)} kg`:''})</small><br>
-${ibw!==null&&Math.abs(cg-cgReal)>1?`<small style="color:var(--mut)">C-G con peso real: ${cgReal.toFixed(1)} mL/min</small><br>`:''}
-<strong>CKD-EPI 2021:</strong> ${ckdepi.toFixed(1)} mL/min/1.73m²<br>
-<strong>Para Calvert (carboplatino):</strong> ${cgCalvert.toFixed(0)} mL/min${calvCap}
+<strong>Cockcroft-Gault:</strong> ${cg.toFixed(2)} mL/min <small>(usando ${pesoLabel}${pesoUsado!==w?` ${pesoUsado.toFixed(2)} kg`:''})</small><br>
+${ibw!==null&&Math.abs(cg-cgReal)>1?`<small style="color:var(--mut)">C-G con peso real: ${cgReal.toFixed(2)} mL/min</small><br>`:''}
+<strong>CKD-EPI 2021:</strong> ${ckdepi.toFixed(2)} mL/min/1.73m²<br>
+<strong>Para Calvert (carboplatino):</strong> ${cgCalvert.toFixed(2)} mL/min${calvCap}
 </div>
 <div class="res-s" style="margin-top:6px"><small>Paciente${bmiTxt}${ibwTxt}. <strong>Recomendación</strong>: usar C-G para ajuste de dosis de quimio según ficha técnica; CKD-EPI como referencia general.</small></div>`;
 window._cgData={a,s,h,w,cr,cg,cgReal,ckdepi,pesoUsado,pesoLabel,bmi,ibw,abw,cat,cgCalvert,capped:cg>125};
 }
 function copyCG(){const d=window._cgData;if(!d){toast('Calcula primero');return}
 const sex=d.s==='M'?'varón':'mujer';
-const pesoTxt=d.pesoLabel==='peso real'?'el peso real':d.pesoLabel==='IBW (caquexia/IMC bajo)'?`el peso ideal (${d.pesoUsado.toFixed(1)} kg) por IMC bajo`:`el peso ajustado (ABW = ${d.pesoUsado.toFixed(1)} kg) por obesidad`;
-const ckdTxt=`${d.ckdepi.toFixed(1)} mL/min/1.73 m² por CKD-EPI 2021 (sin raza)`;
+const pesoTxt=d.pesoLabel==='peso real'?'el peso real':d.pesoLabel==='IBW (caquexia/IMC bajo)'?`el peso ideal (${d.pesoUsado.toFixed(2)} kg) por IMC bajo`:`el peso ajustado (ABW = ${d.pesoUsado.toFixed(2)} kg) por obesidad`;
+const ckdTxt=`${d.ckdepi.toFixed(2)} mL/min/1.73 m² por CKD-EPI 2021 (sin raza)`;
 const calvTxt=d.capped?` Para la fórmula de Calvert (carboplatino) se cape el GFR a 125 mL/min (FDA 2010), resultando en una dosis basada en GFR de 125 mL/min.`:'';
 const txt=`Aclaramiento de creatinina — paciente oncohematológico
 ─────────────────────────────────────────────
-Paciente ${sex} de ${d.a} años${d.h?`, talla ${d.h} cm`:''}, peso ${d.w} kg${d.bmi!==null?` (IMC ${d.bmi.toFixed(1)} kg/m²)`:''}, con creatinina sérica de ${d.cr} mg/dL.
+Paciente ${sex} de ${d.a} años${d.h?`, talla ${d.h} cm`:''}, peso ${d.w} kg${d.bmi!==null?` (IMC ${d.bmi.toFixed(2)} kg/m²)`:''}, con creatinina sérica de ${d.cr} mg/dL.
 
-Aclaramiento de creatinina por Cockcroft-Gault de ${d.cg.toFixed(1)} mL/min usando ${pesoTxt}; equivalente a ${ckdTxt}. La función renal se clasifica como ${d.cat.toLowerCase()}.${calvTxt}
+Aclaramiento de creatinina por Cockcroft-Gault de ${d.cg.toFixed(2)} mL/min usando ${pesoTxt}; equivalente a ${ckdTxt}. La función renal se clasifica como ${d.cat.toLowerCase()}.${calvTxt}
 
 Este valor se utiliza para el ajuste de dosis de fármacos con eliminación renal en oncohematología. Cockcroft-Gault sigue siendo la fórmula de referencia para el ajuste de dosis según ficha técnica (carboplatino, melfalán, lenalidomida, citarabina dosis altas, daratumumab SC, etc.). CKD-EPI 2021 se utiliza como referencia general de la función renal.
 
@@ -3307,18 +3307,18 @@ else if(bmi<30){cat='sobrepeso';cls='md'}
 else if(bmi<35){cat='obesidad I';cls='md'}
 else if(bmi<40){cat='obesidad II';cls='hi'}
 else{cat='obesidad III (mórbida)';cls='hi'}
-const aboveIBW=((w-ibw)/ibw*100).toFixed(0);
+const aboveIBW=((w-ibw)/ibw*100).toFixed(2);
 const el=$('ob_res');el.style.display='block';el.className='res '+cls;
-el.innerHTML=`<div class="res-h"><span class="score">IMC ${bmi.toFixed(1)}</span><span>${cat}</span></div>
+el.innerHTML=`<div class="res-h"><span class="score">IMC ${bmi.toFixed(2)}</span><span>${cat}</span></div>
 <div class="res-s" style="margin-top:8px">
-<strong>Peso real:</strong> ${w.toFixed(1)} kg · <strong>IBW (Devine):</strong> ${ibw.toFixed(1)} kg · <strong>LBW (Janmahasatian):</strong> ${lbw.toFixed(1)} kg<br>
+<strong>Peso real:</strong> ${w.toFixed(2)} kg · <strong>IBW (Devine):</strong> ${ibw.toFixed(2)} kg · <strong>LBW (Janmahasatian):</strong> ${lbw.toFixed(2)} kg<br>
 Peso real está ${w>ibw?'+':''}${aboveIBW}% respecto al ideal.
 </div>
 <table class="tbl" style="margin-top:10px">
 <tr><th>Peso ajustado</th><th>Factor</th><th>Valor</th><th>Uso orientativo</th></tr>
-<tr><td><strong>ABW40</strong></td><td>0.40</td><td><strong>${abw40.toFixed(1)} kg</strong></td><td>Aminoglucósidos, Cockcroft-Gault, busulfán (IMC≥30)</td></tr>
-<tr><td><strong>ABW25</strong></td><td>0.25</td><td><strong>${abw25.toFixed(1)} kg</strong></td><td>Algunos protocolos de dosificación más conservadora</td></tr>
-<tr><td><strong>ABW20</strong></td><td>0.20</td><td><strong>${abw20.toFixed(1)} kg</strong></td><td>Ajuste mínimo en fármacos de margen estrecho</td></tr>
+<tr><td><strong>ABW40</strong></td><td>0.40</td><td><strong>${abw40.toFixed(2)} kg</strong></td><td>Aminoglucósidos, Cockcroft-Gault, busulfán (IMC≥30)</td></tr>
+<tr><td><strong>ABW25</strong></td><td>0.25</td><td><strong>${abw25.toFixed(2)} kg</strong></td><td>Algunos protocolos de dosificación más conservadora</td></tr>
+<tr><td><strong>ABW20</strong></td><td>0.20</td><td><strong>${abw20.toFixed(2)} kg</strong></td><td>Ajuste mínimo en fármacos de margen estrecho</td></tr>
 </table>
 <div class="res-s" style="margin-top:6px"><small>Fórmula general: <strong>ABW = IBW + factor × (peso real − IBW)</strong>. Mira la tabla inferior para elegir el peso según el fármaco. Regla general en oncohematología: <strong>peso real</strong> para quimio citotóxica BSA-based, <strong>ABW40</strong> para aminoglucósidos/Cockcroft-Gault en obesos, <strong>IBW</strong> para aciclovir/ganciclovir en obesos.</small></div>`;
 window._obData={s,h,w,ibw,abw40,abw25,abw20,lbw,bmi,cat};
@@ -3327,14 +3327,14 @@ function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}
 const sex=d.s==='M'?'varón':'mujer';
 const txt=`Ajuste de peso en obesidad — paciente oncohematológico
 ─────────────────────────────────────────────
-${patientHeader()}Paciente ${sex} con talla de ${d.h} cm y peso real de ${d.w} kg. Índice de masa corporal de ${d.bmi.toFixed(1)} kg/m² (${d.cat}).
+${patientHeader()}Paciente ${sex} con talla de ${d.h} cm y peso real de ${d.w} kg. Índice de masa corporal de ${d.bmi.toFixed(2)} kg/m² (${d.cat}).
 
 Se calculan los pesos de referencia para la dosificación de fármacos:
-- Peso ideal (IBW, fórmula de Devine): ${d.ibw.toFixed(1)} kg.
-- Peso ajustado ABW40 (factor 0.40): ${d.abw40.toFixed(1)} kg.
-- Peso ajustado ABW25 (factor 0.25): ${d.abw25.toFixed(1)} kg.
-- Peso ajustado ABW20 (factor 0.20): ${d.abw20.toFixed(1)} kg.
-- Masa magra (LBW, fórmula de Janmahasatian 2005): ${d.lbw.toFixed(1)} kg.
+- Peso ideal (IBW, fórmula de Devine): ${d.ibw.toFixed(2)} kg.
+- Peso ajustado ABW40 (factor 0.40): ${d.abw40.toFixed(2)} kg.
+- Peso ajustado ABW25 (factor 0.25): ${d.abw25.toFixed(2)} kg.
+- Peso ajustado ABW20 (factor 0.20): ${d.abw20.toFixed(2)} kg.
+- Masa magra (LBW, fórmula de Janmahasatian 2005): ${d.lbw.toFixed(2)} kg.
 
 Recomendaciones de dosificación: peso real para la mayoría de quimioterapias BSA-based (ASCO 2012), vancomicina y daptomicina; peso ajustado (habitualmente ABW40) para aminoglucósidos y aclaramiento de creatinina por Cockcroft-Gault si IMC ≥30; peso ideal (IBW) para aciclovir y ganciclovir en obesos por riesgo nefro/neurotóxico.
 
@@ -3510,7 +3510,7 @@ const cls=isExudado?'hi':'lo';
 const critTxt=`<ul style="margin:6px 0 0;padding-left:18px;line-height:1.7">
 <li>Prot. pleural/suero = ${rProt.toFixed(2)} ${c1?'<strong style="color:var(--er)">&gt; 0.5 ✓</strong>':'≤ 0.5'}</li>
 <li>LDH pleural/suero = ${rLDH.toFixed(2)} ${c2?'<strong style="color:var(--er)">&gt; 0.6 ✓</strong>':'≤ 0.6'}</li>
-<li>LDH pleural = ${lp} U/L ${c3?`<strong style="color:var(--er)">&gt; ${ldhCut.toFixed(0)} (2/3 ULN) ✓</strong>`:`≤ ${ldhCut.toFixed(0)} (2/3 ULN)`}</li>
+<li>LDH pleural = ${lp} U/L ${c3?`<strong style="color:var(--er)">&gt; ${ldhCut.toFixed(2)} (2/3 ULN) ✓</strong>`:`≤ ${ldhCut.toFixed(2)} (2/3 ULN)`}</li>
 </ul>`;
 const extra=isExudado
 ?'<strong>Exudado.</strong> Completar estudio del líquido: recuento celular y diferencial, glucosa, pH, ADA, citología, cultivos y tinción Gram/Ziehl según sospecha. Valorar TC tórax y, si paraneumónico complicado/empiema (pH &lt;7.2, glucosa baja, pus o Gram+), drenaje torácico.'
@@ -3518,7 +3518,7 @@ const extra=isExudado
 const warn=(!isExudado||(isExudado&&nCrit===1))?'<div class="res-s" style="margin-top:8px;font-style:italic">Si hay tratamiento diurético o sospecha clínica de trasudado con resultado limítrofe, considerar el gradiente de albúmina suero–pleural (&gt;1.2 g/dL sugiere trasudado).</div>':'';
 const el=$('lt_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${cat}</span><span>${nCrit}/3 criterios de Light</span></div>${critTxt}<div class="res-s" style="margin-top:8px">${extra}</div>${warn}`;
-window._lightData={pp,ps,lp,ls_,uln,rProt:rProt.toFixed(2),rLDH:rLDH.toFixed(2),ldhCut:ldhCut.toFixed(0),nCrit,cat,c1,c2,c3};
+window._lightData={pp,ps,lp,ls_,uln,rProt:rProt.toFixed(2),rLDH:rLDH.toFixed(2),ldhCut:ldhCut.toFixed(2),nCrit,cat,c1,c2,c3};
 }
 function copyLight(){
 const d=window._lightData;if(!d){toast('Calcula primero');return}
@@ -5839,10 +5839,10 @@ else if(mme<90){riskCls='md';riskTxt='Dosis moderada (MME 50–90/día) — vigi
 else{riskCls='hi';riskTxt='Dosis alta (MME ≥90/día) — naloxona disponible, revisar indicación'}
 const fromName=from==='meta_vo'?'Metadona oral':OPIO_FACT[from].n;
 const el=$('op_res');el.style.display='block';el.className='res '+riskCls;
-el.innerHTML=`<div class="res-h"><span class="score">${mme.toFixed(0)} MME/día</span><span>${riskTxt}</span></div>
+el.innerHTML=`<div class="res-h"><span class="score">${mme.toFixed(2)} MME/día</span><span>${riskTxt}</span></div>
 <div class="res-s" style="margin-top:10px">
-<strong>Origen:</strong> ${fromName} ${dose} ${OPIO_FACT[from]?OPIO_FACT[from].unit:'mg'} → <strong>${mme.toFixed(1)} MME/día</strong> de morfina oral.<br>
-<strong>Dosis equivalente en ${toName}:</strong> <span style="font-size:15px;color:var(--c1);font-weight:700">${toDose.toFixed(1)} ${toUnit}</span>.
+<strong>Origen:</strong> ${fromName} ${dose} ${OPIO_FACT[from]?OPIO_FACT[from].unit:'mg'} → <strong>${mme.toFixed(2)} MME/día</strong> de morfina oral.<br>
+<strong>Dosis equivalente en ${toName}:</strong> <span style="font-size:15px;color:var(--c1);font-weight:700">${toDose.toFixed(2)} ${toUnit}</span>.
 </div>
 <div class="res-s" style="margin-top:8px"><small><strong>Rescate sugerido:</strong> 10–15% de la dosis diaria de fondo cada 4 h vía oral o cada 1 h vía IV. <strong>Naloxona</strong>: tener prescrita si MME ≥50/día o factores de riesgo (apnea del sueño, depresión respiratoria, insuficiencia respiratoria, opioides + benzodiacepinas, edad avanzada).</small></div>`;
 window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'mg',mme,toName,toDose,toUnit,isRotation,riskTxt};
@@ -5850,10 +5850,10 @@ window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'m
 
 function copyOpio(){
 const d=window._opioData;if(!d){toast('Calcula primero');return}
-const rotTxt=d.isRotation?`Se calcula la dosis equivalente en ${d.toName}: ${d.toDose.toFixed(1)} ${d.toUnit}.`:`Se mantiene el mismo opioide (${d.fromName}).`;
+const rotTxt=d.isRotation?`Se calcula la dosis equivalente en ${d.toName}: ${d.toDose.toFixed(2)} ${d.toUnit}.`:`Se mantiene el mismo opioide (${d.fromName}).`;
 const txt=`Conversión de opioides — equivalente de morfina oral (MME)
 ─────────────────────────────────────────────
-${patientHeader()}El paciente recibe actualmente ${d.fromName} a dosis de ${d.dose} ${d.fromUnit}, equivalente a ${d.mme.toFixed(1)} MME/día de morfina oral (${d.riskTxt.toLowerCase()}).
+${patientHeader()}El paciente recibe actualmente ${d.fromName} a dosis de ${d.dose} ${d.fromUnit}, equivalente a ${d.mme.toFixed(2)} MME/día de morfina oral (${d.riskTxt.toLowerCase()}).
 
 ${rotTxt}
 
@@ -6258,7 +6258,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 151;
+const HP_BUILD = 152;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -8121,7 +8121,7 @@ function opioMME(key,dose){return key==='meta_vo'?dose*metadonaFactor(dose):dose
 function opioDoseFromMME(key,mme){return key==='meta_vo'?mme/metadonaFactor(mme):mme/OPIO_FACT[key].f;}
 function opioName(key){return key==='meta_vo'?'Metadona oral':OPIO_FACT[key].n;}
 function opioUnitMin(key){if(key==='meta_vo')return 'mg';const c=OPIO_FACT[key];if(c.td)return 'µg/h';if(key==='fent_iv')return 'µg';return 'mg';}
-function fmtOpioNum(x){return (Math.round(x*10)/10).toString().replace(/\.0$/,'');}
+function fmtOpioNum(x){return Number(x).toFixed(2);}
 function opioInline(q){
   const s=' '+chatNorm(q)+' ';
   if(!/(cuant|equival|convert|convier|rota|rotar|pasar|paso|seria|sale|corresponde| a | en )/.test(s))return null;
@@ -8249,8 +8249,8 @@ function pesoInline(s,toks){
   let w=_hpBeforeUnit(toks,['kg']);if(w==null)w=_hpNearLabel(toks,t=>/^(peso|pesa)/.test(t),3,'cm');
   if(sex==null||h==null||h<50||h>250)return chatCalcRouter('obw','⚖️','Peso ideal / ajustado','Dame el <strong>sexo</strong> y la <strong>talla</strong> (y el peso real para el ajustado) y te lo calculo. Te abro la calculadora.');
   const ibw=(sex==='M'?50:45.5)+2.3*Math.max(0,(h-152.4)/2.54);
-  let sub=`IBW (Devine), ${sex==='M'?'hombre':'mujer'} de ${_hpFmt(h,0)} cm.`,main=`Peso ideal (IBW): <strong style="color:var(--c1)">${ibw.toFixed(1)} kg</strong>.`;
-  if(w!=null&&w>2&&w<400){const abw40=ibw+0.4*(w-ibw),bmi=w/Math.pow(h/100,2);const lbw=sex==='M'?(9270*w)/(6680+216*bmi):(9270*w)/(8780+244*bmi);main=`Con peso real ${_hpFmt(w,1)} kg (IMC ${bmi.toFixed(1)}): IBW <strong>${ibw.toFixed(1)} kg</strong> · ABW40 <strong style="color:var(--c1)">${abw40.toFixed(1)} kg</strong> · LBW ${lbw.toFixed(1)} kg.`;sub=`ABW = IBW + 0,4 × (real − IBW). Regla: peso real en quimio BSA-based; ABW40 para aminoglucósidos/Cockcroft en obesos; IBW para aciclovir/ganciclovir en obesos.`;}
+  let sub=`IBW (Devine), ${sex==='M'?'hombre':'mujer'} de ${_hpFmt(h,0)} cm.`,main=`Peso ideal (IBW): <strong style="color:var(--c1)">${ibw.toFixed(2)} kg</strong>.`;
+  if(w!=null&&w>2&&w<400){const abw40=ibw+0.4*(w-ibw),bmi=w/Math.pow(h/100,2);const lbw=sex==='M'?(9270*w)/(6680+216*bmi):(9270*w)/(8780+244*bmi);main=`Con peso real ${_hpFmt(w,1)} kg (IMC ${bmi.toFixed(2)}): IBW <strong>${ibw.toFixed(2)} kg</strong> · ABW40 <strong style="color:var(--c1)">${abw40.toFixed(2)} kg</strong> · LBW ${lbw.toFixed(2)} kg.`;sub=`ABW = IBW + 0,4 × (real − IBW). Regla: peso real en quimio BSA-based; ABW40 para aminoglucósidos/Cockcroft en obesos; IBW para aciclovir/ganciclovir en obesos.`;}
   return chatCalcCard('⚖️','Peso ideal / ajustado','obw',main,sub);
 }
 function crclInline(s,toks){
@@ -8266,7 +8266,7 @@ function crclInline(s,toks){
   if(h!=null&&h>=50&&h<=250){const bmi=w/Math.pow(h/100,2);const ibw=(sex==='M'?50:45.5)+2.3*Math.max(0,(h-152.4)/2.54);if(bmi<18.5){peso=ibw;pl='IBW (IMC bajo)';}else if(bmi>=30){peso=ibw+0.4*(w-ibw);pl='ABW (obesidad)';}}
   let cg=((140-age)*peso)/(72*cr);if(sex==='F')cg*=0.85;
   let cat;if(cg>=90)cat='normal/levemente disminuida (G1)';else if(cg>=60)cat='disminución leve (G2)';else if(cg>=45)cat='leve-moderada (G3a)';else if(cg>=30)cat='moderada-severa (G3b)';else if(cg>=15)cat='severa (G4)';else cat='fallo renal (G5)';
-  return chatCalcCard('🩺','Aclaramiento de creatinina','crcl',`${sex==='M'?'Hombre':'Mujer'} de ${_hpFmt(age,0)} años, ${_hpFmt(w,1)} kg, creatinina ${_hpFmt(cr,2)} mg/dL → <strong style="color:var(--c1)">${cg.toFixed(0)} mL/min</strong> (Cockcroft-Gault, ${pl}) · ${cat}.`,`Cockcroft-Gault es la fórmula de referencia para ajuste de dosis (carboplatino, lenalidomida, etc.). Abre la calculadora para CKD-EPI y el ajuste por IMC.`);
+  return chatCalcCard('🩺','Aclaramiento de creatinina','crcl',`${sex==='M'?'Hombre':'Mujer'} de ${_hpFmt(age,0)} años, ${_hpFmt(w,1)} kg, creatinina ${_hpFmt(cr,2)} mg/dL → <strong style="color:var(--c1)">${cg.toFixed(2)} mL/min</strong> (Cockcroft-Gault, ${pl}) · ${cat}.`,`Cockcroft-Gault es la fórmula de referencia para ajuste de dosis (carboplatino, lenalidomida, etc.). Abre la calculadora para CKD-EPI y el ajuste por IMC.`);
 }
 function qtcInline(s,toks){
   if(!/\bqtc\b|\bqt\b|fridericia|intervalo qt/.test(s))return null;
@@ -8283,9 +8283,9 @@ function qtcInline(s,toks){
   if(rr!=null&&rr>=200&&rr<=2500)rrms=rr;
   else if(fc!=null&&fc>=20&&fc<=260)rrms=60000/fc;
   if(rrms==null)return chatCalcRouter('qtc','📉','QTc (Fridericia)',`Tengo el <strong>QT ${_hpFmt(qt,0)} ms</strong>, pero necesito la <strong>FC</strong> (lpm) o el <strong>RR</strong> (ms). Te abro la calculadora.`);
-  const qtc=Math.round(qt/Math.cbrt(rrms/1000)),fcv=Math.round(60000/rrms);
+  const qtc=Math.round(qt/Math.cbrt(rrms/1000)*100)/100,fcv=Math.round(60000/rrms);
   let cat;if(qtc<450)cat='normal';else if(qtc<470)cat='limítrofe';else if(qtc<500)cat='prolongado';else cat='≥ 500 ms · RIESGO ALTO de Torsade';
-  return chatCalcCard('📉','QTc (Fridericia)','qtc',`QT ${_hpFmt(qt,0)} ms con FC ${fcv} lpm → <strong style="color:var(--c1)">QTc ${qtc} ms</strong> · ${cat}.`,`Fridericia: QT/∛(RR/1000). Umbrales orientativos: normal &lt;450 · limítrofe 450–469 · prolongado ≥470 · ≥500 alto riesgo. Confirma la medición del QT en el ECG.`);
+  return chatCalcCard('📉','QTc (Fridericia)','qtc',`QT ${_hpFmt(qt,0)} ms con FC ${fcv} lpm → <strong style="color:var(--c1)">QTc ${qtc.toFixed(2)} ms</strong> · ${cat}.`,`Fridericia: QT/∛(RR/1000). Umbrales orientativos: normal &lt;450 · limítrofe 450–469 · prolongado ≥470 · ≥500 alto riesgo. Confirma la medición del QT en el ECG.`);
 }
 function chatCalc(q){const nc=chatNormCalc(q);const s=' '+nc+' ';const toks=_hpToks(nc);return calcioInline(s,toks)||bsaInline(s,toks)||pesoInline(s,toks)||crclInline(s,toks)||qtcInline(s,toks);}
 function chatSuggestChip(d){let onclick,label=chatEsc(d.title||''),ic;
@@ -8751,10 +8751,8 @@ function qtBSA(weightKg,heightCm){ // DuBois & DuBois (Arch Intern Med 1916)
   return 0.007184*Math.pow(weightKg,0.425)*Math.pow(heightCm,0.725);
 }
 function qtRoundDose(mg){
-  if(mg>=200) return Math.round(mg/5)*5;
-  if(mg>=50)  return Math.round(mg);
-  if(mg>=10)  return Math.round(mg*2)/2;
-  return Math.round(mg*10)/10;
+  // Precisión máxima: valor EXACTO con 2 decimales, sin redondear a 5/entero (lo pide la autora).
+  return Math.round(mg*100)/100;
 }
 function qtCalcDose(doseStr,bsa,weightKg){
   if(!doseStr||doseStr==='—'||doseStr==='-') return null;
@@ -8832,7 +8830,7 @@ function fmtDrugLine(drug,dateStr){
     const calc=qtCalcDose(drug.dose,bsa,peso);
     if(calc){
       const doseLabel=drug.dose.replace(/\s*\(\s*máx\s*([^)]+?)\s*\)/i,' - máx $1');
-      return '* '+drug.name+' ('+doseLabel+') → '+calc.mg+' mg '+drug.route+': '+dateStr;
+      return '* '+drug.name+' ('+doseLabel+') → '+(typeof calc.mg==='number'?calc.mg.toFixed(2):calc.mg)+' mg '+drug.route+': '+dateStr;
     }
   }
   return '* '+drug.name+' '+drug.dose+' '+drug.route+': '+dateStr;
@@ -9497,9 +9495,9 @@ const uForm=Math.ceil(dosePorFormula/vu);
 const uMin=Math.ceil(doseMin/vu);
 const uMax=Math.ceil(doseMax/vu);
 r.style.display='block';r.className='res lo';
-r.innerHTML=`<div class="res-h"><span class="score">${Math.round(dosePorFormula)} mL</span><span>≈ ${uForm} unidades de ${vu} mL</span></div>
+r.innerHTML=`<div class="res-h"><span class="score">${dosePorFormula.toFixed(2)} mL</span><span>≈ ${uForm} unidades de ${vu} mL</span></div>
 <div class="res-s" style="margin-top:8px">
-<strong>Por fórmula del manual:</strong> ${w} × ${dTP} = ${Math.round(dosePorFormula)} mL ≈ <strong>${uForm} U</strong>.<br>
+<strong>Por fórmula del manual:</strong> ${w} × ${dTP} = ${dosePorFormula.toFixed(2)} mL ≈ <strong>${uForm} U</strong>.<br>
 <strong>Rango estándar 15–20 mL/kg:</strong> ${doseMin}–${doseMax} mL ≈ <strong>${uMin}–${uMax} U</strong>.<br>
 <small>Velocidad: 30–50 mL/min. Reevaluar TP/TTPa/fibrinógeno post-transfusión.</small>
 </div>`;
@@ -9589,16 +9587,16 @@ else if(w<80){hboAuto=15;dep=500}
 else{hboAuto=15;dep=(sx==='M')?1000:500}
 if(hbo==null||hbo===0)hbo=hboAuto;
 if(hbo<=hb){r.style.display='block';r.className='res md';r.innerHTML='<div class="res-h">⚠️ Hb objetivo ≤ Hb actual</div><div class="res-s">Revisa los valores introducidos.</div>';return}
-const deficit=Math.round(w*(hbo-hb)*0.24+dep);
+const deficit=Math.round((w*(hbo-hb)*0.24+dep)*100)/100;
 // Ferinject dose schedule (vial de 100 mg / 500 mg / 1000 mg; máx por sesión 1000 mg si peso ≥ 70 y déficit ≥ 1500)
 let ferinject;
 if(w<35){ferinject='Usar Venofer (peso &lt; 35 kg).'}
-else if(deficit<=1000){ferinject=`Dosis única IV de <strong>${Math.min(deficit,1000)} mg</strong> de Ferinject.`}
-else{const sesiones=Math.ceil(deficit/1000);ferinject=`<strong>${deficit} mg en ${sesiones} sesiones</strong> de Ferinject (máx. 1000 mg/sesión, separadas ≥ 7 días).`}
+else if(deficit<=1000){ferinject=`Dosis única IV de <strong>${Math.min(deficit,1000).toFixed(2)} mg</strong> de Ferinject.`}
+else{const sesiones=Math.ceil(deficit/1000);ferinject=`<strong>${deficit.toFixed(2)} mg en ${sesiones} sesiones</strong> de Ferinject (máx. 1000 mg/sesión, separadas ≥ 7 días).`}
 r.style.display='block';r.className='res lo';
-r.innerHTML=`<div class="res-h"><span class="score">${deficit} mg</span><span>Déficit total de hierro</span></div>
+r.innerHTML=`<div class="res-h"><span class="score">${deficit.toFixed(2)} mg</span><span>Déficit total de hierro</span></div>
 <div class="res-s" style="margin-top:8px">
-<strong>Cálculo:</strong> ${w} × (${hbo} − ${hb}) × 0,24 + ${dep} = <strong>${deficit} mg</strong>.<br>
+<strong>Cálculo:</strong> ${w} × (${hbo} − ${hb}) × 0,24 + ${dep} = <strong>${deficit.toFixed(2)} mg</strong>.<br>
 <strong>Hb objetivo:</strong> ${hbo} g/dL · <strong>Depósitos:</strong> ${dep} mg.<br>
 <strong>Pauta IV (Ferinject®):</strong> ${ferinject}<br>
 <small>Como alternativa: Venofer® 200 mg/sesión (3 sesiones por semana).</small>
@@ -10520,10 +10518,10 @@ if(w==null||obj==null){out.innerHTML='';return}
 if(obj<=act){out.innerHTML='<div class="alert y" style="padding:8px;margin:0">Objetivo ≤ actual; revisa los valores.</div>';return}
 const delta=obj-act;
 let ui,prod;
-if(f==='8'){ui=Math.round(w*delta*0.5);prod='FVIII recombinante'}
-else if(f==='9'){ui=Math.round(w*delta*1.0);prod='FIX recombinante'}
-else{ui=Math.round(w*delta*1.2);prod='FIX plasmaderivado'}
-out.innerHTML=`<div class="alert g" style="padding:10px;margin:0"><strong>${ui} UI</strong> de ${prod}<br><small>${w} kg × Δ${delta}% × ${f==='8'?'0.5':f==='9'?'1.0':'1.2'} = ${ui} UI</small></div>`;
+if(f==='8'){ui=w*delta*0.5;prod='FVIII recombinante'}
+else if(f==='9'){ui=w*delta*1.0;prod='FIX recombinante'}
+else{ui=w*delta*1.2;prod='FIX plasmaderivado'}
+out.innerHTML=`<div class="alert g" style="padding:10px;margin:0"><strong>${ui.toFixed(2)} UI</strong> de ${prod}<br><small>${w} kg × Δ${delta}% × ${f==='8'?'0.5':f==='9'?'1.0':'1.2'} = ${ui.toFixed(2)} UI</small></div>`;
 }
 
 
