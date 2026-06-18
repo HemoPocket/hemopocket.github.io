@@ -224,6 +224,9 @@ body.view-home .app-footer{padding-bottom:18px}
 .coll-c{padding:0 14px;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
 .coll.open .coll-c{padding:12px 14px;max-height:9999px}
 .coll.open .coll-h .ar{transform:rotate(90deg)}
+#page-edit-area .coll-c{max-height:none!important;overflow:visible!important;padding:8px 14px!important}
+#page-edit-area .coll-h{cursor:default}
+#page-edit-area table.tbl,#page-edit-area .coll{margin:8px 0}
 .coll-h .ar{transition:transform .2s;font-size:10px;color:var(--mut)}
 .qtc-row{display:grid;grid-template-columns:max-content 1fr 92px;gap:12px;align-items:center;margin:12px 0}
 .qtc-row input[type=range]{width:100%}
@@ -1058,6 +1061,12 @@ function hpEditPage(id){
   _pageDraft={ id:id, seccion:hpPageSection(id), html:html }; go('pageedit');
 }
 function _pageCmd(cmd,val){ try{ var a=document.getElementById('page-edit-area'); if(a){ a.focus(); document.execCommand(cmd,false,val||null); } }catch(e){} }
+function _pageInsert(html){ try{ var a=document.getElementById('page-edit-area'); if(!a)return; a.focus(); if(!document.execCommand('insertHTML',false,html)){ a.insertAdjacentHTML('beforeend',html); } }catch(e){} }
+function _pageDesplegable(){ _pageInsert('<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>Nuevo desplegable</span><span class="ar">▶</span></div><div class="coll-c"><p>Escribe aquí el contenido…</p></div></div><p><br></p>'); }
+function _pageTabla(){ _pageInsert('<table class="tbl"><tbody><tr><td>Celda</td><td>Celda</td></tr><tr><td>Celda</td><td>Celda</td></tr></tbody></table><p><br></p>'); }
+function _pageCurTable(){ try{ var s=window.getSelection&&window.getSelection(); var n=s&&s.anchorNode; var a=document.getElementById('page-edit-area'); while(n&&n!==a){ if(n.nodeType===1&&n.tagName==='TABLE')return n; n=n.parentNode; } }catch(e){} return null; }
+function _pageAddRow(){ var t=_pageCurTable(); if(!t){ toast('Pon el cursor dentro de una tabla'); return; } var rows=t.rows; if(!rows.length)return; var cols=rows[rows.length-1].cells.length; var tb=t.tBodies[0]||t; var tr=document.createElement('tr'); for(var i=0;i<cols;i++){ var td=document.createElement('td'); td.textContent='Celda'; tr.appendChild(td); } tb.appendChild(tr); }
+function _pageAddCol(){ var t=_pageCurTable(); if(!t){ toast('Pon el cursor dentro de una tabla'); return; } for(var i=0;i<t.rows.length;i++){ var cc=t.rows[i].insertCell(-1); cc.textContent='Celda'; } }
 function _pageToolbar(){
   return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)">'
     +'<span style="font-size:12px;color:var(--mut);width:100%">Edita el contenido como en un procesador de textos:</span>'
@@ -1066,6 +1075,10 @@ function _pageToolbar(){
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'formatBlock\',\'&lt;h3&gt;\')" title="Título">Título</button>'
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'formatBlock\',\'&lt;p&gt;\')" title="Texto normal">Texto</button>'
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageCmd(\'insertUnorderedList\')" title="Lista">• Lista</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageDesplegable()" title="Insertar desplegable">➕ Desplegable</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageTabla()" title="Insertar tabla">➕ Tabla</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageAddRow()" title="Añadir fila a la tabla del cursor">➕ Fila</button>'
+    +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageAddCol()" title="Añadir columna a la tabla del cursor">➕ Columna</button>'
     +'</div>';
 }
 VIEWS.pageedit=()=>{
@@ -6245,8 +6258,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 150;
-const APP_BUILD = '2026.06.17 (build ' + HP_BUILD + ')';
+const HP_BUILD = 151;
+const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -12165,10 +12178,11 @@ let _AVISO_DEFAULT='';
 const _AVISO_REV_PH='<div class="aviso-rev-ph" contenteditable="false" style="border:1px dashed var(--bd);border-radius:6px;padding:8px;margin:8px 0;color:var(--mut);font-size:0.8rem;background:var(--bg)">👥 Lista de revisores — se rellena automáticamente con el equipo. No hace falta tocar nada aquí.</div>';
 function hpAvisoOverride(){ try{ return ls.g('avisoLegal'); }catch(e){ return null; } }
 window.hpApplyAviso=function(html){ try{ ls.s('avisoLegal', html||''); }catch(e){} };
+function _hpSafeHandler(v){ var s=String(v||'').trim().replace(/;\s*$/,''); if(!s) return false; var parts=s.split(';'); for(var i=0;i<parts.length;i++){ var p=parts[i].trim(); if(!p) continue; if(/^this(\.parentElement)?\.classList\.toggle\(\s*["']open["']\s*\)$/.test(p)) continue; var mm=p.match(/^([A-Za-z_$][\w$]*)\(\s*((?:"[^"<>]*"|'[^'<>]*'|[\d.+\-]+|true|false|\s|,)*)\)$/); if(mm && !/^(eval|Function|setTimeout|setInterval|fetch|import|require|postMessage|write|writeln)$/i.test(mm[1])) continue; return false; } return true; }
 function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
   s=s.replace(/<\s*(script|style|iframe|object|embed|link|meta|form|input)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,'');
   s=s.replace(/<\s*(script|style|iframe|object|embed|link|meta|form|input)\b[^>]*>/gi,'');
-  s=s.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,'');
+  s=s.replace(/\son(\w+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,function(m,ev,val){ if(ev.toLowerCase()==='click'){ var inner=String(val).replace(/^["']|["']$/g,''); if(_hpSafeHandler(inner)) return m; } return ''; });
   s=s.replace(/(href|src)\s*=\s*("\s*javascript:[^"]*"|'\s*javascript:[^']*')/gi,'$1="#"');
   return s;
 }
