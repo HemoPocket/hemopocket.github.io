@@ -54,6 +54,34 @@ usando su **UID** (lo copias de *Authentication → Users*). Campos:
 | `cart` | Terapia celular | `ped` | Hematología pediátrica |
 | `cito` | Citopenias | `leuc_ag` | Leucemias agudas |
 
+### Área especial: edición de los asistentes
+
+Además de las secciones de guías existe un área especial **`asistentes`** que
+habilita la edición de los **asistentes de Quimioterapia, Redacción y Recetas**
+(esquemas de QT, diccionario/plantilla de analíticas y diccionario de recetas).
+No es una sección de guías: es un permiso aparte que se guarda en el mismo array
+`sections`.
+
+**Forma recomendada (desde la app):** en *Gestión de cuentas*, pon a la persona
+como **Editor** y marca la casilla **«✏️ Editar asistentes»**. La app escribe el
+documento de rol por ti.
+
+**Forma manual (en Firestore → `roles/{UID}`),** añadiendo `asistentes` al array
+`sections`. Tres ejemplos:
+
+- **Editor solo de asistentes** (no toca guías):
+  - `role` (string) = `editor`
+  - `sections` (array) = `asistentes`
+- **Editor de Banco de Sangre que además mantiene los asistentes:**
+  - `role` (string) = `editor`
+  - `sections` (array) = `bs`, `asistentes`
+- **Administrador** (no necesita nada especial, ya edita todo):
+  - `role` (string) = `admin`
+
+> ⚠️ Recuerda **publicar `firestore.rules`** (*Firestore → Reglas → Publicar*) para
+> que estos editores puedan guardar «para todos»; si no, sus cambios se quedan solo
+> en su equipo. Las admin no se ven afectadas.
+
 ---
 
 ## Costes del plan Blaze (lo que importa de verdad)
