@@ -6261,7 +6261,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 165;
+const HP_BUILD = 166;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11317,7 +11317,7 @@ function lcCanonNums(str){
     .replace(/(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})(?=\d)/g,'$1 ')
     // Quita la notación de escala SOLO cuando hay marca explícita (×/x/·/* ó ^/e/E): x10E9, ×10^6, 10E3, 10^9…
     // Así nunca se "come" un número suelto como 100 ó 138 (lo que también provocaba falsos avisos).
-    .replace(/[x×·*]\s*10\s*[\^eE]?\s*-?\d+/gi,' ')
+    .replace(/[x×·*]\s*10\s*[\^eE]\s*-?\d+/gi,' ')
     .replace(/\b10\s*[\^eE]\s*-?\d+/gi,' ')
     .replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ') // fechas
     .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ');           // horas
