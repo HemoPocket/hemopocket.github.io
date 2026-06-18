@@ -6258,7 +6258,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 152;
+const HP_BUILD = 153;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -8748,7 +8748,9 @@ const d=new Date(base);d.setDate(d.getDate()+n);return d;
 }
 
 function qtBSA(weightKg,heightCm){ // DuBois & DuBois (Arch Intern Med 1916)
-  return 0.007184*Math.pow(weightKg,0.425)*Math.pow(heightCm,0.725);
+  // SC redondeada a 2 decimales: las dosis de QT se calculan a partir de ESTA superficie exacta,
+  // así coinciden con la SC mostrada y son reproducibles a mano. (Precisión pedida por la autora.)
+  return Math.round(0.007184*Math.pow(weightKg,0.425)*Math.pow(heightCm,0.725)*100)/100;
 }
 function qtRoundDose(mg){
   // Precisión máxima: valor EXACTO con 2 decimales, sin redondear a 5/entero (lo pide la autora).
