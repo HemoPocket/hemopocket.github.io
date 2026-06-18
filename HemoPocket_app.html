@@ -6266,7 +6266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 173;
+const HP_BUILD = 174;
 const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10933,10 +10933,29 @@ const DICT=[
 {a:'Galactomanano',u:'',c:'microbiologia',k:'sero',pats:['galactomanano','antigeno aspergillus']},
 {a:'Ag neumococo',u:'',c:'microbiologia',k:'sero',pats:['antigeno neumococo','ag neumococo']},
 {a:'Ag Legionella',u:'',c:'microbiologia',k:'sero',pats:['antigeno legionella','ag legionella']},
-{a:'IGRA (TB)',u:'',c:'microbiologia',k:'sero',pats:['interferon gamma[^\\n\\r]{0,30}(?:tb|tuberculosis|estimulad)','quantiferon','\\bigra\\b']}
+{a:'IGRA (TB)',u:'',c:'microbiologia',k:'sero',pats:['interferon gamma[^\\n\\r]{0,30}(?:tb|tuberculosis|estimulad)','quantiferon','\\bigra\\b']},
+{a:'JAK-2',u:'',c:'molecular',k:'sero',pats:['jak[\\s\\/-]?2','\\bv617f\\b']},
+{a:'CALR',u:'',c:'molecular',k:'sero',pats:['\\bcalr\\b','calreticulina']},
+{a:'MPL',u:'',c:'molecular',k:'sero',pats:['\\bmpl\\b','\\bw515\\b']},
+{a:'NPM1',u:'',c:'molecular',k:'sero',pats:['\\bnpm[\\s-]?1\\b','nucleofosmina']},
+{a:'FLT3-ITD',u:'',c:'molecular',k:'sero',pats:['flt3[\\s\\/-]*itd','duplicacion interna en tandem']},
+{a:'FLT3-TKD (D835)',u:'',c:'molecular',k:'sero',pats:['flt3[\\s\\/-]*tkd','flt3[\\s\\/-]*d835','\\bd835\\b']},
+{a:'CEBPA',u:'',c:'molecular',k:'sero',pats:['\\bcebpa\\b']},
+{a:'PML-RARA',u:'',c:'molecular',k:'sero',pats:['pml[\\s\\/-]*rara?','t\\(?\\s*15\\s*;\\s*17','\\b15;17\\b']},
+{a:'RUNX1-RUNX1T1',u:'',c:'molecular',k:'sero',pats:['runx1[\\s\\/-]*runx1t1','aml1[\\s\\/-]*eto','t\\(?\\s*8\\s*;\\s*21','\\b8;21\\b']},
+{a:'CBFB-MYH11',u:'',c:'molecular',k:'sero',pats:['cbfb[\\s\\/-]*myh11','inv\\(?\\s*16','\\b16;16\\b']},
+{a:'DEK-NUP214',u:'',c:'molecular',k:'sero',pats:['dek[\\s\\/-]*nup214','t\\(?\\s*6\\s*;\\s*9','\\b6;9\\b']},
+{a:'KMT2A (MLL)',u:'',c:'molecular',k:'sero',pats:['\\bkmt2a\\b','\\bmll\\b']},
+{a:'WT1',u:'',c:'molecular',k:'sero',pats:['\\bwt1\\b']},
+{a:'MECOM (EVI1)',u:'',c:'molecular',k:'sero',pats:['\\bmecom\\b','\\bevi[\\s-]?1\\b']},
+{a:'NUP98',u:'',c:'molecular',k:'sero',pats:['\\bnup98\\b']},
+{a:'IDH1',u:'',c:'molecular',k:'sero',pats:['\\bidh[\\s-]?1\\b']},
+{a:'IDH2',u:'',c:'molecular',k:'sero',pats:['\\bidh[\\s-]?2\\b']},
+{a:'KIT (D816V)',u:'',c:'molecular',k:'sero',pats:['\\bc[\\s-]?kit\\b','\\bd816']},
+{a:'TP53',u:'',c:'molecular',k:'sero',pats:['\\btp53\\b','\\bp53\\b']}
 ];
-const CAT_ORDER=['hemograma','grupo','coagulacion','eritropatologia','gasometria','bioquimica','proteinograma','tumorales','serologia','microbiologia'];
-const CAT_LABEL={hemograma:'Hemograma',grupo:'Grupo sanguíneo',coagulacion:'Coagulación',eritropatologia:'Eritropatología',gasometria:'Gasometría',bioquimica:'Bioquímica',proteinograma:'Proteinograma',tumorales:'Marcadores tumorales',serologia:'Serologías',microbiologia:'Microbiología'};
+const CAT_ORDER=['hemograma','grupo','coagulacion','eritropatologia','gasometria','bioquimica','proteinograma','tumorales','molecular','serologia','microbiologia'];
+const CAT_LABEL={hemograma:'Hemograma',grupo:'Grupo sanguíneo',coagulacion:'Coagulación',eritropatologia:'Eritropatología',gasometria:'Gasometría',bioquimica:'Bioquímica',proteinograma:'Proteinograma',tumorales:'Marcadores tumorales',molecular:'Biología molecular',serologia:'Serologías',microbiologia:'Microbiología'};
 function sp2f(numStr){let s=numStr.replace(/[<>≤≥\s]/g,'');if(s.includes(','))return parseFloat(s.replace(/\./g,'').replace(',','.'));if((s.match(/\./g)||[]).length>=1&&/\.\d{3}(\D|$)/.test(s+' '))return parseFloat(s.replace(/\./g,''));return parseFloat(s);}
 function detUnit(afterRaw){let a=normSup(afterRaw).toLowerCase().replace(/\s+/g,'');let m=a.match(/^[x×·*]?10[\^e\*]?([0-9])\/?(u?l|µl|mm3|mm³|l)/);if(m){const ex=m[1];if(ex==='9')return 'x10E9/L';if(ex==='3')return 'x10E3/µL';if(ex==='6')return 'x10E6/L';}if(/^mil(es)?\.?\/?(µl|ul)/.test(a))return 'x10E3/µL';if(/^\/?(µl|ul)/.test(a))return '/µL';if(/^\/?(mm3|mm³)/.test(a))return '/µL';return null;}
 function skipDT(sub){const m=sub.match(/^(?:[\s:=\-#)\]*↑↓▲▼]+|\([^)]{0,16}\)|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{1,2}:\d{2}(?::\d{2})?)*/);return m?m[0].length:0;}
