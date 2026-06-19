@@ -809,10 +809,13 @@ const MENU=[
 {id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
 {id:'rasburicasa',name:'Rasburicasa / hiperuricemia',kw:'rasburicasa hiperuricemia acido urico urato lisis tumoral g6pd fasturtec alopurinol urato oxidasa dosis contraindicacion',new:'2026-06-12'},
 {id:'mtx',name:'Metotrexato altas dosis',kw:'metotrexato mtx altas dosis niveles monitorizacion rescate acido folinico leucovorin folinico glucarpidasa voraxaze aclaramiento retardado nefrotoxicidad alcalinizacion hidratacion nomograma',new:'2026-06-12'},
-{id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad'},
-{id:'ecog',name:'ECOG',kw:'ecog estado funcional performance'},
-{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
+]},
+{h:'ESCALAS DE VALORACIÓN',items:[
+{id:'ecog',name:'ECOG',kw:'ecog estado funcional performance valoracion escala'},
+{id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad valoracion escala'},
+{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico valoracion escala cribado'},
+{id:'gijon',name:'Valoración Sociofamiliar de Gijón',kw:'gijon sociofamiliar social familiar anciano geriatrico valoracion escala riesgo social trabajo social barber',new:'2026-06-19'}
 ]},
 {h:'INGRESO',items:[
 {id:'checklist',name:'Check list ingreso',kw:'checklist check list ingreso planta verificacion taspe trasplante neutropenia febril debut lma primer ingreso hla hidratacion mtx consentimientos cribados multirresistentes',new:'2026-06-04'}
@@ -931,6 +934,7 @@ const MENU=[
 {id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura',admin:true}
 ]}
 ];
+const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
 
 function getAll(){return MENU.flatMap(s=>s.items)}
 
@@ -3671,6 +3675,49 @@ ranges:[
 ref:'Bellera CA, et al. Screening older cancer patients: first evaluation of the G-8 geriatric screening tool. Ann Oncol. 2012;23(8):2166-2172.'
 });
 
+VIEWS.gijon=()=>pointCalc({
+id:'gijon',title:'Valoración Sociofamiliar de Gijón',
+intro:'Escala de valoración sociofamiliar (versión abreviada, modificada de Barcelona). Detecta riesgo o problemática social en el anciano. Marca una opción por apartado; a mayor puntuación, peor situación.',
+items:[
+{q:'Situación familiar',opts:[
+{l:'Vive con familia, sin dependencia físico/psíquica',p:1},
+{l:'Vive con cónyuge de similar edad',p:2},
+{l:'Vive con familia y/o cónyuge con algún grado de dependencia',p:3},
+{l:'Vive solo y tiene hijos próximos',p:4},
+{l:'Vive solo y carece de hijos o viven alejados',p:5}]},
+{q:'Situación económica',opts:[
+{l:'Más de 1,5 veces el salario mínimo',p:1},
+{l:'Entre 1,5 veces y el salario mínimo',p:2},
+{l:'Desde el salario mínimo hasta la pensión mínima contributiva',p:3},
+{l:'Pensión no contributiva (LISMI/FAS)',p:4},
+{l:'Sin ingresos o inferiores a los anteriores',p:5}]},
+{q:'Vivienda',opts:[
+{l:'Adecuada a las necesidades',p:1},
+{l:'Barreras arquitectónicas (peldaños, puertas estrechas, baños…)',p:2},
+{l:'Humedades, mala higiene, equipamiento inadecuado',p:3},
+{l:'Ausencia de ascensor o teléfono',p:4},
+{l:'Vivienda inadecuada o sin equipamiento mínimo',p:5}]},
+{q:'Relaciones sociales',opts:[
+{l:'Relaciones sociales habituales',p:1},
+{l:'Relación social sólo con familia y vecinos',p:2},
+{l:'Relación social sólo con familia o sólo con vecinos',p:3},
+{l:'No sale del domicilio, recibe visitas (&gt;1/semana)',p:4},
+{l:'No sale del domicilio y no recibe visitas (&lt;1/semana)',p:5}]},
+{q:'Apoyo de la red social',opts:[
+{l:'Con apoyo familiar o vecinal',p:1},
+{l:'Voluntariado social o ayuda a domicilio',p:2},
+{l:'No tiene apoyo',p:3},
+{l:'Pendiente de ingreso en residencia geriátrica',p:4},
+{l:'Tiene cuidados permanentes (institucionalizado)',p:5}]}
+],
+ranges:[
+{min:0,max:9,cls:'lo',label:'Buena situación sociofamiliar',info:'<div class="res-s">Situación social normal/aceptable. Sin riesgo social detectado.</div>'},
+{min:10,max:14,cls:'md',label:'Riesgo social',info:'<div class="res-s">Existe riesgo social. Conviene seguimiento y valoración por trabajo social.</div>'},
+{min:15,max:25,cls:'hi',label:'Problema social',info:'<div class="res-s">Problema/deterioro social establecido. Indicada intervención de trabajo social.</div>'}
+],
+ref:'García-González JV, et al. Escala de valoración sociofamiliar de Gijón. Aten Primaria. 1999;23(7):434-440 (versión abreviada/modificada de Barcelona).'
+});
+
 // === NEUTROPENIA FEBRIL ===
 const NF={s:1,bmr:'',foco:'',ar:[],mascc:{}};
 
@@ -4131,8 +4178,37 @@ function hpSecTitle(id){ const o=hpSecMap()[id]; return (o&&o.titulo)||GUIDES_TI
 function hpSecHidden(id){ const o=hpSecMap()[id]; return !!(o&&o.oculta); }
 
 // ── Capa de ELEMENTOS del menú (calculadoras): visibilidad y nombre por hospital, efectiva para TODOS ──
-window.hpApplyItems=function(map){ try{ ls.s('itemOverrides', map||{}); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
+window.hpApplyItems=function(map){ try{ ls.s('itemOverrides', map||{}); }catch(e){} try{ hpRebuildMenu(); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
 function hpItemMap(){ try{ return ls.g('itemOverrides')||{}; }catch(e){ return {}; } }
+// ── Estructura del menú: una calculadora puede MOVERSE a otra sección (override .seccion). ──
+function _hpItemHomeSec(id){ for(var i=0;i<MENU0.length;i++){ if(MENU0[i].items.find(function(it){return it.id===id;})) return MENU0[i].h; } return null; }
+function hpRebuildMenu(){ try{
+  const itMap=hpItemMap();
+  const secs=MENU0.map(function(s){return {h:s.h,o:s.o,items:[]};});
+  const byH={}; secs.forEach(function(s){byH[s.h]=s;});
+  const extra=[]; Object.keys(itMap).forEach(function(id){ var sc=itMap[id]&&itMap[id].seccion; if(sc&&!byH[sc]&&extra.indexOf(sc)<0) extra.push(sc); });
+  if(extra.length){ var aj=secs.findIndex(function(s){return s.h==='AJUSTES';}); var at=aj>=0?aj:secs.length; extra.forEach(function(sc,k){ var ns={h:sc,items:[],custom:true}; secs.splice(at+k,0,ns); byH[sc]=ns; }); }
+  MENU0.forEach(function(s0){ s0.items.forEach(function(it){ var sc=itMap[it.id]&&itMap[it.id].seccion; var eff=(sc&&byH[sc])?sc:s0.h; byH[eff].items.push(it); }); });
+  MENU.splice.apply(MENU,[0,MENU.length].concat(secs));
+}catch(e){} }
+function _hpSecOptions(curH){
+  const heads=[]; MENU.forEach(function(s){ if((s.h||'')!=='AJUSTES' && heads.indexOf(s.h)<0) heads.push(s.h); });
+  if(curH&&heads.indexOf(curH)<0) heads.push(curH);
+  return heads.map(function(h){return '<option value="'+_hpEsc(h)+'"'+(h===curH?' selected':'')+'>'+_hpEsc(h)+'</option>';}).join('')+'<option value="__new">➕ Nueva sección…</option>';
+}
+async function hpMoverItemSeccion(id,val){
+  let sec=val;
+  if(val==='__new'){ const n=prompt('Nombre de la nueva sección del menú (se crea al mover la calculadora aquí):'); if(n==null){ go('gsecciones'); return; } sec=(''+n).trim().toUpperCase(); if(!sec){ go('gsecciones'); return; } }
+  const orig=_hpItemHomeSec(id); const m=hpItemMap();
+  if(sec===orig){ if(m[id]){ delete m[id].seccion; if(!Object.keys(m[id]).length) delete m[id]; } }
+  else { m[id]=Object.assign({},m[id],{seccion:sec}); }
+  try{ls.s('itemOverrides',m);}catch(e){}
+  hpRebuildMenu();
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  go('gsecciones');
+  if(window.hpSaveItem){ try{ await window.hpSaveItem(id,{seccion:(sec===orig?'':sec)}); toast('✓ Movida · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
+  else toast('✓ Movida');
+}
 function hpItemHidden(id){ const o=hpItemMap()[id]; return !!(o&&o.oculta); }
 function hpItemName(id,def){ const o=hpItemMap()[id]; return (o&&o.nombre)||def; }
 function hpItemOculto(id){ if(!id) return false; if((''+id).indexOf('g_')===0) return hpSecHidden((''+id).slice(2)); return hpItemHidden(id); }
@@ -4241,6 +4317,7 @@ function _hpContenidoTema(sec){
       body+='<span style="flex:1;min-width:130px">'+_hpEsc(hpItemName(it.id,it.name))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</span>';
       body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarItem(\''+it.id+'\')">Renombrar</button>';
       body+='<button class="btn btn-out btn-sm" onclick="hpOcultarItem(\''+it.id+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
+      body+='<select style="font-size:12px;padding:4px 6px;border:1px solid var(--bd);border-radius:6px;background:var(--card,#fff);color:var(--txt,#222);max-width:170px" onchange="hpMoverItemSeccion(\''+it.id+'\',this.value)" title="Mover a otra sección">'+_hpSecOptions(sec.h)+'</select>';
     }
     body+='</div>';
   });
@@ -4250,7 +4327,7 @@ function _hpSecGuiaId(sec){ const gi=sec.items.find(function(it){return it.id&&i
 VIEWS.gsecciones=()=>{
   if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>Gestionar secciones</h2><div class="alert y">Este apartado solo está disponible para administradores.</div></div>';
   let h='<div class="card"><h2>🗂️ Secciones y su contenido</h2>';
-  h+='<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>mostrar/ocultar o renombrar</strong> sus calculadoras y el apartado de guías. Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>';
+  h+='<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>mostrar/ocultar, renombrar o mover a otra sección</strong> sus calculadoras. Para <strong>crear una sección de calculadoras</strong>, mueve una calculadora a «➕ Nueva sección…». Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>';
   h+='<button class="btn" style="margin-bottom:14px" onclick="hpCrearSeccion()">➕ Crear sección nueva</button>';
   // Temas del menú (categorías de fábrica), excepto Ajustes
   try{ _hpMenuCats().filter(function(e){return (e.sec.h||'')!=='AJUSTES';}).forEach(function(e,_ci,_arr){
@@ -6270,7 +6347,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 178;
+const HP_BUILD = 179;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11899,6 +11976,7 @@ return m;
 }
 };
 setTimeout(cleanELN,100);
+try{hpRebuildMenu();}catch(e){}
 renderMenu();
 (function deepLink(){   // atajos del icono PWA / enlaces #vista
   const h=(location.hash||'').replace(/^#/,'').trim();
