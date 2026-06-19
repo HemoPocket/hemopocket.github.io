@@ -6500,7 +6500,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 193;
+const HP_BUILD = 194;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12750,7 +12750,7 @@ const fs = getFirestore(fbApp);
 // ── Notificaciones push (FCM) para ADMINISTRADORES ──
 // Para activarlas: pega abajo la clave pública "Web Push certificates" (consola Firebase →
 // Configuración del proyecto → Cloud Messaging → Certificados push web → Generar par de claves).
-const HP_VAPID_KEY = ""; // ← PEGAR AQUÍ la clave VAPID pública
+const HP_VAPID_KEY = "BEKjLT-T3l6lqJh8oR0cb5Ej2XIZqcFgXvsoDNnbCVReanbhF5egQEMmAJ8qn5Jn6FOUO6VJsTkm-gaHD1NmXVI"; // clave pública Web Push (VAPID)
 let _hpMessaging = null;
 window.hpActivarPush = async function(){
   function tt(m){ if(window.toast) window.toast(m); }
