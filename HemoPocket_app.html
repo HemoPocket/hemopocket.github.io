@@ -5110,6 +5110,8 @@ return `<div class="card">
 };
 
 // === SOLICITUDES DE ACCESO (solo administrador) ===
+function _hpPushBtnHtml(){ var activo = !!(window.hpPushActivo && window.hpPushActivo()); if(activo) return '<button class="btn btn-out btn-sm" style="color:#c41e3a;border-color:#e3a3ab" onclick="if(window.hpDesactivarPush)hpDesactivarPush()">🔕 Desactivar en este dispositivo</button>'; return '<button class="btn btn-out btn-sm" onclick="if(window.hpActivarPush)hpActivarPush()">🔔 Activar en este dispositivo</button>'; }
+window.hpRefreshPushBtn=function(){ try{ var w=document.getElementById('hp-push-btn-wrap'); if(w) w.innerHTML=_hpPushBtnHtml(); }catch(e){} };
 VIEWS.solicitudes=()=>{
 if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
 return `<div class="card"><h2>Solicitudes de acceso</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
@@ -5117,7 +5119,7 @@ return `<div class="card"><h2>Solicitudes de acceso</h2><div class="alert y">Est
 return `<div class="card">
 <h2>Solicitudes de acceso</h2>
 <p class="intro">Cuentas registradas desde la app. Al <strong>aprobar</strong> una cuenta, el usuario podrá acceder con su correo y contraseña. Aquí queda el <strong>registro de aceptación</strong> de los términos.</p>
-<div class="alert b" style="margin-bottom:10px;font-size:13px">🔔 <strong>Notificaciones push</strong> de solicitudes y reportes. <button class="btn btn-out btn-sm" onclick="if(window.hpActivarPush)hpActivarPush()">Activar en este dispositivo</button><div style="font-size:11px;color:var(--mut);margin-top:4px">Actívalo en cada equipo donde quieras recibirlas. En iPhone, añade antes la app a la pantalla de inicio.</div></div>
+<div class="alert b" style="margin-bottom:10px;font-size:13px">🔔 <strong>Notificaciones push</strong> de solicitudes y reportes. <span id="hp-push-btn-wrap">${_hpPushBtnHtml()}</span><div style="font-size:11px;color:var(--mut);margin-top:4px">Actívalo en cada equipo donde quieras recibirlas. En iPhone, añade antes la app a la pantalla de inicio.</div></div>
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-out btn-sm" onclick="hpRenderSolicitudes()">↻ Actualizar</button></div>
 <div id="sol_list">Cargando…</div></div>`;
 };
@@ -6500,7 +6502,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 194;
+const HP_BUILD = 195;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12729,7 +12731,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-import { getMessaging, getToken, isSupported } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
+import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
@@ -12770,9 +12772,24 @@ window.hpActivarPush = async function(){
     const uid = (auth.currentUser && auth.currentUser.uid) || null;
     if(!uid){ tt('Inicia sesión primero'); return false; }
     await setDoc(doc(fs,'pushTokens',uid), { token: token, email: (auth.currentUser && auth.currentUser.email) || null, actualizado: serverTimestamp(), agente: (navigator.userAgent || '').slice(0,300) }, { merge:true });
+    try{ localStorage.setItem('hpPushOn','1'); }catch(e){}
     tt('🔔 Notificaciones activadas en este dispositivo');
+    if(window.hpRefreshPushBtn) window.hpRefreshPushBtn();
     return true;
   }catch(e){ tt('No se pudieron activar las notificaciones'); return false; }
+};
+window.hpPushActivo = function(){ try{ return localStorage.getItem('hpPushOn')==='1' && ('Notification' in window) && Notification.permission==='granted'; }catch(e){ return false; } };
+window.hpDesactivarPush = async function(){
+  function tt(m){ if(window.toast) window.toast(m); }
+  try{
+    const uid = (auth.currentUser && auth.currentUser.uid) || null;
+    if(uid){ try{ await deleteDoc(doc(fs,'pushTokens',uid)); }catch(e){} }
+    try{ if(_hpMessaging) await deleteToken(_hpMessaging); }catch(e){}
+    try{ localStorage.removeItem('hpPushOn'); }catch(e){}
+    tt('🔕 Notificaciones desactivadas en este dispositivo');
+    if(window.hpRefreshPushBtn) window.hpRefreshPushBtn();
+    return true;
+  }catch(e){ tt('No se pudieron desactivar las notificaciones'); return false; }
 };
 
 // ── Almacenamiento de PDF en GitHub ──
