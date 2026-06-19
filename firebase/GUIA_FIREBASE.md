@@ -54,29 +54,39 @@ usando su **UID** (lo copias de *Authentication → Users*). Campos:
 | `cart` | Terapia celular | `ped` | Hematología pediátrica |
 | `cito` | Citopenias | `leuc_ag` | Leucemias agudas |
 
-### Área especial: edición de los asistentes
+### Áreas especiales: edición de los asistentes
 
-Además de las secciones de guías existe un área especial **`asistentes`** que
-habilita la edición de los **asistentes de Quimioterapia, Redacción y Recetas**
-(esquemas de QT, diccionario/plantilla de analíticas y diccionario de recetas).
-No es una sección de guías: es un permiso aparte que se guarda en el mismo array
-`sections`.
+Además de las secciones de guías existen **dos áreas independientes** para editar
+los asistentes (no son secciones de guías; se guardan en el mismo array `sections`):
 
-**Forma recomendada (desde la app):** en *Gestión de cuentas*, pon a la persona
-como **Editor** y marca la casilla **«✏️ Editar asistentes»**. La app escribe el
-documento de rol por ti.
+- **`asist_red`** → editar el **Redactor de analíticas y recetas** (diccionario/plantilla
+  de analíticas y diccionario de recetas).
+- **`asist_qt`** → editar el **Asistente de quimioterapia** (esquemas de QT).
 
-**Forma manual (en Firestore → `roles/{UID}`),** añadiendo `asistentes` al array
-`sections`. Tres ejemplos:
+Se asignan por separado: una persona puede tener una, la otra o ambas.
 
-- **Editor solo de asistentes** (no toca guías):
+**Forma recomendada (desde la app):** en *Gestión de cuentas*, pon a la persona como
+**Editor** y marca las casillas que correspondan: **«✏️ Redactor de analíticas y
+recetas»** y/o **«✏️ Asistente de quimioterapia»**. La app escribe el rol por ti.
+
+**Forma manual (en Firestore → `roles/{UID}`),** añadiendo las claves al array
+`sections`. Ejemplos:
+
+- **Editor solo del redactor** (analíticas + recetas):
   - `role` (string) = `editor`
-  - `sections` (array) = `asistentes`
-- **Editor de Banco de Sangre que además mantiene los asistentes:**
+  - `sections` (array) = `asist_red`
+- **Editor solo de quimioterapia:**
   - `role` (string) = `editor`
-  - `sections` (array) = `bs`, `asistentes`
+  - `sections` (array) = `asist_qt`
+- **Editor de Banco de Sangre que además mantiene quimioterapia:**
+  - `role` (string) = `editor`
+  - `sections` (array) = `bs`, `asist_qt`
 - **Administrador** (no necesita nada especial, ya edita todo):
   - `role` (string) = `admin`
+
+> Compatibilidad: la clave antigua `asistentes` (que daba acceso a todo) sigue
+> funcionando; al volver a guardar ese perfil desde la app se reparte en `asist_red`
+> y `asist_qt`.
 
 > ⚠️ Recuerda **publicar `firestore.rules`** (*Firestore → Reglas → Publicar*) para
 > que estos editores puedan guardar «para todos»; si no, sus cambios se quedan solo

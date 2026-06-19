@@ -159,7 +159,7 @@ service cloud.firestore {
       allow read:   if isApproved();
       // 'orden' sigue siendo solo-admin; 'redaccion' y 'recetas' (asistentes) los pueden editar
       // también los editores del área 'asistentes'.
-      allow write:  if isAdmin() || ((id == 'redaccion' || id == 'recetas') && canEdit('asistentes'));
+      allow write:  if isAdmin() || ((id == 'redaccion' || id == 'recetas') && (canEdit('asist_red') || canEdit('asistentes')));
     }
 
     // ── Check list de ingreso (estructura editable) ──
@@ -173,7 +173,7 @@ service cloud.firestore {
     // Editable SOLO por administradores; efectivo para todos.
     match /qtschemes/{id} {
       allow read:   if isApproved();
-      allow write:  if isAdmin() || canEdit('asistentes');
+      allow write:  if isAdmin() || canEdit('asist_qt') || canEdit('asistentes');
     }
 
     // ── Algoritmos interactivos, por sección ──

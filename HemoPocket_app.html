@@ -1039,7 +1039,8 @@ function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MEN
 function hpPageSection(id){ return _hpPageSecMap()[id]||null; }
 function hpCanEditPage(id){ if(!hpPageEditable(id)) return false; const sec=hpPageSection(id); if(sec) return !!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec)); return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
 // ¿Puede editar los ASISTENTES (quimio, redacción, recetas)? Admin o editor del área 'asistentes'.
-function hpCanEditAsist(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&window.HemoCloud.canEdit('asistentes')))); }
+function hpCanEditRed(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&(window.HemoCloud.canEdit('asist_red')||window.HemoCloud.canEdit('asistentes'))))); }
+function hpCanEditQt(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&(window.HemoCloud.canEdit('asist_qt')||window.HemoCloud.canEdit('asistentes'))))); }
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
 function hpPageWrap(id, base){
@@ -4963,7 +4964,9 @@ function hpRoleSelector(uid, roleInfo, credName){
   s+='<div style="font-size:12px;color:var(--mut,#666);margin-bottom:4px">Secciones cuyas guías PDF podrá subir/bajar:</div>';
   s+='<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600;margin-bottom:3px"><input type="checkbox" id="secall_'+uid+'" onchange="hpSecToggleAll(\''+uid+'\')"'+(allOn?' checked':'')+'> Todas las secciones</label>';
   s+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 10px">'+hpSecChecks(uid,secs)+'</div>';
-  s+='<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd,#e2e2e2)"><input type="checkbox" id="asist_'+uid+'"'+(secs.indexOf('asistentes')!==-1?' checked':'')+'> ✏️ <strong>Editar asistentes</strong> (quimioterapia, redacción y recetas)</label>';
+  s+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd,#e2e2e2)"><div style="font-size:12px;color:var(--mut,#666);margin-bottom:4px">Editar asistentes (independiente; marca solo lo que corresponda):</div>';
+  s+='<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer;margin-bottom:3px"><input type="checkbox" id="asistred_'+uid+'"'+((secs.indexOf('asist_red')!==-1||secs.indexOf('asistentes')!==-1)?' checked':'')+'> ✏️ Redactor de <strong>analíticas y recetas</strong></label>';
+  s+='<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="asistqt_'+uid+'"'+((secs.indexOf('asist_qt')!==-1||secs.indexOf('asistentes')!==-1)?' checked':'')+'> ✏️ Asistente de <strong>quimioterapia</strong></label></div>';
   s+='<div style="margin-top:8px"><label style="font-size:12px;color:var(--mut,#666);display:block;margin-bottom:3px">Nombre para créditos (figurará como colaborador en el Aviso Legal)</label><input id="cred_'+uid+'" type="text" value="'+(credName?String(credName).replace(/"/g,'&quot;'):'')+'" placeholder="Ej: Dra. Nombre Apellido" style="width:100%;padding:6px 8px;border:1px solid var(--bd,#ccc);border-radius:6px;font-size:12.5px;background:var(--card,#fff);color:var(--txt,#222)"></div>';
   s+='</div></div>';
   return s;
@@ -4975,7 +4978,8 @@ function hpSecChecks(uid, checked){
 function hpReadSecs(uid){
   const box=document.getElementById('secs_'+uid); if(!box) return [];
   const out=Array.from(box.querySelectorAll('input[type=checkbox][value]:checked')).map(function(x){return x.value;});
-  const a=document.getElementById('asist_'+uid); if(a&&a.checked) out.push('asistentes');
+  const ar=document.getElementById('asistred_'+uid); if(ar&&ar.checked) out.push('asist_red');
+  const aq=document.getElementById('asistqt_'+uid); if(aq&&aq.checked) out.push('asist_qt');
   return out;
 }
 function hpReadCred(uid){ const el=document.getElementById('cred_'+uid); return el?el.value.trim():''; }
@@ -6266,8 +6270,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 177;
-const APP_BUILD = '2026.06.18 (build ' + HP_BUILD + ')';
+const HP_BUILD = 178;
+const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -7659,10 +7663,10 @@ function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {};
 function qtSchemes(){ return Object.assign({}, QT_SCHEMES, qtOverride()); }
 window.hpApplyQt=function(map){ try{ ls.s('qtOverride', map||{}); }catch(e){} try{ if(typeof S!=='undefined' && S && S.view==='qt' && typeof go==='function') go('qt'); }catch(e){} };
 let _qtDraft=null;
-function qtEditSel(){ if(!hpCanEditAsist()){toast('Sin permiso para editar');return;} const sel=$('qt_scheme'); const key=sel?sel.value:''; if(!key){ toast('Elige primero un esquema'); return; } const sc=qtSchemes()[key]; if(!sc){ toast('Esquema no encontrado'); return; } _qtDraft=Object.assign({key:key,_isCustom:!QT_SCHEMES[key]}, JSON.parse(JSON.stringify(sc))); go('qtedit'); }
-function qtNuevo(){ if(!hpCanEditAsist()){toast('Sin permiso para editar');return;} _qtDraft={key:'',_isNew:true,_isCustom:true,label:'',drugs:[{name:'',dose:'',route:'IV',days:[1]}],premed:[],notes:[]}; go('qtedit'); }
+function qtEditSel(){ if(!hpCanEditQt()){toast('Sin permiso para editar');return;} const sel=$('qt_scheme'); const key=sel?sel.value:''; if(!key){ toast('Elige primero un esquema'); return; } const sc=qtSchemes()[key]; if(!sc){ toast('Esquema no encontrado'); return; } _qtDraft=Object.assign({key:key,_isCustom:!QT_SCHEMES[key]}, JSON.parse(JSON.stringify(sc))); go('qtedit'); }
+function qtNuevo(){ if(!hpCanEditQt()){toast('Sin permiso para editar');return;} _qtDraft={key:'',_isNew:true,_isCustom:true,label:'',drugs:[{name:'',dose:'',route:'IV',days:[1]}],premed:[],notes:[]}; go('qtedit'); }
 VIEWS.qtedit=()=>{
-  if(!hpCanEditAsist()) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
+  if(!hpCanEditQt()) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
   const d=_qtDraft; if(!d) return '<div class="card"><h2>Editar esquema</h2><div class="alert y">Nada que editar.</div></div>';
   let h='<div class="card"><h2>💊 Editar esquema de quimioterapia</h2>';
   h+='<p class="intro">Define los fármacos (dosis, vía y días). El calendario con fechas lo calcula la app. Es <strong>efectivo para todos</strong>.</p>';
@@ -7718,7 +7722,7 @@ return `<div class="card">
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
 </select></div>
-${hpCanEditAsist()?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button></div>':''}
+${hpCanEditQt()?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button></div>':''}
 <div class="row2">
 <div class="fld"><label class="lbl">Fecha día +1</label>
 <input type="date" id="qt_d1" value="${todayVal}" oninput="qtCalc()" style="font-family:inherit"></div>
@@ -11036,9 +11040,9 @@ function lcCatLabel(){ return Object.assign({}, CAT_LABEL, (lcOverride().catLabe
 function lcCatOrder(){ const ov=lcOverride(); let order=(Array.isArray(ov.catOrder)&&ov.catOrder.length)?ov.catOrder.slice():CAT_ORDER.slice(); CAT_ORDER.forEach(function(c){ if(order.indexOf(c)<0) order.push(c); }); (ov.custom||[]).forEach(function(p){ const c=p&&p.c; if(c&&order.indexOf(c)<0) order.push(c); }); return order; }
 window.hpApplyLc=function(o){ try{ ls.s('lcOverride', o||{}); }catch(e){} };
 let _lcDraft=null;
-function lcEditOpen(){ if(!hpCanEditAsist()){ toast('Sin permiso para editar'); return; } const ov=lcOverride(); _lcDraft={ syn:Object.assign({},ov.syn||{}), custom:JSON.parse(JSON.stringify(ov.custom||[])), catLabel:lcCatLabel(), catOrder:lcCatOrder(), hidden:Object.assign({},ov.hidden||{}), fmt:Object.assign({sep:'coma',date:true}, ov.fmt||{}) }; go('lcedit'); }
+function lcEditOpen(){ if(!hpCanEditRed()){ toast('Sin permiso para editar'); return; } const ov=lcOverride(); _lcDraft={ syn:Object.assign({},ov.syn||{}), custom:JSON.parse(JSON.stringify(ov.custom||[])), catLabel:lcCatLabel(), catOrder:lcCatOrder(), hidden:Object.assign({},ov.hidden||{}), fmt:Object.assign({sep:'coma',date:true}, ov.fmt||{}) }; go('lcedit'); }
 VIEWS.lcedit=()=>{
-  if(!hpCanEditAsist()) return '<div class="card"><h2>Editar asistente</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
+  if(!hpCanEditRed()) return '<div class="card"><h2>Editar asistente</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
   const d=_lcDraft; if(!d) return '<div class="card"><h2>Editar asistente</h2><div class="alert y">Nada que editar.</div></div>';
   let h='<div class="card"><h2>📝 Editar el asistente de redacción</h2>';
   h+='<p class="intro"><strong>Oculta</strong> los parámetros que no uses, añade <strong>sinónimos</strong> para que reconozca la nomenclatura de tu laboratorio, crea <strong>parámetros nuevos</strong> y ajusta el <strong>orden y los nombres</strong> de las secciones del informe. Efectivo para todos. (El reconocimiento del texto pegado sigue siendo automático.)</p>';
@@ -11379,7 +11383,7 @@ return `<div class="card">
 <textarea id="lc_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px"></textarea></div>
 <div id="lc_guard" style="margin-top:6px"></div>
 <div class="btns"><button class="btn btn-g" onclick="copyLabConv()">📋 Copiar resultado</button></div>
-${hpCanEditAsist()?'<div class="btns" style="margin-top:6px"><button id="lc_edit_lab" class="btn btn-out btn-sm" onclick="lcEditOpen()">✏️ Editar diccionario y plantilla</button><button id="lc_edit_rx" class="btn btn-out btn-sm" style="display:none" onclick="rxEditOpen()">✏️ Editar diccionario de recetas</button></div>':''}
+${hpCanEditRed()?'<div class="btns" style="margin-top:6px"><button id="lc_edit_lab" class="btn btn-out btn-sm" onclick="lcEditOpen()">✏️ Editar diccionario y plantilla</button><button id="lc_edit_rx" class="btn btn-out btn-sm" style="display:none" onclick="rxEditOpen()">✏️ Editar diccionario de recetas</button></div>':''}
 
 <div class="coll" style="margin-top:10px">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>⚙️ Formato de salida (tu preferencia)</span><span class="ar">▶</span></div>
@@ -11399,9 +11403,9 @@ VIEWS.labconv_post=()=>setLCmode('lab');
 
 // ── Editor del DICCIONARIO de recetas (correcciones de nombre + abreviaturas) ──
 let _rxDraft=null;
-function rxEditOpen(){ if(!hpCanEditAsist()){ toast('Sin permiso para editar'); return; } const ov=rxOverride(); _rxDraft={ rename:JSON.parse(JSON.stringify(ov.rename||[])), abbr:JSON.parse(JSON.stringify(ov.abbr||[])) }; go('rxedit'); }
+function rxEditOpen(){ if(!hpCanEditRed()){ toast('Sin permiso para editar'); return; } const ov=rxOverride(); _rxDraft={ rename:JSON.parse(JSON.stringify(ov.rename||[])), abbr:JSON.parse(JSON.stringify(ov.abbr||[])) }; go('rxedit'); }
 VIEWS.rxedit=()=>{
-  if(!hpCanEditAsist()) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">No tienes permiso para editar este asistente.</div></div>';
+  if(!hpCanEditRed()) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">No tienes permiso para editar este asistente.</div></div>';
   const d=_rxDraft; if(!d) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">Nada que editar.</div></div>';
   const row=(list,p,i)=>'<div style=\"display:flex;gap:4px;align-items:center;margin-bottom:4px\"><input style=\"flex:1;min-width:90px\" value=\"'+_hpEsc(p.from||'')+'\" onchange=\"rxField(\''+list+'\','+i+',\'from\',this.value)\" placeholder=\"'+(list==='abbr'?'abreviatura':'lo que aparece')+'\"><span>→</span><input style=\"flex:1;min-width:90px\" value=\"'+_hpEsc(p.to||'')+'\" onchange=\"rxField(\''+list+'\','+i+',\'to\',this.value)\" placeholder=\"'+(list==='abbr'?'texto completo':'cómo debe quedar')+'\"><button class=\"btn btn-out btn-sm\" style=\"color:#c41e3a\" onclick=\"rxDel(\''+list+'\','+i+')\">×</button></div>';
   let h='<div class=\"card\"><h2>💊 Editar el diccionario de recetas</h2>';
