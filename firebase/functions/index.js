@@ -53,13 +53,20 @@ async function pushAAdmins(title, body, url) {
     for (const uid of uids) {
       try {
         const t = await db.collection('pushTokens').doc(uid).get();
-        const tok = t.exists && t.data() && t.data().token;
-        if (tok) tokens.push(tok);
+        if (!t.exists) continue;
+        const data = t.data() || {};
+        if (data.enabled === false) continue;            // cuenta desactivada
+        if (data.tokens && typeof data.tokens === 'object') {
+          Object.keys(data.tokens).forEach((tok) => { if (tok) tokens.push(tok); });
+        } else if (data.token) {
+          tokens.push(data.token);                       // compat. modelo antiguo
+        }
       } catch (e) {}
     }
-    if (!tokens.length) { logger.info('Push a admins: sin tokens registrados'); return; }
+    const uniq = Array.from(new Set(tokens));
+    if (!uniq.length) { logger.info('Push a admins: sin tokens registrados'); return; }
     const res = await admin.messaging().sendEachForMulticast({
-      tokens,
+      tokens: uniq,
       notification: { title, body },
       webpush: { fcmOptions: { link: url || '/' }, notification: { icon: '/icono-192.png' } },
     });

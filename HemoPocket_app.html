@@ -976,7 +976,8 @@ if(it.sub){inSub=true;h+=`<div class="menu-sub">${it.name}</div>`;return}
 const isFav=S.favs.includes(it.id);
 const isNew=it.new && isRecentlyNew(it.new);
 const repBadge=(it.id==='reportes'&&window._hpRepNew)?`<span class="tag-new" style="background:#c41e3a" title="reportes sin resolver">${window._hpRepNew}</span>`:'';
-h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${_hpEsc(hpItemName(it.id,it.name))}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
+const solBadge=(it.id==='solicitudes'&&window._hpSolNew)?`<span class="tag-new" style="background:#c41e3a" title="solicitudes pendientes">${window._hpSolNew}</span>`:'';
+h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${_hpEsc(hpItemName(it.id,it.name))}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}${solBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
 });
 h+='</div></div>';
 });
@@ -5110,7 +5111,7 @@ return `<div class="card">
 };
 
 // === SOLICITUDES DE ACCESO (solo administrador) ===
-function _hpPushBtnHtml(){ var activo = !!(window.hpPushActivo && window.hpPushActivo()); if(activo) return '<button class="btn btn-out btn-sm" style="color:#c41e3a;border-color:#e3a3ab" onclick="if(window.hpDesactivarPush)hpDesactivarPush()">🔕 Desactivar en este dispositivo</button>'; return '<button class="btn btn-out btn-sm" onclick="if(window.hpActivarPush)hpActivarPush()">🔔 Activar en este dispositivo</button>'; }
+function _hpPushBtnHtml(){ var on = !!(window.hpPushActivo && window.hpPushActivo()); var aqui = !!(window.hpPushEsteDispositivo && window.hpPushEsteDispositivo()); var off='<button class="btn btn-out btn-sm" style="color:#c41e3a;border-color:#e3a3ab" onclick="if(window.hpDesactivarPush)hpDesactivarPush()">🔕 Desactivar (toda la cuenta)</button>'; if(!on) return '<button class="btn btn-out btn-sm" onclick="if(window.hpActivarPush)hpActivarPush()">🔔 Activar notificaciones</button>'; if(aqui) return off; return '<button class="btn btn-out btn-sm" onclick="if(window.hpRegistrarEsteDispositivo)hpRegistrarEsteDispositivo()">🔔 Recibir también en este equipo</button> '+off; }
 window.hpRefreshPushBtn=function(){ try{ var w=document.getElementById('hp-push-btn-wrap'); if(w) w.innerHTML=_hpPushBtnHtml(); }catch(e){} };
 VIEWS.solicitudes=()=>{
 if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
@@ -5262,7 +5263,7 @@ Object.keys(usuarios).forEach(uid=>{
   else { byUid[uid]=Object.assign({uid:uid,origen:'manual'},usuarios[uid]); }
 });
 const all=Object.values(byUid);
-const pend=all.filter(c=>c.estado==='pendiente');
+const pend=all.filter(c=>c.estado==='pendiente'); window._hpSolNew=pend.length; if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
 const rech=all.filter(c=>c.estado==='rechazada');
 const activos=all.filter(c=>c.estado!=='pendiente'&&c.estado!=='rechazada').sort((a,b)=>((a.email||'')<(b.email||'')?-1:1));
 let h='<h3>Pendientes ('+pend.length+')</h3>';
@@ -5541,7 +5542,7 @@ if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();};
+window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpLoadPushState)window.hpLoadPushState();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
 window.hpUpdateRepBadge=async function(){
   try{
@@ -5549,6 +5550,16 @@ window.hpUpdateRepBadge=async function(){
     if(!navigator.onLine||!window.hpListReportes)return;
     const list=await window.hpListReportes();
     window._hpRepNew=list.filter(r=>r.estado!=='resuelto').length;
+    if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  }catch(e){}
+};
+// Cuenta las solicitudes de acceso PENDIENTES y muestra el número junto a «Solicitudes de acceso».
+window.hpUpdateSolBadge=async function(){
+  try{
+    if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){window._hpSolNew=0;return;}
+    if(!navigator.onLine||!window.hpListCuentas)return;
+    const list=await window.hpListCuentas();
+    window._hpSolNew=list.filter(c=>c&&c.estado==='pendiente').length;
     if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
   }catch(e){}
 };
@@ -6502,7 +6513,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 195;
+const HP_BUILD = 196;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12754,42 +12765,87 @@ const fs = getFirestore(fbApp);
 // Configuración del proyecto → Cloud Messaging → Certificados push web → Generar par de claves).
 const HP_VAPID_KEY = "BEKjLT-T3l6lqJh8oR0cb5Ej2XIZqcFgXvsoDNnbCVReanbhF5egQEMmAJ8qn5Jn6FOUO6VJsTkm-gaHD1NmXVI"; // clave pública Web Push (VAPID)
 let _hpMessaging = null;
-window.hpActivarPush = async function(){
-  function tt(m){ if(window.toast) window.toast(m); }
+window._hpPushEnabled = false; // estado de la CUENTA (cargado de Firestore)
+// Token FCM de ESTE dispositivo (requiere permiso del navegador, una vez por equipo).
+async function _hpPushToken(){
   try{
-    if(!HP_VAPID_KEY){ tt('Falta configurar la clave VAPID (ver instrucciones)'); return false; }
-    if(!(await isSupported())){ tt('Este navegador no admite notificaciones push'); return false; }
-    if(!('Notification' in window)){ tt('Notificaciones no disponibles en este dispositivo'); return false; }
-    let perm = Notification.permission;
-    if(perm === 'default') perm = await Notification.requestPermission();
-    if(perm !== 'granted'){ tt('Permiso de notificaciones denegado'); return false; }
+    if(!HP_VAPID_KEY || !('Notification' in window)) return null;
+    if(Notification.permission !== 'granted') return null;
+    if(!(await isSupported())) return null;
     if(!_hpMessaging) _hpMessaging = getMessaging(fbApp);
     let reg = null;
     try{ reg = (await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')) || (await navigator.serviceWorker.register('/firebase-messaging-sw.js')); }catch(e){}
     const opts = reg ? { vapidKey: HP_VAPID_KEY, serviceWorkerRegistration: reg } : { vapidKey: HP_VAPID_KEY };
-    const token = await getToken(_hpMessaging, opts);
-    if(!token){ tt('No se pudo obtener el token de notificaciones'); return false; }
-    const uid = (auth.currentUser && auth.currentUser.uid) || null;
-    if(!uid){ tt('Inicia sesión primero'); return false; }
-    await setDoc(doc(fs,'pushTokens',uid), { token: token, email: (auth.currentUser && auth.currentUser.email) || null, actualizado: serverTimestamp(), agente: (navigator.userAgent || '').slice(0,300) }, { merge:true });
-    try{ localStorage.setItem('hpPushOn','1'); }catch(e){}
-    tt('🔔 Notificaciones activadas en este dispositivo');
+    return await getToken(_hpMessaging, opts);
+  }catch(e){ return null; }
+}
+// Registra el token de este dispositivo en la cuenta (mapa de tokens). enable=true enciende la cuenta.
+async function _hpPushRegistrar(enable){
+  const uid = (auth.currentUser && auth.currentUser.uid) || null;
+  if(!uid) return false;
+  const token = await _hpPushToken();
+  if(!token) return false;
+  const data = { tokens: { [token]: Date.now() }, email: (auth.currentUser && auth.currentUser.email) || null, actualizado: serverTimestamp() };
+  if(enable) data.enabled = true;
+  await setDoc(doc(fs,'pushTokens',uid), data, { merge:true });
+  return true;
+}
+window.hpPushEsteDispositivo = function(){ try{ return ('Notification' in window) && Notification.permission==='granted'; }catch(e){ return false; } };
+window.hpPushActivo = function(){ return !!window._hpPushEnabled; };
+// Activar para la CUENTA (y registrar este dispositivo).
+window.hpActivarPush = async function(){
+  function tt(m){ if(window.toast) window.toast(m); }
+  try{
+    if(!HP_VAPID_KEY){ tt('Falta configurar la clave VAPID'); return false; }
+    if(!('Notification' in window) || !(await isSupported())){ tt('Este dispositivo no admite notificaciones push'); return false; }
+    let perm = Notification.permission;
+    if(perm === 'default') perm = await Notification.requestPermission();
+    if(perm !== 'granted'){ tt('Permiso de notificaciones denegado'); return false; }
+    if(!(await _hpPushRegistrar(true))){ tt('No se pudo activar (token)'); return false; }
+    window._hpPushEnabled = true;
+    tt('🔔 Notificaciones activadas para tu cuenta');
     if(window.hpRefreshPushBtn) window.hpRefreshPushBtn();
     return true;
   }catch(e){ tt('No se pudieron activar las notificaciones'); return false; }
 };
-window.hpPushActivo = function(){ try{ return localStorage.getItem('hpPushOn')==='1' && ('Notification' in window) && Notification.permission==='granted'; }catch(e){ return false; } };
+// Sumar también ESTE dispositivo (la cuenta ya está activada).
+window.hpRegistrarEsteDispositivo = async function(){
+  function tt(m){ if(window.toast) window.toast(m); }
+  try{
+    if(!('Notification' in window) || !(await isSupported())){ tt('Este dispositivo no admite notificaciones push'); return false; }
+    let perm = Notification.permission;
+    if(perm === 'default') perm = await Notification.requestPermission();
+    if(perm !== 'granted'){ tt('Permiso de notificaciones denegado'); return false; }
+    if(!(await _hpPushRegistrar(false))){ tt('No se pudo registrar este dispositivo'); return false; }
+    tt('🔔 Este dispositivo recibirá notificaciones');
+    if(window.hpRefreshPushBtn) window.hpRefreshPushBtn();
+    return true;
+  }catch(e){ tt('No se pudo registrar'); return false; }
+};
+// Desactivar para TODA la cuenta (todos los dispositivos dejan de recibir).
 window.hpDesactivarPush = async function(){
   function tt(m){ if(window.toast) window.toast(m); }
   try{
     const uid = (auth.currentUser && auth.currentUser.uid) || null;
-    if(uid){ try{ await deleteDoc(doc(fs,'pushTokens',uid)); }catch(e){} }
+    if(uid){ try{ await setDoc(doc(fs,'pushTokens',uid), { enabled:false, tokens:{} }, { merge:true }); }catch(e){} }
     try{ if(_hpMessaging) await deleteToken(_hpMessaging); }catch(e){}
-    try{ localStorage.removeItem('hpPushOn'); }catch(e){}
-    tt('🔕 Notificaciones desactivadas en este dispositivo');
+    window._hpPushEnabled = false;
+    tt('🔕 Notificaciones desactivadas para tu cuenta');
     if(window.hpRefreshPushBtn) window.hpRefreshPushBtn();
     return true;
   }catch(e){ tt('No se pudieron desactivar las notificaciones'); return false; }
+};
+// Carga el estado de la cuenta y, si está activada, auto-registra este dispositivo (si tiene permiso).
+window.hpLoadPushState = async function(){
+  try{
+    const uid = (auth.currentUser && auth.currentUser.uid) || null;
+    if(!uid){ window._hpPushEnabled = false; return; }
+    const s = await getDoc(doc(fs,'pushTokens',uid));
+    const data = s.exists() ? (s.data()||{}) : {};
+    window._hpPushEnabled = (data.enabled === true);
+    if(window._hpPushEnabled && window.hpPushEsteDispositivo()){ try{ await _hpPushRegistrar(false); }catch(e){} }
+    if(window.hpRefreshPushBtn) window.hpRefreshPushBtn();
+  }catch(e){}
 };
 
 // ── Almacenamiento de PDF en GitHub ──
