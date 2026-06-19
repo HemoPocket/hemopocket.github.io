@@ -818,7 +818,7 @@ const MENU=[
 {id:'barthel',name:'Barthel (ABVD)',kw:'barthel abvd avd actividades basicas vida diaria adl independencia dependencia funcional cribado cga'},
 {id:'lawton',name:'Lawton-Brody (AIVD)',kw:'lawton brody aivd iadl actividades instrumentales vida diaria funcional cribado cga'},
 {sub:true,name:'② Específicas por patología'},
-{id:'imwg',name:'IMWG Frailty (MM)',kw:'imwg frailty mieloma multiple fragilidad fit frail intermediate fitness valoracion'},
+{id:'imwgfr',name:'IMWG Frailty (MM)',kw:'imwg imwgfr frailty mieloma multiple fragilidad fit frail intermediate fitness valoracion'},
 {id:'sga',name:'sGA — linfoma (DLBCL)',kw:'sga simplified geriatric assessment linfoma dlbcl fil elderly fit unfit frail valoracion'},
 {id:'cirsg',name:'CIRS-G (LLC)',kw:'cirsg cumulative illness rating scale geriatric comorbilidad llc cll go go fcr valoracion'},
 {id:'cfs',name:'Clinical Frailty Scale (LMA)',kw:'cfs clinical frailty scale rockwood fragilidad lma leucemia venetoclax fit frail valoracion'},
@@ -3776,8 +3776,8 @@ ranges:[
 ref:'Lawton MP, Brody EM. Gerontologist. 1969;9(3):179-186.'
 });
 
-VIEWS.imwg=()=>pointCalc({
-id:'imwg',title:'IMWG Frailty Score (mieloma)',
+VIEWS.imwgfr=()=>pointCalc({
+id:'imwgfr',title:'IMWG Frailty Score (mieloma)',
 intro:'Fragilidad en mieloma no candidato a trasplante. Suma edad + ADL (Katz) + IADL (Lawton) + comorbilidad (Charlson). Ajustar la intensidad según el resultado redujo la mortalidad precoz (ensayo FiTNEss).',
 items:[
 {q:'Edad',opts:[{l:'≤75 años',p:0},{l:'76–80 años',p:1},{l:'&gt;80 años',p:2}]},
@@ -6470,7 +6470,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 180;
+const HP_BUILD = 181;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
