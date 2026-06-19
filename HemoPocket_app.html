@@ -812,10 +812,19 @@ const MENU=[
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
 {h:'ESCALAS DE VALORACIÓN',items:[
+{sub:true,name:'① Cribado funcional (CGA) · primero'},
 {id:'ecog',name:'ECOG',kw:'ecog estado funcional performance valoracion escala'},
+{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico valoracion escala cribado cga'},
+{id:'barthel',name:'Barthel (ABVD)',kw:'barthel abvd avd actividades basicas vida diaria adl independencia dependencia funcional cribado cga'},
+{id:'lawton',name:'Lawton-Brody (AIVD)',kw:'lawton brody aivd iadl actividades instrumentales vida diaria funcional cribado cga'},
+{sub:true,name:'② Específicas por patología'},
+{id:'imwg',name:'IMWG Frailty (MM)',kw:'imwg frailty mieloma multiple fragilidad fit frail intermediate fitness valoracion'},
+{id:'sga',name:'sGA — linfoma (DLBCL)',kw:'sga simplified geriatric assessment linfoma dlbcl fil elderly fit unfit frail valoracion'},
+{id:'cirsg',name:'CIRS-G (LLC)',kw:'cirsg cumulative illness rating scale geriatric comorbilidad llc cll go go fcr valoracion'},
+{id:'cfs',name:'Clinical Frailty Scale (LMA)',kw:'cfs clinical frailty scale rockwood fragilidad lma leucemia venetoclax fit frail valoracion'},
+{sub:true,name:'③ Comorbilidad y social'},
 {id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad valoracion escala'},
-{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico valoracion escala cribado'},
-{id:'gijon',name:'Valoración Sociofamiliar de Gijón',kw:'gijon sociofamiliar social familiar anciano geriatrico valoracion escala riesgo social trabajo social barber',new:'2026-06-19'}
+{id:'tso',name:'Valoración Sociofamiliar (TSO)',kw:'tso gijon sociofamiliar social familiar anciano geriatrico valoracion escala riesgo social trabajo social alicante osona',new:'2026-06-19'}
 ]},
 {h:'INGRESO',items:[
 {id:'checklist',name:'Check list ingreso',kw:'checklist check list ingreso planta verificacion taspe trasplante neutropenia febril debut lma primer ingreso hla hidratacion mtx consentimientos cribados multirresistentes',new:'2026-06-04'}
@@ -3675,48 +3684,162 @@ ranges:[
 ref:'Bellera CA, et al. Screening older cancer patients: first evaluation of the G-8 geriatric screening tool. Ann Oncol. 2012;23(8):2166-2172.'
 });
 
-VIEWS.gijon=()=>pointCalc({
-id:'gijon',title:'Valoración Sociofamiliar de Gijón',
-intro:'Escala de valoración sociofamiliar (versión abreviada, modificada de Barcelona). Detecta riesgo o problemática social en el anciano. Marca una opción por apartado; a mayor puntuación, peor situación.',
+VIEWS.tso=()=>pointCalc({
+id:'tso',title:'Valoración Sociofamiliar (Escala TSO)',
+intro:'Escala TSO (Univ. de Alicante / Osona, 2020), actualización de la valoración sociofamiliar. Estima el riesgo social del anciano para coordinar con trabajo social — no valora la idoneidad terapéutica. Marca una opción por área; mayor puntuación = mayor riesgo.',
 items:[
-{q:'Situación familiar',opts:[
-{l:'Vive con familia, sin dependencia físico/psíquica',p:1},
-{l:'Vive con cónyuge de similar edad',p:2},
-{l:'Vive con familia y/o cónyuge con algún grado de dependencia',p:3},
-{l:'Vive solo y tiene hijos próximos',p:4},
-{l:'Vive solo y carece de hijos o viven alejados',p:5}]},
-{q:'Situación económica',opts:[
-{l:'Más de 1,5 veces el salario mínimo',p:1},
-{l:'Entre 1,5 veces y el salario mínimo',p:2},
-{l:'Desde el salario mínimo hasta la pensión mínima contributiva',p:3},
-{l:'Pensión no contributiva (LISMI/FAS)',p:4},
-{l:'Sin ingresos o inferiores a los anteriores',p:5}]},
-{q:'Vivienda',opts:[
-{l:'Adecuada a las necesidades',p:1},
-{l:'Barreras arquitectónicas (peldaños, puertas estrechas, baños…)',p:2},
-{l:'Humedades, mala higiene, equipamiento inadecuado',p:3},
-{l:'Ausencia de ascensor o teléfono',p:4},
-{l:'Vivienda inadecuada o sin equipamiento mínimo',p:5}]},
-{q:'Relaciones sociales',opts:[
-{l:'Relaciones sociales habituales',p:1},
-{l:'Relación social sólo con familia y vecinos',p:2},
-{l:'Relación social sólo con familia o sólo con vecinos',p:3},
-{l:'No sale del domicilio, recibe visitas (&gt;1/semana)',p:4},
-{l:'No sale del domicilio y no recibe visitas (&lt;1/semana)',p:5}]},
-{q:'Apoyo de la red social',opts:[
-{l:'Con apoyo familiar o vecinal',p:1},
-{l:'Voluntariado social o ayuda a domicilio',p:2},
-{l:'No tiene apoyo',p:3},
-{l:'Pendiente de ingreso en residencia geriátrica',p:4},
-{l:'Tiene cuidados permanentes (institucionalizado)',p:5}]}
+{q:'I1 · Estructura y función familiar',opts:[
+{l:'Vive en pareja y/o familia y hay hijos/as u otros familiares que ayudan',p:1},
+{l:'Vive en pareja y/o familia de edad similar, haya o no familiares que ayuden',p:2},
+{l:'Vive en pareja/familia con dificultades para cuidarlo/a (o que presta cuidados de larga duración); o vive solo/a con hijos/familiares que ayudan',p:3},
+{l:'Vive solo/a y los hijos/familiares tienen dificultades de capacidad, disponibilidad o disposición para cuidarlo/a',p:4},
+{l:'Vive solo/a con familia distante o sin familiares ni cuidadores/as; falta de cuidados',p:5}]},
+{q:'I2 · Contactos sociales',opts:[
+{l:'Periódicos (&gt;1/semana) fuera del domicilio y en redes amplias de contactos/actividades',p:1},
+{l:'Periódicos (&gt;1/semana) fuera del domicilio, derivados de actividades necesarias (compras, banco, médico…)',p:2},
+{l:'Periódicos (&gt;1/semana) sólo con la familia y/o ámbito de relación restringido',p:3},
+{l:'Puntuales (≤1/semana o irregulares), sólo en el domicilio con familia/ámbito restringido',p:4},
+{l:'Sin contactos sociales: no recibe visitas, no sale, aislamiento social',p:5}]},
+{q:'I3 · Ayuda necesitada y recibida (red formal/informal) en las AVD',opts:[
+{l:'No requiere ayuda',p:1},
+{l:'Requiere ayuda y la recibe de la red informal/formal, y es suficiente',p:2},
+{l:'Requiere ayuda y la recibe sobre todo de cuidador/a externo/a (privado/a), y es suficiente',p:3},
+{l:'Requiere ayuda y la recibe de la red informal/formal, pero es insuficiente',p:4},
+{l:'Requiere ayuda y no tiene apoyo de la red (formal/informal) o no se puede ejercer',p:5}]},
+{q:'I4 · Ingresos económicos',opts:[
+{l:'Más de 2 veces el IPREM',p:1},
+{l:'Entre 1,5 y 2 veces el IPREM',p:2},
+{l:'Entre 1 y 1,5 veces el IPREM',p:3},
+{l:'Igual o inferior a 1 vez el IPREM',p:4},
+{l:'Sin ingresos fijos',p:5}]},
+{q:'I5 · Vivienda',opts:[
+{l:'Adecuada: todos los suministros, equipamientos y adaptaciones necesarias',p:1},
+{l:'Inadecuada: barreras arquitectónicas externas y/o falta algún equipamiento',p:2},
+{l:'Inadecuada: barreras arquitectónicas internas en el domicilio',p:3},
+{l:'Inadecuada: falta ≥1 suministro y/o ≥2 equipamientos, u otras condiciones (humedades, falta de higiene…)',p:4},
+{l:'Inadecuada: ausencia de vivienda, infravivienda o pérdida inminente de la vivienda',p:5}]}
 ],
 ranges:[
-{min:0,max:9,cls:'lo',label:'Buena situación sociofamiliar',info:'<div class="res-s">Situación social normal/aceptable. Sin riesgo social detectado.</div>'},
-{min:10,max:14,cls:'md',label:'Riesgo social',info:'<div class="res-s">Existe riesgo social. Conviene seguimiento y valoración por trabajo social.</div>'},
-{min:15,max:25,cls:'hi',label:'Problema social',info:'<div class="res-s">Problema/deterioro social establecido. Indicada intervención de trabajo social.</div>'}
+{min:0,max:12,cls:'lo',label:'Ausencia de riesgo social',info:'<div class="res-s">≤12 puntos. Orientación preventiva/informativa.</div>'},
+{min:13,max:15,cls:'md',label:'Riesgo de problema social',info:'<div class="res-s">13–15 puntos. Minimizar el riesgo; seguimiento por trabajo social.</div>'},
+{min:16,max:25,cls:'hi',label:'Problema social',info:'<div class="res-s">&gt;15 puntos. Problema social establecido; intervención de trabajo social.</div>'}
 ],
-ref:'García-González JV, et al. Escala de valoración sociofamiliar de Gijón. Aten Primaria. 1999;23(7):434-440 (versión abreviada/modificada de Barcelona).'
+ref:'Giménez-Bertomeu VM, Guinovart-Garriga C, Rovira-Soler E, Viñas-Segalés N. La Escala de Valoración Sociofamiliar TSO. Universidad de Alicante; 2020.'
 });
+
+// ===== ESCALAS DE VALORACIÓN FUNCIONAL (CGA + por patología) =====
+VIEWS.barthel=()=>pointCalc({
+id:'barthel',title:'Índice de Barthel (ABVD)',
+intro:'Actividades básicas de la vida diaria. Cribado de dependencia funcional. Total 0–100; mayor = más independiente.',
+items:[
+{q:'Comer',opts:[{l:'Independiente',p:10},{l:'Necesita ayuda (cortar, untar…)',p:5},{l:'Dependiente',p:0}]},
+{q:'Lavarse / bañarse',opts:[{l:'Independiente',p:5},{l:'Dependiente',p:0}]},
+{q:'Vestirse',opts:[{l:'Independiente',p:10},{l:'Necesita ayuda',p:5},{l:'Dependiente',p:0}]},
+{q:'Arreglarse (aseo personal)',opts:[{l:'Independiente',p:5},{l:'Dependiente',p:0}]},
+{q:'Deposición',opts:[{l:'Continente',p:10},{l:'Accidente ocasional',p:5},{l:'Incontinente',p:0}]},
+{q:'Micción',opts:[{l:'Continente',p:10},{l:'Accidente ocasional',p:5},{l:'Incontinente / sondado',p:0}]},
+{q:'Usar el retrete',opts:[{l:'Independiente',p:10},{l:'Necesita ayuda',p:5},{l:'Dependiente',p:0}]},
+{q:'Trasladarse (cama ↔ sillón)',opts:[{l:'Independiente',p:15},{l:'Mínima ayuda',p:10},{l:'Gran ayuda',p:5},{l:'Dependiente',p:0}]},
+{q:'Deambular',opts:[{l:'Independiente (&gt;50 m)',p:15},{l:'Necesita ayuda',p:10},{l:'Independiente en silla de ruedas',p:5},{l:'Dependiente',p:0}]},
+{q:'Subir / bajar escaleras',opts:[{l:'Independiente',p:10},{l:'Necesita ayuda',p:5},{l:'Dependiente',p:0}]}
+],
+ranges:[
+{min:0,max:19,cls:'hi',label:'Dependencia total'},
+{min:20,max:39,cls:'hi',label:'Dependencia grave'},
+{min:40,max:59,cls:'md',label:'Dependencia moderada'},
+{min:60,max:99,cls:'md',label:'Dependencia leve'},
+{min:100,max:100,cls:'lo',label:'Independiente'}
+],
+ref:'Mahoney FI, Barthel DW. Md State Med J. 1965;14:61-65.'
+});
+
+VIEWS.lawton=()=>pointCalc({
+id:'lawton',title:'Escala de Lawton-Brody (AIVD)',
+intro:'Actividades instrumentales de la vida diaria. Total 0–8; mayor = más autónomo. (En varones clásicamente se omiten cocina, casa y lavado: 0–5.)',
+items:[
+{q:'Usar el teléfono',opts:[{l:'Sí, sin dificultad',p:1},{l:'No / con ayuda',p:0}]},
+{q:'Hacer compras',opts:[{l:'Independiente',p:1},{l:'No / con ayuda',p:0}]},
+{q:'Preparar la comida',opts:[{l:'Independiente',p:1},{l:'No / con ayuda',p:0}]},
+{q:'Cuidar la casa',opts:[{l:'Independiente (o tareas ligeras)',p:1},{l:'No',p:0}]},
+{q:'Lavar la ropa',opts:[{l:'Independiente',p:1},{l:'No',p:0}]},
+{q:'Usar transportes',opts:[{l:'Independiente',p:1},{l:'No / con ayuda',p:0}]},
+{q:'Manejar la medicación',opts:[{l:'Responsable',p:1},{l:'No',p:0}]},
+{q:'Manejar el dinero',opts:[{l:'Independiente',p:1},{l:'No / con ayuda',p:0}]}
+],
+ranges:[
+{min:0,max:1,cls:'hi',label:'Dependencia total'},
+{min:2,max:3,cls:'hi',label:'Dependencia grave'},
+{min:4,max:5,cls:'md',label:'Dependencia moderada'},
+{min:6,max:7,cls:'md',label:'Dependencia ligera'},
+{min:8,max:8,cls:'lo',label:'Autónomo'}
+],
+ref:'Lawton MP, Brody EM. Gerontologist. 1969;9(3):179-186.'
+});
+
+VIEWS.imwg=()=>pointCalc({
+id:'imwg',title:'IMWG Frailty Score (mieloma)',
+intro:'Fragilidad en mieloma no candidato a trasplante. Suma edad + ADL (Katz) + IADL (Lawton) + comorbilidad (Charlson). Ajustar la intensidad según el resultado redujo la mortalidad precoz (ensayo FiTNEss).',
+items:[
+{q:'Edad',opts:[{l:'≤75 años',p:0},{l:'76–80 años',p:1},{l:'&gt;80 años',p:2}]},
+{q:'Índice de Katz (ABVD)',opts:[{l:'&gt;4 (independiente)',p:0},{l:'≤4',p:1}]},
+{q:'Índice de Lawton (AIVD)',opts:[{l:'&gt;5 (independiente)',p:0},{l:'≤5',p:1}]},
+{q:'Comorbilidad de Charlson (sin contar el mieloma)',opts:[{l:'≤1',p:0},{l:'≥2',p:1}]}
+],
+ranges:[
+{min:0,max:0,cls:'lo',label:'Fit (apto)',info:'<div class="res-s">SG a 3 años ~84%. Tratamiento a dosis plenas.</div>'},
+{min:1,max:1,cls:'md',label:'Intermediate-fit',info:'<div class="res-s">SG a 3 años ~76%. Valorar reducción de dosis.</div>'},
+{min:2,max:5,cls:'hi',label:'Frail (frágil)',info:'<div class="res-s">SG a 3 años ~57%. Esquemas adaptados / dosis reducidas.</div>'}
+],
+ref:'Palumbo A, et al. (IMWG). Blood. 2015;125(13):2068-2074. Ensayo FiTNEss (NCT03720041).'
+});
+
+VIEWS.cirsg=()=>{ const G=[{l:'0 · ninguno',p:0},{l:'1 · leve',p:1},{l:'2 · moderado',p:2},{l:'3 · grave',p:3},{l:'4 · muy grave / incapacitante',p:4}];
+const sys=['Cardíaco','Vascular / hipertensión','Hematopoyético','Respiratorio','Ojos, oídos, nariz, garganta y laringe','Digestivo superior','Digestivo inferior','Hígado y páncreas','Renal','Genitourinario','Musculoesquelético y piel','Neurológico','Endocrino-metabólico y mama','Psiquiátrico'];
+return pointCalc({
+id:'cirsg',title:'CIRS-G (comorbilidad)',
+intro:'Cumulative Illness Rating Scale-Geriatric: 14 sistemas (0 ninguno · 1 leve · 2 moderado · 3 grave · 4 muy grave). En LLC, CIRS ≤6 con aclaramiento ≥70 mL/min orienta a candidato «go-go» (inmunoquimioterapia intensiva). Vigila además cualquier órgano en grado 3–4.',
+items:sys.map(function(s){return {q:s,opts:G};}),
+ranges:[
+{min:0,max:6,cls:'lo',label:'Comorbilidad baja',info:'<div class="res-s">LLC: con aclaramiento ≥70 mL/min, candidato «go-go». Revisa que ningún órgano esté en grado 3–4.</div>'},
+{min:7,max:12,cls:'md',label:'Comorbilidad intermedia'},
+{min:13,max:56,cls:'hi',label:'Comorbilidad alta'}
+],
+ref:'Miller MD, et al. Psychiatry Res. 1992;41(3):237-248. Aplicación en LLC: Goede V, et al. N Engl J Med. 2014 (CLL11).'
+}); };
+
+const _CFS=['','Muy en forma','En forma','En forma con comorbilidad controlada','Vulnerable','Fragilidad leve','Fragilidad moderada','Fragilidad grave','Fragilidad muy grave','Enfermo terminal'];
+VIEWS.cfs=()=>`<div class="card">
+<h2>Clinical Frailty Scale (CSHA)</h2>
+<p class="intro">Escala global de fragilidad (Rockwood), 1–9, por juicio clínico. En LMA con venetoclax + HMA, ≤3 = baja fragilidad y &gt;3 = alta fragilidad, con impacto pronóstico.</p>
+<label class="chk-card"><input type="radio" name="cfs_v" value="1" onchange="calcCFS()"><span><strong>1</strong> · Muy en forma — activo, enérgico, en forma para su edad</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="2" onchange="calcCFS()"><span><strong>2</strong> · En forma — sin enfermedad activa, activo ocasionalmente</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="3" onchange="calcCFS()"><span><strong>3</strong> · En forma con comorbilidad bien controlada</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="4" onchange="calcCFS()"><span><strong>4</strong> · Vulnerable — no dependiente, pero los síntomas le limitan</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="5" onchange="calcCFS()"><span><strong>5</strong> · Fragilidad leve — necesita ayuda en AIVD</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="6" onchange="calcCFS()"><span><strong>6</strong> · Fragilidad moderada — ayuda en AVD básicas e instrumentales</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="7" onchange="calcCFS()"><span><strong>7</strong> · Fragilidad grave — dependiente completo, estable</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="8" onchange="calcCFS()"><span><strong>8</strong> · Fragilidad muy grave — dependiente, próximo al final de la vida</span></label>
+<label class="chk-card"><input type="radio" name="cfs_v" value="9" onchange="calcCFS()"><span><strong>9</strong> · Enfermo terminal — expectativa de vida &lt;6 meses</span></label>
+<div id="cfs_res" class="res" style="display:none"></div>
+<div class="btns"><button class="btn btn-out btn-sm" onclick="copyCFS()">Copiar</button></div>
+<div class="ref">Rockwood K, et al. CMAJ. 2005;173(5):489-495.</div>
+</div>`;
+function calcCFS(){ const r=document.querySelector('input[name="cfs_v"]:checked'); if(!r)return; const v=+r.value; const cls=v<=3?'lo':(v<=5?'md':'hi'); const el=$('cfs_res'); el.style.display='block'; el.className='res '+cls; el.innerHTML='<div class="res-h"><span class="score">CFS '+v+'</span><span>'+_CFS[v]+'</span></div><div class="res-txt">'+(v<=3?'Baja fragilidad.':(v<=5?'Vulnerable / fragilidad leve.':'Alta fragilidad.'))+'</div>'; }
+function copyCFS(){ const r=document.querySelector('input[name="cfs_v"]:checked'); if(!r){toast('Selecciona un nivel');return;} const v=+r.value; copy('Fragilidad — Clinical Frailty Scale (CSHA)\n─────────────────────────────────────────────\n'+patientHeader()+'CFS: '+v+'/9 ('+_CFS[v]+').\n\n[Fecha: '+new Date().toLocaleDateString('es-ES')+']'); }
+
+VIEWS.sga=()=>`<div class="card">
+<h2>sGA — Geriatric Assessment simplificada (linfoma)</h2>
+<p class="intro">Cribado de fitness en linfoma agresivo del anciano (DLBCL). Clasifica en <strong>fit / unfit / frail</strong> e identifica a quién tratar con intención curativa a dosis plenas.</p>
+<div class="alert b" style="font-size:13px">Combina <strong>4 componentes</strong>: edad (&lt;80 vs ≥80), <strong>ADL</strong> (Barthel/Katz), <strong>IADL</strong> (Lawton) y comorbilidad <strong>CIRS-G</strong> — puntúalos con las herramientas de esta sección.</div>
+<div style="font-size:13px;line-height:1.7;margin-top:8px">
+<strong>Fit:</strong> &lt;80 años, sin deterioro de ADL/IADL y sin comorbilidad grave (CIRS-G).<br>
+<strong>Unfit:</strong> fragilidad intermedia, o ≥80 años con perfil por lo demás conservado.<br>
+<strong>Frail:</strong> ≥80 años con dependencia en ADL (&lt;6) o IADL (&lt;8), y/o comorbilidad significativa (≥1 órgano grado 3–4, o ≥5 comorbilidades).
+</div>
+<div class="alert y" style="font-size:12px;margin-top:8px">SG a 3 años aproximada: <strong>fit ~87%</strong>, <strong>unfit ~69%</strong>, <strong>frail ~42%</strong>. Confirma los cortes con la fuente antes de decidir.</div>
+<div class="ref">Merli F, et al. (FIL «Elderly Project»). J Clin Oncol. 2021;39(11):1214-1222.</div>
+</div>`;
+
 
 // === NEUTROPENIA FEBRIL ===
 const NF={s:1,bmr:'',foco:'',ar:[],mascc:{}};
@@ -6347,7 +6470,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 179;
+const HP_BUILD = 180;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
