@@ -227,7 +227,7 @@ body.view-home .app-footer{padding-bottom:18px}
 #page-edit-area .coll-c{max-height:none!important;overflow:visible!important;padding:8px 14px!important}
 #page-edit-area .coll-h{cursor:default}
 #page-edit-area table.tbl,#page-edit-area .coll{margin:8px 0}
-#page-edit-area > .pg-cur,#aviso-cuerpo > .pg-cur{outline:2px dashed var(--c2);outline-offset:3px;border-radius:6px}
+#page-edit-area .pg-cur,#aviso-cuerpo .pg-cur{outline:2px dashed var(--c2);outline-offset:1px;border-radius:5px}
 .pg-drag{opacity:.4}
 #pg-grip:active{cursor:grabbing}
 .coll-h .ar{transition:transform .2s;font-size:10px;color:var(--mut)}
@@ -1087,19 +1087,21 @@ function _pageCurTable(){ try{ var s=window.getSelection&&window.getSelection();
 function _pageAddRow(){ var t=_pageCurTable(); if(!t){ toast('Pon el cursor dentro de una tabla'); return; } var rows=t.rows; if(!rows.length)return; var cols=rows[rows.length-1].cells.length; var tb=t.tBodies[0]||t; var tr=document.createElement('tr'); for(var i=0;i<cols;i++){ var td=document.createElement('td'); td.textContent='Celda'; tr.appendChild(td); } tb.appendChild(tr); }
 function _pageAddCol(){ var t=_pageCurTable(); if(!t){ toast('Pon el cursor dentro de una tabla'); return; } for(var i=0;i<t.rows.length;i++){ var cc=t.rows[i].insertCell(-1); cc.textContent='Celda'; } }
 function _pageArea(aid){ return document.getElementById(aid||'page-edit-area'); }
-function _pageCurBlock(aid){ try{ var a=_pageArea(aid); if(!a)return null; var s=window.getSelection&&window.getSelection(); if(!s||!s.anchorNode)return null; var n=s.anchorNode; if(!a.contains(n))return null; if(n===a){ return a.children[Math.min(s.anchorOffset,a.children.length-1)]||null; } while(n&&n.parentNode!==a){ n=n.parentNode; } return (n&&n.parentNode===a&&n.nodeType===1)?n:null; }catch(e){ return null; } }
-function _pageMark(aid){ try{ var a=_pageArea(aid); if(!a)return; var cur=_pageCurBlock(aid); Array.prototype.forEach.call(a.children,function(x){ if(x.classList) x.classList.toggle('pg-cur', x===cur); }); }catch(e){} }
+function _pageCurBlock(aid){ try{ var a=_pageArea(aid); if(!a)return null; var s=window.getSelection&&window.getSelection(); if(!s||!s.anchorNode)return null; var n=s.anchorNode; if(!a.contains(n))return null; return _pgUnit(n,a); }catch(e){ return null; } }
+function _pageMark(aid){ try{ var a=_pageArea(aid); if(!a)return; var cur=_pageCurBlock(aid); Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(x){ if(x!==cur)x.classList.remove('pg-cur'); }); if(cur&&cur.classList)cur.classList.add('pg-cur'); }catch(e){} }
 function _pageMoveBlock(dir,aid){ var b=_pageCurBlock(aid); if(!b){ toast('Pon el cursor en el bloque que quieras mover'); return; } if(dir<0){ if(b.previousElementSibling) b.parentNode.insertBefore(b,b.previousElementSibling); } else { if(b.nextElementSibling) b.parentNode.insertBefore(b.nextElementSibling,b); } _pageMark(aid); }
 function _pageDelBlock(aid){ var b=_pageCurBlock(aid); if(!b){ toast('Pon el cursor en el bloque que quieras borrar'); return; } if(b.getAttribute&&b.getAttribute('contenteditable')==='false'){ toast('Ese bloque es automático; no se puede borrar'); return; } if(!confirm('¿Borrar este bloque entero (cuadro, tabla, lista…)?')) return; b.remove(); _pageMark(aid); }
-function _pageAddAlert(cls,aid){ var a=_pageArea(aid); if(!a)return; var L={y:'Aviso',b:'Información',g:'Nota',r:'Importante'}; var html='<div class="alert '+cls+'"><strong>'+(L[cls]||'Aviso')+'.</strong> Escribe aquí el contenido…</div>'; var b=_pageCurBlock(aid); if(b){ b.insertAdjacentHTML('afterend',html); } else { a.insertAdjacentHTML('beforeend',html); } _pageMark(aid); }
-var _pgDrag=null,_pgDragArea=null,_pgHover=null,_pgHoverArea=null;
+function _pageAddAlert(cls,aid){ var a=_pageArea(aid); if(!a)return; var L={y:'Aviso',b:'Información',g:'Nota',r:'Importante'}; var html='<div class="alert '+cls+'"><strong>'+(L[cls]||'Aviso')+'.</strong> Escribe aquí el contenido…</div>'; var u=_pageCurBlock(aid); var b=u?_pgTop(u,a):null; if(b){ b.insertAdjacentHTML('afterend',html); } else { a.insertAdjacentHTML('beforeend',html); } _pageMark(aid); }
+var _pgDrag=null,_pgDragArea=null,_pgDragParent=null,_pgHover=null,_pgHoverArea=null;
 function _pgGripEl(){ var g=document.getElementById('pg-grip'); if(!g){ g=document.createElement('div'); g.id='pg-grip'; g.textContent='⠿'; g.title='Arrastra para mover este bloque'; g.style.cssText='position:fixed;display:none;z-index:99999;cursor:grab;user-select:none;width:22px;height:24px;line-height:22px;text-align:center;border:1px solid var(--bd);border-radius:5px;background:var(--card);color:var(--c2);font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.25)'; document.body.appendChild(g); g.addEventListener('mousedown',_pgGripDown); } return g; }
-function _pgTopBlock(node,area){ var n=node; if(!n||!area||n===area)return null; while(n&&n.parentNode!==area){ n=n.parentNode; } return (n&&n.parentNode===area&&n.nodeType===1)?n:null; }
-function _pgGripFollow(e,area){ if(_pgDrag)return; var b=_pgTopBlock(e.target,area); var g=_pgGripEl(); if(!b||(b.getAttribute&&b.getAttribute('contenteditable')==='false')){ g.style.display='none'; _pgHover=null; return; } _pgHover=b; _pgHoverArea=area; var r=b.getBoundingClientRect(); g.style.display='block'; g.style.top=(r.top+3)+'px'; g.style.left=Math.max(2,r.left-26)+'px'; }
+function _pgIsContainer(el,area){ if(el===area)return true; if(!el||el.nodeType!==1)return false; var t=el.tagName; if(t==='UL'||t==='OL'||t==='TBODY'||t==='THEAD'||t==='TABLE')return true; if(el.classList&&(el.classList.contains('alert')||el.classList.contains('coll-c')))return true; return false; }
+function _pgUnit(node,area){ var n=node; if(!n||!area||!area.contains(n)||n===area)return null; while(n&&n!==area){ if(n.nodeType===1&&_pgIsContainer(n.parentNode,area))return n; n=n.parentNode; } return null; }
+function _pgTop(el,area){ var n=el; while(n&&n.parentNode!==area){ n=n.parentNode; } return (n&&n.parentNode===area&&n.nodeType===1)?n:null; }
+function _pgGripFollow(e,area){ if(_pgDrag)return; var b=_pgUnit(e.target,area); var g=_pgGripEl(); if(!b||(b.getAttribute&&b.getAttribute('contenteditable')==='false')){ g.style.display='none'; _pgHover=null; return; } _pgHover=b; _pgHoverArea=area; var r=b.getBoundingClientRect(); g.style.display='block'; g.style.top=(r.top+3)+'px'; g.style.left=Math.max(2,r.left-26)+'px'; }
 function _pgGripHide(){ if(_pgDrag)return; var g=document.getElementById('pg-grip'); if(g)g.style.display='none'; }
-function _pgGripDown(e){ e.preventDefault(); if(!_pgHover||!_pgHoverArea)return; _pgDrag=_pgHover; _pgDragArea=_pgHoverArea; _pgDrag.classList.add('pg-drag'); var g=document.getElementById('pg-grip'); if(g)g.style.display='none'; document.addEventListener('mousemove',_pgDragMove,true); document.addEventListener('mouseup',_pgDragUp,true); }
-function _pgDragMove(e){ if(!_pgDrag||!_pgDragArea)return; e.preventDefault(); var el=document.elementFromPoint(e.clientX,e.clientY); var over=_pgTopBlock(el,_pgDragArea); if(!over||over===_pgDrag)return; var r=over.getBoundingClientRect(); if(e.clientY>r.top+r.height/2){ if(over.nextSibling!==_pgDrag) _pgDragArea.insertBefore(_pgDrag,over.nextSibling); } else { if(_pgDrag!==over.previousSibling) _pgDragArea.insertBefore(_pgDrag,over); } }
-function _pgDragUp(){ document.removeEventListener('mousemove',_pgDragMove,true); document.removeEventListener('mouseup',_pgDragUp,true); var area=_pgDragArea; if(_pgDrag)_pgDrag.classList.remove('pg-drag'); _pgDrag=null; _pgDragArea=null; _pgGripHide(); if(area&&typeof _pageMark==='function')_pageMark(area.id); }
+function _pgGripDown(e){ e.preventDefault(); if(!_pgHover||!_pgHoverArea)return; _pgDrag=_pgHover; _pgDragArea=_pgHoverArea; _pgDragParent=_pgDrag.parentNode; _pgDrag.classList.add('pg-drag'); var g=document.getElementById('pg-grip'); if(g)g.style.display='none'; document.addEventListener('mousemove',_pgDragMove,true); document.addEventListener('mouseup',_pgDragUp,true); }
+function _pgDragMove(e){ if(!_pgDrag||!_pgDragParent)return; e.preventDefault(); var el=document.elementFromPoint(e.clientX,e.clientY); var over=el; while(over&&over.parentNode!==_pgDragParent){ over=over.parentNode; } if(!over||over===_pgDrag||over.parentNode!==_pgDragParent)return; var r=over.getBoundingClientRect(); if(e.clientY>r.top+r.height/2){ if(over.nextSibling!==_pgDrag)_pgDragParent.insertBefore(_pgDrag,over.nextSibling); } else { if(_pgDrag!==over.previousSibling)_pgDragParent.insertBefore(_pgDrag,over); } }
+function _pgDragUp(){ document.removeEventListener('mousemove',_pgDragMove,true); document.removeEventListener('mouseup',_pgDragUp,true); var area=_pgDragArea; if(_pgDrag)_pgDrag.classList.remove('pg-drag'); _pgDrag=null; _pgDragArea=null; _pgDragParent=null; _pgGripHide(); if(area&&typeof _pageMark==='function')_pageMark(area.id); }
 function _pageToolbar(){
   return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)">'
     +'<span style="font-size:12px;color:var(--mut);width:100%">Edita el contenido como en un procesador de textos:</span>'
@@ -6476,7 +6478,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 185;
+const HP_BUILD = 186;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
