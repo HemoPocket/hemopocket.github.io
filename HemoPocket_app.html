@@ -5117,6 +5117,7 @@ return `<div class="card"><h2>Solicitudes de acceso</h2><div class="alert y">Est
 return `<div class="card">
 <h2>Solicitudes de acceso</h2>
 <p class="intro">Cuentas registradas desde la app. Al <strong>aprobar</strong> una cuenta, el usuario podrá acceder con su correo y contraseña. Aquí queda el <strong>registro de aceptación</strong> de los términos.</p>
+<div class="alert b" style="margin-bottom:10px;font-size:13px">🔔 <strong>Notificaciones push</strong> de solicitudes y reportes. <button class="btn btn-out btn-sm" onclick="if(window.hpActivarPush)hpActivarPush()">Activar en este dispositivo</button><div style="font-size:11px;color:var(--mut);margin-top:4px">Actívalo en cada equipo donde quieras recibirlas. En iPhone, añade antes la app a la pantalla de inicio.</div></div>
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-out btn-sm" onclick="hpRenderSolicitudes()">↻ Actualizar</button></div>
 <div id="sol_list">Cargando…</div></div>`;
 };
@@ -6492,7 +6493,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 191;
+const HP_BUILD = 192;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12697,6 +12698,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/fireba
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getMessaging, getToken, isSupported } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCyP3Enuoh8K2Y39rROTbQ_mhx9OmBjWtY",
@@ -12714,6 +12716,33 @@ const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getDatabase(fbApp);
 const fs = getFirestore(fbApp);
+// ── Notificaciones push (FCM) para ADMINISTRADORES ──
+// Para activarlas: pega abajo la clave pública "Web Push certificates" (consola Firebase →
+// Configuración del proyecto → Cloud Messaging → Certificados push web → Generar par de claves).
+const HP_VAPID_KEY = ""; // ← PEGAR AQUÍ la clave VAPID pública
+let _hpMessaging = null;
+window.hpActivarPush = async function(){
+  function tt(m){ if(window.toast) window.toast(m); }
+  try{
+    if(!HP_VAPID_KEY){ tt('Falta configurar la clave VAPID (ver instrucciones)'); return false; }
+    if(!(await isSupported())){ tt('Este navegador no admite notificaciones push'); return false; }
+    if(!('Notification' in window)){ tt('Notificaciones no disponibles en este dispositivo'); return false; }
+    let perm = Notification.permission;
+    if(perm === 'default') perm = await Notification.requestPermission();
+    if(perm !== 'granted'){ tt('Permiso de notificaciones denegado'); return false; }
+    if(!_hpMessaging) _hpMessaging = getMessaging(fbApp);
+    let reg = null;
+    try{ reg = (await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')) || (await navigator.serviceWorker.register('/firebase-messaging-sw.js')); }catch(e){}
+    const opts = reg ? { vapidKey: HP_VAPID_KEY, serviceWorkerRegistration: reg } : { vapidKey: HP_VAPID_KEY };
+    const token = await getToken(_hpMessaging, opts);
+    if(!token){ tt('No se pudo obtener el token de notificaciones'); return false; }
+    const uid = (auth.currentUser && auth.currentUser.uid) || null;
+    if(!uid){ tt('Inicia sesión primero'); return false; }
+    await setDoc(doc(fs,'pushTokens',uid), { token: token, email: (auth.currentUser && auth.currentUser.email) || null, actualizado: serverTimestamp(), agente: (navigator.userAgent || '').slice(0,300) }, { merge:true });
+    tt('🔔 Notificaciones activadas en este dispositivo');
+    return true;
+  }catch(e){ tt('No se pudieron activar las notificaciones'); return false; }
+};
 
 // ── Almacenamiento de PDF en GitHub ──
 // Los ordenadores del hospital bloquean Firebase Storage pero SÍ pueden leer

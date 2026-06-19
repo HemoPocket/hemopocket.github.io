@@ -9,6 +9,38 @@ const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
 const nodemailer = require('nodemailer');
+const admin = require('firebase-admin');
+try { admin.initializeApp(); } catch (e) {}
+
+// Envía una notificación push (FCM) a TODOS los administradores (rol 'admin' + la principal).
+// Best-effort: cualquier fallo se registra pero no interrumpe el resto de la función.
+async function pushAAdmins(title, body, url) {
+  try {
+    const db = admin.firestore();
+    const uids = new Set(['oHgd0fQBUfQV1NxGKbFHkHNZSWz1']); // admin principal
+    try {
+      const rs = await db.collection('roles').where('role', '==', 'admin').get();
+      rs.forEach((d) => uids.add(d.id));
+    } catch (e) {}
+    const tokens = [];
+    for (const uid of uids) {
+      try {
+        const t = await db.collection('pushTokens').doc(uid).get();
+        const tok = t.exists && t.data() && t.data().token;
+        if (tok) tokens.push(tok);
+      } catch (e) {}
+    }
+    if (!tokens.length) { logger.info('Push a admins: sin tokens registrados'); return; }
+    const res = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: { title: title, body: body },
+      webpush: { fcmOptions: { link: url || '/' }, notification: { icon: '/icono-192.png' } },
+    });
+    logger.info('Push a admins enviado', { ok: res.successCount, fail: res.failureCount });
+  } catch (e) {
+    logger.error('Error enviando push a admins', e);
+  }
+}
 
 // Secretos (se configuran con `firebase functions:secrets:set ...`, ver README).
 const SMTP_HOST   = defineSecret('SMTP_HOST');    // p. ej. smtp.gmail.com
@@ -41,6 +73,7 @@ exports.avisoNuevaCuenta = onDocumentCreated(
     });
 
     const nombre = `${d.nombre || ''} ${d.apellido || ''}`.trim() || '(sin nombre)';
+    try { await pushAAdmins('Nueva solicitud de acceso', `${nombre} solicita acceso a HemoPocket.`, '/'); } catch (e) {}
     let fecha = '';
     try { fecha = d.fechaAceptacion && d.fechaAceptacion.toDate ? d.fechaAceptacion.toDate().toLocaleString('es-ES') : ''; } catch (e) {}
 
@@ -85,6 +118,7 @@ exports.avisoNuevoReporte = onDocumentCreated(
     const d = event.data && event.data.data();
     if (!d) return;
     if ((d.tipo || 'usuario') !== 'usuario') return;   // no avisar de 'auto' ni 'eri_miss'
+    try { await pushAAdmins('Nuevo reporte de error', (d.texto || '').toString().slice(0, 140), '/'); } catch (e) {}
 
     const port = parseInt(SMTP_PORT.value() || '465', 10);
     const transporter = nodemailer.createTransport({
