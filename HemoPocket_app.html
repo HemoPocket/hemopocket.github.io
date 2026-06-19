@@ -228,6 +228,8 @@ body.view-home .app-footer{padding-bottom:18px}
 #page-edit-area .coll-h{cursor:default}
 #page-edit-area table.tbl,#page-edit-area .coll{margin:8px 0}
 #page-edit-area > .pg-cur,#aviso-cuerpo > .pg-cur{outline:2px dashed var(--c2);outline-offset:3px;border-radius:6px}
+.pg-drag{opacity:.4}
+#pg-grip:active{cursor:grabbing}
 .coll-h .ar{transition:transform .2s;font-size:10px;color:var(--mut)}
 .qtc-row{display:grid;grid-template-columns:max-content 1fr 92px;gap:12px;align-items:center;margin:12px 0}
 .qtc-row input[type=range]{width:100%}
@@ -1090,6 +1092,14 @@ function _pageMark(aid){ try{ var a=_pageArea(aid); if(!a)return; var cur=_pageC
 function _pageMoveBlock(dir,aid){ var b=_pageCurBlock(aid); if(!b){ toast('Pon el cursor en el bloque que quieras mover'); return; } if(dir<0){ if(b.previousElementSibling) b.parentNode.insertBefore(b,b.previousElementSibling); } else { if(b.nextElementSibling) b.parentNode.insertBefore(b.nextElementSibling,b); } _pageMark(aid); }
 function _pageDelBlock(aid){ var b=_pageCurBlock(aid); if(!b){ toast('Pon el cursor en el bloque que quieras borrar'); return; } if(b.getAttribute&&b.getAttribute('contenteditable')==='false'){ toast('Ese bloque es automático; no se puede borrar'); return; } if(!confirm('¿Borrar este bloque entero (cuadro, tabla, lista…)?')) return; b.remove(); _pageMark(aid); }
 function _pageAddAlert(cls,aid){ var a=_pageArea(aid); if(!a)return; var L={y:'Aviso',b:'Información',g:'Nota',r:'Importante'}; var html='<div class="alert '+cls+'"><strong>'+(L[cls]||'Aviso')+'.</strong> Escribe aquí el contenido…</div>'; var b=_pageCurBlock(aid); if(b){ b.insertAdjacentHTML('afterend',html); } else { a.insertAdjacentHTML('beforeend',html); } _pageMark(aid); }
+var _pgDrag=null,_pgDragArea=null,_pgHover=null,_pgHoverArea=null;
+function _pgGripEl(){ var g=document.getElementById('pg-grip'); if(!g){ g=document.createElement('div'); g.id='pg-grip'; g.textContent='⠿'; g.title='Arrastra para mover este bloque'; g.style.cssText='position:fixed;display:none;z-index:99999;cursor:grab;user-select:none;width:22px;height:24px;line-height:22px;text-align:center;border:1px solid var(--bd);border-radius:5px;background:var(--card);color:var(--c2);font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.25)'; document.body.appendChild(g); g.addEventListener('mousedown',_pgGripDown); } return g; }
+function _pgTopBlock(node,area){ var n=node; if(!n||!area||n===area)return null; while(n&&n.parentNode!==area){ n=n.parentNode; } return (n&&n.parentNode===area&&n.nodeType===1)?n:null; }
+function _pgGripFollow(e,area){ if(_pgDrag)return; var b=_pgTopBlock(e.target,area); var g=_pgGripEl(); if(!b||(b.getAttribute&&b.getAttribute('contenteditable')==='false')){ g.style.display='none'; _pgHover=null; return; } _pgHover=b; _pgHoverArea=area; var r=b.getBoundingClientRect(); g.style.display='block'; g.style.top=(r.top+3)+'px'; g.style.left=Math.max(2,r.left-26)+'px'; }
+function _pgGripHide(){ if(_pgDrag)return; var g=document.getElementById('pg-grip'); if(g)g.style.display='none'; }
+function _pgGripDown(e){ e.preventDefault(); if(!_pgHover||!_pgHoverArea)return; _pgDrag=_pgHover; _pgDragArea=_pgHoverArea; _pgDrag.classList.add('pg-drag'); var g=document.getElementById('pg-grip'); if(g)g.style.display='none'; document.addEventListener('mousemove',_pgDragMove,true); document.addEventListener('mouseup',_pgDragUp,true); }
+function _pgDragMove(e){ if(!_pgDrag||!_pgDragArea)return; e.preventDefault(); var el=document.elementFromPoint(e.clientX,e.clientY); var over=_pgTopBlock(el,_pgDragArea); if(!over||over===_pgDrag)return; var r=over.getBoundingClientRect(); if(e.clientY>r.top+r.height/2){ if(over.nextSibling!==_pgDrag) _pgDragArea.insertBefore(_pgDrag,over.nextSibling); } else { if(_pgDrag!==over.previousSibling) _pgDragArea.insertBefore(_pgDrag,over); } }
+function _pgDragUp(){ document.removeEventListener('mousemove',_pgDragMove,true); document.removeEventListener('mouseup',_pgDragUp,true); var area=_pgDragArea; if(_pgDrag)_pgDrag.classList.remove('pg-drag'); _pgDrag=null; _pgDragArea=null; _pgGripHide(); if(area&&typeof _pageMark==='function')_pageMark(area.id); }
 function _pageToolbar(){
   return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)">'
     +'<span style="font-size:12px;color:var(--mut);width:100%">Edita el contenido como en un procesador de textos:</span>'
@@ -1103,7 +1113,7 @@ function _pageToolbar(){
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageAddRow()" title="Añadir fila a la tabla del cursor">➕ Fila</button>'
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageAddCol()" title="Añadir columna a la tabla del cursor">➕ Columna</button>'
     +'<span style="width:100%;height:1px;background:var(--bd);margin:3px 0"></span>'
-    +'<span style="font-size:12px;color:var(--mut);width:100%">Bloques — pon el cursor en un bloque (cuadro, tabla, lista…) y muévelo, bórralo o añade un cuadro de color:</span>'
+    +'<span style="font-size:12px;color:var(--mut);width:100%">Bloques — pasa el cursor por un bloque y <strong>arrástralo con el asa ⠿</strong> (o usa ⬆⬇); también puedes borrarlo o añadir un cuadro de color:</span>'
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageMoveBlock(-1)" title="Subir el bloque">⬆ Subir</button>'
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageMoveBlock(1)" title="Bajar el bloque">⬇ Bajar</button>'
     +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="_pageDelBlock()" title="Borrar el bloque entero" style="color:#c41e3a">🗑 Borrar bloque</button>'
@@ -1121,7 +1131,7 @@ VIEWS.pageedit=()=>{
   h+='<p class="intro">Edita el contenido y guárdalo: sustituye al original <strong>para todos</strong> y siempre puedes <strong>restaurar el original</strong>.</p>';
   if(interactive) h+='<div class="alert y" style="font-size:12px">⚠️ Esta página tiene elementos interactivos (cálculos o botones). Si la editas como texto, esos elementos dejarán de funcionar. Úsalo solo para contenido informativo o algoritmos.</div>';
   h+=_pageToolbar();
-  h+='<div id="page-edit-area" contenteditable="true" onclick="_pageMark()" onkeyup="_pageMark()" style="border:1px solid var(--bd);border-radius:8px;padding:10px;min-height:300px;outline:none">'+_hpSanHtml(d.html||'')+'</div>';
+  h+='<div id="page-edit-area" contenteditable="true" onclick="_pageMark()" onkeyup="_pageMark()" onmousemove="_pgGripFollow(event,this)" onmouseleave="_pgGripHide()" style="border:1px solid var(--bd);border-radius:8px;padding:10px;min-height:300px;outline:none">'+_hpSanHtml(d.html||'')+'</div>';
   h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-out" onclick="pageCancelar()">✖ Cancelar</button><button class="btn btn-out" onclick="hpRestaurarPage(\''+d.id+'\')">↺ Restaurar original</button><button class="btn btn-g" onclick="pageGuardar()">💾 Guardar para todos</button></div>';
   h+='</div>'; return h;
 };
@@ -6466,7 +6476,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 184;
+const HP_BUILD = 185;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12586,21 +12596,21 @@ function hpEditarAviso(){
   html=html.replace(/<ul[^>]*id=["']aviso-revisores["'][\s\S]*?<\/ul>/i,_AVISO_REV_PH);
   cu.innerHTML=html;
   cu.setAttribute('contenteditable','true');
-  cu.onclick=function(){_pageMark('aviso-cuerpo');}; cu.onkeyup=function(){_pageMark('aviso-cuerpo');};
+  cu.onclick=function(){_pageMark('aviso-cuerpo');}; cu.onkeyup=function(){_pageMark('aviso-cuerpo');}; cu.onmousemove=function(e){_pgGripFollow(e,cu);}; cu.onmouseleave=_pgGripHide;
   cu.style.border='1px solid var(--bd)'; cu.style.borderRadius='8px'; cu.style.padding='10px'; cu.style.outline='none';
   var eb=document.getElementById('aviso-edit-btn'); if(eb) eb.style.display='none';
   var old=document.getElementById('aviso-toolbar'); if(old) old.remove();
   cu.insertAdjacentHTML('beforebegin',_avisoToolbar());
 }
 function hpCancelarAviso(){
-  const cu=document.getElementById('aviso-cuerpo'); if(cu){ cu.setAttribute('contenteditable','false'); cu.onclick=null; cu.onkeyup=null; cu.style.border=''; cu.style.padding=''; }
+  const cu=document.getElementById('aviso-cuerpo'); if(cu){ cu.setAttribute('contenteditable','false'); cu.onclick=null; cu.onkeyup=null; cu.onmousemove=null; cu.onmouseleave=null; cu.style.border=''; cu.style.padding=''; }
   var tb=document.getElementById('aviso-toolbar'); if(tb) tb.remove();
   _avisoRenderCuerpo(); poblarRevisoresAviso();
   var eb=document.getElementById('aviso-edit-btn'); if(eb) eb.style.display=(window.__hpUid===HP_PRINCIPAL_UID)?'inline-block':'none';
 }
 async function hpGuardarAviso(){
   const cu=document.getElementById('aviso-cuerpo'); if(!cu) return;
-  cu.setAttribute('contenteditable','false'); cu.onclick=null; cu.onkeyup=null;
+  cu.setAttribute('contenteditable','false'); cu.onclick=null; cu.onkeyup=null; cu.onmousemove=null; cu.onmouseleave=null;
   var tb=document.getElementById('aviso-toolbar'); if(tb) tb.remove();
   try{Array.prototype.forEach.call(cu.querySelectorAll('.pg-cur'),function(e){e.classList.remove('pg-cur');});}catch(e){}
   let html=cu.innerHTML;
