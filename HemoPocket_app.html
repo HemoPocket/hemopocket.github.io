@@ -812,17 +812,19 @@ const MENU=[
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
 {h:'ESCALAS DE VALORACIÓN',items:[
-{sub:true,name:'① Cribado funcional (CGA) · primero'},
-{id:'ecog',name:'ECOG',kw:'ecog estado funcional performance valoracion escala'},
-{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico valoracion escala cribado cga'},
-{id:'barthel',name:'Barthel (ABVD)',kw:'barthel abvd avd actividades basicas vida diaria adl independencia dependencia funcional cribado cga'},
-{id:'lawton',name:'Lawton-Brody (AIVD)',kw:'lawton brody aivd iadl actividades instrumentales vida diaria funcional cribado cga'},
-{sub:true,name:'② Específicas por patología'},
+{sub:true,name:'① Cribado (¿necesita valoración?)'},
+{id:'ecog',name:'ECOG',kw:'ecog estado funcional performance valoracion escala cribado'},
+{id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico valoracion escala cribado cga vulnerable'},
+{sub:true,name:'② Valoración funcional'},
+{id:'barthel',name:'Barthel (ABVD)',kw:'barthel abvd avd actividades basicas vida diaria adl independencia dependencia funcional cga valoracion'},
+{id:'lawton',name:'Lawton-Brody (AIVD)',kw:'lawton brody aivd iadl actividades instrumentales vida diaria funcional cga valoracion'},
+{sub:true,name:'③ Por patología'},
 {id:'imwgfr',name:'IMWG Frailty (MM)',kw:'imwg imwgfr frailty mieloma multiple fragilidad fit frail intermediate fitness valoracion'},
 {id:'sga',name:'sGA — linfoma (DLBCL)',kw:'sga simplified geriatric assessment linfoma dlbcl fil elderly fit unfit frail valoracion'},
+{id:'ferrara',name:'Ferrara — QT intensiva (LMA)',kw:'ferrara fit unfit frail aptitud fragilidad candidato quimioterapia intensiva lma anciano comorbilidad ecog fraccion eyeccion viale-a valoracion'},
+{id:'ferrara_bi',name:'Ferrara — QT baja intensidad (LMA)',kw:'ferrara baja intensidad no intensiva soporte frail unfit azacitidina decitabina venetoclax mejor tratamiento soporte hidroxiurea lma valoracion'},
 {id:'cirsg',name:'CIRS-G (LLC)',kw:'cirsg cumulative illness rating scale geriatric comorbilidad llc cll go go fcr valoracion'},
-{id:'cfs',name:'Clinical Frailty Scale (LMA)',kw:'cfs clinical frailty scale rockwood fragilidad lma leucemia venetoclax fit frail valoracion'},
-{sub:true,name:'③ Comorbilidad y social'},
+{sub:true,name:'④ Comorbilidad y social'},
 {id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad valoracion escala'},
 {id:'tso',name:'Valoración Sociofamiliar (TSO)',kw:'tso gijon sociofamiliar social familiar anciano geriatrico valoracion escala riesgo social trabajo social alicante osona',new:'2026-06-19'}
 ]},
@@ -881,8 +883,6 @@ const MENU=[
 {h:'LEUCEMIAS AGUDAS',items:[
 {id:'eln',name:'ELN 2022 (LMA)',kw:'eln 2022 lma leucemia mieloide aguda riesgo citogenetica intensiva'},
 {id:'eln24',name:'ELN 2024 (LMA baja intensidad)',kw:'eln 2024 lma baja intensidad venetoclax azacitidina hma'},
-{id:'ferrara',name:'Ferrara (aptitud para QT intensiva)',kw:'ferrara fit unfit frail aptitud fragilidad candidato quimioterapia intensiva baja intensidad lma anciano comorbilidad ecog fraccion eyeccion viale-a',new:'2026-06-12'},
-{id:'ferrara_bi',name:'Ferrara (aptitud para QT de baja intensidad)',kw:'ferrara baja intensidad no intensiva soporte frail unfit azacitidina decitabina venetoclax mejor tratamiento soporte hidroxiurea neoplasia no controlada lma',new:'2026-06-17'},
 {id:'prism_aml',name:'PRISM (LMA con venetoclax · info)',kw:'prism lma leucemia mieloide aguda venetoclax azacitidina hma pronostico riesgo supervivencia tp53 asxl1 flt3 score 2025',new:'2026-06-12'},
 {id:'g_leuc_ag',name:'Guías clínicas',kw:'guias clinicas leucemias agudas lma lla qt intensiva baja intensidad recaida pdf'}
 ]},
@@ -3807,26 +3807,6 @@ ranges:[
 ref:'Miller MD, et al. Psychiatry Res. 1992;41(3):237-248. Aplicación en LLC: Goede V, et al. N Engl J Med. 2014 (CLL11).'
 }); };
 
-const _CFS=['','Muy en forma','En forma','En forma con comorbilidad controlada','Vulnerable','Fragilidad leve','Fragilidad moderada','Fragilidad grave','Fragilidad muy grave','Enfermo terminal'];
-VIEWS.cfs=()=>`<div class="card">
-<h2>Clinical Frailty Scale (CSHA)</h2>
-<p class="intro">Escala global de fragilidad (Rockwood), 1–9, por juicio clínico. En LMA con venetoclax + HMA, ≤3 = baja fragilidad y &gt;3 = alta fragilidad, con impacto pronóstico.</p>
-<label class="chk-card"><input type="radio" name="cfs_v" value="1" onchange="calcCFS()"><span><strong>1</strong> · Muy en forma — activo, enérgico, en forma para su edad</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="2" onchange="calcCFS()"><span><strong>2</strong> · En forma — sin enfermedad activa, activo ocasionalmente</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="3" onchange="calcCFS()"><span><strong>3</strong> · En forma con comorbilidad bien controlada</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="4" onchange="calcCFS()"><span><strong>4</strong> · Vulnerable — no dependiente, pero los síntomas le limitan</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="5" onchange="calcCFS()"><span><strong>5</strong> · Fragilidad leve — necesita ayuda en AIVD</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="6" onchange="calcCFS()"><span><strong>6</strong> · Fragilidad moderada — ayuda en AVD básicas e instrumentales</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="7" onchange="calcCFS()"><span><strong>7</strong> · Fragilidad grave — dependiente completo, estable</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="8" onchange="calcCFS()"><span><strong>8</strong> · Fragilidad muy grave — dependiente, próximo al final de la vida</span></label>
-<label class="chk-card"><input type="radio" name="cfs_v" value="9" onchange="calcCFS()"><span><strong>9</strong> · Enfermo terminal — expectativa de vida &lt;6 meses</span></label>
-<div id="cfs_res" class="res" style="display:none"></div>
-<div class="btns"><button class="btn btn-out btn-sm" onclick="copyCFS()">Copiar</button></div>
-<div class="ref">Rockwood K, et al. CMAJ. 2005;173(5):489-495.</div>
-</div>`;
-function calcCFS(){ const r=document.querySelector('input[name="cfs_v"]:checked'); if(!r)return; const v=+r.value; const cls=v<=3?'lo':(v<=5?'md':'hi'); const el=$('cfs_res'); el.style.display='block'; el.className='res '+cls; el.innerHTML='<div class="res-h"><span class="score">CFS '+v+'</span><span>'+_CFS[v]+'</span></div><div class="res-txt">'+(v<=3?'Baja fragilidad.':(v<=5?'Vulnerable / fragilidad leve.':'Alta fragilidad.'))+'</div>'; }
-function copyCFS(){ const r=document.querySelector('input[name="cfs_v"]:checked'); if(!r){toast('Selecciona un nivel');return;} const v=+r.value; copy('Fragilidad — Clinical Frailty Scale (CSHA)\n─────────────────────────────────────────────\n'+patientHeader()+'CFS: '+v+'/9 ('+_CFS[v]+').\n\n[Fecha: '+new Date().toLocaleDateString('es-ES')+']'); }
-
 VIEWS.sga=()=>`<div class="card">
 <h2>sGA — Geriatric Assessment simplificada (linfoma)</h2>
 <p class="intro">Cribado de fitness en linfoma agresivo del anciano (DLBCL). Clasifica en <strong>fit / unfit / frail</strong> e identifica a quién tratar con intención curativa a dosis plenas.</p>
@@ -6470,7 +6450,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 181;
+const HP_BUILD = 182;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
