@@ -4580,7 +4580,7 @@ VIEWS.algoedit=()=>{
 };
 function _algoEditNode(d,nid,nodeIds){
   const n=d.nodos[nid];
-  let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+(n.tipo==='resultado'?'🟢 Resultado':'❓ Pregunta')+'</span><button class="btn btn-out btn-sm" onclick="algoDelNode(\''+nid+'\')" title="Eliminar paso">×</button></div><div class="coll-c">';
+  let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+(n.tipo==='resultado'?'🟢 Resultado':'❓ Pregunta')+'</span><button class="btn btn-out btn-sm" onclick="algoMoverNodo(\''+nid+'\',-1)"'+(nodeIds.indexOf(nid)===0?' disabled':'')+' title="Subir">↑</button><button class="btn btn-out btn-sm" onclick="algoMoverNodo(\''+nid+'\',1)"'+(nodeIds.indexOf(nid)===nodeIds.length-1?' disabled':'')+' title="Bajar">↓</button><button class="btn btn-out btn-sm" onclick="algoDelNode(\''+nid+'\')" title="Eliminar paso">×</button></div><div class="coll-c">';
   h+='<textarea onchange="algoNodeText(\''+nid+'\',this.value)" placeholder="'+(n.tipo==='resultado'?'Título del resultado':'Texto de la pregunta')+'">'+_hpEsc(n.texto||'')+'</textarea>';
   if(n.tipo==='resultado'){
     h+='<textarea onchange="algoNodeBody(\''+nid+'\',this.value)" placeholder="Recomendación / detalle">'+_hpEsc(n.cuerpo||'')+'</textarea>';
@@ -4589,7 +4589,7 @@ function _algoEditNode(d,nid,nodeIds){
     (n.opciones||[]).forEach(function(o,i){
       h+='<div style="display:flex;gap:4px;margin-top:4px;align-items:center"><input style="flex:1" value="'+_hpEsc(o.etiqueta||'')+'" onchange="algoOptLabel(\''+nid+'\','+i+',this.value)" placeholder="Etiqueta (ej: Sí)">';
       h+='<select onchange="algoOptDest(\''+nid+'\','+i+',this.value)" style="max-width:45%"><option value="">→ paso…</option>'+nodeIds.filter(function(x){return x!==nid;}).map(function(x){return '<option value="'+x+'"'+(o.destino===x?' selected':'')+'>'+_hpEsc(_algoNodeLabel(d.nodos[x]))+'</option>';}).join('')+'<option value="__new">＋ nuevo resultado</option></select>';
-      h+='<button class="btn btn-out btn-sm" onclick="algoDelOpt(\''+nid+'\','+i+')">×</button></div>';
+      h+='<button class="btn btn-out btn-sm" onclick="algoMoverOpt(\''+nid+'\','+i+',-1)"'+(i===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="algoMoverOpt(\''+nid+'\','+i+',1)"'+(i===(n.opciones.length-1)?' disabled':'')+'>↓</button><button class="btn btn-out btn-sm" onclick="algoDelOpt(\''+nid+'\','+i+')">×</button></div>';
     });
     h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="algoAddOpt(\''+nid+'\')">➕ Opción</button>';
   }
@@ -4598,6 +4598,8 @@ function _algoEditNode(d,nid,nodeIds){
 function algoSetField(f,v){ if(_algoDraft) _algoDraft[f]=v; }
 function algoMover(v){ if(_algoDraft){ _algoDraft.seccion=v; go('algoedit'); } }
 function algoAddNode(tipo){ const id='n_'+Date.now(); _algoDraft.nodos[id]={id:id,tipo:tipo,texto:'',opciones:[],cuerpo:''}; if(!_algoDraft.inicio)_algoDraft.inicio=id; go('algoedit'); }
+function algoMoverNodo(nid,dir){ const keys=Object.keys(_algoDraft.nodos); const i=keys.indexOf(nid); const j=i+dir; if(i<0||j<0||j>=keys.length)return; keys.splice(j,0,keys.splice(i,1)[0]); const o={}; keys.forEach(function(k){o[k]=_algoDraft.nodos[k];}); _algoDraft.nodos=o; go('algoedit'); }
+function algoMoverOpt(nid,i,dir){ const n=_algoDraft.nodos[nid]; if(!n||!n.opciones)return; const j=i+dir; if(j<0||j>=n.opciones.length)return; const t=n.opciones[i]; n.opciones[i]=n.opciones[j]; n.opciones[j]=t; go('algoedit'); }
 function algoDelNode(nid){ delete _algoDraft.nodos[nid]; if(_algoDraft.inicio===nid)_algoDraft.inicio=''; Object.keys(_algoDraft.nodos).forEach(function(k){const n=_algoDraft.nodos[k];(n.opciones||[]).forEach(function(o){if(o.destino===nid)o.destino='';});}); go('algoedit'); }
 function algoNodeText(nid,v){ if(_algoDraft.nodos[nid])_algoDraft.nodos[nid].texto=v; }
 function algoNodeBody(nid,v){ if(_algoDraft.nodos[nid])_algoDraft.nodos[nid].cuerpo=v; }
@@ -4843,7 +4845,7 @@ VIEWS.calcedit=()=>{
   h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="calcSetMeta(\'seccion\',this.value)">'+_calcSecOptions(d.seccion)+'</select></div>';
   h+='<h3>Campos ('+(d.campos||[]).length+')</h3>';
   if(!(d.campos||[]).length) h+='<div class="alert b">Sin campos. Añade uno abajo.</div>';
-  (d.campos||[]).forEach(function(campo,ci){ h+=_calcEditCampo(campo,ci,d.tipo); });
+  (d.campos||[]).forEach(function(campo,ci){ h+=_calcEditCampo(campo,ci,d.tipo,(d.campos||[]).length); });
   if(esF){ h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="calcAddCampo(\'number\')">➕ Número</button><button class="btn btn-out btn-sm" onclick="calcAddCampo(\'select\')">➕ Opciones</button><button class="btn btn-out btn-sm" onclick="calcAddCampo(\'check\')">➕ Casilla sí/no</button></div>'; }
   else { h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="calcAddCampo(\'select\')">➕ Campo de opciones</button><button class="btn btn-out btn-sm" onclick="calcAddCampo(\'check\')">➕ Casilla sí/no</button></div>'; }
   if(esF){
@@ -4857,45 +4859,48 @@ VIEWS.calcedit=()=>{
     h+='<h3 style="margin-top:14px">Resultados por puntuación ('+(d.resultados||[]).length+')</h3>';
     h+='<p style="font-size:12px;color:var(--mut)">Define rangos de puntos y su categoría. Ej.: de 0 a 1 = «Riesgo bajo».</p>';
   }
-  (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri); });
+  (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri,(d.resultados||[]).length); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
   h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="calcCancelar()">✖ Cancelar</button><button class="btn" onclick="calcVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="calcComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="calcGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="calcPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
-function _calcEditCampo(campo,ci,calcTipo){
+function _calcEditCampo(campo,ci,calcTipo,total){
   if(calcTipo==='formula'){
     const tn=campo.tipo==='number'?'🔢 Número':(campo.tipo==='select'?'🔘 Opciones':'☑️ Casilla sí/no');
-    let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+tn+'</span><button class="btn btn-out btn-sm" onclick="calcDelCampo('+ci+')" title="Eliminar campo">×</button></div><div class="coll-c">';
+    let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+tn+'</span><button class="btn btn-out btn-sm" onclick="calcMoverCampo('+ci+',-1)"'+(ci===0?' disabled':'')+' title="Subir">↑</button><button class="btn btn-out btn-sm" onclick="calcMoverCampo('+ci+',1)"'+(ci===total-1?' disabled':'')+' title="Bajar">↓</button><button class="btn btn-out btn-sm" onclick="calcDelCampo('+ci+')" title="Eliminar campo">×</button></div><div class="coll-c">';
     h+='<input value="'+_hpEsc(campo.etiqueta||'')+'" onchange="calcCampoLabel('+ci+',this.value)" placeholder="Etiqueta (ej: Peso)">';
     h+='<div style="display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px;color:var(--mut)">Variable:</span><input style="width:110px" value="'+_hpEsc(campo.clave||'')+'" onchange="calcCampoClave('+ci+',this.value)" placeholder="ej: peso">';
     if(campo.tipo==='number'){ h+='<span style="font-size:12px;color:var(--mut)">Unidad:</span><input style="width:80px" value="'+_hpEsc(campo.unidad||'')+'" onchange="calcCampoUnidad('+ci+',this.value)" placeholder="kg">'; }
     h+='</div>';
     if(campo.tipo==='select'){
       h+='<div style="font-size:12px;color:var(--mut);margin:6px 0 2px">Opciones (cada una con su valor numérico):</div>';
-      (campo.opciones||[]).forEach(function(o,oi){ h+='<div style="display:flex;gap:4px;margin-top:4px;align-items:center"><input style="flex:1" value="'+_hpEsc(o.etiqueta||'')+'" onchange="calcOptLabel('+ci+','+oi+',this.value)" placeholder="Etiqueta (ej: Mujer)"><input type="number" style="width:70px" value="'+(o.valor!=null?(+o.valor):'')+'" onchange="calcOptValor('+ci+','+oi+',this.value)" placeholder="valor"><button class="btn btn-out btn-sm" onclick="calcDelOpt('+ci+','+oi+')">×</button></div>'; });
+      (campo.opciones||[]).forEach(function(o,oi){ h+='<div style="display:flex;gap:4px;margin-top:4px;align-items:center"><input style="flex:1" value="'+_hpEsc(o.etiqueta||'')+'" onchange="calcOptLabel('+ci+','+oi+',this.value)" placeholder="Etiqueta (ej: Mujer)"><input type="number" style="width:70px" value="'+(o.valor!=null?(+o.valor):'')+'" onchange="calcOptValor('+ci+','+oi+',this.value)" placeholder="valor"><button class="btn btn-out btn-sm" onclick="calcMoverOpt('+ci+','+oi+',-1)"'+(oi===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="calcMoverOpt('+ci+','+oi+',1)"'+(oi===campo.opciones.length-1?' disabled':'')+'>↓</button><button class="btn btn-out btn-sm" onclick="calcDelOpt('+ci+','+oi+')">×</button></div>'; });
       h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddOpt('+ci+')">➕ Opción</button>';
     } else if(campo.tipo==='check'){ h+='<div style="font-size:11px;color:var(--mut);margin-top:4px">Vale 1 si se marca y 0 si no.</div>'; }
     h+='</div></div>'; return h;
   }
-  let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+(campo.tipo==='check'?'☑️ Casilla sí/no':'🔘 Campo de opciones')+'</span><button class="btn btn-out btn-sm" onclick="calcDelCampo('+ci+')" title="Eliminar campo">×</button></div><div class="coll-c">';
+  let h='<div class="coll open" style="margin-bottom:8px"><div class="coll-h" style="cursor:default"><span>'+(campo.tipo==='check'?'☑️ Casilla sí/no':'🔘 Campo de opciones')+'</span><button class="btn btn-out btn-sm" onclick="calcMoverCampo('+ci+',-1)"'+(ci===0?' disabled':'')+' title="Subir">↑</button><button class="btn btn-out btn-sm" onclick="calcMoverCampo('+ci+',1)"'+(ci===total-1?' disabled':'')+' title="Bajar">↓</button><button class="btn btn-out btn-sm" onclick="calcDelCampo('+ci+')" title="Eliminar campo">×</button></div><div class="coll-c">';
   h+='<input value="'+_hpEsc(campo.etiqueta||'')+'" onchange="calcCampoLabel('+ci+',this.value)" placeholder="'+(campo.tipo==='check'?'Texto de la casilla (ej: Edad &gt; 65 años)':'Nombre del campo (ej: Estadio)')+'">';
   if(campo.tipo==='check'){
     h+='<div style="display:flex;align-items:center;gap:6px;margin-top:6px"><span style="font-size:13px">Puntos si se marca:</span><input type="number" style="width:80px" value="'+(campo.puntos!=null?(+campo.puntos):'')+'" onchange="calcCampoPuntos('+ci+',this.value)"></div>';
   } else {
     h+='<div style="font-size:12px;color:var(--mut);margin:6px 0 2px">Opciones (cada una con sus puntos):</div>';
-    (campo.opciones||[]).forEach(function(o,oi){ h+='<div style="display:flex;gap:4px;margin-top:4px;align-items:center"><input style="flex:1" value="'+_hpEsc(o.etiqueta||'')+'" onchange="calcOptLabel('+ci+','+oi+',this.value)" placeholder="Etiqueta (ej: &gt; 65 años)"><input type="number" style="width:70px" value="'+(o.puntos!=null?(+o.puntos):'')+'" onchange="calcOptPuntos('+ci+','+oi+',this.value)" placeholder="pts"><button class="btn btn-out btn-sm" onclick="calcDelOpt('+ci+','+oi+')">×</button></div>'; });
+    (campo.opciones||[]).forEach(function(o,oi){ h+='<div style="display:flex;gap:4px;margin-top:4px;align-items:center"><input style="flex:1" value="'+_hpEsc(o.etiqueta||'')+'" onchange="calcOptLabel('+ci+','+oi+',this.value)" placeholder="Etiqueta (ej: &gt; 65 años)"><input type="number" style="width:70px" value="'+(o.puntos!=null?(+o.puntos):'')+'" onchange="calcOptPuntos('+ci+','+oi+',this.value)" placeholder="pts"><button class="btn btn-out btn-sm" onclick="calcMoverOpt('+ci+','+oi+',-1)"'+(oi===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="calcMoverOpt('+ci+','+oi+',1)"'+(oi===campo.opciones.length-1?' disabled':'')+'>↓</button><button class="btn btn-out btn-sm" onclick="calcDelOpt('+ci+','+oi+')">×</button></div>'; });
     h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddOpt('+ci+')">➕ Opción</button>';
   }
   h+='</div></div>'; return h;
 }
-function _calcEditResultado(r,ri){
-  return '<div style="display:flex;gap:4px;margin-top:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px">de</span><input type="number" style="width:60px" value="'+(r.min!=null?(+r.min):'')+'" onchange="calcResField('+ri+',\'min\',this.value)"><span style="font-size:12px">a</span><input type="number" style="width:60px" value="'+(r.max!=null?(+r.max):'')+'" onchange="calcResField('+ri+',\'max\',this.value)"><input style="flex:1;min-width:120px" value="'+_hpEsc(r.etiqueta||'')+'" onchange="calcResField('+ri+',\'etiqueta\',this.value)" placeholder="Categoría (ej: Riesgo bajo)"><button class="btn btn-out btn-sm" onclick="calcDelResultado('+ri+')">×</button><textarea style="width:100%;margin-top:4px" onchange="calcResField('+ri+',\'detalle\',this.value)" placeholder="Detalle / recomendación (opcional)">'+_hpEsc(r.detalle||'')+'</textarea></div>';
+function _calcEditResultado(r,ri,total){
+  return '<div style="display:flex;gap:4px;margin-top:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px">de</span><input type="number" style="width:60px" value="'+(r.min!=null?(+r.min):'')+'" onchange="calcResField('+ri+',\'min\',this.value)"><span style="font-size:12px">a</span><input type="number" style="width:60px" value="'+(r.max!=null?(+r.max):'')+'" onchange="calcResField('+ri+',\'max\',this.value)"><input style="flex:1;min-width:120px" value="'+_hpEsc(r.etiqueta||'')+'" onchange="calcResField('+ri+',\'etiqueta\',this.value)" placeholder="Categoría (ej: Riesgo bajo)"><button class="btn btn-out btn-sm" onclick="calcMoverResultado('+ri+',-1)"'+(ri===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="calcMoverResultado('+ri+',1)"'+(ri===total-1?' disabled':'')+'>↓</button><button class="btn btn-out btn-sm" onclick="calcDelResultado('+ri+')">×</button><textarea style="width:100%;margin-top:4px" onchange="calcResField('+ri+',\'detalle\',this.value)" placeholder="Detalle / recomendación (opcional)">'+_hpEsc(r.detalle||'')+'</textarea></div>';
 }
 function calcSetMeta(f,v){ if(!_calcDraft)return; if(f==='decimales')_calcDraft[f]=(+v||0); else _calcDraft[f]=v; if(f==='seccion') go('calcedit'); }
 function calcAddCampo(kind){ if(!_calcDraft.campos)_calcDraft.campos=[]; const id='c_'+Date.now()+'_'+Math.floor(Math.random()*1000); const campo={id:id,etiqueta:'',tipo:kind};
   if(_calcDraft.tipo==='formula'){ campo.clave='v'+(_calcDraft.campos.length+1); if(kind==='select')campo.opciones=[{etiqueta:'',valor:0}]; if(kind==='number')campo.unidad=''; }
   else { if(kind==='check')campo.puntos=1; else campo.opciones=[{etiqueta:'',puntos:0}]; }
   _calcDraft.campos.push(campo); go('calcedit'); }
+function calcMoverCampo(ci,dir){ const a=_calcDraft.campos; const j=ci+dir; if(!a||j<0||j>=a.length)return; const t=a[ci]; a[ci]=a[j]; a[j]=t; go('calcedit'); }
+function calcMoverOpt(ci,oi,dir){ const a=_calcDraft.campos[ci]&&_calcDraft.campos[ci].opciones; const j=oi+dir; if(!a||j<0||j>=a.length)return; const t=a[oi]; a[oi]=a[j]; a[j]=t; go('calcedit'); }
+function calcMoverResultado(ri,dir){ const a=_calcDraft.resultados; const j=ri+dir; if(!a||j<0||j>=a.length)return; const t=a[ri]; a[ri]=a[j]; a[j]=t; go('calcedit'); }
 function calcDelCampo(ci){ _calcDraft.campos.splice(ci,1); go('calcedit'); }
 function calcCampoLabel(ci,v){ if(_calcDraft.campos[ci])_calcDraft.campos[ci].etiqueta=v; }
 function calcCampoClave(ci,v){ if(!_calcDraft.campos[ci])return; let k=(''+v).trim().replace(/[^A-Za-z0-9_]/g,'_'); if(/^[0-9]/.test(k))k='_'+k; _calcDraft.campos[ci].clave=k; go('calcedit'); }
@@ -6478,7 +6483,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 186;
+const HP_BUILD = 187;
 const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
