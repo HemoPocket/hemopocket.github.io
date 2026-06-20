@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 198;
+const HP_BUILD = 199;
 const APP_BUILD = '2026.06.20 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13527,12 +13527,18 @@ window.hpTogglePw = function() {
   else document.addEventListener('DOMContentLoaded', revealNow);
   // Respaldo: muestra también el botón explícito por si en algún caso conviene.
   function showOption(){
-    if (window.__hpFirebaseReady) return;
-    if (!everLogged()) return;
+    if (window.__hpFirebaseReady) return;   // Firebase ya resolvió: que decida él
+    if (!everLogged()) return;              // nunca validado aquí: se mantiene el login
+    // Equipo YA validado + Firebase no responde (la red del hospital lo bloquea, o sin
+    // conexión): ENTRAMOS directos en modo consulta, sin mostrar "no se puede conectar"
+    // ni pedir clic. Dejamos también el botón por si en algún caso el login siguiera visible.
+    hideOverlay();
     var box = document.getElementById('hp_offline_box');
     if (box) box.style.display = 'block';
   }
-  setTimeout(showOption, navigator.onLine ? 2000 : 900);
+  setTimeout(showOption, navigator.onLine ? 1500 : 700);
+  // Segundo intento por si Firebase tarda más en confirmar que está bloqueado.
+  setTimeout(showOption, 4000);
 })();
 </script>
 <script>
