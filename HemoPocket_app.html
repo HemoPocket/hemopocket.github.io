@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 197;
+const HP_BUILD = 198;
 const APP_BUILD = '2026.06.20 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12742,7 +12742,7 @@ document.addEventListener('DOMContentLoaded', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -12760,7 +12760,12 @@ const fbApp = initializeApp(firebaseConfig);
 // no envía telemetría de uso a terceros, reforzando la privacidad en entorno sanitario.
 const auth = getAuth(fbApp);
 const db = getDatabase(fbApp);
-const fs = getFirestore(fbApp);
+// Firestore con CACHÉ PERSISTENTE (IndexedDB): permite usar la app SIN conexión en el
+// hospital — las lecturas (aprobación de cuenta, rol, contenido) se sirven de la caché
+// local. Si el navegador no la admite (p. ej. incógnito), cae a Firestore normal.
+let fs;
+try { fs = initializeFirestore(fbApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+catch (e) { fs = getFirestore(fbApp); }
 // ── Notificaciones push (FCM) para ADMINISTRADORES ──
 // Para activarlas: pega abajo la clave pública "Web Push certificates" (consola Firebase →
 // Configuración del proyecto → Cloud Messaging → Certificados push web → Generar par de claves).
@@ -13085,9 +13090,14 @@ function revealAndEnter(user){
 async function enterAppGated(user){
   let blocked = false, name = '';
   try {
-    const s = await getDoc(doc(fs, 'cuentas', user.uid));
-    if (s.exists()) { const d = s.data(); name = d.nombre || ''; if (d.estado !== 'aprobada') blocked = true; }
-  } catch(e) { /* offline o ficha heredada: no bloquear */ }
+    // Carrera con TIEMPO LÍMITE: si la red tarda o no hay conexión (intranet del hospital),
+    // no bloqueamos el arranque. Con caché persistente, la lectura es local e instantánea.
+    const s = await Promise.race([
+      getDoc(doc(fs, 'cuentas', user.uid)),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), navigator.onLine ? 6000 : 1200))
+    ]);
+    if (s && s.exists()) { const d = s.data(); name = d.nombre || ''; if (d.estado !== 'aprobada') blocked = true; }
+  } catch(e) { /* offline/lento/ficha heredada: no bloquear */ }
   if (blocked) { curUid = null; showPending(name); return; }
   revealAndEnter(user);
 }
