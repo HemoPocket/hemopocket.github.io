@@ -968,7 +968,7 @@ const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidd
 const open=f||sec._o||sec.o;
 // Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
 let _hdr=sec.h; const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=_t.toUpperCase();}
-h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
+h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}${(!open&&(sec.h==='AJUSTES')&&(((window._hpRepNew||0)+(window._hpSolNew||0))>0))?`<span class="tag-new" style="background:#c41e3a" title="solicitudes y reportes pendientes">${(window._hpRepNew||0)+(window._hpSolNew||0)}</span>`:''}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
 let inSub=false;
 visible.forEach(it=>{
 if(it.admin&&!isAdminUI)return;
@@ -5307,6 +5307,7 @@ return `<div class="card"><h2>Errores reportados</h2><div class="alert y">Este a
 return `<div class="card">
 <h2>Errores reportados</h2>
 <p class="intro">Incidencias enviadas por los usuarios desde «Reportar un error» y errores técnicos capturados automáticamente. Puedes marcarlas como <strong>resueltas</strong> o borrarlas.</p>
+<div class="alert b" style="margin-bottom:10px;font-size:13px">🔔 <strong>Notificaciones push</strong> de solicitudes y reportes (interruptor de tu cuenta). <span id="hp-push-btn-wrap">${_hpPushBtnHtml()}</span><div style="font-size:11px;color:var(--mut);margin-top:4px">Es el mismo interruptor que en «Solicitudes de acceso»: cubre <strong>ambos</strong> avisos.</div></div>
 <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-out btn-sm" onclick="hpRenderReportes()">↻ Actualizar</button></div>
 <div id="rep_list">Cargando…</div></div>`;
 };
@@ -6513,8 +6514,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 196;
-const APP_BUILD = '2026.06.19 (build ' + HP_BUILD + ')';
+const HP_BUILD = 197;
+const APP_BUILD = '2026.06.20 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.

@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v196';
+const CACHE = 'hemopocket-v197';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 // pdf.min.js se auto-aloja y se precachea para que el visor de PDF funcione sin conexión.
 const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html', '/vendor/pdfjs/pdf.min.js', '/vendor/pdfjs/pdf.worker.min.js'];
@@ -67,19 +67,25 @@ self.addEventListener('fetch', e => {
   // 1. HTML / navegación: network-first con fallback a cache.
   if (isHTML) {
     e.respondWith(
-      // cache:'no-store' evita que la caché HTTP del navegador devuelva un HTML
-      // viejo: forzamos siempre la última versión de la red cuando hay conexión.
-      fetch(req, { cache: 'no-store' })
-        .then(resp => {
-          const copy = resp.clone();
-          caches.open(CACHE).then(c => safePut(c, req, copy));
-          return resp;
-        })
-        .catch(() =>
-          caches.match(req, { ignoreSearch: true })
-            .then(r => r || caches.match('/HemoPocket_app.html'))
-            .then(r => r || caches.match('/'))
-            .then(r => r || new Response(
+      // STALE-WHILE-REVALIDATE: servir la copia en caché AL INSTANTE (arranque rápido y
+      // offline) y refrescar en segundo plano para la próxima vez. Las actualizaciones de
+      // versión siguen llegando por el ciclo del SW (install precachea el HTML nuevo y la
+      // app recarga al cambiar de controlador). Antes era network-first: descargaba ~1,5 MB
+      // de HTML ANTES de pintar, y con conexión lenta eso era el retraso al abrir.
+      caches.match(req, { ignoreSearch: true })
+        .then(r => r || caches.match('/HemoPocket_app.html'))
+        .then(cached => {
+          const _net = fetch(req, { cache: 'no-store' })
+            .then(resp => {
+              const copy = resp.clone();
+              caches.open(CACHE).then(c => safePut(c, req, copy));
+              return resp;
+            });
+          if (cached) { e.waitUntil(_net.catch(function(){})); return cached; }
+          return _net.catch(() =>
+            caches.match('/HemoPocket_app.html')
+              .then(r => r || caches.match('/'))
+              .then(r => r || new Response(
               `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HemoPocket — Sin conexión</title></head>
 <body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;background:#eef1f5;color:#333;padding:24px">
 <div style="max-width:380px;text-align:center">
@@ -91,7 +97,8 @@ self.addEventListener('fetch', e => {
 </div></body></html>`,
               { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
             ))
-        )
+          );
+        })
     );
     return;
   }
