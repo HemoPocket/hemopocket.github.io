@@ -600,7 +600,7 @@ body{font-size:13px}
   Herramienta de apoyo clínico<br>
   No sustituye protocolos oficiales
   <br>
-  <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">⚖️ Aviso Legal</button>
+  <button onclick="abrirAvisoLegal()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">Aviso Legal</button>
   <span style="color:var(--bd)"> · </span>
   <button onclick="hpOpenReport()" style="background:none; border:none; color:var(--c1); cursor:pointer; font-size:0.75rem; text-decoration:underline; padding:0.2rem 0;">Reportar un error</button>
   <br><span id="app-build-stamp" style="color:var(--mut); opacity:.7; font-size:0.7rem"></span>
@@ -6309,7 +6309,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 224;
+const HP_BUILD = 225;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
