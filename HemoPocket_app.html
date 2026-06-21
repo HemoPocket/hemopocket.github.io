@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 205;
+const HP_BUILD = 206;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11527,6 +11527,19 @@ function RXtranscribe(raw){
     c=c.replace(/\bhasta\s+(?:nueva\s+revisi[oó]n|nuevo\s+aviso|nueva\s+orden|nueva\s+indicaci[oó]n)\b/gi,' ');
     c=c.replace(/\bindefinid[ao]s?\b/gi,' ');
     c=c.replace(/\b(?:pr[oó]xima\s+)?revisi[oó]n\b/gi,' ');
+    c=c.replace(/\s+/g,' ').trim();
+    if(!c||c.length<2) continue;
+
+    // 0b) DESCRIPCIÓN GALÉNICA (inhaladores, nebulizadores…): ensucia el nombre y confunde la forma.
+    //     "suspensión/solución/polvo para inhalación en envase a presión", "para inhalación", "EFG", "microgramos/dosis"…
+    c=c.replace(/\b(?:suspensi[oó]n|soluci[oó]n|polvo|aerosol|emulsi[oó]n|gas|l[ií]quido|espuma|pasta)\s+(?:y\s+disolvente\s+)?para\s+(?:inhalaci[oó]n|nebulizaci[oó]n|pulverizaci[oó]n)[a-zñáéíóú]*(?:\s+(?:en|por)\s+[a-zñáéíóú]+(?:\s+a\s+presi[oó]n)?)?/gi,' ');
+    c=c.replace(/\b(?:en\s+)?envase\s+a\s+presi[oó]n\b/gi,' ');
+    c=c.replace(/\bpara\s+(?:inhalaci[oó]n|nebulizaci[oó]n|pulverizaci[oó]n)\b/gi,' ');
+    c=c.replace(/\binhalador\b(?:\s+de\s+polvo\s+seco)?/gi,' ');
+    c=c.replace(/\bmicrogramos?\b/gi,'mcg').replace(/\bmcg\s*\/\s*dosis\b/gi,'mcg');
+    c=c.replace(/\befg\b/gi,' ');
+    // Nombres de laboratorios de genéricos que aparecen en la receta y ensucian el nombre del fármaco.
+    c=c.replace(/\b(?:cinfa|normon|sandoz|teva|kern(?:\s+pharma)?|stada|mylan|aristo|aurovitas|qualigen|tecnigen|ratiopharm|combix|bexal|aldo[\s-]?uni[oó]n|ranbaxy|edigen|korhispana|viatris|pensa|davur|accord|krka|zentiva)\b/gi,' ');
     c=c.replace(/\s+/g,' ').trim();
     if(!c||c.length<2) continue;
 
