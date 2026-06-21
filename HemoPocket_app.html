@@ -6266,7 +6266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 220;
+const HP_BUILD = 221;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11500,10 +11500,11 @@ VIEWS.rxedit=()=>{
     +'<textarea rows=\"2\" style=\"width:100%;box-sizing:border-box\" onchange=\"rxField(\'ejemplos\','+i+',\'from\',this.value)\" placeholder=\"SALBUTAMOL 100 mcg/pulsación susp. para inhalación · 2 inh/8h\">'+_hpEsc(p.from||'')+'</textarea>'
     +'<label style=\"font-size:11px;color:var(--mut);display:block;margin:4px 0 2px\">Salida — cómo quieres que quede</label>'
     +'<textarea rows=\"2\" style=\"width:100%;box-sizing:border-box\" onchange=\"rxField(\'ejemplos\','+i+',\'to\',this.value)\" placeholder=\"Salbutamol 100 mcg: 2 pulsaciones cada 8 horas\">'+_hpEsc(p.to||'')+'</textarea>'
-    +'<div style=\"text-align:right;margin-top:4px\"><button class=\"btn btn-out btn-sm\" style=\"color:#c41e3a\" onclick=\"rxDel(\'ejemplos\','+i+')\">🗑 Eliminar ejemplo</button></div></div>';
+    +'<div style=\"text-align:right;margin-top:4px\"><button class=\"btn btn-out btn-sm\" style=\"color:#c41e3a\" onclick=\"rxDel(\'ejemplos\','+i+')\">🗑 Eliminar</button> <button class=\"btn btn-g btn-sm\" onclick=\"rxExDone('+i+')\">✓ Hecho</button></div></div>';
+  const exline=(p,i)=>'<div style=\"display:flex;gap:6px;align-items:center;margin-bottom:4px;padding:6px 8px;border:1px solid var(--bd);border-radius:8px\"><span style=\"flex:1;font-size:13px;word-break:break-word\">💊 '+_hpEsc(p.to||'')+'</span><button class=\"btn btn-out btn-sm\" onclick=\"rxExEdit('+i+')\">✏️</button><button class=\"btn btn-out btn-sm\" style=\"color:#c41e3a\" onclick=\"rxDel(\'ejemplos\','+i+')\">🗑</button></div>';
   h+='<h3>📝 Recetas a medida (por ejemplo)</h3><p style=\"font-size:12px;color:var(--mut)\">Cuando el asistente reconozca un fármaco que coincida con el de un ejemplo, usará exactamente tu salida. Lo identifica por el nombre del fármaco al inicio de la línea de entrada.</p>';
-  (d.ejemplos||[]).forEach(function(p,i){ h+=exrow(p,i); });
-  h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'ejemplos\')\">➕ Añadir ejemplo</button>';
+  (d.ejemplos||[]).forEach(function(p,i){ if(p._edit||!(''+(p.to||'')).trim()){ h+=exrow(p,i); } else { h+=exline(p,i); } });
+  h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxExAdd()\">➕ Añadir ejemplo</button>';
   h+='<details style=\"margin-top:16px\"><summary style=\"cursor:pointer;font-weight:600\">⚙️ Opciones avanzadas (diccionarios)</summary><div style=\"margin-top:8px\">';
   h+='<h3>Correcciones de nombre</h3><p style=\"font-size:12px;color:var(--mut)\">Sustituye un término por otro (p. ej. «Losartan»→«Losartán», «AAS»→«Ácido acetilsalicílico»). No distingue mayúsculas; se aplica a palabras completas.</p>';
   (d.rename||[]).forEach(function(p,i){ h+=row('rename',p,i); });
@@ -11518,6 +11519,9 @@ VIEWS.rxedit=()=>{
   h+='<hr style=\"margin:12px 0\"><div class=\"btns\"><button class=\"btn btn-out\" onclick=\"rxEditCancelar()\">✖ Cancelar</button><button class=\"btn btn-out\" onclick=\"rxEditReset()\">Restablecer</button><button class=\"btn btn-g\" onclick=\"rxEditGuardar()\">💾 Guardar para todos</button></div>';
   h+='</div>'; return h;
 };
+function rxExAdd(){ if(!_rxDraft)return; if(!_rxDraft.ejemplos)_rxDraft.ejemplos=[]; _rxDraft.ejemplos.push({from:'',to:'',_edit:true}); go('rxedit'); }
+function rxExEdit(i){ if(!_rxDraft||!_rxDraft.ejemplos||!_rxDraft.ejemplos[i])return; _rxDraft.ejemplos[i]._edit=true; go('rxedit'); }
+function rxExDone(i){ if(!_rxDraft||!_rxDraft.ejemplos||!_rxDraft.ejemplos[i])return; var p=_rxDraft.ejemplos[i]; if(!(''+(p.from||'')).trim()||!(''+(p.to||'')).trim()){ _rxDraft.ejemplos.splice(i,1); } else { p._edit=false; } go('rxedit'); }
 function rxField(list,i,f,v){ if(!_rxDraft||!_rxDraft[list]||!_rxDraft[list][i])return; _rxDraft[list][i][f]=v; }
 function rxAdd(list){ if(!_rxDraft)return; if(!_rxDraft[list])_rxDraft[list]=[]; _rxDraft[list].push({from:'',to:''}); go('rxedit'); }
 function rxDel(list,i){ if(!_rxDraft||!_rxDraft[list])return; _rxDraft[list].splice(i,1); go('rxedit'); }
