@@ -1045,13 +1045,13 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','rxedit','pageedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
 // ── Edición de CUALQUIER página de contenido (algoritmos, info) por usuarios autorizados ──
 // Una "página editada" sustituye al contenido del código con HTML saneado (sin scripts ni handlers).
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
 // original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
 // paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','lcedit','rxedit','pageedit','qt','labconv','checklist']);
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
@@ -6266,7 +6266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 221;
+const HP_BUILD = 222;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6375,6 +6375,7 @@ if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
 if(window.hpSyncCatOrden){try{await window.hpSyncCatOrden();}catch(e){}}
 if(window.hpSyncChecklist){try{await window.hpSyncChecklist();}catch(e){}}
 if(window.hpSyncQt){try{await window.hpSyncQt();}catch(e){}}
+if(window.hpSyncQtGroups){try{await window.hpSyncQtGroups();}catch(e){}}
 if(window.hpSyncLc){try{await window.hpSyncLc();}catch(e){}}
 if(window.hpSyncRx){try{await window.hpSyncRx();}catch(e){}}
 if(window.hpSyncPages){try{await window.hpSyncPages();}catch(e){}}
@@ -7652,6 +7653,26 @@ const QT_GROUPS = [
 ];
 
 
+// ── Subgrupos de esquemas: configurables (orden, renombrar, ocultar, crear) ──
+// Los nombres canónicos de los grupos de fábrica son su 'label' original; los esquemas
+// se asignan a un grupo por su nombre canónico (sc.group). El config (orden/renombrados/
+// ocultos/grupos nuevos) se guarda en 'menuconfig/qtgroups' y rige solo la presentación.
+function qtGroupsCfg(){ try{ return ls.g('qtGroups')||{}; }catch(e){ return {}; } }
+window.hpApplyQtGroups=function(c){ try{ ls.s('qtGroups', c||{}); }catch(e){} try{ if(typeof S!=='undefined'&&S&&(S.view==='qt'||S.view==='qtgroups')&&typeof go==='function') go(S.view); }catch(e){} };
+function qtFactoryGroupOf(key){ for(var i=0;i<QT_GROUPS.length;i++){ if(QT_GROUPS[i].keys.indexOf(key)>=0) return QT_GROUPS[i].label; } return null; }
+function qtGroupIds(){
+  var cfg=qtGroupsCfg(); var ids=[];
+  QT_GROUPS.forEach(function(g){ if(ids.indexOf(g.label)<0) ids.push(g.label); });
+  (cfg.custom||[]).forEach(function(l){ if(l&&ids.indexOf(l)<0) ids.push(l); });
+  if(ids.indexOf('Personalizados')<0) ids.push('Personalizados');
+  if(Array.isArray(cfg.order)&&cfg.order.length){ var ord=[]; cfg.order.forEach(function(l){ if(ids.indexOf(l)>=0&&ord.indexOf(l)<0) ord.push(l); }); ids.forEach(function(l){ if(ord.indexOf(l)<0) ord.push(l); }); ids=ord; }
+  return ids;
+}
+function qtGroupLabel(id){ var cfg=qtGroupsCfg(); return (cfg.renames&&cfg.renames[id])||id; }
+function qtGroupHidden(id){ var cfg=qtGroupsCfg(); return !!(cfg.hidden&&cfg.hidden[id]); }
+function qtGroupOf(key){ var sc=qtSchemes()[key]; if(sc&&sc.group&&qtGroupIds().indexOf(sc.group)>=0){ return sc.group; } var f=qtFactoryGroupOf(key); return f||'Personalizados'; }
+function qtGroupedKeys(){ var _qS=qtSchemes(); var map={}; qtGroupIds().forEach(function(id){ map[id]=[]; }); Object.keys(_qS).forEach(function(k){ var id=qtGroupOf(k); if(!map[id]) map[id]=[]; map[id].push(k); }); return map; }
+
 // ── Asistente de quimioterapia: ESQUEMAS editables (admin) ──
 // Los esquemas propios se fusionan con los de fábrica (QT_SCHEMES). Un esquema guardado con la misma
 // clave sustituye al de fábrica; con clave nueva, se añade (grupo «Personalizados»). El calendario
@@ -7670,6 +7691,9 @@ VIEWS.qtedit=()=>{
   if(d._isNew){ h+='<div class="fld"><label class="lbl">Clave (id corto, sin espacios)</label><input value="'+_hpEsc(d.key||'')+'" onchange="qtDraftKey(this.value)" placeholder="MI-ESQUEMA"></div>'; }
   else { h+='<div class="fld"><label class="lbl">Clave</label><input value="'+_hpEsc(d.key||'')+'" disabled style="opacity:.6"></div>'; }
   h+='<div class="fld"><label class="lbl">Nombre visible</label><input value="'+_hpEsc(d.label||'')+'" onchange="qtDraftField(\'label\',this.value)" placeholder="Ej: MI-ESQUEMA (cada 21 días)"></div>';
+  var _curG=(d.group&&qtGroupIds().indexOf(d.group)>=0)?d.group:(qtFactoryGroupOf(d.key)||'Personalizados');
+  var _gOpts=qtGroupIds().map(function(id){ return '<option value="'+_hpEsc(id)+'"'+(id===_curG?' selected':'')+'>'+_hpEsc(qtGroupLabel(id))+'</option>'; }).join('');
+  h+='<div class="fld"><label class="lbl">Subgrupo (dónde aparece en la lista)</label><select onchange="qtDraftGroup(this.value)" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">'+_gOpts+'<option value="__new">➕ Crear nuevo subgrupo…</option></select></div>';
   h+='<h3>Fármacos ('+(d.drugs||[]).length+')</h3>';
   (d.drugs||[]).forEach(function(dr,i){
     h+='<div class="team-card" style="display:block;margin-bottom:8px">';
@@ -7687,6 +7711,9 @@ VIEWS.qtedit=()=>{
 };
 function qtDraftKey(v){ if(_qtDraft) _qtDraft.key=(''+v).trim().toUpperCase().replace(/[^A-Z0-9\-]+/g,'-'); }
 function qtDraftField(f,v){ if(_qtDraft) _qtDraft[f]=v; }
+async function qtDraftGroup(v){ if(!_qtDraft) return; if(v==='__new'){ var n=prompt('Nombre del nuevo subgrupo (p. ej. «Aplasia medular»):'); if(n==null){ go('qtedit'); return; } n=(''+n).trim(); if(!n){ go('qtedit'); return; } await qtGroupCreate(n); _qtDraft.group=n; } else { _qtDraft.group=v; } go('qtedit'); }
+async function qtGroupCreate(name){ name=(''+name).trim(); if(!name) return; var cfg=qtGroupsCfg(); if(!Array.isArray(cfg.custom)) cfg.custom=[]; if(qtGroupIds().indexOf(name)<0 && cfg.custom.indexOf(name)<0) cfg.custom.push(name); if(!Array.isArray(cfg.order)) cfg.order=[]; if(cfg.order.indexOf(name)<0){ var ids=qtGroupIds(); var pi=ids.indexOf('Personalizados'); cfg.order=ids.slice(0,pi<0?ids.length:pi).concat([name]); if(pi>=0) cfg.order=cfg.order.concat(ids.slice(pi)); } await _qtgSave(cfg); }
+async function _qtgSave(cfg){ try{ls.s('qtGroups',cfg);}catch(e){} if(window.hpSaveQtGroups){ try{ await window.hpSaveQtGroups(cfg); }catch(e){} } }
 function qtDraftLines(f,v){ if(_qtDraft) _qtDraft[f]=(''+v).split('\n').map(function(s){return s.trim();}).filter(Boolean); }
 function qtAddDrug(){ if(!_qtDraft.drugs)_qtDraft.drugs=[]; _qtDraft.drugs.push({name:'',dose:'',route:'IV',days:[1]}); go('qtedit'); }
 function qtDelDrug(i){ _qtDraft.drugs.splice(i,1); go('qtedit'); }
@@ -7696,6 +7723,36 @@ function qtCancelar(){ _qtDraft=null; go('qt'); }
 async function qtGuardar(){ const d=_qtDraft; if(!d) return; if(!d.key||!d.key.trim()){ toast('Ponle una clave al esquema'); return; } if(!d.label||!d.label.trim()){ toast('Ponle un nombre visible'); return; } const key=d.key.trim(); const sc=JSON.parse(JSON.stringify(d)); delete sc.key; delete sc._isNew; delete sc._isCustom; const m=qtOverride(); m[key]=sc; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Esquema guardado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _qtDraft=null; go('qt'); }
 async function qtEliminar(){ const d=_qtDraft; if(!d||!d.key) return; if(QT_SCHEMES[d.key]){ toast('Es un esquema de fábrica; edítalo (no se puede eliminar)'); return; } if(!confirm('¿Eliminar el esquema "'+(d.label||d.key)+'" para todos?'))return; const m=qtOverride(); delete m[d.key]; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } _qtDraft=null; go('qt'); }
 
+// ── Gestor de subgrupos (estilo editor analítico) ──
+VIEWS.qtgroups=()=>{
+  if(!hpCanEditQt()) return '<div class="card"><h2>Organizar subgrupos</h2><div class="alert y">No tienes permiso para editar este asistente.</div></div>';
+  const gk=qtGroupedKeys(); const ids=qtGroupIds();
+  let h='<div class="card"><h2>🗂 Organizar subgrupos de esquemas</h2>';
+  h+='<p class="intro">Crea, renombra, oculta o reordena los subgrupos del asistente de quimioterapia. Los esquemas se asignan a un subgrupo al crearlos o editarlos. <strong>Efectivo para todos.</strong></p>';
+  ids.forEach(function(id,idx){
+    const fac=QT_GROUPS.some(function(g){return g.label===id;})||id==='Personalizados';
+    const n=(gk[id]||[]).length; const hid=qtGroupHidden(id);
+    h+='<div class="team-card" style="display:block;margin-bottom:6px;opacity:'+(hid?'.55':'1')+'">';
+    h+='<div style="display:flex;gap:4px;align-items:center">';
+    h+='<input style="flex:1;min-width:80px" value="'+_hpEsc(qtGroupLabel(id))+'" onchange="qtGroupRename('+idx+',this.value)">';
+    h+='<button class="btn btn-out btn-sm" onclick="qtGroupMove('+idx+',-1)"'+(idx===0?' disabled':'')+'>▲</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="qtGroupMove('+idx+',1)"'+(idx===ids.length-1?' disabled':'')+'>▼</button>';
+    h+='<button class="btn btn-out btn-sm" onclick="qtGroupToggleHide('+idx+')">'+(hid?'🙈':'👁')+'</button>';
+    if(!fac) h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="qtGroupDelete('+idx+')">🗑</button>';
+    h+='</div>';
+    h+='<div style="font-size:12px;color:var(--mut);margin-top:3px">'+n+' esquema'+(n===1?'':'s')+(fac?' · de fábrica':' · creado por ti')+(hid?' · oculto':'')+'</div>';
+    h+='</div>';
+  });
+  h+='<button class="btn btn-out btn-sm" onclick="qtGroupNew()" style="margin-top:6px">➕ Crear subgrupo</button>';
+  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-g" onclick="go(\'qt\')">✓ Hecho</button></div>';
+  h+='</div>'; return h;
+};
+async function qtGroupRename(idx,v){ const id=qtGroupIds()[idx]; if(!id) return; v=(''+v).trim(); const cfg=qtGroupsCfg(); if(!cfg.renames) cfg.renames={}; if(!v||v===id){ delete cfg.renames[id]; } else { cfg.renames[id]=v; } await _qtgSave(cfg); go('qtgroups'); }
+async function qtGroupMove(idx,dir){ const ids=qtGroupIds(); const j=idx+dir; if(idx<0||j<0||j>=ids.length) return; const t=ids[idx]; ids[idx]=ids[j]; ids[j]=t; const cfg=qtGroupsCfg(); cfg.order=ids; await _qtgSave(cfg); go('qtgroups'); }
+async function qtGroupToggleHide(idx){ const id=qtGroupIds()[idx]; if(!id) return; const cfg=qtGroupsCfg(); if(!cfg.hidden) cfg.hidden={}; if(cfg.hidden[id]) delete cfg.hidden[id]; else cfg.hidden[id]=1; await _qtgSave(cfg); go('qtgroups'); }
+async function qtGroupNew(){ let n=prompt('Nombre del nuevo subgrupo:'); if(n==null) return; n=(''+n).trim(); if(!n) return; if(qtGroupIds().indexOf(n)>=0){ toast('Ya existe ese subgrupo'); return; } await qtGroupCreate(n); toast('✓ Subgrupo creado'); go('qtgroups'); }
+async function qtGroupDelete(idx){ const id=qtGroupIds()[idx]; if(!id) return; if(QT_GROUPS.some(function(g){return g.label===id;})||id==='Personalizados'){ toast('Solo puedes eliminar subgrupos creados por ti'); return; } if(!confirm('¿Eliminar el subgrupo "'+qtGroupLabel(id)+'"? Sus esquemas pasarán a «Personalizados».')) return; const cfg=qtGroupsCfg(); cfg.custom=(cfg.custom||[]).filter(function(l){return l!==id;}); cfg.order=(cfg.order||[]).filter(function(l){return l!==id;}); if(cfg.renames) delete cfg.renames[id]; if(cfg.hidden) delete cfg.hidden[id]; await _qtgSave(cfg); const m=qtOverride(); let changed=false; Object.keys(m).forEach(function(k){ if(m[k]&&m[k].group===id){ m[k].group='Personalizados'; changed=true; } }); if(changed){ try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); }catch(e){} } } toast('✓ Subgrupo eliminado'); go('qtgroups'); }
+
 VIEWS.qt=()=>{
 const today=new Date();
 const dd=String(today.getDate()).padStart(2,'0');
@@ -7704,14 +7761,14 @@ const yy=String(today.getFullYear()).slice(-2);
 const todayVal=`${today.getFullYear()}-${mm}-${dd}`;
 let selOpts='<option value="">— Selecciona un esquema —</option>';
 const _qS=qtSchemes();
-QT_GROUPS.forEach(g=>{
-  selOpts+=`<optgroup label="${g.label}">`;
-  g.keys.forEach(k=>{ if(_qS[k]) selOpts+=`<option value="${k}">${(_qS[k].label||k)}</option>`; });
+const _qGK=qtGroupedKeys();
+qtGroupIds().forEach(id=>{
+  if(qtGroupHidden(id)) return;
+  const keys=_qGK[id]||[]; if(!keys.length) return;
+  selOpts+=`<optgroup label="${_hpEsc(qtGroupLabel(id))}">`;
+  keys.forEach(k=>{ if(_qS[k]) selOpts+=`<option value="${k}">${_hpEsc(_qS[k].label||k)}</option>`; });
   selOpts+=`</optgroup>`;
 });
-const _qGrouped={}; QT_GROUPS.forEach(g=>g.keys.forEach(k=>{_qGrouped[k]=1;}));
-const _qCustom=Object.keys(_qS).filter(k=>!_qGrouped[k]);
-if(_qCustom.length){ selOpts+=`<optgroup label="Personalizados">`; _qCustom.forEach(k=>{ selOpts+=`<option value="${k}">${(_qS[k].label||k)}</option>`; }); selOpts+=`</optgroup>`; }
 return `<div class="card">
 <h2>💊 Asistente de quimioterapia</h2>
 <p class="intro">Selecciona el esquema, introduce la fecha del día +1 y obtén el calendario de administración con fechas reales.</p>
@@ -7719,7 +7776,7 @@ return `<div class="card">
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
 </select></div>
-${hpCanEditQt()?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button></div>':''}
+${hpCanEditQt()?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button><button class="btn btn-out btn-sm" onclick="go(\'qtgroups\')">🗂 Organizar subgrupos</button></div>':''}
 <div class="row2">
 <div class="fld"><label class="lbl">Fecha día +1</label>
 <input type="date" id="qt_d1" value="${todayVal}" oninput="qtCalc()" style="font-family:inherit"></div>
@@ -12937,6 +12994,7 @@ function revealAndEnter(user){
   if (window.hpSyncCatOrden) setTimeout(() => window.hpSyncCatOrden(), 1010);
   if (window.hpSyncChecklist) setTimeout(() => window.hpSyncChecklist(), 1020);
   if (window.hpSyncQt) setTimeout(() => window.hpSyncQt(), 1030);
+  if (window.hpSyncQtGroups) setTimeout(() => window.hpSyncQtGroups(), 1035);
   if (window.hpSyncLc) setTimeout(() => window.hpSyncLc(), 1040);
   if (window.hpSyncPages) setTimeout(() => window.hpSyncPages(), 1050);
   if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
@@ -13120,6 +13178,8 @@ window.hpDeleteChecklist = async function(){ await deleteDoc(doc(fs, 'checklists
 // ── Esquemas de QT propios. Los edita un admin; los leen todos. ──
 window.hpSaveQt = async function(map){ await setDoc(doc(fs, 'qtschemes', 'custom'), { schemes: map||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
 window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschemes', 'custom')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQt) window.hpApplyQt(d.schemes||{}); } return true; }catch(e){ return false; } };
+window.hpSaveQtGroups = async function(c){ await setDoc(doc(fs, 'menuconfig', 'qtgroups'), { data: c||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSyncQtGroups = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'qtgroups')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQtGroups) window.hpApplyQtGroups(d.data||{}); } return true; }catch(e){ return false; } };
 
 // ── Diccionario/plantilla del asistente de redacción. Los edita un admin; los leen todos. ──
 window.hpSaveLc = async function(o){ await setDoc(doc(fs, 'menuconfig', 'redaccion'), { data: o||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
