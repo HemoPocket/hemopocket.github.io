@@ -1266,27 +1266,7 @@ const el=$('el_res');el.style.display='block';el.className='res '+cls[f];
 el.innerHTML=`<div class="res-h"><span class="score">ELN 2022</span><span>${lbl[f]}</span></div>${inf[f]}`;
 }
 function resetELN(){document.querySelectorAll('#content .chk-card input').forEach(cb=>{cb.checked=false;cb.parentElement.classList.remove('checked')});$('el_res').style.display='none'}
-function copyELN(){
-const r=$('el_res');if(r.style.display==='none'){toast('Selecciona criterios');return}
-const sel=[];
-document.querySelectorAll('#content .chk-card input:checked').forEach(cb=>{
-const span=cb.parentElement.querySelector('span');
-const t=span.cloneNode(true);t.querySelectorAll('small').forEach(s=>s.remove());
-sel.push(t.textContent.trim());
-});
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const hallazgos=sel.length?sel.join('; '):'sin hallazgos citogenéticos/moleculares específicos seleccionados';
-const txt=`Estratificación pronóstica ELN 2022 – LMA
-─────────────────────────────────────────────
-${patientHeader()}Se aplica la estratificación pronóstica de la European LeukemiaNet 2022 para leucemia mieloide aguda con los siguientes hallazgos citogenéticos y moleculares: ${hallazgos}.
-
-Categoría resultante: ${result}.
-
-La categoría se utiliza para orientar la indicación de consolidación con quimioterapia frente a trasplante alogénico de progenitores hematopoyéticos en primera remisión completa.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyELN(){ copyShortRes('el_res','ELN 2022'); }
 
 // === GENERIC POINT-BASED CALCULATOR ===
 const PCC={};
@@ -1363,20 +1343,36 @@ const cat=stripHTML(range.label);
 const info=range.info?stripHTML(range.info):'';
 const dt=new Date().toLocaleDateString('es-ES');
 const pacient=patientHeader();
-// Cuerpo redactado en prosa
-const intro=cfg.title.replace(/\s*–.*$/,'');
-const factsText=factors.map(f=>{
-if(f.val==='presente'||f.val==='ausente')return `${f.q.toLowerCase()} ${f.val}`;
-return `${f.q.toLowerCase()}: ${f.val}`;
-}).join('; ');
-const txt=`Cálculo de ${intro}
-─────────────────────────────────────────────
-${pacient}Se aplica el índice ${intro} con los siguientes parámetros: ${factsText}.
-
-Puntuación total obtenida: ${total}. Categoría de riesgo correspondiente: ${cat}.${info?' '+info.replace(/\s+/g,' ').trim():''}
-
-[Fecha: ${dt}]`;
+// Resultado CORTO y directo para un evolutivo: "Escala X: N puntos (categoría)"
+const name=stripHTML(cfg.title).split(/\s[–—-]\s/)[0].trim();
+const pre=/^(escala|[ií]ndice|score|criterios|clasificaci|cribado)/i.test(name)?'':'Escala ';
+const txt=pre+name+': '+total+' '+(total===1?'punto':'puntos')+' ('+cat+')';
 copy(txt);
+}
+// Copia CORTA y directa del resultado de una escala: "Nombre: resultado (categoría)".
+// Toma el titular del recuadro de resultado (.res-h: un span con la cifra/etiqueta y otro con la categoría).
+function copyShortRes(resId,name){
+  const r=$(resId); if(!r||r.style.display==='none'){ if(typeof toast==='function')toast('Calcula primero'); return; }
+  const hh=r.querySelector('.res-h'); let parts=[];
+  if(hh){ hh.querySelectorAll('span').forEach(function(s){ const t=stripHTML(s.textContent).trim(); if(t)parts.push(t); }); }
+  if(!parts.length){ const tt=r.textContent.replace(/\s+/g,' ').trim().split(/[.·\n]/)[0].trim(); if(tt)parts.push(tt); }
+  if(!parts.length){ copy(name); return; }
+  const norm=function(s){return s.toLowerCase().replace(/[\s.\-–—()/]/g,'');};
+  const nn=norm(name); let out;
+  // Si un trozo ya contiene el nombre de la escala (p. ej. "R-ISS II", "ICANS Grado 4"), ese es el titular.
+  const named = nn.length>=2 ? parts.find(function(p){return norm(p).indexOf(nn)>=0;}) : null;
+  if(named){
+    const other=parts.filter(function(p){return p!==named;});
+    const oj=other.join(' · ');
+    if(other.length===1 && !/^[<>≤≥]?\s*\d/.test(other[0]) && oj.indexOf(':')<0 && oj.length<=34) out=named+': '+oj;
+    else if(oj && oj.length<=34) out=named+' ('+oj+')';
+    else out=named;
+  } else {
+    const a=parts[0]||'', b=parts.slice(1).join(' · ');
+    const numeric=/^[<>≤≥]?\s*[\d]/.test(a)||/(pts|punto|m²|ml|mg|ms|%)/i.test(a);
+    out=name+': '+(parts.length>=2?(numeric?(a+' ('+b+')'):(a+' '+b)):a);
+  }
+  copy(out.replace(/\s+/g,' ').trim());
 }
 function stripHTML(s){return (s||'').replace(/<[^>]*>/g,'').replace(/&gt;/g,'>').replace(/&lt;/g,'<').replace(/&amp;/g,'&').replace(/&quot;/g,'"').trim()}
 function patientHeader(){
@@ -1469,19 +1465,7 @@ else{cat='Riesgo alto';cls='hi';info='SG mediana ~37 meses'}
 const el=$('mipi_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${sc.toFixed(2)}</span><span>${cat}</span></div><div class="res-s">${info}</div>`;
 }
-function copyMIPI(){
-const r=$('mipi_res');if(r.style.display==='none'){toast('Calcula primero');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const ecog=$('mipi_ecog').selectedOptions[0].text;
-const txt=`MIPI – Linfoma de células del manto
-─────────────────────────────────────────────
-Paciente de ${$('mipi_age').value} años, con ECOG ${ecog}, LDH ${$('mipi_ldh').value} U/L (límite superior de la normalidad ${$('mipi_uln').value}) y leucocitos ${$('mipi_wbc').value} ×10⁹/L.
-
-Resultado del MIPI: ${result}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyMIPI(){ copyShortRes('mipi_res','MIPI'); }
 
 VIEWS.aa=()=>`<div class="card">
 <h2>Estadiaje Ann Arbor (Cotswold/Lugano)</h2>
@@ -1571,14 +1555,7 @@ if(mods.length)s+=' ('+mods.join(',')+')';
 const el=$('aa_res');el.style.display='block';el.className='res in';
 el.innerHTML=`<div class="res-h"><span class="score">Estadio</span><span>${s}</span></div>`;
 }
-function copyAA(){const r=$('aa_res');if(r.style.display==='none'){toast('Selecciona estadio');return}
-const stage=r.textContent.replace('Estadio','').trim();
-const txt=`Estadiaje Ann Arbor (Lugano)
-─────────────────────────────────────────────
-${patientHeader()}Se establece estadiaje según la clasificación de Ann Arbor modificada (Lugano) como ${stage}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyAA(){ copyShortRes('aa_res','Ann Arbor'); }
 
 // === MIELOMA ===
 VIEWS.riss=()=>`<div class="card">
@@ -1640,16 +1617,7 @@ else{st='R-ISS II';cls='md';info='SG 5 años ~62% · SLP 5 años ~36%'}
 const el=$('riss_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${st}</span><span>${issLbl} · ${aldh?'LDH↑':'LDH normal'} · ${hr?'Citogenética alto riesgo':'Citogenética estándar'}</span></div><div class="res-s">${info}</div>`;
 }
-function copyRISS(){const r=$('riss_res');if(r.style.display==='none'){toast('Completa los campos');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const txt=`R-ISS – Mieloma Múltiple
-─────────────────────────────────────────────
-${patientHeader()}Se aplica el sistema de estadificación internacional revisado para mieloma múltiple (R-ISS), que integra β2-microglobulina, albúmina sérica, citogenética por FISH (del(17p), t(4;14), t(14;16)) y LDH.
-
-Resultado: ${result}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyRISS(){ copyShortRes('riss_res','R-ISS'); }
 
 VIEWS.r2iss=()=>`<div class="card">
 <h2>R2-ISS – Mieloma Múltiple</h2>
@@ -1699,16 +1667,7 @@ else{st='R2-ISS IV';cls='hi';info='Riesgo alto · SG mediana ~38 meses'}
 const el=$('r2_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${pts} pts</span><span>${st}</span></div><div class="res-s">${info}</div>`;
 }
-function copyR2ISS(){const r=$('r2_res');if(r.style.display==='none'){toast('Completa los campos');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const txt=`R2-ISS – Mieloma Múltiple
-─────────────────────────────────────────────
-${patientHeader()}Se aplica el sistema R2-ISS, refinamiento del R-ISS que añade el peso pronóstico de ganancia de 1q21 a los factores ya conocidos (ISS, LDH, del(17p), t(4;14)).
-
-Resultado: ${result}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyR2ISS(){ copyShortRes('r2_res','R2-ISS'); }
 
 VIEWS.eln24=()=>`<div class="card">
 <h2>ELN 2024 – LMA (terapias de baja intensidad)</h2>
@@ -2008,16 +1967,7 @@ else{cat='Riesgo alto';cls='hi'}
 const el=$('sk_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${x.toFixed(2)}</span><span>${cat}</span></div>`;
 }
-function copySok(){const r=$('sk_res');if(r.style.display==='none'){toast('Calcula primero');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const txt=`Índice de Sokal – LMC fase crónica
-─────────────────────────────────────────────
-${patientHeader()}Se calcula el índice de Sokal al diagnóstico de leucemia mieloide crónica en fase crónica con los siguientes parámetros: edad ${$('sk_age').value} años, bazo a ${$('sk_sp').value} cm por debajo del reborde costal, plaquetas ${$('sk_plt').value} ×10⁹/L y ${$('sk_bl').value}% de blastos en sangre periférica.
-
-Resultado: ${result}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copySok(){ copyShortRes('sk_res','Índice de Sokal'); }
 
 VIEWS.dipss=()=>pointCalc({
 id:'dipss',title:'DIPSS – Mielofibrosis',
@@ -2210,25 +2160,7 @@ el.className='res '+cls;
 const lbls=['Sin CRS','Grado 1','Grado 2','Grado 3','Grado 4'];
 el.innerHTML=`<div class="res-h"><span class="score">CRS</span><span>${lbls[g]}</span></div>`;
 }
-function copyCRS(){const r=$('crs_res');if(r.style.display==='none'){toast('Selecciona los criterios');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const grade=(result.match(/Grado \d|Sin CRS/)||[''])[0];
-const f=document.querySelector('input[name="crs_f"]:checked');
-const h=document.querySelector('input[name="crs_h"]:checked');
-const o=document.querySelector('input[name="crs_o"]:checked');
-const fever=f?.parentElement.textContent.trim()||'';
-const hypo=h?.parentElement.textContent.trim()||'sin hipotensión';
-const hyp=o?.parentElement.textContent.trim()||'sin hipoxia';
-const txt=`Síndrome de liberación de citoquinas (CRS) – gradación ASTCT 2019
-─────────────────────────────────────────────
-${patientHeader()}Tras la administración de terapia con células efectoras inmunes (CAR-T o anticuerpo biespecífico), se realiza valoración del CRS según los criterios ASTCT. El paciente presenta: ${fever.toLowerCase()}; ${hypo.toLowerCase()}; ${hyp.toLowerCase()}.
-
-Categoría obtenida: ${grade||result}.
-
-Se aplica el manejo correspondiente al grado según protocolo del servicio (soporte sintomático en grado 1; tocilizumab ± corticoides en grado 2; tocilizumab + dexametasona y traslado a UCI en grado 3; metilprednisolona en dosis altas, tocilizumab y soporte ventilatorio/vasoactivo en grado 4).
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyCRS(){ copyShortRes('crs_res','CRS'); }
 
 VIEWS.icans=()=>`<div class="card">
 <h2>ICE / ICANS (ASTCT)</h2>
@@ -2314,22 +2246,7 @@ el.className='res '+cls;
 const lbls=['Sin ICANS','Grado 1','Grado 2','Grado 3','Grado 4'];
 el.innerHTML=`<div class="res-h"><span class="score">ICE: ${ice}/10</span><span>ICANS ${lbls[g]}</span></div>`;
 }
-function copyICE(){const r=$('ice_res');if(r.style.display==='none'){toast('Completa la evaluación');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const iceMatch=result.match(/ICE:\s*(\d+\/10)/);
-const ice=iceMatch?iceMatch[1]:'';
-const grade=(result.match(/ICANS [A-Za-z0-9 ]+/)||[''])[0];
-const txt=`Neurotoxicidad por células efectoras inmunes (ICANS) – escala ASTCT
-─────────────────────────────────────────────
-${patientHeader()}Se realiza valoración neurológica con la escala ICE (Immune Effector Cell-associated Encephalopathy) y los criterios ASTCT para ICANS.
-
-Puntuación ICE: ${ice||'(ver evaluación)'}.
-Categoría: ${grade||result}.
-
-El manejo se ajusta al grado según protocolo (dexametasona 10 mg IV/6h en grado 2; metilprednisolona 1 g/24h en grado 3-4 con soporte de UCI). Se mantiene vigilancia neurológica horaria y se evita el uso de benzodiacepinas de larga duración.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyICE(){ copyShortRes('ice_res','ICANS'); }
 
 // === TROMBOSIS ===
 VIEWS.plasmic=()=>pointCalc({
@@ -2896,21 +2813,7 @@ const range=cfg.ranges.find(r=>total>=r.min&&total<=r.max)||cfg.ranges[0];
 const el=$('wl_res');el.style.display='block';el.className='res '+range.cls;
 el.innerHTML=`<div class="res-h"><span class="score">${total}</span><span>${range.label}</span></div>`;
 }
-function copyWells(){const r=$('wl_res');if(r.style.display==='none'){toast('Selecciona criterios');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const title=window._wlCfg.title;
-const isTVP=title.includes('TVP');
-const dx=isTVP?'trombosis venosa profunda':'tromboembolismo pulmonar';
-const txt=`Probabilidad pretest de ${dx} – Criterios de Wells
-─────────────────────────────────────────────
-${patientHeader()}Se aplica la escala de Wells para ${dx} con los criterios clínicos del paciente.
-
-${result}.
-
-La probabilidad obtenida orienta la actitud diagnóstica: en probabilidad baja se recomienda determinación de D-dímero (alta sensibilidad), suficiente para excluir el diagnóstico si es negativo; en probabilidad intermedia o alta debe realizarse prueba de imagen directa (eco-Doppler de miembros inferiores en sospecha de TVP, angio-TC pulmonar en sospecha de TEP). La iniciación de anticoagulación empírica debe valorarse según probabilidad y disponibilidad de la prueba diagnóstica.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyWells(){ copyShortRes('wl_res','Wells'); }
 
 // === ISTH-BAT · Escala de sangrado (Bleeding Assessment Tool) ===
 const ISTHBAT={
@@ -3192,24 +3095,7 @@ else{cat='QTc ≥ 500 ms — RIESGO ALTO de Torsade';cls='hi'}
 const el=$('qtc_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">QTc ${qtc.toFixed(2)} ms</span><span>${cat}</span></div><div class="res-s">QT ${qt} ms · RR ${rr} ms · FC ${fc} lpm · Fridericia: QT/∛(RR/1000)<br>Umbrales${sexLbl}: normal &lt;${lim.n} · limítrofe ${lim.n}–${lim.p-1} · prolongado ≥${lim.p}</div>`;
 }
-function copyQTc(){
-const r=$('qtc_res');if(r.style.display==='none')return;
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const qtcMatch=result.match(/QTc\s*(\d+)\s*ms/i);
-const qtc=qtcMatch?qtcMatch[1]:'';
-const cat=(result.match(/Normal|Limítrofe|Prolongado|QTc ≥ 500/)||[''])[0]||'';
-let extra='';
-if(cat.includes('500'))extra=' Se trata de un QTc en rango de riesgo alto de Torsade de Pointes; revisar fármacos que prolongan el QT (azoles, macrólidos, fluoroquinolonas, ondansetrón, metadona, antipsicóticos), corregir hipopotasemia/hipomagnesemia y valorar suspensión del fármaco implicado.';
-else if(cat==='Prolongado')extra=' QTc prolongado: revisar fármacos con potencial QT, corregir iones (K, Mg) y vigilar interacciones.';
-const txt=`Intervalo QT corregido – Fórmula de Fridericia
-─────────────────────────────────────────────
-${patientHeader()}Se calcula el QTc por la fórmula de Fridericia (QT/∛(RR/1000)) a partir del ECG basal del paciente.
-
-QTc obtenido: ${qtc.toFixed(2)} ms (${cat||result}).${extra}
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyQTc(){ copyShortRes('qtc_res','QTc'); }
 
 VIEWS.crcl=()=>`<div class="card">
 <h2>Aclaramiento de creatinina — paciente oncohematológico</h2>
@@ -3628,18 +3514,7 @@ else{cat='No cumple criterios de SLT';cls='lo'}
 el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${cat}</span></div><div class="res-s">${lab}/4 criterios laboratorio · ${clin}/3 criterios clínicos</div>`;
 }
-function copyCB(){const r=$('cb_res');if(r.style.display==='none'){toast('Marca criterios');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const txt=`Síndrome de lisis tumoral – Criterios de Cairo-Bishop
-─────────────────────────────────────────────
-${patientHeader()}Se aplican los criterios de Cairo-Bishop para definición y gradación del síndrome de lisis tumoral.
-
-${result}.
-
-Recordar el manejo según riesgo: hiperhidratación 3 L/m²/día (o 200 mL/kg/día en pediatría), allopurinol 300 mg/día en riesgo bajo-intermedio, rasburicasa 0.2 mg/kg/día en riesgo alto o lisis establecida con hiperuricemia. Monitorizar electrolitos, función renal, ácido úrico, fósforo, calcio y LDH al menos cada 8-12 horas las primeras 48-72 horas.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyCB(){ copyShortRes('cb_res','Criterios'); }
 
 VIEWS.hctci=()=>pointCalc({
 id:'hctci',title:'HCT-CI (Sorror)',
@@ -3692,15 +3567,7 @@ const cls=v<=1?'lo':v===2?'md':'hi';
 const el=$('ec_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">ECOG ${v}</span><span>${lbls[v]}</span></div>`;
 }
-function copyECOG(){const r=$('ec_res');if(r.style.display==='none'){toast('Selecciona valor');return}
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const num=(result.match(/\d/)||[''])[0];
-const txt=`Estado funcional – Escala ECOG
-─────────────────────────────────────────────
-${patientHeader()}Se evalúa el estado funcional del paciente mediante la escala ECOG/PS, obteniendo un valor de ECOG ${num} (${result.replace(/ECOG\s*\d\s*-?\s*/,'').trim()||result}).
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyECOG(){ copyShortRes('ec_res','ECOG'); }
 
 VIEWS.g8=()=>pointCalc({
 id:'g8',title:'G8 – Cribado de Fragilidad Geriátrica',
@@ -6514,7 +6381,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 209;
+const HP_BUILD = 210;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11134,7 +11001,7 @@ const DICT=[
 {a:'Mg',u:'mg/dl',c:'bioquimica',k:'num',pats:['magnesio']},
 {a:'Ácido úrico',u:'mg/dl',c:'bioquimica',k:'num',pats:['acido urico','urato']},
 {a:'PT',u:'g/dl',c:'bioquimica',k:'num',pats:['proteinas totales']},
-{a:'Albúmina',u:'g/dl',c:'bioquimica',k:'num',keepUnit:1,pats:['albumina']},
+{a:'Albúmina',u:'g/dl',c:'bioquimica',k:'num',keepUnit:1,pats:['\\balbumina\\b']},
 {a:'Bilirrubina directa',u:'mg/dl',c:'bioquimica',k:'num',pats:['bilirrubina directa','bilirrubina conjugada']},
 {a:'BT',u:'mg/dl',c:'bioquimica',k:'num',pats:['bilirrubina total','bilirrubina']},
 {a:'AST (GOT)',u:'U/l',c:'bioquimica',k:'num',pats:['aspartato aminotransferasa','aspartato transaminasa','\\bast\\b','\\bgot\\b']},
@@ -11246,7 +11113,7 @@ const LCR=[{a:'aspecto',p:/aspecto/},{a:'hematíes',p:/hematies/},{a:'leucocitos
 function parseLCR(orig,folded,rs,re){const parts=[];LCR.forEach(o=>{const v=lcrRead(orig,folded,rs,re,o.p);if(v)parts.push(o.a+' '+v);});return parts;}
 // Proteinograma (electroforesis): extrae los valores ABSOLUTOS (g/dL) de proteínas totales, albúmina y fracciones,
 // ignorando las líneas de porcentaje. Cada etiqueta se busca al principio de su línea.
-function parseProteo(orig,folded,rs,re){const region=folded.slice(rs,re);const items=[];const grab=function(rx,label,unit){const g=new RegExp(rx,'g');let m;while((m=g.exec(region))!==null){const abs=rs+m.index+m[0].length;if(/^[\t ]*%/.test(folded.slice(abs,abs+4)))continue;const v=readVal(orig,abs);if(v&&!v.isPct){items.push(label+' '+lcTrimZeros(v.raw)+(unit?' '+unit:''));return;}}};grab('(?:^|[\\n\\r])[\\t ]*proteinas\\s+totales\\b','Proteínas totales','g/dl');grab('(?:^|[\\n\\r])[\\t ]*albumina\\b','Albúmina','g/dl');grab('(?:^|[\\n\\r])[\\t ]*alfa[\\s-]*1\\s*globulinas?\\b','Alfa-1','g/dl');grab('(?:^|[\\n\\r])[\\t ]*alfa[\\s-]*2\\s*globulinas?\\b','Alfa-2','g/dl');grab('(?:^|[\\n\\r])[\\t ]*beta[\\s-]*1\\s*globulinas?\\b','Beta-1','g/dl');grab('(?:^|[\\n\\r])[\\t ]*beta[\\s-]*2\\s*globulinas?\\b','Beta-2','g/dl');grab('(?:^|[\\n\\r])[\\t ]*beta[\\s-]*globulinas?\\b','Beta','g/dl');grab('(?:^|[\\n\\r])[\\t ]*gamma[\\s-]*globulinas?\\b','Gamma','g/dl');grab('(?:^|[\\n\\r])[\\t ]*coc\\w*[\\s.]*albumina\\s*\\/\\s*globulinas?\\b','Cociente A/G','');return items;}
+function parseProteo(orig,folded,rs,re){const region=folded.slice(rs,re);const items=[];const _hid=(typeof lcOverride==='function'&&lcOverride().hidden)||{};const grab=function(rx,label,unit,hideKey){if(hideKey&&_hid[hideKey])return;const g=new RegExp(rx,'g');let m;while((m=g.exec(region))!==null){const abs=rs+m.index+m[0].length;if(/^[\t ]*%/.test(folded.slice(abs,abs+4)))continue;const v=readVal(orig,abs);if(v&&!v.isPct){items.push(label+' '+lcTrimZeros(v.raw)+(unit?' '+unit:''));return;}}};grab('(?:^|[\\n\\r])[\\t ]*proteinas\\s+totales\\b','Proteínas totales','g/dl','PT');grab('(?:^|[\\n\\r])[\\t ]*albumina\\b','Albúmina','g/dl','Albúmina');grab('(?:^|[\\n\\r])[\\t ]*alfa[\\s-]*1\\s*globulinas?\\b','Alfa-1','g/dl','Alfa-1 globulina');grab('(?:^|[\\n\\r])[\\t ]*alfa[\\s-]*2\\s*globulinas?\\b','Alfa-2','g/dl','Alfa-2 globulina');grab('(?:^|[\\n\\r])[\\t ]*beta[\\s-]*1\\s*globulinas?\\b','Beta-1','g/dl','Beta globulina');grab('(?:^|[\\n\\r])[\\t ]*beta[\\s-]*2\\s*globulinas?\\b','Beta-2','g/dl','Beta globulina');grab('(?:^|[\\n\\r])[\\t ]*beta[\\s-]*globulinas?\\b','Beta','g/dl','Beta globulina');grab('(?:^|[\\n\\r])[\\t ]*gamma[\\s-]*globulinas?\\b','Gamma','g/dl','Gamma globulina');grab('(?:^|[\\n\\r])[\\t ]*coc\\w*[\\s.]*albumina\\s*\\/\\s*globulinas?\\b','Cociente A/G','');return items;}
 function transcribe(input){const orig=input;let work=foldText(orig);const found={};const _valued={};
 // === Gasometría (arterial/venosa): se extrae como bloque propio y se borra del texto para no contaminar hemograma/bioquímica ===
 let gType='',gIdx=-1;const gmH=work.match(/gasometria[\t ]+(arterial|venosa|capilar|mixta)/);if(gmH){gType=gmH[1];gIdx=gmH.index;}else{const gmL=work.match(/(?:^|[\n\r])[\t ]*gasometria\b/);if(gmL)gIdx=gmL.index+gmL[0].indexOf('gasometria');}
@@ -11264,7 +11131,7 @@ if(/proteinograma[\t ]*[\r\n]?[\t ]*en proceso/.test(work))found.__protproc=true
 {const pgH=work.match(/proteinograma/);if(pgH){const ps=pgH.index,pe=nextHdr(ps,SECT);const pgI=parseProteo(orig,work,ps,pe);if(pgI.length){(found.proteinograma=found.proteinograma||[]).push.apply(found.proteinograma,pgI);work=work.slice(0,ps)+work.slice(ps,pe).replace(/[^\n\r]/g,' ')+work.slice(pe);}}}
 // === BCR-ABL (biología molecular): se extrae isoforma (p190/p210) y resultado; se borra del texto ===
 {const bcrRe=/bcr[\s\/\-]*abl/g;let bcrM;const _bseen={};const _bout=[];while((bcrM=bcrRe.exec(work))!==null){const bs=bcrM.index,be=lineEndIdx(orig,bs);const bf=work.slice(bs,be);const isoM=bf.match(/\bp(?:190|210|230)\b/);const iso=isoM?isoM[0]:'';let seg=orig.slice(bs,be).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ');const rM=seg.match(/(negativ\w*|positiv\w*|indetectable|no\s+se\s+detecta\w*|<\s*[\d.,]+\s*%|[\d.,]+\s*%)\s*$/i);const res=rM?rM[1].toLowerCase().replace(/\s+/g,' ').trim():'';const _bk=iso||('#'+_bout.length);if((iso||res)&&!_bseen[_bk]){_bseen[_bk]=1;_bout.push('BCR-ABL'+(iso?' '+iso:'')+(res?' '+res:''));}work=work.slice(0,bs)+work.slice(bs,be).replace(/[^\n\r]/g,' ')+work.slice(be);}if(_bout.length)found.__bcr=_bout.join(', ');}
-for(const e of lcDict()){const re=new RegExp('(?:'+e.pats.join('|')+')','g');let match;const cand=[];let hemo=false;while((match=re.exec(work))!==null){const ns=match.index,ne=match.index+match[0].length;if(work.slice(ns,ne).trim()==='')continue;if(e.k==='text'||e.k==='cm'||e.k==='grupo'){cand.push({ns,ne});break;}if(e.k==='sero'||e.k==='mol'){cand.push({ns,ne});continue;}if(e.rp){const v=readValAbs(orig,ne);if(v)cand.push({ns,ne,v});continue;}const v=readVal(orig,ne);if(!v){if(!hemo&&/hemoliz/.test(work.slice(ne,lineEndIdx(orig,ne))))hemo=true;continue;}cand.push({ns,ne,v});}if(!cand.length){if(hemo&&e.c==='bioquimica'){(found[e.c]=found[e.c]||[]).push(e.a+': muestra hemolizada');_valued[e.a]=1;}continue;}let pick=null;if(e.k==='text'||e.k==='cm'||e.k==='grupo')pick=cand[0];else if(e.k==='sero')pick=cand.find(c=>seroResult(orig,c.ne))||null;else if(e.k==='mol')pick=cand.find(c=>molResult(orig,c.ne))||null;else if(e.rp){pick=cand.find(c=>!c.v.isPct&&c.v.countUnit)||cand.find(c=>!c.v.isPct)||cand[0];}else pick=cand[0];if(!pick)continue;let disp=null,cs=pick.ns,ce=pick.ne;if(e.k==='text'){const t=readTxt(orig,pick.ne,400);if(!t)continue;disp=(e.nolabel?'':e.a+': ')+t;ce=lineEndIdx(orig,pick.ne);}else if(e.k==='sero'){const t=seroResult(orig,pick.ne);if(!t)continue;disp=e.a+': '+t;while(cs>0&&orig[cs-1]!=='\n'&&orig[cs-1]!=='\r')cs--;ce=lineEndIdx(orig,pick.ne);}else if(e.k==='mol'){const t=molResult(orig,pick.ne);if(!t)continue;disp=e.a+': '+t;while(cs>0&&orig[cs-1]!=='\n'&&orig[cs-1]!=='\r')cs--;ce=lineEndIdx(orig,pick.ne);}else if(e.k==='cm'){const segEnd=lineEndIdx(orig,pick.ne);const seg=orig.slice(pick.ne,segEnd);const segF=foldText(seg);const isoM=segF.match(/\big\s*([gamde])\b/);const iso=isoM?('Ig'+isoM[1].toUpperCase()):'';const lcM=segF.match(/(kappa|lambda|κ|λ)/);const lc=lcM?((lcM[1]==='κ')?'kappa':((lcM[1]==='λ')?'lambda':lcM[1])):'';const typ=(iso&&lc)?iso+'-'+lc:(iso||lc||'');const numM=seg.match(/(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)\s*(mg\/dl|gr\/dl|g\/dl|g\/l|mg\/l)?/i);let val='',unit='';if(numM){val=fmtNum(sp2f(numM[1]));unit=numM[2]?numM[2].toLowerCase().replace('gr/dl','g/dl'):'g/dl';}disp='CM'+(typ?' '+typ:'')+(val?' '+val+(unit?' '+unit:''):'');ce=segEnd;}else if(e.k==='grupo'){const segEnd=lineEndIdx(orig,pick.ne);const seg=orig.slice(pick.ne,segEnd);let segC=foldText(seg).replace(/\babo\b/g,' ').replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();const gM=segC.match(/\b(ab|a|b|0|o)\b/);const grupo=gM?(gM[1]==='0'?'O':gM[1].toUpperCase()):'';let rh='';const rhM=foldText(orig).match(/\b(?:factor\s+)?rh\b(?:\s*\(d\))?[^\n\r]{0,40}?(positiv|negativ)/);if(rhM)rh=rhM[1]+'o';let gv=grupo;if(rh)gv=(grupo?grupo+' ':'')+'Rh (D) '+rh;if(!gv)continue;disp=gv;ce=segEnd;}else if(e.k==='retic'){const abs=cand.find(c=>c.v&&!c.v.isPct),pc=cand.find(c=>c.v&&c.v.isPct);let absStr='';if(abs){let vs=abs.v.raw;if(abs.v.countUnit==='/µL'||(!abs.v.countUnit&&abs.v.f>=1000))vs=fmtNum(abs.v.f/1000);absStr=lcTrimZeros(vs)+' x10E9/L';}const pctStr=pc?lcTrimZeros(pc.v.raw)+'%':'';if(!absStr&&!pctStr)continue;disp='Reticulocitos '+(absStr&&pctStr?(absStr+' ('+pctStr+')'):(absStr||pctStr));const _an=abs||pc;cs=_an.ns;ce=lineEndIdx(orig,_an.ne);}else{const v=pick.v;let unit=e.u;let valStr=v.raw;if(e.k==='count'){unit='x10E9/L';if(v.countUnit==='/µL'||(!v.countUnit&&v.f>=1000))valStr=fmtNum(v.f/1000);}else if(e.k==='retic'){if(v.isPct)unit='%';else{unit='x10E9/L';if(v.countUnit==='/µL'||(!v.countUnit&&v.f>=1000))valStr=fmtNum(v.f/1000);}}else if(e.k==='pct')unit='%';else if(e.keepUnit){const su=readUnit(v.after);if(su)unit=su;}valStr=lcTrimZeros(valStr).replace(/^(<?\s*\d{1,4})\.(\d{1,2})$/,'$1,$2');const space=unit.startsWith('/')?'':' ';disp=(e.a+' '+valStr+(unit?space+unit:'')).replace(/\s+$/,'');ce=v.end;}(found[e.c]=found[e.c]||[]).push(disp);_valued[e.a]=1;const len=Math.max(0,ce-cs);work=work.slice(0,cs)+' '.repeat(len)+work.slice(ce);}{const _wf=work;const _pend=[];const _ps={};for(const _e of lcDict()){if(_valued[_e.a]||_ps[_e.a]||_e.k==='cm'||_e.k==='grupo'||_e.k==='text')continue;var _re2;try{_re2=new RegExp('(?:'+_e.pats.join('|')+')','g');}catch(_x){continue;}var _mm,_isP=false;while((_mm=_re2.exec(_wf))!==null){var _ns=_mm.index,_ne=_ns+_mm[0].length;if(!_wf.slice(_ns,_ne).trim())continue;var _ls=_ns;while(_ls>0&&_wf[_ls-1]!=='\n'&&_wf[_ls-1]!=='\r')_ls--;var _line=_wf.slice(_ls,lineEndIdx(orig,_ns));var _pre=_wf.slice(_ls,_ns);if(_pre.length>24||!/^[\s├│└─*↑↓▲▼a-z0-9,\.\-]*$/.test(_pre))continue;if(/^[\s├│└─]*\(/.test(_line)||/comentario|interpretaci|categoria|normalidad poblacional|kdigo/.test(_line))continue;if(_e.k==='sero'&&/serologia\s*$/.test(_line))continue;var _hr=_e.k==='sero'?!!seroResult(orig,_ne):_e.k==='mol'?!!molResult(orig,_ne):!!(_e.rp?readValAbs(orig,_ne):readVal(orig,_ne));if(_hr){_isP=false;break;}if(/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{1,2}:\d{2}/.test(_line))_isP=true;}if(_isP){_pend.push(_e.a);_ps[_e.a]=1;}}if(found.__coombsPend&&!found.__coombs){_pend.unshift('Coombs directo');}if(_pend.length)found.__pending=_pend;}let dateGuess='';const dms=orig.match(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g);if(dms&&dms.length){const counts={};let best='',bestN=0;dms.forEach(d=>{const pp=d.split(/[\/\-.]/);const key=pp[0].padStart(2,'0')+'-'+pp[1].padStart(2,'0')+'-'+pp[2].slice(-2);counts[key]=(counts[key]||0)+1;if(counts[key]>bestN){bestN=counts[key];best=key;}});dateGuess=best;}return {found,dateGuess};}
+for(const e of lcDict()){const re=new RegExp('(?:'+e.pats.join('|')+')','g');let match;const cand=[];let hemo=false;while((match=re.exec(work))!==null){const ns=match.index,ne=match.index+match[0].length;if(work.slice(ns,ne).trim()==='')continue;if(e.k==='text'||e.k==='cm'||e.k==='grupo'){cand.push({ns,ne});break;}if(e.k==='sero'||e.k==='mol'){cand.push({ns,ne});continue;}if(e.rp){const v=readValAbs(orig,ne);if(v)cand.push({ns,ne,v});continue;}const v=readVal(orig,ne);if(!v){if(!hemo&&/hemoliz/.test(work.slice(ne,lineEndIdx(orig,ne))))hemo=true;continue;}cand.push({ns,ne,v});}if(!cand.length){if(hemo&&e.c==='bioquimica'){(found[e.c]=found[e.c]||[]).push(e.a+': muestra hemolizada');_valued[e.a]=1;}continue;}let pick=null;if(e.k==='text'||e.k==='cm'||e.k==='grupo')pick=cand[0];else if(e.k==='sero')pick=cand.find(c=>seroResult(orig,c.ne))||null;else if(e.k==='mol')pick=cand.find(c=>molResult(orig,c.ne))||null;else if(e.rp){pick=cand.find(c=>!c.v.isPct&&c.v.countUnit)||cand.find(c=>!c.v.isPct)||cand[0];}else pick=cand[0];if(!pick)continue;let disp=null,cs=pick.ns,ce=pick.ne;if(e.k==='text'){const t=readTxt(orig,pick.ne,400);if(!t)continue;disp=(e.nolabel?'':e.a+': ')+t;ce=lineEndIdx(orig,pick.ne);}else if(e.k==='sero'){const t=seroResult(orig,pick.ne);if(!t)continue;disp=e.a+': '+t;while(cs>0&&orig[cs-1]!=='\n'&&orig[cs-1]!=='\r')cs--;ce=lineEndIdx(orig,pick.ne);}else if(e.k==='mol'){const t=molResult(orig,pick.ne);if(!t)continue;disp=e.a+': '+t;while(cs>0&&orig[cs-1]!=='\n'&&orig[cs-1]!=='\r')cs--;ce=lineEndIdx(orig,pick.ne);}else if(e.k==='cm'){const segEnd=lineEndIdx(orig,pick.ne);const seg=orig.slice(pick.ne,segEnd);const segF=foldText(seg);const isoM=segF.match(/\big\s*([gamde])\b/);const iso=isoM?('Ig'+isoM[1].toUpperCase()):'';const lcM=segF.match(/(kappa|lambda|κ|λ)/);const lc=lcM?((lcM[1]==='κ')?'kappa':((lcM[1]==='λ')?'lambda':lcM[1])):'';const typ=(iso&&lc)?iso+'-'+lc:(iso||lc||'');const numM=seg.match(/(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:[.,]\d+)?)\s*(mg\/dl|gr\/dl|g\/dl|g\/l|mg\/l)?/i);let val='',unit='';if(numM){val=fmtNum(sp2f(numM[1]));unit=numM[2]?numM[2].toLowerCase().replace('gr/dl','g/dl'):'g/dl';}disp='CM'+(typ?' '+typ:'')+(val?' '+val+(unit?' '+unit:''):'');ce=segEnd;}else if(e.k==='grupo'){const segEnd=lineEndIdx(orig,pick.ne);const seg=orig.slice(pick.ne,segEnd);let segC=foldText(seg).replace(/\babo\b/g,' ').replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();const gM=segC.match(/\b(ab|a|b|0|o)\b/);const grupo=gM?(gM[1]==='0'?'O':gM[1].toUpperCase()):'';let rh='';const rhM=foldText(orig).match(/\b(?:factor\s+)?rh\b(?:\s*\(d\))?[^\n\r]{0,40}?(positiv|negativ)/);if(rhM)rh=rhM[1]+'o';let gv=grupo;if(rh)gv=(grupo?grupo+' ':'')+'Rh (D) '+rh;if(!gv)continue;disp=gv;ce=segEnd;}else if(e.k==='retic'){const abs=cand.find(c=>c.v&&!c.v.isPct),pc=cand.find(c=>c.v&&c.v.isPct);let absStr='';if(abs){let vs=abs.v.raw;if(abs.v.countUnit==='/µL'||(!abs.v.countUnit&&abs.v.f>=1000))vs=fmtNum(abs.v.f/1000);absStr=lcTrimZeros(vs)+' x10E9/L';}const pctStr=pc?lcTrimZeros(pc.v.raw)+'%':'';if(!absStr&&!pctStr)continue;disp='Reticulocitos '+(absStr&&pctStr?(absStr+' ('+pctStr+')'):(absStr||pctStr));const _an=abs||pc;cs=_an.ns;ce=lineEndIdx(orig,_an.ne);}else{const v=pick.v;let unit=e.u;let valStr=v.raw;if(e.k==='count'){unit='x10E9/L';if(v.countUnit==='/µL'||(!v.countUnit&&v.f>=1000))valStr=fmtNum(v.f/1000);}else if(e.k==='retic'){if(v.isPct)unit='%';else{unit='x10E9/L';if(v.countUnit==='/µL'||(!v.countUnit&&v.f>=1000))valStr=fmtNum(v.f/1000);}}else if(e.k==='pct')unit='%';else if(e.keepUnit){const su=readUnit(v.after);if(su)unit=su;}valStr=lcTrimZeros(valStr).replace(/^(<?\s*\d{1,4})\.(\d{1,2})$/,'$1,$2');const space=unit.startsWith('/')?'':' ';disp=(e.a+' '+valStr+(unit?space+unit:'')).replace(/\s+$/,'');ce=v.end;}(found[e.c]=found[e.c]||[]).push(disp);_valued[e.a]=1;const len=Math.max(0,ce-cs);work=work.slice(0,cs)+' '.repeat(len)+work.slice(ce);}{const _wf=work;const _pend=[];const _ps={};for(const _e of lcDict()){if(_valued[_e.a]||_ps[_e.a]||_e.k==='cm'||_e.k==='grupo'||_e.k==='text')continue;var _re2;try{_re2=new RegExp('(?:'+_e.pats.join('|')+')','g');}catch(_x){continue;}var _mm,_isP=false;while((_mm=_re2.exec(_wf))!==null){var _ns=_mm.index,_ne=_ns+_mm[0].length;if(!_wf.slice(_ns,_ne).trim())continue;var _ls=_ns;while(_ls>0&&_wf[_ls-1]!=='\n'&&_wf[_ls-1]!=='\r')_ls--;var _line=_wf.slice(_ls,lineEndIdx(orig,_ns));var _pre=_wf.slice(_ls,_ns);if(_pre.length>24||!/^[\s├│└─*↑↓▲▼a-z0-9,\.\-]*$/.test(_pre))continue;if(/^[\s├│└─]*\(/.test(_line)||/comentario|interpretaci|categoria|normalidad poblacional|kdigo/.test(_line))continue;if(_e.k==='sero'&&/serologia\s*$/.test(_line))continue;var _hr=_e.k==='sero'?!!seroResult(orig,_ne):_e.k==='mol'?!!molResult(orig,_ne):!!(_e.rp?readValAbs(orig,_ne):readVal(orig,_ne));if(_hr){_isP=false;break;}if(/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{1,2}:\d{2}/.test(_line))_isP=true;}if(_isP){_pend.push(_e.a);_ps[_e.a]=1;}}if(found.__coombsPend&&!found.__coombs){_pend.unshift('Coombs directo');}if(_pend.length)found.__pending=_pend;}let dateGuess='';let dms=orig.match(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b(?=\s+\d{1,2}:\d{2})/g)||orig.match(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g);if(dms&&dms.length){let bestVal=Infinity;dms.forEach(d=>{const pp=d.split(/[\/\-.]/);const dd=pp[0].padStart(2,'0'),mm=pp[1].padStart(2,'0');let yy=pp[2];if(yy.length===2)yy='20'+yy;const val=parseInt(yy+mm+dd,10);if(val<bestVal){bestVal=val;dateGuess=dd+'-'+mm+'-'+yy.slice(-2);}});}return {found,dateGuess};}
 function build(found,dateStr){const lines=[];const _fmt=lcFmt();const _sepMap={coma:', ',medio:' · ',puntocoma:'; ',linea:'\n'};const _sep=_sepMap[_fmt.sep]||', ';const _nl=(_sep==='\n');const dtag=((_fmt.date!==false)&&dateStr)?(' ('+dateStr+')'):'';const _mk=function(_l,_a){return _l+dtag+(_nl?(_a.length?':\n'+_a.join('\n'):':'):(': '+_a.join(_sep)));};for(const cat of lcCatOrder()){if(!found[cat]||!found[cat].length)continue;let items=found[cat].slice();if(cat==='hemograma'){const diff=[],rest=[];items.forEach(it=>{(/^[NLMEB]\s/.test(it)?diff:rest).push(it);});if(diff.length){const parts=[];diff.forEach(it=>{const m=it.match(/^(\S+\s+\S+)\s+.*\S$/);parts.push(m?m[1]:it);});const group='('+parts.join(' - ')+')';const li=rest.findIndex(it=>/^Leucocitos\b/.test(it));if(li>=0)rest[li]=rest[li]+' '+group;else rest.push(group);items=rest;}}lines.push(_mk((cat==='gasometria'?(found.__gasoLabel||'Gasometría'):(lcCatLabel()[cat]||cat)),items));if(cat==='hemograma'&&found.__coombs)lines.push('Coombs directo'+dtag+': '+found.__coombs);}if(found.__coombs&&!(found.hemograma&&found.hemograma.length))lines.unshift('Coombs directo'+dtag+': '+found.__coombs);if(found.__autoinm&&found.__autoinm.length)lines.push(_mk('Autoinmunidad',found.__autoinm));if(found.__orina&&found.__orina.length)lines.push(_mk('Sistemático de orina',found.__orina));if(found.__lcr&&found.__lcr.length)lines.push(_mk('LCR',found.__lcr));if(found.__bcr)lines.push('Biología molecular'+dtag+': '+found.__bcr);if(found.__pending&&found.__pending.length)lines.push('Pendientes (sin resultado): '+found.__pending.join(', '));if(found.__protproc){const _pi=lines.findIndex(l=>/^Proteinograma\b/.test(l));if(_pi>=0)lines[_pi]+=' — electroforesis en proceso';else lines.push('Proteinograma'+dtag+': en proceso');}return lines.join('\n');}
 window.LCtranscribe=transcribe;window.LCbuild=build;
 
