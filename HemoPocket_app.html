@@ -1643,10 +1643,21 @@ VIEWS.r2iss=()=>`<div class="card">
 
 <div id="r2_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="copyR2ISS()">Copiar</button></div>
-<div class="ref">D'Agostino M et al. Second Revision of the International Staging System (R2-ISS) for Overall Survival in Multiple Myeloma. J Clin Oncol. 2022;40(29):3406-3418.</div>
+<div style="margin-top:14px;border:1px solid var(--bd);border-radius:10px;padding:10px">
+<div style="font-size:12.5px;font-weight:600;margin-bottom:4px;color:var(--c2)">Alto riesgo citogenético adicional (IMS 2024)</div>
+<p style="font-size:12px;color:var(--mut);margin:0 0 8px">Marcadores de mal pronóstico <strong>no incluidos en el R2-ISS</strong>. No modifican la puntuación; orientan hacia mieloma de alto riesgo / «double-hit».</p>
+<label class="chk-card"><input type="checkbox" id="r2hr_1p" onchange="calcR2HR()"><span>del(1p32) <small>(bialélica = mayor riesgo)</small></span></label>
+<label class="chk-card"><input type="checkbox" id="r2hr_tp53" onchange="calcR2HR()"><span>TP53 bialélico / double-hit <small>(del(17p) + mutación TP53)</small></span></label>
+<label class="chk-card"><input type="checkbox" id="r2hr_amp1q" onchange="calcR2HR()"><span>amp(1q) ≥ 4 copias <small>(peor que la ganancia de 3 copias)</small></span></label>
+<label class="chk-card"><input type="checkbox" id="r2hr_1416" onchange="calcR2HR()"><span>t(14;16)</span></label>
+<label class="chk-card"><input type="checkbox" id="r2hr_1420" onchange="calcR2HR()"><span>t(14;20)</span></label>
+<div id="r2hr_out" style="display:none;margin-top:6px"></div>
+</div>
+<div class="ref">D'Agostino M et al. Second Revision of the International Staging System (R2-ISS) for Overall Survival in Multiple Myeloma. J Clin Oncol. 2022;40(29):3406-3418. · Marcadores adicionales: consenso IMS de mieloma de alto riesgo, 2024.</div>
 </div>`;
 
 function calcR2ISS(){
+try{calcR2HR();}catch(e){}
 const b2m=n($('r2_b2m').value),alb=n($('r2_alb').value);
 const iss=deriveISS(b2m,alb);
 const issBox=$('r2_iss_out');
@@ -1668,6 +1679,28 @@ else if(pts<=2.5){st='R2-ISS III';cls='md';info='Riesgo intermedio-alto · SG me
 else{st='R2-ISS IV';cls='hi';info='Riesgo alto · SG mediana ~38 meses'}
 const el=$('r2_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${pts} pts</span><span>${st}</span></div><div class="res-s">${info}</div>`;
+}
+function calcR2HR(){
+const get=id=>{const e=$(id);return !!(e&&e.checked);};
+const hr=[];
+if(get('r2_17p')||get('r2hr_tp53'))hr.push('del(17p)/TP53');
+if(get('r2_414'))hr.push('t(4;14)');
+if(get('r2_1q')||get('r2hr_amp1q'))hr.push('1q+');
+if(get('r2hr_1p'))hr.push('del(1p32)');
+if(get('r2hr_1416'))hr.push('t(14;16)');
+if(get('r2hr_1420'))hr.push('t(14;20)');
+const extra=[];
+if(get('r2hr_1p'))extra.push('del(1p32)');
+if(get('r2hr_tp53'))extra.push('TP53 bialélico/double-hit');
+if(get('r2hr_amp1q'))extra.push('amp(1q)≥4');
+if(get('r2hr_1416'))extra.push('t(14;16)');
+if(get('r2hr_1420'))extra.push('t(14;20)');
+const box=$('r2hr_out');if(!box)return;
+if(!extra.length && hr.length<2){box.style.display='none';box.innerHTML='';return;}
+let h='';
+if(extra.length)h+='<div class="alert y" style="font-size:12px;margin:0 0 6px">Alto riesgo adicional (no en R2-ISS): <strong>'+extra.join(', ')+'</strong>.</div>';
+if(hr.length>=2)h+='<div class="alert r" style="font-size:12px;margin:0">⚠ <strong>Double-hit</strong> ('+hr.length+' lesiones de alto riesgo: '+hr.join(', ')+') — grupo de peor pronóstico.</div>';
+box.style.display='block';box.innerHTML=h;
 }
 function copyR2ISS(){ copyShortRes('r2_res','R2-ISS'); }
 
@@ -6309,7 +6342,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 225;
+const HP_BUILD = 226;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
