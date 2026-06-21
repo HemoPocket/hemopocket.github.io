@@ -899,6 +899,7 @@ const MENU=[
 {id:'icpss',name:'iCPSS',kw:'icpss lmmc cmml'},
 {sub:1,name:'LMC'},
 {id:'sokal',name:'Sokal',kw:'sokal lmc leucemia mieloide cronica'},
+{id:'elts',name:'ELTS (LMC)',kw:'elts eutos long term survival lmc leucemia mieloide cronica score pronostico itk tki era moderno mortalidad especifica pfirrmann'},
 {sub:1,name:'Mielofibrosis'},
 {id:'dipss',name:'DIPSS',kw:'dipss mielofibrosis primaria nmp dynamic prognostic',new:'2026-05-11'},
 {id:'dipssp',name:'DIPSS-Plus',kw:'dipss plus mielofibrosis primaria nmp cariotipo plaquetas transfusional',new:'2026-05-11'},
@@ -1291,6 +1292,7 @@ h+='</div>';
 });
 h+=`<div id="${id}_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="copyPC('${id}')">Copiar evolución</button></div>
+${opts.extra||''}
 <div class="ref">${opts.ref}</div></div>`;
 return h;
 }
@@ -1351,6 +1353,30 @@ const pre=/^(escala|[ií]ndice|score|criterios|clasificaci|cribado)/i.test(name)
 const txt=pre+name+': '+total+' '+(total===1?'punto':'puntos')+' ('+cat+')';
 copy(txt);
 }
+// ── Recuadro genérico de "alto riesgo adicional" (marcadores no incluidos en el score) ──
+// No altera la puntuación; solo informa. Cada escala registra su config con hrBox(id,cfg)
+// y los checkboxes llaman a hrCalc(id).
+const HRC={};
+function hrBox(id,cfg){
+HRC[id]=cfg;
+let h='<div style="margin-top:14px;border:1px solid var(--bd);border-radius:10px;padding:10px">';
+h+='<div style="font-size:12.5px;font-weight:600;margin-bottom:4px;color:var(--c2)">'+cfg.title+'</div>';
+if(cfg.note)h+='<p style="font-size:12px;color:var(--mut);margin:0 0 8px">'+cfg.note+'</p>';
+cfg.items.forEach(function(it){ h+='<label class="chk-card"><input type="checkbox" id="'+id+'_'+it.id+'" onchange="hrCalc(\''+id+'\')"><span>'+it.label+(it.small?' <small>('+it.small+')</small>':'')+'</span></label>'; });
+h+='<div id="'+id+'_out" style="display:none;margin-top:6px"></div></div>';
+return h;
+}
+function hrCalc(id){
+const cfg=HRC[id]; const box=$(id+'_out'); if(!cfg||!box)return;
+const on=cfg.items.filter(function(it){ const e=$(id+'_'+it.id); return e&&e.checked; });
+if(!on.length){box.style.display='none';box.innerHTML='';return;}
+const labels=on.map(function(it){return it.flag||it.label;});
+const notes=on.filter(function(it){return it.note;}).map(function(it){return it.note;});
+let h='<div class="alert y" style="font-size:12px;margin:0">'+(cfg.flagLabel||'Factores de alto riesgo presentes')+': <strong>'+labels.join(', ')+'</strong>.';
+if(notes.length)h+='<br>'+notes.join(' ');
+h+='</div>';
+box.style.display='block';box.innerHTML=h;
+}
 // Copia CORTA y directa del resultado de una escala: "Nombre: resultado (categoría)".
 // Toma el titular del recuadro de resultado (.res-h: un span con la cifra/etiqueta y otro con la categoría).
 function copyShortRes(resId,name){
@@ -1400,7 +1426,13 @@ ranges:[
 {min:1,max:2,cls:'md',label:'Bueno',info:'<div class="res-s">SLP a 4 años ~80% · SG a 4 años ~79%</div>'},
 {min:3,max:5,cls:'hi',label:'Pobre',info:'<div class="res-s">SLP a 4 años ~53% · SG a 4 años ~55%</div>'}
 ],
-ref:'Sehn LH, et al. The revised International Prognostic Index (R-IPI). Blood. 2007;109(5):1857-1861.'
+ref:'Sehn LH, et al. The revised International Prognostic Index (R-IPI). Blood. 2007;109(5):1857-1861.',
+extra:hrBox('dlbclhr',{title:'Biología de alto riesgo (no incluida en el IPI)',note:'Factores moleculares/inmunohistoquímicos que empeoran el pronóstico al margen del índice clínico.',items:[
+{id:'dh',label:'Linfoma «double-hit»',small:'reordenamiento de MYC + BCL2 (± BCL6) por FISH',flag:'double-hit (MYC+BCL2)',note:'Se reclasifica como linfoma B de alto grado (HGBL); considerar esquemas más intensivos (p. ej. DA-EPOCH-R) y profilaxis de SNC.'},
+{id:'de',label:'«Double-expressor»',small:'MYC ≥40% y BCL2 ≥50% por IHQ'},
+{id:'coo',label:'Célula de origen no-GCB / ABC',small:'Hans o perfil de expresión'},
+{id:'tp53',label:'TP53 mutado'}
+]})
 });
 
 VIEWS.cnsipi=()=>pointCalc({
@@ -1437,7 +1469,12 @@ ranges:[
 {min:2,max:2,cls:'md',label:'Riesgo intermedio',info:'<div class="res-s">SG a 10 años ~50%</div>'},
 {min:3,max:5,cls:'hi',label:'Riesgo alto',info:'<div class="res-s">SG a 10 años ~35%</div>'}
 ],
-ref:'Solal-Céligny P, et al. Follicular Lymphoma International Prognostic Index. Blood. 2004;104(5):1258-1265.'
+ref:'Solal-Céligny P, et al. Follicular Lymphoma International Prognostic Index. Blood. 2004;104(5):1258-1265.',
+extra:hrBox('flhr',{title:'Alto riesgo adicional (no incluido en el FLIPI)',note:'Marcadores funcionales y moleculares que el índice clínico no recoge.',items:[
+{id:'pod24',label:'POD24',small:'progresión <24 meses del inicio del tratamiento',note:'Marcador funcional de alto riesgo: supervivencia marcadamente inferior.'},
+{id:'m7',label:'Perfil m7-FLIPI de alto riesgo',small:'mutaciones en EZH2 (favorable), ARID1A, MEF2B, EP300, FOXO1, CREBBP, CARD11'},
+{id:'transf',label:'Transformación a linfoma agresivo / grado 3B'}
+]})
 });
 
 VIEWS.mipi=()=>`<div class="card">
@@ -1453,7 +1490,13 @@ VIEWS.mipi=()=>`<div class="card">
 <div class="btns"><button class="btn" onclick="calcMIPI()">Calcular</button>
 <button class="btn btn-out btn-sm" onclick="copyMIPI()">Copiar</button></div>
 <div id="mipi_res" class="res" style="display:none"></div>
-<div class="ref">Hoster E, et al. A new prognostic index (MIPI) for patients with advanced-stage MCL. Blood. 2008;111(2):558-565.</div>
+${hrBox('mipihr',{title:'Alto riesgo adicional (no incluido en el MIPI)',note:'Marcadores que empeoran el pronóstico al margen del índice clínico.',items:[
+{id:'tp53',label:'TP53 mutado o del(17p)',small:'factor adverso dominante; mala respuesta a inmunoquimioterapia',note:'Plantear estrategias alternativas (p. ej. basadas en BTKi ± venetoclax, ensayos clínicos).'},
+{id:'ki67',label:'Ki-67 ≥ 30%',small:'ya incorporado en el MIPI-c'},
+{id:'blast',label:'Morfología blastoide / pleomórfica'},
+{id:'ck',label:'Cariotipo complejo'}
+]})}
+<div class="ref">Hoster E, et al. A new prognostic index (MIPI) for patients with advanced-stage MCL. Blood. 2008;111(2):558-565. · MIPI-c: Hoster E, et al. J Clin Oncol. 2016.</div>
 </div>`;
 
 function calcMIPI(){
@@ -1972,7 +2015,11 @@ ranges:[
 {min:4,max:6,cls:'hi',label:'Riesgo alto',info:'<div class="res-s">SG 5 años ~64%</div>'},
 {min:7,max:10,cls:'hi',label:'Riesgo muy alto',info:'<div class="res-s">SG 5 años ~23%</div>'}
 ],
-ref:'International CLL-IPI Working Group. An international prognostic index for patients with chronic lymphocytic leukaemia (CLL-IPI). Lancet Oncol. 2016;17(6):779-790.'
+ref:'International CLL-IPI Working Group. An international prognostic index for patients with chronic lymphocytic leukaemia (CLL-IPI). Lancet Oncol. 2016;17(6):779-790.',
+extra:hrBox('cllhr',{title:'Alto riesgo adicional (no incluido en el CLL-IPI)',note:'Marcadores adversos relevantes, sobre todo en la era de fármacos dirigidos.',items:[
+{id:'ck',label:'Cariotipo complejo',small:'≥3 alteraciones; ≥5 = muy alto riesgo',note:'Adverso de forma independiente al TP53 y al IGHV.'},
+{id:'del11q',label:'del(11q) (ATM)',small:'adverso, en especial con quimioinmunoterapia'}
+]})
 });
 
 // === MIELOIDES ===
@@ -1988,6 +2035,7 @@ VIEWS.sokal=()=>`<div class="card">
 <div class="btns"><button class="btn" onclick="calcSok()">Calcular</button>
 <button class="btn btn-out btn-sm" onclick="copySok()">Copiar</button></div>
 <div id="sk_res" class="res" style="display:none"></div>
+<div class="alert b" style="font-size:12px;margin-top:10px">En la era de los ITK se prefiere el score <strong>ELTS</strong>, que predice mejor la mortalidad específica por LMC. <button class="btn btn-out btn-sm" onclick="go('elts')">Abrir ELTS</button></div>
 <div class="ref">Sokal JE, et al. Prognostic discrimination in "good-risk" chronic granulocytic leukemia. Blood. 1984;63(4):789-799.</div>
 </div>`;
 
@@ -2003,6 +2051,34 @@ const el=$('sk_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${x.toFixed(2)}</span><span>${cat}</span></div>`;
 }
 function copySok(){ copyShortRes('sk_res','Índice de Sokal'); }
+
+VIEWS.elts=()=>`<div class="card">
+<h2>ELTS – LMC (EUTOS Long-Term Survival)</h2>
+<p class="intro">Score pronóstico moderno en LMC en fase crónica, preferido sobre el Sokal en la era de los ITK porque predice mejor la <strong>mortalidad específica por la enfermedad</strong>. Usa los mismos datos que el Sokal.</p>
+<div class="row">
+<div class="fld"><label class="lbl">Edad (años)</label><input type="number" id="el_age" value="${S.p.age||''}"></div>
+<div class="fld"><label class="lbl">Bazo (cm bajo reborde costal)</label><input type="number" step="0.5" id="el_sp"></div>
+<div class="fld"><label class="lbl">Plaquetas (×10⁹/L)</label><input type="number" id="el_plt"></div>
+<div class="fld"><label class="lbl">Blastos en SP (%)</label><input type="number" step="0.1" id="el_bl"></div>
+</div>
+<div class="btns"><button class="btn" onclick="calcELTS()">Calcular</button>
+<button class="btn btn-out btn-sm" onclick="copyELTS()">Copiar</button></div>
+<div id="elts_res" class="res" style="display:none"></div>
+<div class="ref">Pfirrmann M, et al. Prognosis of long-term survival considering disease-specific death in patients with CML (ELTS score). Leukemia. 2016;30(1):48-56.</div>
+</div>`;
+function calcELTS(){
+const a=n($('el_age').value),sp=n($('el_sp').value),pl=n($('el_plt').value),bl=n($('el_bl').value);
+if(a==null||sp==null||pl==null||bl==null){toast('Completa todos los campos');return}
+if(pl<=0){toast('Plaquetas no válidas');return}
+const score=0.0025*Math.pow(a/10,3)+0.0615*sp+0.1052*bl+0.4104*Math.pow(pl/1000,-0.5);
+let cat,cls,info;
+if(score<=1.5680){cat='Riesgo bajo';cls='lo';info='Mortalidad por LMC a 5 años ~2%'}
+else if(score<=2.2185){cat='Riesgo intermedio';cls='md';info='Mortalidad por LMC a 5 años ~6%'}
+else{cat='Riesgo alto';cls='hi';info='Mortalidad por LMC a 5 años ~12%'}
+const el=$('elts_res');el.style.display='block';el.className='res '+cls;
+el.innerHTML=`<div class="res-h"><span class="score">${score.toFixed(4)}</span><span>${cat}</span></div><div class="res-s">${info}</div>`;
+}
+function copyELTS(){ copyShortRes('elts_res','ELTS'); }
 
 VIEWS.dipss=()=>pointCalc({
 id:'dipss',title:'DIPSS – Mielofibrosis',
@@ -2080,7 +2156,11 @@ ranges:[
 {min:2,max:2,cls:'md',label:'Riesgo intermedio',info:'<div class="res-s">SG a 5 años ~68%. Edad >65 o 2 factores adversos.</div>'},
 {min:3,max:5,cls:'hi',label:'Riesgo alto',info:'<div class="res-s">SG a 5 años ~36%. ≥3 factores adversos. Plantear esquemas más agresivos (BR, BTKi).</div>'}
 ],
-ref:'Morel P, et al. International prognostic scoring system for Waldenström macroglobulinemia (ISSWM). Blood. 2009;113(18):4163-4170.'
+ref:'Morel P, et al. International prognostic scoring system for Waldenström macroglobulinemia (ISSWM). Blood. 2009;113(18):4163-4170.',
+extra:hrBox('wmhr',{title:'Estado mutacional (no incluido en el IPSS-WM)',note:'Impacto pronóstico y en la elección/respuesta a inhibidores de BTK.',flagLabel:'Hallazgos relevantes',items:[
+{id:'myd88wt',label:'MYD88 no mutado (wild-type)',small:'peor pronóstico y peor respuesta a BTKi; replantear el diagnóstico'},
+{id:'cxcr4',label:'CXCR4 mutado',small:'respuesta más lenta/menor a ibrutinib, IgM más alta e hiperviscosidad'}
+]})
 });
 
 VIEWS.icpss=()=>pointCalc({
@@ -6342,7 +6422,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 226;
+const HP_BUILD = 227;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
