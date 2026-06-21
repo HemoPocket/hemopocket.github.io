@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 200;
+const HP_BUILD = 201;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11539,6 +11539,15 @@ function RXtranscribe(raw){
       if(mealM){meal=mealPhrase(mealM[2]);if(mealM[1])mealQty=mealM[1];c=c.replace(mealM[0],' ');}
     }
 
+    // 1d) DOSIS "suelta" antes de la frecuencia: "1 cada 24 horas", "1 al día" (sin la palabra
+    //     comprimido/cápsula). Sin esto el motor cogería por error la cantidad del ENVASE
+    //     (p. ej. "30 comprimidos cada 24h" en lugar de "1 comprimido cada 24h").
+    let doseQty='';
+    if(!mealForm && !mealQty){
+      const dq=c.match(/(\d+(?:[.,]\d+)?)\s+(?=(?:cada\s+\d|al\s+d[ií]a|diari[oa]|una\s+vez|\d+\s*veces|en\s+ayunas|por\s+la\s+(?:noche|ma[ñn]ana)|antes\s+de\s+(?:dormir|acostarse)))/i);
+      if(dq){ doseQty=dq[1]; c=c.slice(0,dq.index)+' '+c.slice(dq.index+dq[0].length); }
+    }
+
     // 2) FRECUENCIA
     c=c.replace(/\bc\/\s*(\d+)\s*h\b/gi,'cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*h\b/gi,' cada $1 h').replace(/(?:^|\s)\/\s*(\d+)\s*d[ií]as?\b/gi,function(m,n){return n==='1'?' diario':' cada '+n+' días';});
     let freq='';
@@ -11564,7 +11573,7 @@ function RXtranscribe(raw){
     // 3) FORMA (pauta) y CABECERA (nombre+dosis, conservando compuestos "A - B")
     const formsAll=[...c.matchAll(FORM)];
     let head=c, form='';
-    if(formsAll.length){ const fi=formsAll.find(f=>f.index>0)||formsAll[0]; head=c.slice(0,fi.index); if(!mealForm){ const last=formsAll[formsAll.length-1]; form=normForm(mealQty||last[1],last[2]); } }
+    if(formsAll.length){ const fi=formsAll.find(f=>f.index>0)||formsAll[0]; head=c.slice(0,fi.index); if(!mealForm){ const last=formsAll[formsAll.length-1]; form=normForm(mealQty||doseQty||last[1],last[2]); } }
     const nameDose=fmtHead(head);
     if(!nameDose) continue;
 
