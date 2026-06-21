@@ -3613,8 +3613,28 @@ ref:'Miller MD, et al. Psychiatry Res. 1992;41(3):237-248. Aplicación en LLC: G
 VIEWS.sga=()=>`<div class="card">
 <h2>sGA — Geriatric Assessment simplificada (linfoma)</h2>
 <p class="intro">Cribado de fitness en linfoma agresivo del anciano (DLBCL). Clasifica en <strong>fit / unfit / frail</strong> e identifica a quién tratar con intención curativa a dosis plenas.</p>
-<div class="alert b" style="font-size:13px">Combina <strong>4 componentes</strong>: edad (&lt;80 vs ≥80), <strong>ADL</strong> (Barthel/Katz), <strong>IADL</strong> (Lawton) y comorbilidad <strong>CIRS-G</strong> — puntúalos con las herramientas de esta sección.</div>
-<div style="font-size:13px;line-height:1.7;margin-top:8px">
+<div class="alert b" style="font-size:13px">Combina <strong>4 componentes</strong>: edad, <strong>ADL</strong> (Barthel/Katz), <strong>IADL</strong> (Lawton) y comorbilidad <strong>CIRS-G</strong>. Si necesitas puntuarlos: <button class="btn btn-out btn-sm" onclick="go('barthel')">Barthel</button> <button class="btn btn-out btn-sm" onclick="go('lawton')">Lawton</button> <button class="btn btn-out btn-sm" onclick="go('cirsg')">CIRS-G</button></div>
+
+<div class="fld"><label class="lbl">1 · Edad</label>
+<label class="chk-card"><input type="radio" name="sga_age" value="lt80" onchange="sgaCalc()"><span>&lt; 80 años</span></label>
+<label class="chk-card"><input type="radio" name="sga_age" value="ge80" onchange="sgaCalc()"><span>≥ 80 años</span></label>
+</div>
+<div class="fld"><label class="lbl">2 · ADL — actividades básicas (Barthel / Katz)</label>
+<label class="chk-card"><input type="radio" name="sga_adl" value="indep" onchange="sgaCalc()"><span>Sin deterioro <small>(Katz = 6 / Barthel ≥ 95)</small></span></label>
+<label class="chk-card"><input type="radio" name="sga_adl" value="dep" onchange="sgaCalc()"><span>Con dependencia <small>(Katz &lt; 6 / Barthel &lt; 95)</small></span></label>
+</div>
+<div class="fld"><label class="lbl">3 · IADL — actividades instrumentales (Lawton-Brody)</label>
+<label class="chk-card"><input type="radio" name="sga_iadl" value="indep" onchange="sgaCalc()"><span>Sin deterioro <small>(Lawton = 8)</small></span></label>
+<label class="chk-card"><input type="radio" name="sga_iadl" value="dep" onchange="sgaCalc()"><span>Con dependencia <small>(Lawton &lt; 8)</small></span></label>
+</div>
+<div class="fld"><label class="lbl">4 · Comorbilidad (CIRS-G)</label>
+<label class="chk-card"><input type="radio" name="sga_com" value="no" onchange="sgaCalc()"><span>Sin comorbilidad significativa <small>(ningún órgano grado 3–4 y &lt; 5 de grado 2)</small></span></label>
+<label class="chk-card"><input type="radio" name="sga_com" value="si" onchange="sgaCalc()"><span>Comorbilidad significativa <small>(≥ 1 órgano grado 3–4, o ≥ 5 de grado 2)</small></span></label>
+</div>
+
+<div id="sga_res" class="res" style="display:none"></div>
+<div class="btns"><button class="btn btn-out btn-sm" onclick="copySGA()">Copiar resultado</button></div>
+<div style="font-size:13px;line-height:1.7;margin-top:10px">
 <strong>Fit:</strong> &lt;80 años, sin deterioro de ADL/IADL y sin comorbilidad grave (CIRS-G).<br>
 <strong>Unfit:</strong> fragilidad intermedia, o ≥80 años con perfil por lo demás conservado.<br>
 <strong>Frail:</strong> ≥80 años con dependencia en ADL (&lt;6) o IADL (&lt;8), y/o comorbilidad significativa (≥1 órgano grado 3–4, o ≥5 comorbilidades).
@@ -3622,6 +3642,29 @@ VIEWS.sga=()=>`<div class="card">
 <div class="alert y" style="font-size:12px;margin-top:8px">SG a 3 años aproximada: <strong>fit ~87%</strong>, <strong>unfit ~69%</strong>, <strong>frail ~42%</strong>. Confirma los cortes con la fuente antes de decidir.</div>
 <div class="ref">Merli F, et al. (FIL «Elderly Project»). J Clin Oncol. 2021;39(11):1214-1222.</div>
 </div>`;
+function sgaCalc(){
+  const g=n=>{const r=document.querySelector('#content input[name="'+n+'"]:checked');return r?r.value:null;};
+  const age=g('sga_age'),adl=g('sga_adl'),iadl=g('sga_iadl'),com=g('sga_com');
+  const el=$('sga_res'); if(!el) return;
+  if(!age||!adl||!iadl||!com){ el.style.display='none'; return; }
+  const funcDep=(adl==='dep')||(iadl==='dep'); const sig=(com==='si');
+  let cat,sub,cls,info;
+  if((age==='ge80'&&funcDep)||sig){ cat='Frail'; sub='Frágil'; cls='hi';
+    info='<div class="res-s">Tratamiento <strong>adaptado o paliativo</strong> según objetivos (esquemas atenuados tipo R-miniCHOP, R-Gemox, prefase con esteroides o soporte). Intención curativa solo en casos seleccionados.</div>'; }
+  else if(age==='lt80'&&!funcDep&&!sig){ cat='Fit'; sub='En forma'; cls='lo';
+    info='<div class="res-s">Candidato a <strong>inmunoquimioterapia con intención curativa a dosis plenas</strong> (p. ej. R-CHOP).</div>'; }
+  else { cat='Unfit'; sub='No apto a dosis plenas'; cls='md';
+    info='<div class="res-s">Valorar tratamiento curativo con <strong>dosis atenuadas</strong> (p. ej. R-miniCHOP) o R-CHOP con soporte, individualizando.</div>'; }
+  el.style.display='block'; el.className='res '+cls;
+  el.innerHTML='<div class="res-h"><span class="score">'+cat+'</span><span>'+sub+'</span></div><div class="res-txt">sGA (linfoma): <b>'+cat+'</b> · '+sub+'.</div>'+info;
+}
+function copySGA(){
+  const r=$('sga_res');
+  if(!r||r.style.display==='none'){ toast('Completa los 4 componentes'); return; }
+  const hh=r.querySelector('.res-h'); const sp=hh?hh.querySelectorAll('span'):[];
+  const cat=sp[0]?stripHTML(sp[0].textContent).trim():''; const sub=sp[1]?stripHTML(sp[1].textContent).trim():'';
+  copy('Escala sGA (linfoma): '+cat+(sub?' ('+sub+')':''));
+}
 
 
 // === NEUTROPENIA FEBRIL ===
@@ -6266,7 +6309,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 222;
+const HP_BUILD = 223;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
