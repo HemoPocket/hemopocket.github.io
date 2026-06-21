@@ -3654,7 +3654,7 @@ function sgaCalc(){
   else if(age==='lt80'&&!funcDep&&!sig){ cat='Fit'; sub='En forma'; cls='lo';
     info='<div class="res-s">Candidato a <strong>inmunoquimioterapia con intención curativa a dosis plenas</strong> (p. ej. R-CHOP).</div>'; }
   else { cat='Unfit'; sub='No apto a dosis plenas'; cls='md';
-    info='<div class="res-s">Valorar tratamiento curativo con <strong>dosis atenuadas</strong> (p. ej. R-miniCHOP) o R-CHOP con soporte, individualizando.</div>'; }
+    info='<div class="res-s">Valorar tratamiento curativo atenuado (<strong>R-miniCHOP</strong>, con mayor evidencia en ≥80 años) o <strong>R-CHOP a dosis plenas con soporte</strong> (prefase esteroidea + G-CSF profiláctico + profilaxis antiinfecciosa), individualizando según comorbilidad y función.</div>'; }
   el.style.display='block'; el.className='res '+cls;
   el.innerHTML='<div class="res-h"><span class="score">'+cat+'</span><span>'+sub+'</span></div><div class="res-txt">sGA (linfoma): <b>'+cat+'</b> · '+sub+'.</div>'+info;
 }
@@ -6309,7 +6309,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 223;
+const HP_BUILD = 224;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
