@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 203;
+const HP_BUILD = 204;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11390,8 +11390,27 @@ function rxPreClean(raw){
 function rxOverride(){ try{ return ls.g('rxOverride')||{}; }catch(e){ return {}; } }
 window.hpApplyRx=function(o){ try{ ls.s('rxOverride', o||{}); }catch(e){} };
 function _rxEsc(s){ return (''+s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+// Equivalencias de pauta INCORPORADAS (siempre activas, antes del diccionario del usuario).
+function rxPautaDefaults(t){
+  // Fracciones: ½ ¼ ¾ y 1/2 1/4 3/4 → decimales
+  t=t.replace(/½/g,'0,5').replace(/¼/g,'0,25').replace(/¾/g,'0,75');
+  t=t.replace(/\b1\s*\/\s*2\b/g,'0,5').replace(/\b1\s*\/\s*4\b/g,'0,25').replace(/\b3\s*\/\s*4\b/g,'0,75');
+  // "media pastilla / medio comprimido…" → "0,5 …" (pastilla se asimila a comprimido)
+  t=t.replace(/\bmedi[oa]\s+pastillas?\b/gi,'0,5 comprimidos');
+  t=t.replace(/\bmedi[oa]\s+(comprimidos?|c[aá]psulas?|tabletas?|grageas?|sobres?|ampollas?|[oó]vulos?|supositorios?)\b/gi,'0,5 $1');
+  // "en el desayuno / en la cena…" → "con el/la …"
+  t=t.replace(/\ben\s+(el|la|los|las)\s+(desayunos?|almuerzos?|comidas?|cenas?|meriendas?)\b/gi,'con $1 $2');
+  // Notación desayuno-comida-cena: "1-0-1", "1-1-1", "0-0-1", "0,5-0-0,5"… → tomas por momento
+  t=t.replace(/\b(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)\b/g,function(m,a,b,c){
+    const v=[a,b,c],M=['con el desayuno','con la comida','con la cena'],P=[];
+    for(let i=0;i<3;i++){const n=parseFloat((''+v[i]).replace(',','.'));if(!(n>0))continue;if(n>4)return m;P.push(v[i]+' '+M[i]);}
+    return P.length?(' '+P.join(', ')+' '):m;
+  });
+  return t;
+}
 function rxApplyDict(raw){
   const ov=rxOverride(); let t=''+raw;
+  try{ t=rxPautaDefaults(t); }catch(e){}
   (ov.pauta||[]).concat(ov.abbr||[], ov.rename||[]).forEach(function(p){
     if(p&&(p.from!=null)&&(''+p.from).trim()&&(p.to!=null)){
       try{ t=t.replace(new RegExp('\\b'+_rxEsc((''+p.from).trim())+'\\b','gi'), (''+p.to)); }catch(e){}
@@ -11670,7 +11689,7 @@ VIEWS.rxedit=()=>{
   h+='<h3 style=\"margin-top:14px\">Abreviaturas</h3><p style=\"font-size:12px;color:var(--mut)\">Expande abreviaturas de forma, vía o frecuencia (p. ej. «cp»→«comprimido», «sc»→«subcutánea», «ev»→«intravenosa»).</p>';
   (d.abbr||[]).forEach(function(p,i){ h+=row('abbr',p,i); });
   h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'abbr\')\">➕ Añadir abreviatura</button>';
-  h+='<h3 style=\"margin-top:14px\">Pautas y posología</h3><p style=\"font-size:12px;color:var(--mut)\">Normaliza formas distintas de escribir la dosis o la frecuencia para una salida homogénea (p. ej. «1-0-1»→«1 comprimido con el desayuno y 1 con la cena», «cada mañana»→«cada 24 horas», «media pastilla»→«0,5 comprimidos»). Se aplica antes de transcribir, a palabras completas y sin distinguir mayúsculas.</p>';
+  h+='<h3 style=\"margin-top:14px\">Pautas y posología</h3><p style=\"font-size:12px;color:var(--mut)\">Normaliza formas distintas de escribir la dosis o la frecuencia para una salida homogénea. <strong>Ya se reconocen de serie:</strong> «1-0-1» / «1-1-1» / «0-0-1»… (desayuno-comida-cena), «½», «¼», «1/2», «media pastilla», «en el desayuno»→«con el desayuno». Aquí añades las tuyas (p. ej. «cada mañana»→«cada 24 horas», abreviaturas locales). Se aplica antes de transcribir, a palabras completas y sin distinguir mayúsculas.</p>';
   (d.pauta||[]).forEach(function(p,i){ h+=row('pauta',p,i); });
   h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'pauta\')\">➕ Añadir pauta</button>';
   h+='<hr style=\"margin:12px 0\"><div class=\"btns\"><button class=\"btn btn-out\" onclick=\"rxEditCancelar()\">✖ Cancelar</button><button class=\"btn btn-out\" onclick=\"rxEditReset()\">Restablecer</button><button class=\"btn btn-g\" onclick=\"rxEditGuardar()\">💾 Guardar para todos</button></div>';
