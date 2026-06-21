@@ -6264,7 +6264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 216;
+const HP_BUILD = 217;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11066,36 +11066,35 @@ VIEWS.lcedit=()=>{
   h+='<h3>Parámetros y sinónimos</h3>';
   h+='<p style="font-size:12px;color:var(--mut)">Marca <strong>ocultar</strong> para que un parámetro no se reconozca ni aparezca. Los sinónimos (separados por comas) se suman a los que ya reconoce; mayúsculas y acentos dan igual.</p>';
   const byCat={}; DICT.forEach(function(e){ (byCat[e.c]=byCat[e.c]||[]).push(e); });
-  (d.custom||[]).forEach(function(p){ if(p&&(p.a+'').trim()){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push(Object.assign({_custom:1},p)); } });
+  (d.custom||[]).forEach(function(p,ci){ if(p){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push(Object.assign({_custom:1,_ci:ci},p)); } });
   (typeof AUTOINM_BLOCK!=='undefined'?AUTOINM_BLOCK:[]).forEach(function(p){ (byCat['autoinmunidad']=byCat['autoinmunidad']||[]).push(Object.assign({_block:1},p)); });
   lcCatOrder().forEach(function(c){ if(!byCat[c]) return;
-    h+='<details style="margin-bottom:6px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer;font-weight:600">'+_hpEsc(d.catLabel[c]||c)+'</summary><div style="margin-top:6px">';
-    byCat[c].forEach(function(e){ const cur=(d.syn[e.a]||[]).join(', '); const dh=d.hidden||{}; const hid=(e.a in dh)?dh[e.a]:!!e.defHidden;
-      h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap'+(hid?';opacity:.5':'')+'">'
-        +'<label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);cursor:pointer;white-space:nowrap" title="Ocultar: que no se reconozca ni aparezca este parámetro"><input type="checkbox"'+(hid?' checked':'')+' onchange="lcToggleHide(\''+_lcA(e.a)+'\',this.checked)">ocultar</label>'
-        +'<span style="min-width:88px;font-size:13px'+(hid?';text-decoration:line-through':'')+'">'+_hpEsc(e.a)+(e.u?' <span style="color:var(--mut);font-size:11px">'+_hpEsc(e.u)+'</span>':'')+'</span>'
-        +(e._custom?'<span style="flex:1;min-width:140px;font-size:11px;color:var(--mut)">✏️ parámetro nuevo — edítalo en «Parámetros nuevos»</span>':e._block?'<span style="flex:1;min-width:140px;font-size:11px;color:var(--mut)">detección automática · marca «ocultar» si no lo quieres</span>':'<input style="flex:1;min-width:140px" value="'+_hpEsc(cur)+'"'+(hid?' disabled':'')+' onchange="lcSynField(\''+_lcA(e.a)+'\',this.value)" placeholder="sinónimos, separados, por comas">')+'</div>';
+    var _secOpen=(byCat[c]||[]).some(function(e){return e._custom && !((e.a||'')+'').trim();});
+    h+='<details style="margin-bottom:6px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"'+(_secOpen?' open':'')+'><summary style="cursor:pointer;font-weight:600">'+_hpEsc(d.catLabel[c]||c)+'</summary><div style="margin-top:6px">';
+    byCat[c].forEach(function(e){ const dh=d.hidden||{}; const hid=(e.a in dh)?dh[e.a]:!!e.defHidden;
+      if(e._custom){
+        h+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:5px;padding-bottom:5px;border-bottom:1px dashed var(--bd)'+(hid?';opacity:.55':'')+'">'
+          +'<label style="font-size:11px;color:var(--mut);cursor:pointer;white-space:nowrap" title="Ocultar"><input type="checkbox"'+(hid?' checked':'')+' onchange="lcToggleHide(\''+_lcA(e.a)+'\',this.checked)"> ocultar</label>'
+          +'<input style="flex:1;min-width:100px" value="'+_hpEsc(e.a||'')+'" onchange="lcCustomField('+e._ci+',\'a\',this.value)" placeholder="Nombre">'
+          +'<select onchange="lcCustomField('+e._ci+',\'k\',this.value)" title="Tipo"><option value="num"'+(e.k==='sero'?'':' selected')+'>Num\u00e9rico</option><option value="sero"'+(e.k==='sero'?' selected':'')+'>Cualitativo</option></select>'
+          +'<input style="width:64px'+(e.k==='sero'?';display:none':'')+'" value="'+_hpEsc(e.u||'')+'" onchange="lcCustomField('+e._ci+',\'u\',this.value)" placeholder="Unidad">'
+          +'<select onchange="lcCustomField('+e._ci+',\'c\',this.value)" title="Secci\u00f3n">'+d.catOrder.map(function(cc){return '<option value="'+_hpEsc(cc)+'"'+((e.c||'bioquimica')===cc?' selected':'')+'>'+_hpEsc(d.catLabel[cc]||cc)+'</option>';}).join('')+'</select>'
+          +'<input style="flex:1;min-width:100px" value="'+_hpEsc((e.pats||[]).join(', '))+'" onchange="lcCustomField('+e._ci+',\'pats\',this.value)" placeholder="sin\u00f3nimos (opcional)">'
+          +'<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcDelCustom('+e._ci+')">\u00d7</button></div>';
+      } else { const cur=(d.syn[e.a]||[]).join(', ');
+        h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap'+(hid?';opacity:.5':'')+'">'
+          +'<label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);cursor:pointer;white-space:nowrap" title="Ocultar"><input type="checkbox"'+(hid?' checked':'')+' onchange="lcToggleHide(\''+_lcA(e.a)+'\',this.checked)">ocultar</label>'
+          +'<span style="min-width:88px;font-size:13px'+(hid?';text-decoration:line-through':'')+'">'+_hpEsc(e.a)+(e.u?' <span style="color:var(--mut);font-size:11px">'+_hpEsc(e.u)+'</span>':'')+'</span>'
+          +(e._block?'<span style="flex:1;min-width:140px;font-size:11px;color:var(--mut)">detecci\u00f3n autom\u00e1tica \u00b7 marca \u00abocultar\u00bb si no lo quieres</span>':'<input style="flex:1;min-width:140px" value="'+_hpEsc(cur)+'"'+(hid?' disabled':'')+' onchange="lcSynField(\''+_lcA(e.a)+'\',this.value)" placeholder="sin\u00f3nimos, separados, por comas">')+'</div>';
+      }
     });
+    h+='<button class="btn btn-out btn-sm" style="margin-top:2px;font-size:11.5px" onclick="lcAddCustom(\''+c+'\')">➕ a\u00f1adir par\u00e1metro</button>';
     h+='</div></details>';
   });
-  h+='<h3 style="margin-top:14px">Tus parámetros añadidos ('+(d.custom||[]).length+')</h3>';
-  h+='<p style="font-size:12px;color:var(--mut)">Los parámetros que has creado (ya <strong>guardados</strong>). Toca uno para editarlo o elimínalo con la ×. El propio nombre ya se reconoce en el texto.</p>';
-  (d.custom||[]).forEach(function(p,i){
-    var nm=(p.a||'').trim(); var secL=d.catLabel[p.c||'bioquimica']||p.c||'';
-    h+='<details class="team-card" style="display:block;margin-bottom:8px;padding:6px 10px" ontoggle="lcCustomToggle('+i+',this.open)"'+((p._open||!nm)?' open':'')+'>';
-    h+='<summary style="cursor:pointer;font-weight:600;font-size:13px">'+(nm?(_hpEsc(nm)+' <span style="font-weight:400;color:var(--mut);font-size:11px">· '+_hpEsc(secL)+' · ✓ guardado</span>'):'Nuevo parámetro')+'</summary>';
-    h+='<div style="margin-top:6px">';
-    h+='<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input style="flex:1" value="'+_hpEsc(p.a||'')+'" onchange="lcCustomField('+i+',\'a\',this.value)" placeholder="Nombre (ej: Ferritina)"><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcDelCustom('+i+')">×</button></div>';
-    var isSero=(p.k==='sero');
-    h+='<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><select onchange="lcCustomField('+i+',\'k\',this.value)" title="Tipo de resultado"><option value="num"'+(isSero?'':' selected')+'>Num\u00e9rico</option><option value="sero"'+(isSero?' selected':'')+'>Cualitativo (pos/neg)</option></select><input style="width:90px'+(isSero?';display:none':'')+'" value="'+_hpEsc(p.u||'')+'" onchange="lcCustomField('+i+',\'u\',this.value)" placeholder="Unidad"><select onchange="lcCustomField('+i+',\'c\',this.value)">'+d.catOrder.map(function(c){return '<option value="'+_hpEsc(c)+'"'+((p.c||'bioquimica')===c?' selected':'')+'>'+_hpEsc(d.catLabel[c]||c)+'</option>';}).join('')+'</select></div>';
-    h+='<input style="width:100%;box-sizing:border-box;margin-top:4px" value="'+_hpEsc((p.pats||[]).join(', '))+'" onchange="lcCustomField('+i+',\'pats\',this.value)" placeholder="Otros nombres para reconocerlo (opcional, separados por comas)">';
-    h+='</div></details>';
-  });
-  h+='<button class="btn btn-out btn-sm" onclick="lcAddCustom()">➕ Añadir parámetro</button>';
   h+='<h3 style="margin-top:14px">Plantilla de salida (secciones del informe)</h3>';
-  h+='<p style="font-size:12px;color:var(--mut)">Orden y nombre de cada sección del texto generado. Puedes <strong>añadir secciones nuevas</strong>; para que aparezcan en el resultado, asígnales algún parámetro en «Parámetros nuevos».</p>';
+  h+='<p style="font-size:12px;color:var(--mut)">Orden y nombre de cada sección del texto generado. Puedes <strong>añadir secciones nuevas</strong>; para meterles parámetros, usa el botón «➕ añadir parámetro» dentro de cada sección (arriba).</p>';
   d.catOrder.forEach(function(c,i){ var isCustom=CAT_ORDER.indexOf(c)<0;
-    h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap"><input style="flex:1;min-width:150px" value="'+_hpEsc(d.catLabel[c]||c)+'" onchange="lcCatLabelField(\''+_lcA(c)+'\',this.value)" placeholder="Nombre de la sección">'+(isCustom?'<span style="font-size:10px;color:var(--mut)">nueva</span>':'')+'<button class="btn btn-out btn-sm" onclick="lcMoveCat('+i+',-1)"'+(i===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="lcMoveCat('+i+',1)"'+(i===d.catOrder.length-1?' disabled':'')+'>↓</button>'+(isCustom?'<button class="btn btn-out btn-sm" onclick="lcAddCustom(\''+c+'\')" title="Añadir un parámetro a esta sección">➕ parámetro</button><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcDelCat('+i+')" title="Eliminar esta sección">×</button>':'')+'</div>';
+    h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap"><input style="flex:1;min-width:150px" value="'+_hpEsc(d.catLabel[c]||c)+'" onchange="lcCatLabelField(\''+_lcA(c)+'\',this.value)" placeholder="Nombre de la sección">'+(isCustom?'<span style="font-size:10px;color:var(--mut)">nueva</span>':'')+'<button class="btn btn-out btn-sm" onclick="lcMoveCat('+i+',-1)"'+(i===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="lcMoveCat('+i+',1)"'+(i===d.catOrder.length-1?' disabled':'')+'>↓</button>'+(isCustom?'<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcDelCat('+i+')" title="Eliminar esta sección">×</button>':'')+'</div>';
   });
   h+='<button class="btn btn-out btn-sm" onclick="lcAddCat()">➕ Añadir sección</button>';
   h+='<p style="font-size:12px;color:var(--mut);margin-top:14px;padding-top:10px;border-top:1px solid var(--bd)"><strong>Formato de salida</strong> (separador y fecha): ahora es una preferencia <strong>de cada usuario</strong> — se ajusta en el propio asistente y <strong>no</strong> se guarda para todos.</p>';
