@@ -6264,7 +6264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 215;
+const HP_BUILD = 216;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11078,15 +11078,18 @@ VIEWS.lcedit=()=>{
     });
     h+='</div></details>';
   });
-  h+='<h3 style="margin-top:14px">Parámetros nuevos ('+(d.custom||[]).length+')</h3>';
-  h+='<p style="font-size:12px;color:var(--mut)">Indica el nombre, el <strong>tipo de resultado</strong> (numérico, o cualitativo: positivo/negativo) y la sección. El propio nombre ya se reconoce en el texto; los sinónimos son opcionales.</p>';
+  h+='<h3 style="margin-top:14px">Tus parámetros añadidos ('+(d.custom||[]).length+')</h3>';
+  h+='<p style="font-size:12px;color:var(--mut)">Los parámetros que has creado (ya <strong>guardados</strong>). Toca uno para editarlo o elimínalo con la ×. El propio nombre ya se reconoce en el texto.</p>';
   (d.custom||[]).forEach(function(p,i){
-    h+='<div class="team-card" style="display:block;margin-bottom:8px">';
+    var nm=(p.a||'').trim(); var secL=d.catLabel[p.c||'bioquimica']||p.c||'';
+    h+='<details class="team-card" style="display:block;margin-bottom:8px;padding:6px 10px" ontoggle="lcCustomToggle('+i+',this.open)"'+((p._open||!nm)?' open':'')+'>';
+    h+='<summary style="cursor:pointer;font-weight:600;font-size:13px">'+(nm?(_hpEsc(nm)+' <span style="font-weight:400;color:var(--mut);font-size:11px">· '+_hpEsc(secL)+' · ✓ guardado</span>'):'Nuevo parámetro')+'</summary>';
+    h+='<div style="margin-top:6px">';
     h+='<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px"><input style="flex:1" value="'+_hpEsc(p.a||'')+'" onchange="lcCustomField('+i+',\'a\',this.value)" placeholder="Nombre (ej: Ferritina)"><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcDelCustom('+i+')">×</button></div>';
     var isSero=(p.k==='sero');
     h+='<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center"><select onchange="lcCustomField('+i+',\'k\',this.value)" title="Tipo de resultado"><option value="num"'+(isSero?'':' selected')+'>Num\u00e9rico</option><option value="sero"'+(isSero?' selected':'')+'>Cualitativo (pos/neg)</option></select><input style="width:90px'+(isSero?';display:none':'')+'" value="'+_hpEsc(p.u||'')+'" onchange="lcCustomField('+i+',\'u\',this.value)" placeholder="Unidad"><select onchange="lcCustomField('+i+',\'c\',this.value)">'+d.catOrder.map(function(c){return '<option value="'+_hpEsc(c)+'"'+((p.c||'bioquimica')===c?' selected':'')+'>'+_hpEsc(d.catLabel[c]||c)+'</option>';}).join('')+'</select></div>';
     h+='<input style="width:100%;box-sizing:border-box;margin-top:4px" value="'+_hpEsc((p.pats||[]).join(', '))+'" onchange="lcCustomField('+i+',\'pats\',this.value)" placeholder="Otros nombres para reconocerlo (opcional, separados por comas)">';
-    h+='</div>';
+    h+='</div></details>';
   });
   h+='<button class="btn btn-out btn-sm" onclick="lcAddCustom()">➕ Añadir parámetro</button>';
   h+='<h3 style="margin-top:14px">Plantilla de salida (secciones del informe)</h3>';
@@ -11105,6 +11108,7 @@ function lcToggleHide(a,on){ if(!_lcDraft)return; if(!_lcDraft.hidden)_lcDraft.h
 function lcAddCustom(cat){ if(!_lcDraft.custom)_lcDraft.custom=[]; _lcDraft.custom.push({a:'',u:'',c:(cat||'bioquimica'),k:'num',pats:[]}); go('lcedit'); }
 function lcDelCustom(i){ _lcDraft.custom.splice(i,1); go('lcedit'); }
 function lcCustomField(i,f,v){ const p=_lcDraft.custom[i]; if(!p)return; if(f==='pats') p.pats=_lcSplit(v); else p[f]=v; if(f==='k'){ var _y=(typeof window!=='undefined'&&window.scrollY)||0; go('lcedit'); try{ window.scrollTo(0,_y); }catch(e){} } }
+function lcCustomToggle(i,open){ if(_lcDraft&&_lcDraft.custom&&_lcDraft.custom[i]) _lcDraft.custom[i]._open=!!open; }
 function lcCatLabelField(c,v){ if(!_lcDraft)return; _lcDraft.catLabel[c]=v; var _y=(typeof window!=='undefined'&&window.scrollY)||0; go('lcedit'); try{ window.scrollTo(0,_y); }catch(e){} }
 function lcMoveCat(i,dir){ const a=_lcDraft.catOrder; const j=i+dir; if(j<0||j>=a.length)return; const t=a[i]; a[i]=a[j]; a[j]=t; go('lcedit'); }
 function lcAddCat(){ if(!_lcDraft)return; if(!Array.isArray(_lcDraft.catOrder))_lcDraft.catOrder=lcCatOrder(); if(!_lcDraft.catLabel)_lcDraft.catLabel={}; var k='sec_'+Date.now().toString(36); while(_lcDraft.catOrder.indexOf(k)>=0)k+='x'; _lcDraft.catOrder.push(k); _lcDraft.catLabel[k]='Nueva sección'; go('lcedit'); }
@@ -11112,13 +11116,13 @@ function lcDelCat(i){ if(!_lcDraft)return; var k=_lcDraft.catOrder[i]; if(CAT_OR
 function lcFmtField(k,v){ if(!_lcDraft)return; if(!_lcDraft.fmt)_lcDraft.fmt={}; _lcDraft.fmt[k]=v; go('lcedit'); }
 function lcFmtPreview(fmt){ fmt=fmt||{}; const sepMap={coma:', ',medio:' · ',puntocoma:'; ',linea:'\n'}; const sep=sepMap[fmt.sep]||', '; const dd=(fmt.date!==false)?' (18-06-26)':''; const items=['Hb 13,2 g/dl','VCM 87 fl','Plaquetas 83 x10E9/L']; return 'Hemograma'+dd+((sep==='\n')?':\n'+items.join('\n'):': '+items.join(sep)); }
 function lcEditCancelar(){ _lcDraft=null; go('labconv'); }
-async function lcEditGuardar(){ const d=_lcDraft; if(!d)return; const o={ syn:d.syn||{}, hidden:d.hidden||{}, custom:(d.custom||[]).filter(function(p){return p&&(p.a+'').trim();}), catLabel:d.catLabel||{}, catOrder:d.catOrder||[] }; try{ls.s('lcOverride',o);}catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc(o); toast('✓ Asistente actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _lcDraft=null; go('labconv'); }
+async function lcEditGuardar(){ const d=_lcDraft; if(!d)return; const o={ syn:d.syn||{}, hidden:d.hidden||{}, custom:(d.custom||[]).filter(function(p){return p&&(p.a+'').trim();}).map(function(p){var q=Object.assign({},p);delete q._open;return q;}), catLabel:d.catLabel||{}, catOrder:d.catOrder||[] }; try{ls.s('lcOverride',o);}catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc(o); toast('✓ Asistente actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _lcDraft=null; go('labconv'); }
 async function lcEditReset(){ if(!confirm('¿Restablecer el diccionario y la plantilla de fábrica? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_lcOverride'); }catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc({}); }catch(e){} } _lcDraft={ syn:{}, hidden:{}, fmt:{sep:'coma',date:true}, custom:[], catLabel:Object.assign({},CAT_LABEL), catOrder:CAT_ORDER.slice() }; toast('✓ Restablecido de fábrica'); go('lcedit'); }
 // Exponer los manejadores del editor al ámbito GLOBAL: los onclick/onchange en línea del HTML se
 // ejecutan en 'window', pero estas funciones viven dentro de este módulo (IIFE). Sin esto, el botón
 // "Editar diccionario y plantilla" y todos los controles del editor daban "función no definida".
 window.lcEditOpen=lcEditOpen; window.lcSynField=lcSynField; window.lcToggleHide=lcToggleHide; window.lcCustomField=lcCustomField;
-window.lcDelCustom=lcDelCustom; window.lcAddCustom=lcAddCustom; window.lcCatLabelField=lcCatLabelField;
+window.lcDelCustom=lcDelCustom; window.lcAddCustom=lcAddCustom; window.lcCatLabelField=lcCatLabelField; window.lcCustomToggle=lcCustomToggle;
 window.lcMoveCat=lcMoveCat; window.lcAddCat=lcAddCat; window.lcDelCat=lcDelCat; window.lcFmtField=lcFmtField; window.lcEditCancelar=lcEditCancelar; window.lcEditReset=lcEditReset;
 window.lcEditGuardar=lcEditGuardar;
 
