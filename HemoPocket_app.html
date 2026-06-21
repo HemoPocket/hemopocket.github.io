@@ -1010,6 +1010,8 @@ function wrapTbls(root){
   }catch(e){}
 }
 function go(id, params) {
+    // Si llegó una versión nueva mientras editabas, se aplica al salir del editor (sin perder cambios).
+    try{ if(window._hpPendingReload && !/edit$/.test(id)){ window.location.reload(); return; } }catch(e){}
     if (id === 'chat') { closeSb(); openChat(); return; }
     if (id === 'libroazul') { closeSb(); openPDFurl('guias/LibroAzul_QT.pdf','Pautas de QT SEHH'); return; }
     S.view = id;
@@ -6264,7 +6266,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 218;
+const HP_BUILD = 219;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12258,7 +12260,7 @@ if(document.readyState!=='loading')init();
     });
     // Comprobar actualización: nada más abrir, cada 10 min, y al volver a la pestaña.
     reg.update().catch(function(){});
-    setInterval(function(){ reg.update().catch(function(){}); }, 10*60*1000);
+    setInterval(function(){ reg.update().catch(function(){}); }, 60*1000);
     document.addEventListener('visibilitychange', function(){
       if(document.visibilityState === 'visible') reg.update().catch(function(){});
     });
@@ -12268,7 +12270,10 @@ if(document.readyState!=='loading')init();
   // skipWaiting en install y puede activarse por su cuenta. Una sola recarga por sesión.
   var _hpReloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', function(){
-    if(_hpReloaded) return; _hpReloaded = true;
+    if(_hpReloaded) return;
+    // No interrumpir una edición en curso: aplazar la recarga hasta salir del editor.
+    try{ if(typeof S!=='undefined' && /edit$/.test(S.view||'')){ window._hpPendingReload=true; var _ou=document.getElementById('hp-updating'); if(_ou&&_ou.remove)_ou.remove(); return; } }catch(e){}
+    _hpReloaded = true;
     try{ sessionStorage.setItem('hp_justUpdated','1'); }catch(e){}
     window.location.reload();
   });
@@ -12314,12 +12319,12 @@ if(document.readyState!=='loading')init();
     }catch(e){}
   }
   var _hpVGlast = 0;
-  function hpVGthrottled(){ if(Date.now() - _hpVGlast < 60000) return; _hpVGlast = Date.now(); hpVersionGuard(); }
+  function hpVGthrottled(){ if(Date.now() - _hpVGlast < 30000) return; _hpVGlast = Date.now(); hpVersionGuard(); }
   // INMEDIATO al abrir (sin esperas), al volver a la pestaña y cada 10 min con la app abierta.
   if(document.readyState === 'complete') hpVGthrottled();
   else window.addEventListener('load', hpVGthrottled);
   document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') hpVGthrottled(); });
-  setInterval(hpVGthrottled, 10*60*1000);
+  setInterval(hpVGthrottled, 60*1000);
 })();
 </script>
 <div id="hp-report-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; padding:1rem;" role="dialog" aria-modal="true" aria-label="Reportar un error">
