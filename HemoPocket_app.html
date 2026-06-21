@@ -6514,8 +6514,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 199;
-const APP_BUILD = '2026.06.20 (build ' + HP_BUILD + ')';
+const HP_BUILD = 200;
+const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -12740,7 +12740,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══ Firebase Auth ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
@@ -12759,6 +12759,10 @@ const fbApp = initializeApp(firebaseConfig);
 // Analítica de uso (Google Analytics) deshabilitada de forma intencionada: la app
 // no envía telemetría de uso a terceros, reforzando la privacidad en entorno sanitario.
 const auth = getAuth(fbApp);
+// Guardar la sesión de la forma MÁS persistente posible (IndexedDB; si no, localStorage),
+// para que no pida iniciar sesión cada vez. En contexto inseguro (red que rompe el HTTPS)
+// el navegador puede forzar memoria; entonces esto no basta y hay que arreglarlo en el navegador/IT.
+try { setPersistence(auth, indexedDBLocalPersistence).catch(function(){ try{ setPersistence(auth, browserLocalPersistence); }catch(e){} }); } catch(e){}
 const db = getDatabase(fbApp);
 // Firestore con CACHÉ PERSISTENTE (IndexedDB): permite usar la app SIN conexión en el
 // hospital — las lecturas (aprobación de cuenta, rol, contenido) se sirven de la caché
