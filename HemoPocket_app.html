@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 204;
+const HP_BUILD = 205;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11400,6 +11400,17 @@ function rxPautaDefaults(t){
   t=t.replace(/\bmedi[oa]\s+(comprimidos?|c[aá]psulas?|tabletas?|grageas?|sobres?|ampollas?|[oó]vulos?|supositorios?)\b/gi,'0,5 $1');
   // "en el desayuno / en la cena…" → "con el/la …"
   t=t.replace(/\ben\s+(el|la|los|las)\s+(desayunos?|almuerzos?|comidas?|cenas?|meriendas?)\b/gi,'con $1 $2');
+  // "días alternos" / "un día sí y otro no" → cada 48 horas (antes de convertir números)
+  t=t.replace(/\b(?:un\s+d[ií]a\s+s[íi]\s+y\s+otro\s+no|(?:a\s+|en\s+)?d[ií]as\s+alternos)\b/gi,'cada 48 horas');
+  // Números escritos → cifras cuando preceden a forma o a tiempo (NO "vez", que es frecuencia)
+  var _NW={uno:'1',una:'1',un:'1',dos:'2',tres:'3',cuatro:'4',cinco:'5',seis:'6',siete:'7',ocho:'8',nueve:'9',diez:'10',doce:'12',veinticuatro:'24'};
+  t=t.replace(/\b(uno|una|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|doce|veinticuatro)\s+(?=(?:comprimidos?|c[aá]psulas?|caps|comp|tabletas?|grageas?|sobres?|gotas?|ampollas?|viales?|aplicaci[oó]n(?:es)?|pulsaci[oó]n(?:es)?|inhalaci[oó]n(?:es)?|supositorios?|[oó]vulos?|d[ií]as?|horas?|semanas?|meses?)\b)/gi,function(m,w){return (_NW[w.toLowerCase()]||w)+' ';});
+  // Notación de 4 posiciones: "1-1-1-1", "1-0-0-1" → desayuno, comida, merienda, cena
+  t=t.replace(/\b(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)\b/g,function(m,a,b,c,d){
+    const v=[a,b,c,d],M=['con el desayuno','con la comida','con la merienda','con la cena'],P=[];
+    for(let i=0;i<4;i++){const n=parseFloat((''+v[i]).replace(',','.'));if(!(n>0))continue;if(n>4)return m;P.push(v[i]+' '+M[i]);}
+    return P.length?(' '+P.join(', ')+' '):m;
+  });
   // Notación desayuno-comida-cena: "1-0-1", "1-1-1", "0-0-1", "0,5-0-0,5"… → tomas por momento
   t=t.replace(/\b(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)-(\d+(?:[.,]\d+)?)\b/g,function(m,a,b,c){
     const v=[a,b,c],M=['con el desayuno','con la comida','con la cena'],P=[];
