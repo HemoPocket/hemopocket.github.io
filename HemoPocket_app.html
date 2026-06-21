@@ -6264,7 +6264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 217;
+const HP_BUILD = 218;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11068,10 +11068,10 @@ VIEWS.lcedit=()=>{
   const byCat={}; DICT.forEach(function(e){ (byCat[e.c]=byCat[e.c]||[]).push(e); });
   (d.custom||[]).forEach(function(p,ci){ if(p){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push(Object.assign({_custom:1,_ci:ci},p)); } });
   (typeof AUTOINM_BLOCK!=='undefined'?AUTOINM_BLOCK:[]).forEach(function(p){ (byCat['autoinmunidad']=byCat['autoinmunidad']||[]).push(Object.assign({_block:1},p)); });
-  lcCatOrder().forEach(function(c){ if(!byCat[c]) return;
+  lcCatOrder().forEach(function(c){
     var _secOpen=(byCat[c]||[]).some(function(e){return e._custom && !((e.a||'')+'').trim();});
     h+='<details style="margin-bottom:6px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"'+(_secOpen?' open':'')+'><summary style="cursor:pointer;font-weight:600">'+_hpEsc(d.catLabel[c]||c)+'</summary><div style="margin-top:6px">';
-    byCat[c].forEach(function(e){ const dh=d.hidden||{}; const hid=(e.a in dh)?dh[e.a]:!!e.defHidden;
+    (byCat[c]||[]).forEach(function(e){ const dh=d.hidden||{}; const hid=(e.a in dh)?dh[e.a]:!!e.defHidden;
       if(e._custom){
         h+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:5px;padding-bottom:5px;border-bottom:1px dashed var(--bd)'+(hid?';opacity:.55':'')+'">'
           +'<label style="font-size:11px;color:var(--mut);cursor:pointer;white-space:nowrap" title="Ocultar"><input type="checkbox"'+(hid?' checked':'')+' onchange="lcToggleHide(\''+_lcA(e.a)+'\',this.checked)"> ocultar</label>'
