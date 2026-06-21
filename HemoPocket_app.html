@@ -6264,7 +6264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 211;
+const HP_BUILD = 212;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11049,13 +11049,14 @@ VIEWS.lcedit=()=>{
   h+='<h3>Parámetros y sinónimos</h3>';
   h+='<p style="font-size:12px;color:var(--mut)">Marca <strong>ocultar</strong> para que un parámetro no se reconozca ni aparezca. Los sinónimos (separados por comas) se suman a los que ya reconoce; mayúsculas y acentos dan igual.</p>';
   const byCat={}; DICT.forEach(function(e){ (byCat[e.c]=byCat[e.c]||[]).push(e); });
+  (d.custom||[]).forEach(function(p){ if(p&&(p.a+'').trim()){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push(Object.assign({_custom:1},p)); } });
   lcCatOrder().forEach(function(c){ if(!byCat[c]) return;
     h+='<details style="margin-bottom:6px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer;font-weight:600">'+_hpEsc(d.catLabel[c]||c)+'</summary><div style="margin-top:6px">';
     byCat[c].forEach(function(e){ const cur=(d.syn[e.a]||[]).join(', '); const dh=d.hidden||{}; const hid=(e.a in dh)?dh[e.a]:!!e.defHidden;
       h+='<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap'+(hid?';opacity:.5':'')+'">'
         +'<label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--mut);cursor:pointer;white-space:nowrap" title="Ocultar: que no se reconozca ni aparezca este parámetro"><input type="checkbox"'+(hid?' checked':'')+' onchange="lcToggleHide(\''+_lcA(e.a)+'\',this.checked)">ocultar</label>'
         +'<span style="min-width:88px;font-size:13px'+(hid?';text-decoration:line-through':'')+'">'+_hpEsc(e.a)+(e.u?' <span style="color:var(--mut);font-size:11px">'+_hpEsc(e.u)+'</span>':'')+'</span>'
-        +'<input style="flex:1;min-width:140px" value="'+_hpEsc(cur)+'"'+(hid?' disabled':'')+' onchange="lcSynField(\''+_lcA(e.a)+'\',this.value)" placeholder="sinónimos, separados, por comas"></div>';
+        +(e._custom?'<span style="flex:1;min-width:140px;font-size:11px;color:var(--mut)">✏️ parámetro nuevo — edítalo en «Parámetros nuevos»</span>':'<input style="flex:1;min-width:140px" value="'+_hpEsc(cur)+'"'+(hid?' disabled':'')+' onchange="lcSynField(\''+_lcA(e.a)+'\',this.value)" placeholder="sinónimos, separados, por comas">')+'</div>';
     });
     h+='</div></details>';
   });
