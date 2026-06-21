@@ -2871,21 +2871,7 @@ el.style.display='block';
 el.className='res '+(abn?'hi':'lo');
 el.innerHTML=`<div class="res-h"><span class="score">${total} pts</span><span>${abn?'Puntuación ANORMAL':'Puntuación normal'}</span></div><div class="res-txt">ISTH-BAT (${pop.label}): <b>${total} ${Math.abs(total)===1?'punto':'puntos'}</b> · umbral ≥ ${pop.cut} → <b>${abn?'anormal':'normal'}</b>.${answered<ISTHBAT.items.length?` <span style="color:var(--mut)">(${answered}/${ISTHBAT.items.length} categorías respondidas)</span>`:''}</div>${abn?'<div class="res-s">Apoya la realización de estudio de hemostasia dirigido.</div>':'<div class="res-s">No descarta un trastorno hemorrágico si la sospecha clínica es alta.</div>'}`;
 }
-function copyISTHBAT(){
-const{total,answered,factors}=ibCollect();
-if(!answered){toast('Completa al menos una categoría');return}
-const pop=ISTHBAT.pop[$('ib_pop').value];
-const abn=total>=pop.cut;
-const factsText=factors.map(f=>`${f.q.toLowerCase()}: ${stripHTML(f.val)} (${f.pts>=0?'+':''}${f.pts})`).join('; ');
-const txt=`Escala de sangrado ISTH-BAT
-─────────────────────────────────────────────
-${patientHeader()}Se aplica la escala de sangrado ISTH-BAT (${pop.label}). Categorías valoradas: ${factsText}.
-
-Puntuación total: ${total} (umbral de anormalidad ≥ ${pop.cut}). Resultado: ${abn?'ANORMAL — apoya la realización de un estudio de hemostasia dirigido':'normal — no descarta un trastorno hemorrágico si la sospecha clínica es alta'}.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyISTHBAT(){const c=ibCollect();if(!c.answered){toast('Completa al menos una categoría');return}const pop=ISTHBAT.pop[$('ib_pop').value];const abn=c.total>=pop.cut;copy('ISTH-BAT: '+c.total+' '+(c.total===1?'punto':'puntos')+' ('+(abn?'anormal':'normal')+', umbral ≥'+pop.cut+')');}
 
 VIEWS.hb=()=>pointCalc({
 id:'hb',title:'HAS-BLED',
@@ -2985,30 +2971,7 @@ el.innerHTML=`<div class="res-h"><span class="score">Orientación</span><span>${
 <div class="res-s" style="margin-top:8px"><small><strong>Recuerda:</strong> esta orientación no sustituye la valoración integral. Si hay <em>cualquier</em> sospecha firme de TTP no demores el PEX por completar el estudio.</small></div>`;
 window._matData={best,label:m.l,plt,cr,pl,emb,diar,cid,neuro,fcomp,farm};
 }
-function copyMAT(){
-const d=window._matData;if(!d){toast('Marca los criterios para obtener la orientación');return}
-const ctx=[];
-if(d.emb)ctx.push('contexto obstétrico/HTA');
-if(d.diar)ctx.push('diarrea previa');
-if(d.cid)ctx.push('contexto compatible con CID');
-if(d.neuro)ctx.push('clínica neurológica fluctuante');
-if(d.fcomp)ctx.push('historia familiar de MAT');
-if(d.farm)ctx.push('fármacos o trasplante recientes');
-const lab=[];
-if(d.plt!==null)lab.push(`plaquetas ${d.plt} ×10⁹/L`);
-if(d.cr!==null)lab.push(`creatinina ${d.cr} mg/dL`);
-if(d.pl!==null)lab.push(`PLASMIC ${d.pl}`);
-const labTxt=lab.length?lab.join(', '):'datos analíticos en curso';
-const ctxTxt=ctx.length?` Datos del contexto clínico relevantes: ${ctx.join(', ')}.`:'';
-const txt=`Microangiopatía trombótica (MAT) – orientación diagnóstica
-─────────────────────────────────────────────
-Paciente con cuadro compatible con MAT (anemia hemolítica con esquistocitos y trombopenia). Parámetros disponibles: ${labTxt}.${ctxTxt}
-
-La orientación inicial sugiere ${d.label.toLowerCase()}. Se solicitan ADAMTS13 (actividad e inhibidor) extraída antes de cualquier transfusión de plasma, estudio del complemento (C3, C4, factor H, I, MCP, anti-FH) si hay sospecha de SHU atípico, coprocultivo + PCR para STEC si procede, pruebas de coagulación con D-dímero y fibrinógeno (score CID-ISTH) y Coombs directo. Se valora el inicio empírico de tratamiento dirigido en función de la sospecha mientras se completa el estudio.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyMAT(){const d=window._matData;if(!d){toast('Marca los criterios para obtener la orientación');return}copy('Orientación MAT: '+d.label+(d.pl!==null?' (PLASMIC '+d.pl+')':''));}
 
 // === OTRAS ===
 VIEWS.qtc=()=>`<div class="card">
@@ -3176,21 +3139,7 @@ ${ibw!==null&&Math.abs(cg-cgReal)>1?`<small style="color:var(--mut)">C-G con pes
 <div class="res-s" style="margin-top:6px"><small>Paciente${bmiTxt}${ibwTxt}. <strong>Recomendación</strong>: usar C-G para ajuste de dosis de quimio según ficha técnica; CKD-EPI como referencia general.</small></div>`;
 window._cgData={a,s,h,w,cr,cg,cgReal,ckdepi,pesoUsado,pesoLabel,bmi,ibw,abw,cat,cgCalvert,capped:cg>125};
 }
-function copyCG(){const d=window._cgData;if(!d){toast('Calcula primero');return}
-const sex=d.s==='M'?'varón':'mujer';
-const pesoTxt=d.pesoLabel==='peso real'?'el peso real':d.pesoLabel==='IBW (caquexia/IMC bajo)'?`el peso ideal (${d.pesoUsado.toFixed(2)} kg) por IMC bajo`:`el peso ajustado (ABW = ${d.pesoUsado.toFixed(2)} kg) por obesidad`;
-const ckdTxt=`${d.ckdepi.toFixed(2)} mL/min/1.73 m² por CKD-EPI 2021 (sin raza)`;
-const calvTxt=d.capped?` Para la fórmula de Calvert (carboplatino) se cape el GFR a 125 mL/min (FDA 2010), resultando en una dosis basada en GFR de 125 mL/min.`:'';
-const txt=`Aclaramiento de creatinina — paciente oncohematológico
-─────────────────────────────────────────────
-Paciente ${sex} de ${d.a} años${d.h?`, talla ${d.h} cm`:''}, peso ${d.w} kg${d.bmi!==null?` (IMC ${d.bmi.toFixed(2)} kg/m²)`:''}, con creatinina sérica de ${d.cr} mg/dL.
-
-Aclaramiento de creatinina por Cockcroft-Gault de ${d.cg.toFixed(2)} mL/min usando ${pesoTxt}; equivalente a ${ckdTxt}. La función renal se clasifica como ${d.cat.toLowerCase()}.${calvTxt}
-
-Este valor se utiliza para el ajuste de dosis de fármacos con eliminación renal en oncohematología. Cockcroft-Gault sigue siendo la fórmula de referencia para el ajuste de dosis según ficha técnica (carboplatino, melfalán, lenalidomida, citarabina dosis altas, daratumumab SC, etc.). CKD-EPI 2021 se utiliza como referencia general de la función renal.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyCG(){const d=window._cgData;if(!d){toast('Calcula primero');return}copy('Aclaramiento de creatinina (Cockcroft-Gault): '+Math.round(d.cg)+' mL/min · CKD-EPI '+Math.round(d.ckdepi)+' mL/min/1,73 m² ('+d.cat.toLowerCase()+')');}
 
 VIEWS.obw=()=>`<div class="card">
 <h2>Ajuste de peso por obesidad — paciente oncohematológico</h2>
@@ -3263,23 +3212,7 @@ Peso real está ${w>ibw?'+':''}${aboveIBW}% respecto al ideal.
 <div class="res-s" style="margin-top:6px"><small>Fórmula general: <strong>ABW = IBW + factor × (peso real − IBW)</strong>. Mira la tabla inferior para elegir el peso según el fármaco. Regla general en oncohematología: <strong>peso real</strong> para quimio citotóxica BSA-based, <strong>ABW40</strong> para aminoglucósidos/Cockcroft-Gault en obesos, <strong>IBW</strong> para aciclovir/ganciclovir en obesos.</small></div>`;
 window._obData={s,h,w,ibw,abw40,abw25,abw20,lbw,bmi,cat};
 }
-function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}
-const sex=d.s==='M'?'varón':'mujer';
-const txt=`Ajuste de peso en obesidad — paciente oncohematológico
-─────────────────────────────────────────────
-${patientHeader()}Paciente ${sex} con talla de ${d.h} cm y peso real de ${d.w} kg. Índice de masa corporal de ${d.bmi.toFixed(2)} kg/m² (${d.cat}).
-
-Se calculan los pesos de referencia para la dosificación de fármacos:
-- Peso ideal (IBW, fórmula de Devine): ${d.ibw.toFixed(2)} kg.
-- Peso ajustado ABW40 (factor 0.40): ${d.abw40.toFixed(2)} kg.
-- Peso ajustado ABW25 (factor 0.25): ${d.abw25.toFixed(2)} kg.
-- Peso ajustado ABW20 (factor 0.20): ${d.abw20.toFixed(2)} kg.
-- Masa magra (LBW, fórmula de Janmahasatian 2005): ${d.lbw.toFixed(2)} kg.
-
-Recomendaciones de dosificación: peso real para la mayoría de quimioterapias BSA-based (ASCO 2012), vancomicina y daptomicina; peso ajustado (habitualmente ABW40) para aminoglucósidos y aclaramiento de creatinina por Cockcroft-Gault si IMC ≥30; peso ideal (IBW) para aciclovir y ganciclovir en obesos por riesgo nefro/neurotóxico.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}copy('Peso ideal '+d.ibw.toFixed(1).replace('.',',')+' kg · ajustado ABW40 '+d.abw40.toFixed(1).replace('.',',')+' kg · masa magra '+d.lbw.toFixed(1).replace('.',',')+' kg (IMC '+d.bmi.toFixed(1).replace('.',',')+')');}
 
 VIEWS.bsa=()=>`<div class="card">
 <h2>Superficie corporal — paciente oncohematológico</h2>
@@ -3306,13 +3239,7 @@ const el=$('bs_res');el.style.display='block';el.className='res in';
 el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(2)} m²</span><span>BSA (DuBois)</span></div>`;
 window._bsaData={h,w,bsaMost,bsaDuBois};
 }
-function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}
-const txt=`Superficie corporal — paciente oncohematológico
-─────────────────────────────────────────────
-${patientHeader()}Con talla de ${d.h} cm y peso de ${d.w} kg, la superficie corporal calculada por la fórmula de DuBois & DuBois es de ${d.bsaDuBois.toFixed(2)} m², de referencia en la dosificación de quimioterapia citotóxica.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);}
+function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}copy('Superficie corporal: '+d.bsaDuBois.toFixed(2).replace('.',',')+' m² (DuBois)');}
 
 // === CALCIO CORREGIDO ===
 VIEWS.cacorr=()=>`<div class="card">
@@ -3369,21 +3296,7 @@ el.innerHTML=`<div class="res-h"><span class="score">${corr.toFixed(2)} mg/dL</s
 ${extra?`<div class="res-s" style="margin-top:8px">${extra}</div>`:''}`;
 window._cacData={ca,mode,alb,prot,corr:corr.toFixed(2),cat,formula,sourceTxt,extra};
 }
-function copyCaCorr(){
-const d=window._cacData;if(!d){toast('Calcula primero');return}
-const modo=d.mode==='alb'?'la fórmula de Payne (corrección por albúmina)':'la corrección por proteínas totales (James & Steel)';
-const extraClean=d.extra?' '+d.extra.replace(/<[^>]*>/g,'').replace(/&gt;/g,'>').replace(/&lt;/g,'<'):'';
-const txt=`Calcio corregido
-─────────────────────────────────────────────
-${patientHeader()}Calcio sérico total medido de ${d.ca} mg/dL con ${d.sourceTxt}. Aplicando ${modo}: ${d.formula}.
-
-Calcio corregido: ${d.corr} mg/dL. Interpretación: ${d.cat.toLowerCase()}.${extraClean}
-
-Recordar que el calcio ionizado es el patrón de referencia en pacientes con paraproteinemia (mieloma), insuficiencia renal, alteraciones del equilibrio ácido-base o paciente crítico.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyCaCorr(){const d=window._cacData;if(!d){toast('Calcula primero');return}copy('Calcio corregido: '+(''+d.corr).replace('.',',')+' mg/dL ('+d.cat.toLowerCase()+')');}
 
 // === LÍQUIDO PLEURAL — CRITERIOS DE LIGHT ===
 VIEWS.light=()=>`<div class="card">
@@ -3460,24 +3373,7 @@ const el=$('lt_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${cat}</span><span>${nCrit}/3 criterios de Light</span></div>${critTxt}<div class="res-s" style="margin-top:8px">${extra}</div>${warn}`;
 window._lightData={pp,ps,lp,ls_,uln,rProt:rProt.toFixed(2),rLDH:rLDH.toFixed(2),ldhCut:ldhCut.toFixed(2),nCrit,cat,c1,c2,c3};
 }
-function copyLight(){
-const d=window._lightData;if(!d){toast('Calcula primero');return}
-const cumplidos=[];
-if(d.c1)cumplidos.push('cociente de proteínas pleural/suero >0.5');
-if(d.c2)cumplidos.push('cociente de LDH pleural/suero >0.6');
-if(d.c3)cumplidos.push('LDH pleural superior a 2/3 del límite normal sérico');
-const cumplTxt=cumplidos.length?`Se cumplen los siguientes criterios: ${cumplidos.join('; ')}.`:'No se cumple ninguno de los tres criterios de Light.';
-const txt=`Análisis de líquido pleural — Criterios de Light
-─────────────────────────────────────────────
-${patientHeader()}Proteínas en líquido pleural ${d.pp} g/dL y en suero ${d.ps} g/dL (cociente ${d.rProt}). LDH en líquido pleural ${d.lp} U/L y en suero ${d.ls_} U/L (cociente ${d.rLDH}); punto de corte de 2/3 del límite superior de LDH sérica: ${d.ldhCut} U/L.
-
-${cumplTxt}
-
-Clasificación: ${d.cat} (${d.nCrit}/3 criterios de Light positivos).
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyLight(){const d=window._lightData;if(!d){toast('Calcula primero');return}copy('Criterios de Light: '+d.cat+' ('+d.nCrit+'/3 criterios)');}
 
 VIEWS.cb=()=>`<div class="card">
 <h2>Síndrome de Lisis Tumoral (Cairo-Bishop)</h2>
@@ -5971,20 +5867,7 @@ el.innerHTML=`<div class="res-h"><span class="score">${mme.toFixed(2)} MME/día<
 window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'mg',mme,toName,toDose,toUnit,isRotation,riskTxt};
 }
 
-function copyOpio(){
-const d=window._opioData;if(!d){toast('Calcula primero');return}
-const rotTxt=d.isRotation?`Se calcula la dosis equivalente en ${d.toName}: ${d.toDose.toFixed(2)} ${d.toUnit}.`:`Se mantiene el mismo opioide (${d.fromName}).`;
-const txt=`Conversión de opioides — equivalente de morfina oral (MME)
-─────────────────────────────────────────────
-${patientHeader()}El paciente recibe actualmente ${d.fromName} a dosis de ${d.dose} ${d.fromUnit}, equivalente a ${d.mme.toFixed(2)} MME/día de morfina oral (${d.riskTxt.toLowerCase()}).
-
-${rotTxt}
-
-Se asocia pauta de rescate (10–15% de la dosis diaria de fondo cada 4 h vía oral o cada 1 h vía intravenosa). Se valora prescripción de naloxona si la dosis total supera 50 MME/día o existen factores de riesgo asociados. Se monitoriza analgesia, función intestinal, sedación y depresión respiratoria.
-
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
-}
+function copyOpio(){const d=window._opioData;if(!d){toast('Calcula primero');return}copy('Conversión opioides: '+d.dose+' '+d.fromUnit+' de '+d.fromName+' = '+d.mme.toFixed(0)+' MME/día'+(d.isRotation?' = '+d.toDose.toFixed(1).replace('.',',')+' '+d.toUnit+' de '+d.toName:'')+' ('+d.riskTxt.toLowerCase()+')');}
 
 // === BACTERIEMIA POR S. AUREUS ===
 VIEWS.saureus=()=>`<div class="card">
@@ -6381,7 +6264,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 210;
+const HP_BUILD = 211;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
