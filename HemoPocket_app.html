@@ -6514,7 +6514,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 202;
+const HP_BUILD = 203;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11392,7 +11392,7 @@ window.hpApplyRx=function(o){ try{ ls.s('rxOverride', o||{}); }catch(e){} };
 function _rxEsc(s){ return (''+s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 function rxApplyDict(raw){
   const ov=rxOverride(); let t=''+raw;
-  (ov.abbr||[]).concat(ov.rename||[]).forEach(function(p){
+  (ov.pauta||[]).concat(ov.abbr||[], ov.rename||[]).forEach(function(p){
     if(p&&(p.from!=null)&&(''+p.from).trim()&&(p.to!=null)){
       try{ t=t.replace(new RegExp('\\b'+_rxEsc((''+p.from).trim())+'\\b','gi'), (''+p.to)); }catch(e){}
     }
@@ -11657,7 +11657,7 @@ VIEWS.labconv_post=()=>setLCmode('lab');
 
 // ── Editor del DICCIONARIO de recetas (correcciones de nombre + abreviaturas) ──
 let _rxDraft=null;
-function rxEditOpen(){ if(!hpCanEditRed()){ toast('Sin permiso para editar'); return; } const ov=rxOverride(); _rxDraft={ rename:JSON.parse(JSON.stringify(ov.rename||[])), abbr:JSON.parse(JSON.stringify(ov.abbr||[])) }; go('rxedit'); }
+function rxEditOpen(){ if(!hpCanEditRed()){ toast('Sin permiso para editar'); return; } const ov=rxOverride(); _rxDraft={ rename:JSON.parse(JSON.stringify(ov.rename||[])), abbr:JSON.parse(JSON.stringify(ov.abbr||[])), pauta:JSON.parse(JSON.stringify(ov.pauta||[])) }; go('rxedit'); }
 VIEWS.rxedit=()=>{
   if(!hpCanEditRed()) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">No tienes permiso para editar este asistente.</div></div>';
   const d=_rxDraft; if(!d) return '<div class=\"card\"><h2>Editar recetas</h2><div class=\"alert y\">Nada que editar.</div></div>';
@@ -11670,6 +11670,9 @@ VIEWS.rxedit=()=>{
   h+='<h3 style=\"margin-top:14px\">Abreviaturas</h3><p style=\"font-size:12px;color:var(--mut)\">Expande abreviaturas de forma, vía o frecuencia (p. ej. «cp»→«comprimido», «sc»→«subcutánea», «ev»→«intravenosa»).</p>';
   (d.abbr||[]).forEach(function(p,i){ h+=row('abbr',p,i); });
   h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'abbr\')\">➕ Añadir abreviatura</button>';
+  h+='<h3 style=\"margin-top:14px\">Pautas y posología</h3><p style=\"font-size:12px;color:var(--mut)\">Normaliza formas distintas de escribir la dosis o la frecuencia para una salida homogénea (p. ej. «1-0-1»→«1 comprimido con el desayuno y 1 con la cena», «cada mañana»→«cada 24 horas», «media pastilla»→«0,5 comprimidos»). Se aplica antes de transcribir, a palabras completas y sin distinguir mayúsculas.</p>';
+  (d.pauta||[]).forEach(function(p,i){ h+=row('pauta',p,i); });
+  h+='<button class=\"btn btn-out btn-sm\" onclick=\"rxAdd(\'pauta\')\">➕ Añadir pauta</button>';
   h+='<hr style=\"margin:12px 0\"><div class=\"btns\"><button class=\"btn btn-out\" onclick=\"rxEditCancelar()\">✖ Cancelar</button><button class=\"btn btn-out\" onclick=\"rxEditReset()\">Restablecer</button><button class=\"btn btn-g\" onclick=\"rxEditGuardar()\">💾 Guardar para todos</button></div>';
   h+='</div>'; return h;
 };
@@ -11677,7 +11680,7 @@ function rxField(list,i,f,v){ if(!_rxDraft||!_rxDraft[list]||!_rxDraft[list][i])
 function rxAdd(list){ if(!_rxDraft)return; if(!_rxDraft[list])_rxDraft[list]=[]; _rxDraft[list].push({from:'',to:''}); go('rxedit'); }
 function rxDel(list,i){ if(!_rxDraft||!_rxDraft[list])return; _rxDraft[list].splice(i,1); go('rxedit'); }
 function rxEditCancelar(){ _rxDraft=null; go('labconv'); }
-async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ rename:clean(d.rename), abbr:clean(d.abbr) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
+async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ rename:clean(d.rename), abbr:clean(d.abbr), pauta:clean(d.pauta) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
 async function rxEditReset(){ if(!confirm('¿Restablecer el diccionario de recetas? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_rxOverride'); }catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx({}); }catch(e){} } _rxDraft={rename:[],abbr:[]}; toast('✓ Restablecido'); go('rxedit'); }
 
 // ── Blindaje del asistente de redacción: verificación de integridad numérica ──
