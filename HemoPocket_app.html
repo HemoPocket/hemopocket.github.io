@@ -1632,7 +1632,13 @@ VIEWS.riss=()=>`<div class="card">
 </div>
 <div id="riss_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="copyRISS()">Copiar</button></div>
-<div class="ref">Greipp PR et al. International staging system for multiple myeloma. J Clin Oncol. 2005;23(15):3412-3420. Palumbo A et al. Revised International Staging System for Multiple Myeloma: A Report from the IMWG. J Clin Oncol. 2015;33(26):2863-2869.</div>
+${hrBox('rissmmhr',{title:'Alto riesgo citogenético adicional (IMS 2024)',note:'Marcadores de mal pronóstico no incluidos en el R-ISS. No modifican la puntuación. La coexistencia de ≥2 lesiones de alto riesgo define «double-hit» (peor pronóstico).',flagLabel:'Alto riesgo adicional (no en R-ISS)',items:[
+{id:'1p',label:'del(1p32)',small:'bialélica = mayor riesgo'},
+{id:'tp53',label:'TP53 bialélico / double-hit',small:'del(17p) + mutación TP53'},
+{id:'1q',label:'1q+ (ganancia o amplificación, ≥3 copias)',small:'no incluido en el R-ISS; amp ≥4 copias = peor'},
+{id:'1420',label:'t(14;20)'}
+]})}
+<div class="ref">Greipp PR et al. International staging system for multiple myeloma. J Clin Oncol. 2005;23(15):3412-3420. Palumbo A et al. Revised International Staging System for Multiple Myeloma: A Report from the IMWG. J Clin Oncol. 2015;33(26):2863-2869. · Marcadores adicionales: consenso IMS de mieloma de alto riesgo, 2024.</div>
 </div>`;
 
 function deriveISS(b2m,alb){
@@ -6422,7 +6428,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 227;
+const HP_BUILD = 228;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
