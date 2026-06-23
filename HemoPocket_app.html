@@ -6428,7 +6428,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 229;
+const HP_BUILD = 230;
 const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11071,7 +11071,7 @@ const DICT=[
 {a:'FvW',u:'%',c:'coagulacion',k:'num',pats:['(?:factor\\s*)?von\\s*willebrand','\\bfvw\\b','\\bvwf\\b']},
 {a:'TT',u:'seg',c:'coagulacion',k:'num',pats:['tiempo de trombina','\\btt\\b']},
 {a:'β2-microglobulina',u:'mg/l',c:'tumorales',k:'num',pats:['beta-2 microglobulina','beta 2 microglobulina','b2 microglobulina','\\bb2m\\b','microglobulina']},
-{a:'Cociente kappa/lambda',u:'',c:'proteinograma',k:'num',pats:['cociente kappa\\s*/\\s*lambda(?:\\s+libres?)?','ratio kappa\\s*/\\s*lambda(?:\\s+libres?)?','indice kappa\\s*/\\s*lambda(?:\\s+libres?)?','cociente k\\s*/\\s*l','kappa\\s*/\\s*lambda(?:\\s+libres?)?']},
+{a:'κ libre',u:'mg/l',c:'cadsuero',k:'num',keepUnit:1,pats:['cad\\w*\\.?\\s+ligeras?\\s+(?:libres?\\s+)?kappa(?:\\s+libres?)?(?!\\s+orina)']},
 {a:'CM',u:'g/dl',c:'proteinograma',k:'cm',pats:['componente monoclonal','pico monoclonal','banda monoclonal','proteina monoclonal','paraproteina']},
 {a:'Alfa-1 globulina',u:'g/dl',c:'proteinograma',k:'num',pats:['alfa-1 globulina','alfa 1 globulina','alfa1 globulina','alfa-1','alfa 1']},
 {a:'Alfa-2 globulina',u:'g/dl',c:'proteinograma',k:'num',pats:['alfa-2 globulina','alfa 2 globulina','alfa2 globulina','alfa-2','alfa 2']},
@@ -11080,8 +11080,16 @@ const DICT=[
 {a:'IgG',u:'mg/dl',c:'proteinograma',k:'num',pats:['inmunoglobulina g','\\bigg\\b']},
 {a:'IgA',u:'mg/dl',c:'proteinograma',k:'num',pats:['inmunoglobulina a','\\biga\\b']},
 {a:'IgM',u:'mg/dl',c:'proteinograma',k:'num',pats:['inmunoglobulina m','\\bigm\\b']},
-{a:'Cadenas ligeras kappa',u:'mg/l',c:'proteinograma',k:'num',keepUnit:1,pats:['cadenas?\\s+ligeras?\\s+(?:libres?\\s+)?kappa(?:\\s+libres?)?','kappa\\s+libres?','\\bkappa\\b']},
-{a:'Cadenas ligeras lambda',u:'mg/l',c:'proteinograma',k:'num',keepUnit:1,pats:['cadenas?\\s+ligeras?\\s+(?:libres?\\s+)?lambda(?:\\s+libres?)?','lambda\\s+libres?','\\blambda\\b']},
+{a:'λ libre',u:'mg/l',c:'cadsuero',k:'num',keepUnit:1,pats:['cad\\w*\\.?\\s+ligeras?\\s+(?:libres?\\s+)?lambda(?:\\s+libres?)?(?!\\s+orina)']},
+{a:'cociente κ/λ',u:'',c:'cadsuero',k:'num',pats:['cociente\\s+kappa\\s*/\\s*lambda\\s+libres?','ratio\\s+kappa\\s*/\\s*lambda\\s+libres?','indice\\s+kappa\\s*/\\s*lambda\\s+libres?','cociente\\s+k\\s*/\\s*l\\s+libres?','cociente\\s+kappa\\s*/\\s*lambda(?!\\s+orina)']},
+{a:'κ orina',u:'mg/l',c:'cadorina',k:'num',keepUnit:1,pats:['cad\\w*\\.?\\s+ligeras?\\s+kappa\\s+orina(?!\\s+24\\s*h)']},
+{a:'λ orina',u:'mg/l',c:'cadorina',k:'num',keepUnit:1,pats:['cad\\w*\\.?\\s+ligeras?\\s+lambda\\s+orina(?!\\s+24\\s*h)']},
+{a:'cociente κ/λ orina',u:'',c:'cadorina',k:'num',pats:['cociente\\s+kappa\\s*/\\s*lambda\\s+orina','cociente\\s+k\\s*/\\s*l\\s+orina']},
+{a:'κ orina 24h',u:'mg/24h',c:'cadorina',k:'num',keepUnit:1,pats:['cad\\w*\\.?\\s+ligeras?\\s+kappa\\s+orina\\s+24\\s*h']},
+{a:'λ orina 24h',u:'mg/24h',c:'cadorina',k:'num',keepUnit:1,pats:['cad\\w*\\.?\\s+ligeras?\\s+lambda\\s+orina\\s+24\\s*h']},
+{a:'Volumen',u:'mL',c:'orina24',k:'num',keepUnit:1,pats:['volumen\\s+(?:de\\s+)?orina','\\bvolumen\\b(?!\\s+(?:corpuscular|plaquetar))']},
+{a:'Tiempo de recogida',u:'h',c:'orina24',k:'num',keepUnit:1,pats:['tiempo\\s+de\\s+recogida','periodo\\s+de\\s+recogida']},
+{a:'Proteínas 24h',u:'g/24h',c:'orina24',k:'num',keepUnit:1,pats:['proteinas?\\s+24\\s*h\\.?','proteinuria\\s+(?:de\\s+)?24','proteinas?\\s+en\\s+orina\\s+24']},
 {a:'CEA',u:'ng/ml',c:'tumorales',k:'num',keepUnit:1,pats:['antigeno carcinoembrionario','\\bcea\\b']},
 {a:'AFP',u:'ng/ml',c:'tumorales',k:'num',keepUnit:1,pats:['alfa-?fetoproteina','alfafetoproteina','\\bafp\\b']},
 {a:'CA 19-9',u:'U/ml',c:'tumorales',k:'num',keepUnit:1,pats:['ca\\s*19[.\\-\\s]?9','ca19-9']},
@@ -11179,8 +11187,8 @@ const DICT=[
 {a:'KIT (D816V)',u:'',c:'molecular',k:'mol',pats:['\\bc[\\s-]?kit\\b','\\bd816']},
 {a:'TP53',u:'',c:'molecular',k:'mol',pats:['\\btp53\\b','\\bp53\\b']}
 ];
-const CAT_ORDER=['hemograma','grupo','coagulacion','eritropatologia','gasometria','bioquimica','proteinograma','tumorales','autoinmunidad','molecular','viral','serologia','microbiologia'];
-const CAT_LABEL={hemograma:'Hemograma',grupo:'Grupo sanguíneo',coagulacion:'Coagulación',eritropatologia:'Eritropatología',gasometria:'Gasometría',bioquimica:'Bioquímica',proteinograma:'Proteinograma',tumorales:'Marcadores tumorales',autoinmunidad:'Autoinmunidad',molecular:'Biología molecular',viral:'Carga viral',serologia:'Serologías',microbiologia:'Microbiología'};
+const CAT_ORDER=['hemograma','grupo','coagulacion','eritropatologia','gasometria','bioquimica','orina24','proteinograma','cadsuero','cadorina','tumorales','autoinmunidad','molecular','viral','serologia','microbiologia'];
+const CAT_LABEL={hemograma:'Hemograma',grupo:'Grupo sanguíneo',coagulacion:'Coagulación',eritropatologia:'Eritropatología',gasometria:'Gasometría',bioquimica:'Bioquímica',orina24:'Bioquímica de orina (24h)',proteinograma:'Proteinograma',cadsuero:'Cadenas ligeras libres (suero)',cadorina:'Cadenas ligeras en orina',tumorales:'Marcadores tumorales',autoinmunidad:'Autoinmunidad',molecular:'Biología molecular',viral:'Carga viral',serologia:'Serologías',microbiologia:'Microbiología'};
 function sp2f(numStr){let s=numStr.replace(/[<>≤≥\s]/g,'');if(s.includes(','))return parseFloat(s.replace(/\./g,'').replace(',','.'));if((s.match(/\./g)||[]).length>=1&&/\.\d{3}(\D|$)/.test(s+' '))return parseFloat(s.replace(/\./g,''));return parseFloat(s);}
 function detUnit(afterRaw){let a=normSup(afterRaw).toLowerCase().replace(/\s+/g,'');let m=a.match(/^[x×·*]?10[\^e\*]?([0-9])\/?(u?l|µl|mm3|mm³|l)/);if(m){const ex=m[1];if(ex==='9')return 'x10E9/L';if(ex==='3')return 'x10E3/µL';if(ex==='6')return 'x10E6/L';}if(/^mil(es)?\.?\/?(µl|ul)/.test(a))return 'x10E3/µL';if(/^\/?(µl|ul)/.test(a))return '/µL';if(/^\/?(mm3|mm³)/.test(a))return '/µL';return null;}
 function skipDT(sub){const m=sub.match(/^(?:[\s:=\-#)\]*↑↓▲▼]+|\([^)]{0,16}\)|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{1,2}:\d{2}(?::\d{2})?)*/);return m?m[0].length:0;}
