@@ -919,6 +919,8 @@ const MENU=[
 {id:'flipi',name:'FLIPI / R-FLIPI',kw:'flipi folicular linfoma'},
 {id:'mipi',name:'MIPI',kw:'mipi manto mantle'},
 {id:'ips',name:'IPS (Hodgkin)',kw:'ips hodgkin pronostico hasenclever'},
+{id:'pit',name:'PIT (linfoma T periférico)',kw:'pit ptcl linfoma t periferico nos gallamini pronostico medula osea ldh ecog edad'},
+{id:'aitl',name:'AITL score (linfoma T angioinmunoblástico)',kw:'aitl angioinmunoblastico linfoma t pronostico beta2 microglobulina b2m pcr proteina c reactiva ecog edad'},
 {id:'aa',name:'Ann Arbor',kw:'ann arbor estadio linfoma hodgkin'},
 {id:'g_lf',name:'Guías clínicas',kw:'guias clinicas linfoma protocolo pdf folicular difuso manto hodgkin marginal burkitt'}
 ]},
@@ -1495,6 +1497,41 @@ extra:hrBox('flhr',{title:'Alto riesgo adicional (no incluido en el FLIPI)',note
 {id:'m7',label:'Perfil m7-FLIPI de alto riesgo',small:'mutaciones en EZH2 (favorable), ARID1A, MEF2B, EP300, FOXO1, CREBBP, CARD11'},
 {id:'transf',label:'Transformación a linfoma agresivo / grado 3B'}
 ]})
+});
+
+VIEWS.pit=()=>pointCalc({
+id:'pit',title:'PIT – Linfoma T periférico (PTCL-U)',
+intro:'Prognostic Index for PTCL-U (Gallamini). Índice pronóstico del linfoma T periférico no especificado. Cada factor suma 1 punto.',
+items:[
+{q:'Edad > 60 años',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'ECOG PS > 1 (≥ 2)',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'LDH sérica elevada (> normal)',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Afectación de médula ósea',type:'check',opts:[{l:'Sí',p:1}]}
+],
+ranges:[
+{min:0,max:0,cls:'lo',label:'Grupo 1',info:'<div class="res-s">0 factores · ~20% de los pacientes · SG a 5 años 62,3%</div>'},
+{min:1,max:1,cls:'md',label:'Grupo 2',info:'<div class="res-s">1 factor · ~33% · SG a 5 años 52,9%</div>'},
+{min:2,max:2,cls:'hi',label:'Grupo 3',info:'<div class="res-s">2 factores · ~26% · SG a 5 años 32,9%</div>'},
+{min:3,max:4,cls:'hi',label:'Grupo 4',info:'<div class="res-s">3-4 factores · ~21% · SG a 5 años 18,3%</div>'}
+],
+ref:'Gallamini A, et al. Peripheral T-cell lymphoma unspecified (PTCL-U): a new prognostic model from a retrospective multicentric clinical study. Blood. 2004;103(7):2474-2479.'
+});
+
+VIEWS.aitl=()=>pointCalc({
+id:'aitl',title:'AITL score – Linfoma T angioinmunoblástico',
+intro:'Índice pronóstico del linfoma T angioinmunoblástico (AITL). Cada factor suma 1 punto.',
+items:[
+{q:'Edad ≥ 60 años',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'ECOG PS > 2 (≥ 3)',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Beta-2 microglobulina elevada',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'PCR (proteína C reactiva) elevada',type:'check',opts:[{l:'Sí',p:1}]}
+],
+ranges:[
+{min:0,max:1,cls:'lo',label:'Bajo riesgo',info:'<div class="res-s">0-1 factores · ~17% de los pacientes · SG a 5 años 63%</div>'},
+{min:2,max:2,cls:'md',label:'Riesgo intermedio',info:'<div class="res-s">2 factores · ~23% · SG a 5 años 54%</div>'},
+{min:3,max:4,cls:'hi',label:'Alto riesgo',info:'<div class="res-s">3-4 factores · ~60% · SG a 5 años 21%</div>'}
+],
+ref:'AITL score. Índices pronósticos en linfoma T angioinmunoblástico (Tabla 5, guía clínica de linfomas T de referencia).'
 });
 
 VIEWS.mipi=()=>`<div class="card">
@@ -6445,7 +6482,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 239;
+const HP_BUILD = 240;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -8849,7 +8886,7 @@ const CHAT_FAQ_SRC={
   eln:'ELN 2022',eln24:'ELN 2024',ferrara:'Ferrara 2013',nmp_dx:'OMS 2022',
   ipssr:'IPSS-R (Greenberg 2012)',sokal:'Sokal',dipss:'DIPSS',mipss70:'MIPSS70',
   imwg:'IMWG 2014',riss:'R-ISS (IMWG)',ipsswm:'IPSS-WM',
-  ripi:'R-IPI',flipi:'FLIPI',mipi:'MIPI',ips:'IPS (Hasenclever)',aa:'Ann Arbor (Lugano)',
+  ripi:'R-IPI',flipi:'FLIPI',mipi:'MIPI',ips:'IPS (Hasenclever)',pit:'PIT (linfoma T)',aitl:'AITL score',aa:'Ann Arbor (Lugano)',
   llc_dx:'iwCLL 2018',cllipi:'CLL-IPI',binet_rai:'Binet / Rai',
   citoclas:'ICC / OMS 2022',qtc:'Fridericia',crcl:'Cockcroft-Gault',cacorr:'Payne',
   bsa:'Mosteller / DuBois',cb:'Cairo-Bishop',light:'Criterios de Light'
