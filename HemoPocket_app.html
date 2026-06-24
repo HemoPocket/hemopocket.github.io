@@ -779,29 +779,33 @@ function _hpFillTpl(tpl, resultText, vars){
   if(vars) Object.keys(vars).forEach(function(k){ out=out.split('{'+k+'}').join(vars[k]); });
   return out;
 }
+// Reemplazo posicional (1ª/última aparición) para derivar la plantilla con huecos sin tocar el resto.
+function _hpReplFirst(s, find, repl){ if(!find) return s; var i=s.indexOf(find); return i<0?s:s.slice(0,i)+repl+s.slice(i+find.length); }
+function _hpReplLast(s, find, repl){ if(!find) return s; var i=s.lastIndexOf(find); return i<0?s:s.slice(0,i)+repl+s.slice(i+find.length); }
 function _hpDoCopy(t){
   if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('✓ Copiado al portapapeles')}).catch(fb); else fb();
   function fb(){ var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');toast('✓ Copiado')}catch(e){toast('Error al copiar')} document.body.removeChild(ta); }
 }
-// copy(arg, id, vars):
-//  · Forma clásica copy(texto): el texto ya montado. La plantilla por defecto es ese mismo texto;
-//    el editor permite además añadir formato alrededor con {resultado}.
-//  · Forma con valores copy(plantilla, id, {clave:valor}): 'arg' es el TEXTO ACTUAL con huecos
-//    (p. ej. 'R-IPI: {puntos} puntos ({categoria})'); el editor muestra ese texto con sus huecos
-//    para que admin/editor ajuste la redacción manteniendo los valores que cambian.
-function copy(arg, id, vars){
+// copy(arg, id, vars, defTpl):
+//  · copy(texto): texto ya montado (clásico). Editor parte de {resultado}.
+//  · copy(plantilla, id, {valores}): 'arg' es el texto con huecos; el texto actual = rellenarlo.
+//  · copy(textoExacto, id, {valores}, plantillaConHuecos): copia SIEMPRE el texto exacto cuando no
+//    hay plantilla guardada (sin riesgo de cambiarlo), y el editor parte de la plantilla con huecos.
+// Regla de oro: SIN plantilla guardada, se copia EXACTAMENTE el texto actual de siempre.
+function copy(arg, id, vars, defTpl){
   id = id || (typeof S!=='undefined' && S.view) || '';
   var hasVars = !!(vars && typeof vars==='object' && Object.keys(vars).length);
-  var defTpl = hasVars ? String(arg) : '{resultado}';
-  var resultText = hasVars ? _hpFillTpl(String(arg), '', vars) : String(arg); // el texto ACTUAL
-  var saved = hpReportTpls()[id];
-  var tpl = (saved!=null) ? saved : defTpl;
-  _hpDoCopy(_hpFillTpl(tpl, resultText, vars));
+  var resultText, dtpl;
+  if(defTpl!=null){ resultText=String(arg); dtpl=String(defTpl); }
+  else if(hasVars){ resultText=_hpFillTpl(String(arg), '', vars); dtpl=String(arg); }
+  else { resultText=String(arg); dtpl='{resultado}'; }
+  var saved=hpReportTpls()[id];
+  _hpDoCopy( (saved!=null) ? _hpFillTpl(saved, resultText, vars) : resultText );
   // Editores/admin: ofrecer ajustar la plantilla de informe de ESTA calculadora (para todos).
   try{
     if(id && window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()
        && !(localStorage.getItem('hpTplHide')==='1')){
-      hpReportTplModal(id, resultText, vars, defTpl);
+      hpReportTplModal(id, resultText, vars, dtpl);
     }
   }catch(e){}
 }
@@ -1483,8 +1487,8 @@ foot:'* Característica clínica de alto riesgo. Fuente: definición de consenso
 // Toma el titular del recuadro de resultado (.res-h: un span con la cifra/etiqueta y otro con la categoría).
 function copyShortRes(resId,name){
   const r=$(resId); if(!r||r.style.display==='none'){ if(typeof toast==='function')toast('Calcula primero'); return; }
-  const hh=r.querySelector('.res-h'); let parts=[];
-  if(hh){ hh.querySelectorAll('span').forEach(function(s){ const t=stripHTML(s.textContent).trim(); if(t)parts.push(t); }); }
+  const hh=r.querySelector('.res-h'); let parts=[]; let scoreTxt='', catParts=[];
+  if(hh){ const sEl=hh.querySelector('.score'); if(sEl)scoreTxt=stripHTML(sEl.textContent).trim(); hh.querySelectorAll('span').forEach(function(s){ const t=stripHTML(s.textContent).trim(); if(t){ parts.push(t); if(s!==sEl)catParts.push(t); } }); }
   if(!parts.length){ const tt=r.textContent.replace(/\s+/g,' ').trim().split(/[.·\n]/)[0].trim(); if(tt)parts.push(tt); }
   if(!parts.length){ copy(name); return; }
   const norm=function(s){return s.toLowerCase().replace(/[\s.\-–—()/]/g,'');};
@@ -1502,7 +1506,17 @@ function copyShortRes(resId,name){
     const numeric=/^[<>≤≥]?\s*[\d]/.test(a)||/(pts|punto|m²|ml|mg|ms|%)/i.test(a);
     out=name+': '+(parts.length>=2?(numeric?(a+' ('+b+')'):(a+' '+b)):a);
   }
-  copy(out.replace(/\s+/g,' ').trim());
+  out=out.replace(/\s+/g,' ').trim();
+  // Plantilla editable con huecos: el MISMO texto pero con {valor} (cifra/estadio) y {categoria}
+  // (riesgo/etiqueta). NO cambia el texto por defecto; solo es el punto de partida del editor.
+  var valor=(scoreTxt||'').replace(/\s+/g,' ').trim();
+  var categoria=catParts.join(' · ').replace(/\s+/g,' ').trim();
+  if(valor||categoria){
+    var tpl=out;
+    if(categoria) tpl=_hpReplLast(tpl, categoria, '{categoria}');
+    if(valor) tpl=_hpReplFirst(tpl, valor, '{valor}');
+    copy(out, null, {valor:valor, categoria:categoria}, tpl);
+  } else { copy(out); }
 }
 function stripHTML(s){return (s||'').replace(/<[^>]*>/g,'').replace(/&gt;/g,'>').replace(/&lt;/g,'<').replace(/&amp;/g,'&').replace(/&quot;/g,'"').trim()}
 function patientHeader(){
@@ -3192,7 +3206,7 @@ el.innerHTML=`<div class="res-h"><span class="score">Orientación</span><span>${
 <div class="res-s" style="margin-top:8px"><small><strong>Recuerda:</strong> esta orientación no sustituye la valoración integral. Si hay <em>cualquier</em> sospecha firme de TTP no demores el PEX por completar el estudio.</small></div>`;
 window._matData={best,label:m.l,plt,cr,pl,emb,diar,cid,neuro,fcomp,farm};
 }
-function copyMAT(){const d=window._matData;if(!d){toast('Marca los criterios para obtener la orientación');return}copy('Orientación MAT: '+d.label+(d.pl!==null?' (PLASMIC '+d.pl+')':''));}
+function copyMAT(){const d=window._matData;if(!d){toast('Marca los criterios para obtener la orientación');return}copy('Orientación MAT: {orientacion}{plasmic}',null,{orientacion:d.label,plasmic:(d.pl!==null?' (PLASMIC '+d.pl+')':'')});}
 
 // === OTRAS ===
 VIEWS.qtc=()=>`<div class="card">
@@ -6793,7 +6807,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 248;
+const HP_BUILD = 249;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
