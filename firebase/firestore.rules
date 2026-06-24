@@ -182,6 +182,13 @@ service cloud.firestore {
       allow write: if isEditor();
     }
 
+    // ── Bloques editables (textos de algoritmos/herramientas fijas, p. ej. neutropenia febril) ──
+    // Un doc por bloque. Lo leen los usuarios autorizados; lo editan administradores y editores.
+    match /bloques/{id} {
+      allow read:  if isApproved();
+      allow write: if isEditor();
+    }
+
     // ── Orden de las categorías del menú (reordenar las secciones) ──
     // Editable SOLO por administradores; efectivo para todos.
     match /menuconfig/{id} {
