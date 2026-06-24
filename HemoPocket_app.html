@@ -229,6 +229,9 @@ body.view-home .app-footer{padding-bottom:18px}
 #page-edit-area table.tbl,#page-edit-area .coll{margin:8px 0}
 #page-edit-area .pg-cur,#aviso-cuerpo .pg-cur{outline:2px dashed var(--c2);outline-offset:1px;border-radius:5px}
 .pg-drag{opacity:.4}
+.eb{position:relative}
+.eb-btn{position:absolute;top:-8px;right:-8px;background:var(--card,#fff);border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:12px;line-height:1;padding:3px 5px;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.eb-btn::before{content:'✏️'}
 #pg-grip:active{cursor:grabbing}
 .coll-h .ar{transition:transform .2s;font-size:10px;color:var(--mut)}
 .qtc-row{display:grid;grid-template-columns:max-content 1fr 92px;gap:12px;align-items:center;margin:12px 0}
@@ -773,6 +776,56 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');set
 // el texto tal cual (sin cambios). Editores/admin pueden editarla en el cuadro que aparece al copiar.
 function hpReportTpls(){ try{ return ls.g('reportTpls')||{}; }catch(e){ return {}; } }
 window.hpApplyPlantillas=function(map){ try{ ls.s('reportTpls', map||{}); }catch(e){} };
+// ── BLOQUES EDITABLES (EB): texto fijo de algoritmos/herramientas que admin/editor pueden editar
+// y se guarda para todos (colección 'bloques'), SIN romper la interactividad. Cada bloque lleva su
+// ✏️; sin override muestra el texto original del código. Reutilizable por cualquier algoritmo. ──
+function hpBloques(){ try{ return ls.g('bloques')||{}; }catch(e){ return {}; } }
+window.hpApplyBloques=function(map){ try{ ls.s('bloques', map||{}); }catch(e){} };
+function EB(key, defHtml){
+  var ov=hpBloques()[key];
+  var html=(ov!=null && String(ov).trim()!=='') ? _hpSanHtml(ov) : defHtml;
+  var ed=!!(window.HemoCloud&&HemoCloud.isEditor&&HemoCloud.isEditor());
+  return '<div class="eb" data-eb="'+_hpEsc(key)+'">'+(ed?'<button class="eb-btn" aria-label="Editar este texto para todo el equipo" title="Editar este texto para todo el equipo" onclick="event.stopPropagation();ebEdit(\''+key+'\')"></button>':'')+'<div class="eb-c">'+html+'</div></div>';
+}
+function ebEdit(key){
+  if(!(window.HemoCloud&&HemoCloud.isEditor&&HemoCloud.isEditor())){ toast('Sin permiso'); return; }
+  if(document.getElementById('eb-modal')) return;
+  var live=document.querySelector('[data-eb="'+key+'"] .eb-c');
+  var html=live?live.innerHTML:(hpBloques()[key]||'');
+  var ov=document.createElement('div'); ov.id='eb-modal';
+  ov.setAttribute('style','position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10001;display:flex;align-items:center;justify-content:center;padding:1rem');
+  ov.innerHTML='<div style="background:var(--card,#fff);color:var(--txt,#222);border-radius:12px;padding:1rem;max-width:580px;width:100%;max-height:88vh;overflow:auto;position:relative">'
+    +'<button onclick="ebClose()" style="position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888" aria-label="Cerrar">✕</button>'
+    +'<h2 style="color:#c41e3a;margin:0 0 .5rem;font-size:1.05rem">✏️ Editar texto · para todo el equipo</h2>'
+    +'<p style="font-size:.78rem;color:var(--mut,#666);margin:.1rem 0 .5rem">Edita como en un procesador de textos. Enter = salto de línea. Se guarda para todos y puedes restaurar el original.</p>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">'
+      +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="document.execCommand(\'bold\')" title="Negrita"><strong>N</strong></button>'
+      +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="document.execCommand(\'italic\')" title="Cursiva"><em>C</em></button>'
+      +'<button type="button" class="btn btn-out btn-sm" onmousedown="event.preventDefault()" onclick="document.execCommand(\'insertUnorderedList\')" title="Lista">• Lista</button>'
+    +'</div>'
+    +'<div id="eb-edit-area" contenteditable="true" onkeydown="_pageKeydown(event)" style="border:1px solid var(--bd);border-radius:8px;padding:10px;min-height:120px;outline:none">'+_hpSanHtml(html)+'</div>'
+    +'<div class="btns" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.7rem"><button class="btn btn-g btn-sm" onclick="ebSave(\''+key+'\')">💾 Guardar para todos</button><button class="btn btn-out btn-sm" onclick="ebRestore(\''+key+'\')">↺ Restaurar original</button></div>'
+    +'</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){ if(e.target===ov) ebClose(); });
+}
+function ebClose(){ var m=document.getElementById('eb-modal'); if(m&&m.remove)m.remove(); }
+async function ebSave(key){
+  var a=document.getElementById('eb-edit-area'); if(!a)return;
+  var html=_hpSanHtml(a.innerHTML);
+  var m=hpBloques(); m[key]=html; try{ ls.s('bloques',m); }catch(e){}
+  try{ document.querySelectorAll('[data-eb="'+key+'"] .eb-c').forEach(function(c){ c.innerHTML=html; }); }catch(e){}
+  ebClose();
+  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  else toast('✓ Guardado');
+}
+async function ebRestore(key){
+  if(!confirm('¿Restaurar el texto original (para todo el equipo)?'))return;
+  var m=hpBloques(); delete m[key]; try{ ls.s('bloques',m); }catch(e){}
+  ebClose();
+  if(window.hpDeleteBloque){ try{ await window.hpDeleteBloque(key); }catch(e){} }
+  toast('✓ Original restaurado'); try{ if(S&&S.view) go(S.view); }catch(e){}
+}
 function _hpFillTpl(tpl, resultText, vars){
   if(tpl==null || tpl==='') return resultText;
   var out=String(tpl).split('{resultado}').join(resultText).split('{r}').join(resultText);
@@ -4030,7 +4083,7 @@ nfShow(1,'r','SEPSIS – ALTO RIESGO MÁXIMO',`<div><strong>Ingreso urgente. Tri
 <li><strong>Amikacina 15 mg/kg/24h</strong> IV</li>
 <li><strong>Vancomicina 15-20 mg/kg/12h</strong> IV (carga 25-30 mg/kg)</li>
 </ul>
-Monitorizar lactato, diuresis, TAM. Avisar a UCI. Hemocultivos previos.</div>`);
+Monitorizar lactato, diuresis, TAM. Avisar a UCI. Hemocultivos previos.</div>`,'nf_sepsis');
 nfFinal();
 }else{nfUnlock(2)}
 }else if(s===2){
@@ -4068,7 +4121,7 @@ nfShow(4,'r','ALTO RIESGO',`<div><strong>Ingreso obligado. Antibioterapia IV emp
 <li><strong>Piperacilina/Tazobactam 4 g/6h</strong> IV (perfusión extendida 4h)</li>
 </ul>
 <strong>Si alergia a β-lactámicos:</strong> Aztreonam 1 g/8h + Vancomicina 10-15 mg/kg/8-12h IV.<br><br>
-<small>⚠️ Bloquear MASCC: criterio AR directo presente.</small></div>`);
+<small>⚠️ Bloquear MASCC: criterio AR directo presente.</small></div>`,'nf_altoriesgo');
 nfFinal();
 $('nf_s5').classList.add('locked');
 }else{nfUnlock(5)}
@@ -4079,7 +4132,7 @@ function nfBMR(v){
 if(!v){$('nf_bmrOut').innerHTML='';return}
 NF.bmr=v;
 const b=NF_BMR[v];
-$('nf_bmrOut').innerHTML=`<div class="alert r" style="margin-top:10px"><strong>${b.t}</strong><br>${b.atb}</div>`;
+$('nf_bmrOut').innerHTML=`<div class="alert r" style="margin-top:10px">`+EB('nf_bmr_'+v,`<strong>${b.t}</strong><br>${b.atb}`)+`</div>`;
 nfFinal();
 }
 
@@ -4087,7 +4140,7 @@ function nfFoco(v){
 if(!v){$('nf_focoOut').innerHTML='';return}
 NF.foco=v;
 const f=NF_FOCO[v];
-$('nf_focoOut').innerHTML=`<div class="alert r" style="margin-top:10px"><strong>${f.t}</strong><br>${f.atb}</div>`;
+$('nf_focoOut').innerHTML=`<div class="alert r" style="margin-top:10px">`+EB('nf_foco_'+v,`<strong>${f.t}</strong><br>${f.atb}`)+`</div>`;
 nfFinal();
 }
 
@@ -4098,10 +4151,11 @@ const prev=$(`nf_s${s-1}`).querySelector('.step-n');
 prev.classList.add('done');
 }
 
-function nfShow(s,cls,h,txt){
+function nfShow(s,cls,h,txt,key){
 const out=$(`nf_o${s}`);
 const c=cls==='r'?'r':cls==='g'?'g':'b';
-out.innerHTML=`<div class="alert ${c}" style="margin-top:10px"><strong>${h}</strong><br>${txt}</div>`;
+const inner=`<strong>${h}</strong><br>${txt}`;
+out.innerHTML=`<div class="alert ${c}" style="margin-top:10px">`+(key?EB(key,inner):inner)+`</div>`;
 }
 
 function nfMASCC(){
@@ -4124,7 +4178,7 @@ else{cls='r';txt=`<strong>RIESGO ALTO – Ingreso para estudio y antibioterapia 
 <li><strong>Cefepime 2 g/8h</strong> IV <em>O</em> <strong>Piperacilina/Tazobactam 4 g/6h</strong> IV</li>
 </ul>
 <small>Alergia β-lactámicos: Aztreonam 1 g/8h + Vancomicina.</small>`}
-$('nf_o5').innerHTML=`<div class="alert ${cls}" style="margin-top:10px"><div style="font-size:15px;margin-bottom:6px">MASCC = ${total}</div>${txt}</div>`;
+$('nf_o5').innerHTML=`<div class="alert ${cls}" style="margin-top:10px"><div style="font-size:15px;margin-bottom:6px">MASCC = ${total}</div>`+EB('nf_mascc_'+(total>=21?'bajo':'alto'),txt)+`</div>`;
 nfFinal();
 }
 
@@ -6836,7 +6890,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 253;
+const HP_BUILD = 254;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6954,6 +7008,7 @@ if(window.hpSyncDirectorio){try{await window.hpSyncDirectorio();}catch(e){}}
 if(window.hpSyncAviso){try{await window.hpSyncAviso();}catch(e){}}
 if(window.hpSyncItems){try{await window.hpSyncItems();}catch(e){}}
 if(window.hpSyncPlantillas){try{await window.hpSyncPlantillas();}catch(e){}}
+if(window.hpSyncBloques){try{await window.hpSyncBloques();}catch(e){}}
 if(window.hpSyncCalcs){try{await window.hpSyncCalcs();}catch(e){}}
 if(window.hpSyncInfos){try{await window.hpSyncInfos();}catch(e){}}
 
@@ -13941,6 +13996,17 @@ window.hpSyncPlantillas = async function(){
     const snap = await getDocs(collection(fs, 'plantillas'));
     const map = {}; snap.forEach(d => { const v=d.data()||{}; if(typeof v.tpl==='string') map[d.id]=v.tpl; });
     if(window.hpApplyPlantillas) window.hpApplyPlantillas(map);
+    return true;
+  }catch(e){ return false; }
+};
+// ── Bloques editables (texto de algoritmos/herramientas). Doc por clave; admin/editor escriben. ──
+window.hpSaveBloque = async function(key, html){ await setDoc(doc(fs, 'bloques', key), { html: html, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, { merge:true }); };
+window.hpDeleteBloque = async function(key){ await deleteDoc(doc(fs, 'bloques', key)); };
+window.hpSyncBloques = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'bloques'));
+    const map = {}; snap.forEach(d => { const v=d.data()||{}; if(typeof v.html==='string') map[d.id]=v.html; });
+    if(window.hpApplyBloques) window.hpApplyBloques(map);
     return true;
   }catch(e){ return false; }
 };
