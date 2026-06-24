@@ -4293,20 +4293,10 @@ function hpRebuildMenu(){ try{
   const extra=[]; Object.keys(itMap).forEach(function(id){ var sc=itMap[id]&&itMap[id].seccion; if(sc&&!byH[sc]&&extra.indexOf(sc)<0) extra.push(sc); });
   if(extra.length){ var aj=secs.findIndex(function(s){return s.h==='AJUSTES';}); var at=aj>=0?aj:secs.length; extra.forEach(function(sc,k){ var ns={h:sc,items:[],custom:true}; secs.splice(at+k,0,ns); byH[sc]=ns; }); }
   MENU0.forEach(function(s0){ s0.items.forEach(function(it){ var sc=itMap[it.id]&&itMap[it.id].seccion; var eff=(sc&&byH[sc])?sc:s0.h; byH[eff].items.push(it); }); });
-  // Reorganiza cada sección por subsección: ítems sueltos primero, luego cada grupo con su cabecera.
+  // Distribuye cada sección en su orden (personalizado si lo hay) con las cabeceras de subsección.
   secs.forEach(function(s){
-    var loose=[], groups=[], gmap={};
-    s.items.forEach(function(it){
-      if(it.sub) return; // ignora cabeceras heredadas (no debería haber)
-      var sub=_hpItemSub(it.id);
-      if(sub){ if(!gmap[sub]){ gmap[sub]={name:sub,items:[]}; groups.push(gmap[sub]); } gmap[sub].items.push(it); }
-      else loose.push(it);
-    });
-    if(groups.length){
-      var out=loose.slice();
-      groups.forEach(function(g){ out.push({sub:true,name:g.name}); for(var i=0;i<g.items.length;i++) out.push(g.items[i]); });
-      s.items=out;
-    }
+    var reales=s.items.filter(function(it){return !it.sub;});
+    s.items=_hpLayoutSection(reales);
   });
   // Orden personalizado de los apartados de AJUSTES (los demás temas mantienen su orden natural).
   try{ const _aju=byH['AJUSTES']; if(_aju&&_aju.items.length) _aju.items.sort(_hpAjustesCmp); }catch(e){}
@@ -4368,6 +4358,55 @@ function _hpAjustesDefIdx(id){ return _hpAjustesBase().findIndex(function(it){re
 function _hpItemOrden(id){ const o=hpItemMap()[id]; return (o&&typeof o.orden==='number')?o.orden:null; }
 function _hpAjustesCmp(a,b){ const oa=_hpItemOrden(a.id),ob=_hpItemOrden(b.id); const ia=(oa==null?_hpAjustesDefIdx(a.id):oa), ib=(ob==null?_hpAjustesDefIdx(b.id):ob); return (ia-ib)||(_hpAjustesDefIdx(a.id)-_hpAjustesDefIdx(b.id)); }
 function _hpAjustesOrdered(){ return _hpAjustesBase().slice().sort(_hpAjustesCmp); }
+// Distribuye los ítems REALES de una sección en su orden (personalizado vía override 'orden' si lo
+// hay; si no, el orden natural: sueltos primero y luego cada subsección). Inserta la cabecera
+// {sub:true,name} al CAMBIAR de subsección, de modo que un ítem suelto pueda ir en cualquier
+// posición (incluso por debajo de las subsecciones, p. ej. «Ann Arbor» al final).
+function _hpLayoutSection(items){
+  var loose=[], groups=[], gmap={};
+  items.forEach(function(it){
+    var sub=_hpItemSub(it.id);
+    if(sub){ if(!gmap[sub]){ gmap[sub]={name:sub,items:[]}; groups.push(gmap[sub]); } gmap[sub].items.push(it); }
+    else loose.push(it);
+  });
+  var base=loose.slice();
+  groups.forEach(function(g){ for(var i=0;i<g.items.length;i++) base.push(g.items[i]); });
+  var baseIdx={}; base.forEach(function(it,i){ baseIdx[it.id]=i; });
+  var ordered=base.slice().sort(function(a,b){
+    var oa=_hpItemOrden(a.id), ob=_hpItemOrden(b.id);
+    var ia=(oa==null?baseIdx[a.id]:oa), ib=(ob==null?baseIdx[b.id]:ob);
+    return (ia-ib)||(baseIdx[a.id]-baseIdx[b.id]);
+  });
+  var out=[], cur=null;
+  ordered.forEach(function(it){
+    var sub=_hpItemSub(it.id)||'';
+    if(sub && sub!==cur) out.push({sub:true,name:sub});
+    cur=sub;
+    out.push(it);
+  });
+  return out;
+}
+// Reordenar (subir/bajar) una calculadora/ítem dentro de su sección. Solo admin; efectivo para todos.
+// Reasigna 'orden' a TODOS los ítems de la sección (permutación completa) y los sincroniza, para que
+// el orden sea coherente en todos los dispositivos.
+async function hpMoverItem(secH,id,dir){
+  if(!_hpAdminUI()){ toast('Solo administradores'); return; }
+  const sec=MENU.find(function(s){return (s.h||'')===secH;}); if(!sec) return;
+  const flat=sec.items.filter(function(it){return !it.sub;}); // ya en su orden actual
+  const i=flat.findIndex(function(x){return x.id===id;}); if(i<0) return;
+  const j=i+dir; if(j<0||j>=flat.length) return;
+  const m=hpItemMap();
+  flat.forEach(function(it,idx){ m[it.id]=Object.assign({},m[it.id],{orden:idx}); });
+  const a=flat[i].id, b=flat[j].id; const t=m[a].orden; m[a].orden=m[b].orden; m[b].orden=t;
+  try{ls.s('itemOverrides',m);}catch(e){}
+  hpRebuildMenu();
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  go('gsecciones');
+  if(window.hpSaveItem){
+    try{ await Promise.all(flat.map(function(it){return window.hpSaveItem(it.id,{orden:m[it.id].orden});})); toast('✓ Orden actualizado · para todos'); }
+    catch(e){ toast('Guardado solo en este equipo'); }
+  } else toast('✓ Orden actualizado');
+}
 function hpItemOculto(id){ if(!id) return false; if((''+id).indexOf('g_')===0) return hpSecHidden((''+id).slice(2)); return hpItemHidden(id); }
 function _hpAdminUI(){ return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
 function _hpItemAllowed(it){ if(!it) return false; if(it.admin && !_hpAdminUI()) return false; return true; }
@@ -4460,6 +4499,15 @@ function _hpSecRow(s,esNueva,i,total){
 }
 function _hpContenidoTema(sec, full){
   if(full===undefined) full=_hpAdminUI();
+  const flat=sec.items.filter(function(it){return !it.sub;}); // ítems reales en su orden actual
+  const nf=flat.length;
+  const mv=function(id){
+    if(!full) return '';
+    const p=flat.findIndex(function(x){return x.id===id;});
+    let s='<button class="btn btn-out btn-sm" onclick="hpMoverItem(\''+sec.h+'\',\''+id+'\',-1)"'+(p<=0?' disabled':'')+' title="Subir">↑</button>';
+    s+='<button class="btn btn-out btn-sm" onclick="hpMoverItem(\''+sec.h+'\',\''+id+'\',1)"'+(p<0||p>=nf-1?' disabled':'')+' title="Bajar">↓</button>';
+    return s;
+  };
   let body=''; let n=0;
   sec.items.forEach(function(it){
     if(it.admin) return;
@@ -4470,10 +4518,12 @@ function _hpContenidoTema(sec, full){
     if(esGuia){
       const sid=it.id.slice(2); const oc=hpSecHidden(sid); n++;
       body+='<span style="flex:1;min-width:130px">📄 Guías clínicas (PDF)'+(oc?' <span style="color:var(--mut);font-size:11px">(oculto)</span>':'')+'</span>';
+      body+=mv(it.id);
       body+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
     } else {
       const oc=hpItemHidden(it.id); n++;
       body+='<span style="flex:1;min-width:130px">'+_hpEsc(hpItemName(it.id,it.name))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</span>';
+      body+=mv(it.id);
       if(full){
         body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarItem(\''+it.id+'\')">Renombrar</button>';
         body+='<button class="btn btn-out btn-sm" onclick="hpOcultarItem(\''+it.id+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
@@ -4492,7 +4542,7 @@ VIEWS.gsecciones=()=>{
   if(!_full && !_ed) return '<div class="card"><h2>Gestionar secciones</h2><div class="alert y">Este apartado solo está disponible para administradores y editores.</div></div>';
   let h='<div class="card"><h2>🗂️ Secciones y su contenido</h2>';
   h+= _full
-    ? '<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>mostrar/ocultar, renombrar, mover a otra sección</strong> o <strong>agrupar en subsecciones</strong> sus calculadoras. Para <strong>crear una sección</strong>, mueve una calculadora a «➕ Nueva sección…»; para <strong>crear una subsección</strong> (p. ej. «Linfoma B»/«Linfoma T»), usa el desplegable de subsección de cada calculadora y elige «➕ Nueva subsección…». Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>'
+    ? '<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>reordenar (↑/↓), mostrar/ocultar, renombrar, mover a otra sección</strong> o <strong>agrupar en subsecciones</strong> sus calculadoras. Con ↑/↓ puedes colocar cada calculadora donde quieras: un ítem suelto (p. ej. «Ann Arbor») puede quedar incluso por debajo de las subsecciones. Para <strong>crear una sección</strong>, mueve una calculadora a «➕ Nueva sección…»; para <strong>crear una subsección</strong> (p. ej. «Linfoma B»/«Linfoma T»), usa el desplegable de subsección de cada calculadora y elige «➕ Nueva subsección…». Abajo del todo, <strong>⚙️ Ajustes</strong> reordena los apartados del menú de Ajustes. Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>'
     : '<p class="intro">Organiza en <strong>subsecciones</strong> las calculadoras de las secciones que tienes asignadas como editor (p. ej. «Linfoma B» / «Linfoma T»). En cada calculadora, usa el desplegable de <strong>subsección</strong>: elige una existente, créala con «➕ Nueva subsección…» o déjala sin subsección. Es <strong>efectivo para todos</strong>.</p>';
   if(_full) h+='<button class="btn" style="margin-bottom:14px" onclick="hpCrearSeccion()">➕ Crear sección nueva</button>';
   // Temas del menú (categorías de fábrica), excepto Ajustes
@@ -6663,7 +6713,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 245;
+const HP_BUILD = 246;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
