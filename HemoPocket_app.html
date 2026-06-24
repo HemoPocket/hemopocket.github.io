@@ -4263,6 +4263,9 @@ function nfFinal(){
 $('nf_s'+NF.s).querySelector('.step-n').classList.add('done');
 }
 
+// Devuelve el texto editado (plano) de un bloque EB si el equipo lo ha personalizado; si no, null.
+// Así «Copiar evolución» refleja las ediciones de los recuadros en lugar del texto por defecto.
+function nfOv(key){ try{ var o=(typeof hpBloques==='function')?hpBloques()[key]:null; if(o==null||String(o).trim()==='') return null; var d=document.createElement('div'); d.innerHTML=o; return d.textContent.replace(/\s+/g,' ').trim(); }catch(e){ return null; } }
 function copyNF(){
 const o1=$('nf_o1').textContent.replace(/\s+/g,' ').trim();
 const o2=$('nf_o2').textContent.replace(/\s+/g,' ').trim();
@@ -4273,17 +4276,23 @@ const arTxt=NF.ar.length?NF.ar.map(i=>arLbl[i-1]).join(', '):'';
 const sections=[];
 sections.push(`Episodio de neutropenia febril (Tª >38.3 °C aislada o >38 °C mantenida ≥ 1 h con neutrófilos <500/μL).`);
 if(o1){
-const isSepsis=o1.toLowerCase().includes('sepsis');
-sections.push(isSepsis?`Se cumplen criterios de sepsis; se considera riesgo máximo y se indica ingreso urgente con triple terapia empírica (meropenem 2 g/8 h IV en perfusión extendida, amikacina 15 mg/kg/24 h IV y vancomicina 15-20 mg/kg/12 h IV con dosis de carga). Se monitorizan lactato, diuresis y tensión arterial media; aviso a UCI; hemocultivos previos al inicio de la antibioterapia.`:`No se cumplen criterios de sepsis en la valoración inicial.`);
+const ovS=nfOv('nf_sepsis');
+const isSepsis=o1.toLowerCase().includes('sepsis')||!!ovS;
+sections.push(isSepsis?(ovS||`Se cumplen criterios de sepsis; se considera riesgo máximo y se indica ingreso urgente con triple terapia empírica (meropenem 2 g/8 h IV en perfusión extendida, amikacina 15 mg/kg/24 h IV y vancomicina 15-20 mg/kg/12 h IV con dosis de carga). Se monitorizan lactato, diuresis y tensión arterial media; aviso a UCI; hemocultivos previos al inicio de la antibioterapia.`):`No se cumplen criterios de sepsis en la valoración inicial.`);
 }
 if(o2)sections.push(`Antecedente de colonización/infección por bacteria multirresistente: ${o2}`);
 if(o3)sections.push(`Foco infeccioso identificado: ${o3}`);
-if(arTxt)sections.push(`Presenta criterio(s) directo(s) de alto riesgo (${arTxt}); se considera de alto riesgo independientemente del MASCC y se indica ingreso con antibioterapia IV empírica (cefepime 2 g/8 h IV o piperacilina-tazobactam 4 g/6 h IV en perfusión extendida; aztreonam + vancomicina si alergia a β-lactámicos).`);
+if(arTxt){
+const ovAR=nfOv('nf_altoriesgo');
+sections.push(`Presenta criterio(s) directo(s) de alto riesgo (${arTxt}); se considera de alto riesgo independientemente del MASCC. `+(ovAR||`Se indica ingreso con antibioterapia IV empírica (cefepime 2 g/8 h IV o piperacilina-tazobactam 4 g/6 h IV en perfusión extendida; aztreonam + vancomicina si alergia a β-lactámicos).`));
+}
 if(o5){
 const masccMatch=o5.match(/MASCC\s*=\s*(\d+)/i);
 const masccVal=masccMatch?masccMatch[1]:null;
 const isBajo=o5.toUpperCase().includes('RIESGO BAJO');
-sections.push(`Aplicada la escala MASCC${masccVal?` con puntuación de ${masccVal}`:''}, se clasifica como ${isBajo?'riesgo bajo. Es candidato a manejo ambulatorio con amoxicilina-clavulánico 875/125 mg/8 h vía oral asociado a ciprofloxacino 750 mg/12 h vía oral, administrando la primera dosis intravenosa en urgencias antes del alta. Reevaluación clínica en 48-72 h y reingreso si fiebre persistente o empeoramiento.':'riesgo alto. Se indica ingreso para estudio completo y antibioterapia intravenosa empírica con cefepime 2 g/8 h o piperacilina-tazobactam 4 g/6 h; en alergia a β-lactámicos, aztreonam 1 g/8 h + vancomicina.'}`);
+const ovM=nfOv(isBajo?'nf_mascc_bajo':'nf_mascc_alto');
+const defM=isBajo?'Es candidato a manejo ambulatorio con amoxicilina-clavulánico 875/125 mg/8 h vía oral asociado a ciprofloxacino 750 mg/12 h vía oral, administrando la primera dosis intravenosa en urgencias antes del alta. Reevaluación clínica en 48-72 h y reingreso si fiebre persistente o empeoramiento.':'Se indica ingreso para estudio completo y antibioterapia intravenosa empírica con cefepime 2 g/8 h o piperacilina-tazobactam 4 g/6 h; en alergia a β-lactámicos, aztreonam 1 g/8 h + vancomicina.';
+sections.push(`Aplicada la escala MASCC${masccVal?` con puntuación de ${masccVal}`:''}, se clasifica como ${isBajo?'riesgo bajo':'riesgo alto'}. ${ovM||defM}`);
 }
 const tpl=`Neutropenia febril – evolución
 ─────────────────────────────────────────────
@@ -6969,7 +6978,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 256;
+const HP_BUILD = 257;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
