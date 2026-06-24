@@ -1177,12 +1177,29 @@ function _pageCmd(cmd,val){ try{ var a=document.getElementById('page-edit-area')
 function _pageInsert(html){ try{ var a=document.getElementById('page-edit-area'); if(!a)return; a.focus(); if(!document.execCommand('insertHTML',false,html)){ a.insertAdjacentHTML('beforeend',html); } }catch(e){} }
 function _pageDesplegable(){ _pageInsert('<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>Nuevo desplegable</span><span class="ar">▶</span></div><div class="coll-c"><p>Escribe aquí el contenido…</p></div></div><p><br></p>'); }
 function _pageTabla(){ _pageInsert('<table class="tbl"><tbody><tr><td>Celda</td><td>Celda</td></tr><tr><td>Celda</td><td>Celda</td></tr></tbody></table><p><br></p>'); }
-function _pageCurTable(){ try{ var s=window.getSelection&&window.getSelection(); var n=s&&s.anchorNode; var a=document.getElementById('page-edit-area'); while(n&&n!==a){ if(n.nodeType===1&&n.tagName==='TABLE')return n; n=n.parentNode; } }catch(e){} return null; }
-function _pageAddRow(){ var t=_pageCurTable(); if(!t){ toast('Pon el cursor dentro de una tabla'); return; } var rows=t.rows; if(!rows.length)return; var cols=rows[rows.length-1].cells.length; var tb=t.tBodies[0]||t; var tr=document.createElement('tr'); for(var i=0;i<cols;i++){ var td=document.createElement('td'); td.textContent='Celda'; tr.appendChild(td); } tb.appendChild(tr); }
-function _pageAddCol(){ var t=_pageCurTable(); if(!t){ toast('Pon el cursor dentro de una tabla'); return; } for(var i=0;i<t.rows.length;i++){ var cc=t.rows[i].insertCell(-1); cc.textContent='Celda'; } }
+// Recuerda la última posición del cursor DENTRO de un área editable. En el móvil, al tocar un botón
+// de la barra se pierde la selección viva; así los botones (➕ Fila/Columna…) siguen sabiendo dónde
+// estaba el cursor.
+var _pgLastSelNode=null;
+function _pgEditAreas(){ return [document.getElementById('page-edit-area'), document.getElementById('aviso-cuerpo')].filter(Boolean); }
+function _pgRememberSel(){ try{ var s=window.getSelection&&window.getSelection(); if(!s||!s.anchorNode)return; var areas=_pgEditAreas(); for(var i=0;i<areas.length;i++){ if(areas[i].contains(s.anchorNode)){ _pgLastSelNode=s.anchorNode; return; } } }catch(e){} }
+try{ document.addEventListener('selectionchange', _pgRememberSel); }catch(e){}
+function _pageCurTable(){
+  try{
+    var s=window.getSelection&&window.getSelection();
+    var n=(s&&s.anchorNode)||null;
+    var areas=_pgEditAreas();
+    var inEditor=function(node){ for(var i=0;i<areas.length;i++){ if(areas[i].contains(node))return true; } return false; };
+    if(!n || !inEditor(n)) n=_pgLastSelNode; // selección perdida (móvil) → usa la recordada
+    while(n){ if(n.nodeType===1&&n.tagName==='TABLE')return n; n=n.parentNode; }
+  }catch(e){}
+  return null;
+}
+function _pageAddRow(){ var t=_pageCurTable(); if(!t){ toast('Toca primero una celda de la tabla y vuelve a pulsar'); return; } var rows=t.rows; if(!rows.length)return; var cols=rows[rows.length-1].cells.length; var tb=t.tBodies[0]||t; var tr=document.createElement('tr'); for(var i=0;i<cols;i++){ var td=document.createElement('td'); td.textContent='Celda'; tr.appendChild(td); } tb.appendChild(tr); }
+function _pageAddCol(){ var t=_pageCurTable(); if(!t){ toast('Toca primero una celda de la tabla y vuelve a pulsar'); return; } for(var i=0;i<t.rows.length;i++){ var cc=t.rows[i].insertCell(-1); cc.textContent='Celda'; } }
 function _pageArea(aid){ return document.getElementById(aid||'page-edit-area'); }
 function _pageCurBlock(aid){ try{ var a=_pageArea(aid); if(!a)return null; var s=window.getSelection&&window.getSelection(); if(!s||!s.anchorNode)return null; var n=s.anchorNode; if(!a.contains(n))return null; return _pgUnit(n,a); }catch(e){ return null; } }
-function _pageMark(aid){ try{ var a=_pageArea(aid); if(!a)return; var cur=_pageCurBlock(aid); Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(x){ if(x!==cur)x.classList.remove('pg-cur'); }); if(cur&&cur.classList)cur.classList.add('pg-cur'); }catch(e){} }
+function _pageMark(aid){ try{ _pgRememberSel(); var a=_pageArea(aid); if(!a)return; var cur=_pageCurBlock(aid); Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(x){ if(x!==cur)x.classList.remove('pg-cur'); }); if(cur&&cur.classList)cur.classList.add('pg-cur'); }catch(e){} }
 // Enter = salto de línea DENTRO del cuadro/bloque (no lo parte en dos). Para crear un cuadro nuevo
 // se usan los botones de la barra (➕ Cuadro, Desplegable, etc.). Shift+Enter mantiene el comportamiento nativo.
 function _pageKeydown(e){
@@ -6819,7 +6836,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 252;
+const HP_BUILD = 253;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
