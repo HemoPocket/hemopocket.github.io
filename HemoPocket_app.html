@@ -232,6 +232,9 @@ body.view-home .app-footer{padding-bottom:18px}
 .eb{position:relative}
 .eb-btn{position:absolute;top:-8px;right:-8px;background:var(--card,#fff);border:1px solid var(--bd);border-radius:6px;cursor:pointer;font-size:12px;line-height:1;padding:3px 5px;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .eb-btn::before{content:'✏️'}
+#hp-edit-fab{position:fixed;left:14px;bottom:16px;z-index:9000;border:none;border-radius:22px;padding:10px 16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);background:var(--card,#fff);color:var(--c2,#1d4ed8);border:1px solid var(--bd,#ccc)}
+#hp-edit-fab.on{background:#1d8a4e;color:#fff;border-color:#1d8a4e}
+body:not(.hp-editing) .eb-btn{display:none}
 #pg-grip:active{cursor:grabbing}
 .coll-h .ar{transition:transform .2s;font-size:10px;color:var(--mut)}
 .qtc-row{display:grid;grid-template-columns:max-content 1fr 92px;gap:12px;align-items:center;margin:12px 0}
@@ -781,10 +784,39 @@ window.hpApplyPlantillas=function(map){ try{ ls.s('reportTpls', map||{}); }catch
 // ✏️; sin override muestra el texto original del código. Reutilizable por cualquier algoritmo. ──
 function hpBloques(){ try{ return ls.g('bloques')||{}; }catch(e){ return {}; } }
 window.hpApplyBloques=function(map){ try{ ls.s('bloques', map||{}); }catch(e){} };
+// ── MODO EDICIÓN GLOBAL ──────────────────────────────────────────────────────────────────
+// Un único interruptor (solo admin/editor). APAGADO = app limpia (sin lápices/➕/botones de
+// edición). ENCENDIDO = aparecen los controles de edición. NO cambia los permisos reales de
+// guardado (eso lo siguen decidiendo isEditor()/canEdit()); solo muestra/oculta las herramientas.
+function hpEditing(){ try{ return localStorage.getItem('hpEdit')==='1'; }catch(e){ return false; } }
+function hpEditUI(){ return hpEditing() && !!(window.HemoCloud&&HemoCloud.isEditor&&HemoCloud.isEditor()); }
+function hpEditUISec(sec){ return hpEditing() && !!(window.HemoCloud&&HemoCloud.canEdit&&HemoCloud.canEdit(sec)); }
+function hpEditUIAdmin(){ return hpEditing() && !!(window.HemoCloud&&HemoCloud.isAdmin&&HemoCloud.isAdmin()); }
+window.hpToggleEdit=function(){
+  var on=!hpEditing();
+  try{ localStorage.setItem('hpEdit', on?'1':''); }catch(e){}
+  try{ document.body.classList.toggle('hp-editing', on); }catch(e){}
+  try{ hpEditFab(); }catch(e){}
+  try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){}
+  try{ var v=S&&S.view; if(v && typeof go==='function') go(v); }catch(e){}
+  if(typeof toast==='function') toast(on?'✏️ Modo edición activado · los cambios se guardan para todos':'Modo edición desactivado');
+};
+// Botón flotante para entrar/salir de modo edición (solo admin/editor).
+function hpEditFab(){
+  var ed=!!(window.HemoCloud&&HemoCloud.isEditor&&HemoCloud.isEditor());
+  var b=document.getElementById('hp-edit-fab');
+  if(!ed){ if(b&&b.remove)b.remove(); try{ document.body.classList.remove('hp-editing'); }catch(e){} return; }
+  if(!b){ b=document.createElement('button'); b.id='hp-edit-fab'; b.type='button'; b.onclick=window.hpToggleEdit; document.body.appendChild(b); }
+  var on=hpEditing();
+  try{ document.body.classList.toggle('hp-editing', on); }catch(e){}
+  b.className=on?'on':'';
+  b.title=on?'Estás editando · toca para salir':'Activar modo edición';
+  b.textContent=on?'✓ Editando':'✏️ Editar';
+}
 function EB(key, defHtml){
   var ov=hpBloques()[key];
   var html=(ov!=null && String(ov).trim()!=='') ? _hpSanHtml(ov) : defHtml;
-  var ed=!!(window.HemoCloud&&HemoCloud.isEditor&&HemoCloud.isEditor());
+  var ed=hpEditUI();
   return '<div class="eb" data-eb="'+_hpEsc(key)+'">'+(ed?'<button class="eb-btn" aria-label="Editar este texto para todo el equipo" title="Editar este texto para todo el equipo" onclick="event.stopPropagation();ebEdit(\''+key+'\')"></button>':'')+'<div class="eb-c">'+html+'</div></div>';
 }
 function ebEdit(key){
@@ -854,10 +886,9 @@ function copy(arg, id, vars, defTpl){
   else { resultText=String(arg); dtpl='{resultado}'; }
   var saved=hpReportTpls()[id];
   _hpDoCopy( (saved!=null) ? _hpFillTpl(saved, resultText, vars) : resultText );
-  // Editores/admin: ofrecer ajustar la plantilla de informe de ESTA calculadora (para todos).
+  // En MODO EDICIÓN, editores/admin pueden ajustar la plantilla de informe de esta calculadora.
   try{
-    if(id && window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()
-       && !(localStorage.getItem('hpTplHide')==='1')){
+    if(id && hpEditUI() && !(localStorage.getItem('hpTplHide')==='1')){
       hpReportTplModal(id, resultText, vars, dtpl);
     }
   }catch(e){}
@@ -1207,7 +1238,8 @@ function hpCanEditDir(){ return !!(window.HemoCloud && window.HemoCloud.isEditor
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
 function hpPageWrap(id, base){
-  const ov=hpPages()[id]; const canEd=hpCanEditPage(id);
+  // El contenido editado se muestra siempre; los botones de editar solo en MODO EDICIÓN.
+  const ov=hpPages()[id]; const canEd=hpCanEditPage(id) && hpEditing();
   if(ov && ov.html && ov.estado==='publicado'){
     let h='<div class="card">';
     h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span style="font-size:11px;color:var(--mut)">✏️ Contenido editado por el equipo</span>';
@@ -2724,7 +2756,7 @@ VIEWS.checklist=()=>`<div class="card">
 <div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
 <div style="flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;height:8px;overflow:hidden"><div id="cl_bar" style="height:100%;width:0;background:var(--c1);transition:width .35s"></div></div>
 <span id="cl_pct" class="small muted" style="white-space:nowrap"></span>
-<button class="btn btn-out btn-sm" onclick="clReset()">Reiniciar</button>${(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())?'<button class="btn btn-out btn-sm" onclick="clEditOpen()">✏️ Editar</button>':''}
+<button class="btn btn-out btn-sm" onclick="clReset()">Reiniciar</button>${hpEditUIAdmin()?'<button class="btn btn-out btn-sm" onclick="clEditOpen()">✏️ Editar</button>':''}
 </div>
 <div id="cl_body"></div>
 </div>`;
@@ -4795,7 +4827,7 @@ function hpAlgos(){ try{ return ls.g('algos')||{}; }catch(e){ return {}; } }
 window.hpApplyAlgos=function(map){ try{ ls.s('algos', map||{}); }catch(e){} };
 function algosForSection(sec){ const m=hpAlgos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(a){return a&&a.seccion===sec;}); }
 function renderAlgosBlock(sec){
-  const canEd=!!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec));
+  const canEd=hpEditUISec(sec);
   const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';});
   if(!canEd) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧩 Algoritmos interactivos</span><span class="ar">▶</span></div><div class="coll-c">';
@@ -4989,7 +5021,7 @@ function hpCalcs(){ return Object.assign({}, DEFAULT_CALCS, _calcsStored()); }
 window.hpApplyCalcs=function(map){ try{ ls.s('calcs', map||{}); }catch(e){} };
 function calcsForSection(sec){ const m=hpCalcs(); return Object.keys(m).map(function(k){return m[k];}).filter(function(c){return c&&c.seccion===sec;}); }
 function renderCalcsBlock(sec){
-  const canEd=!!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec));
+  const canEd=hpEditUISec(sec);
   const list=calcsForSection(sec); const pub=list.filter(function(c){return c.estado==='publicado';});
   if(!canEd) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧮 Calculadoras propias</span><span class="ar">▶</span></div><div class="coll-c">';
@@ -5237,7 +5269,7 @@ function hpInfos(){ try{ return ls.g('infos')||{}; }catch(e){ return {}; } }
 window.hpApplyInfos=function(map){ try{ ls.s('infos', map||{}); }catch(e){} };
 function infosForSection(sec){ const m=hpInfos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x&&x.seccion===sec;}); }
 function renderInfosBlock(sec){
-  const canEd=!!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(sec));
+  const canEd=hpEditUISec(sec);
   const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';});
   if(!canEd) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Información y notas</span><span class="ar">▶</span></div><div class="coll-c">';
@@ -5674,7 +5706,8 @@ const title=hpSecTitle(id);
 const subs=getSubtypes(id);
 const lastUpd=ls.g('lastUpdate');
 // Solo admin o editor de ESTA sección pueden gestionar (editar apartados / subir guías).
-const canManage=!!(window.HemoCloud&&HemoCloud.canEdit(id));
+// En modo edición apagado se ocultan los controles (la app queda limpia).
+const canManage=hpEditUISec(id);
 const editing=canManage&&_editGuide===id;
 let h=`<div class="card"><h2>Guías Clínicas - ${title}</h2>`;
 h+=renderCollaboratorsBlock(id);
@@ -5693,7 +5726,7 @@ h+=`<button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">➕ Añadir
 h+='</div>';
 }
 // Gestión de la SECCIÓN (renombrar / ocultar del menú): SOLO administradores, no editores. Efectivo para todos.
-if(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()){
+if(hpEditUIAdmin()){
 h+='<div class="btns" style="margin-bottom:12px">';
 h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🚫 Ocultar del menú')+'</button>';
@@ -5723,7 +5756,7 @@ if(algos.length){
 bundled=algos.map(p=>`<div class="pdf-item" onclick="openPDFurl('${p.url}','${p.name.replace(/'/g,"\\'")}')"><span class="name">📄 ${p.name}</span></div>`).join('')
 +`<div style="font-size:11px;color:var(--mut);padding:4px 2px 8px;line-height:1.5">Algoritmos reproducidos de la <strong>App GELTAMO</strong>. © GELTAMO — material orientativo; consulta siempre la fuente original.</div>`;
 }
-const canUp=window.HemoCloud&&HemoCloud.canEdit(id);
+const canUp=hpEditUISec(id);
 const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out btn-sm" onclick="event.stopPropagation();hcUpload('${id}','${st.id}')">⬆️ Subir guía a este apartado</button></div>`:'';
 h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span class="ar">▶</span></div>
 <div class="coll-c">${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
@@ -5823,7 +5856,7 @@ const data=await idb.get(key);
 return data?{key,ident:_guideIdent(key),...data}:null;
 }));
 items=_sortGuides(items.filter(Boolean),st.order);
-const canEdit=!!(section&&window.HemoCloud&&HemoCloud.canEdit(section));
+const canEdit=hpEditUISec(section);
 const n=items.length;
 el.innerHTML=items.map((item,idx)=>{
 const safeKey=encodeURIComponent(item.key);
@@ -5932,7 +5965,7 @@ if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpLoadPushState)window.hpLoadPushState();};
+window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpLoadPushState)window.hpLoadPushState();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
 window.hpUpdateRepBadge=async function(){
   try{
@@ -6890,7 +6923,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 254;
+const HP_BUILD = 255;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -8407,7 +8440,7 @@ return `<div class="card">
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
 </select></div>
-${hpCanEditQt()?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button><button class="btn btn-out btn-sm" onclick="go(\'qtgroups\')">🗂 Organizar subgrupos</button></div>':''}
+${(hpCanEditQt()&&hpEditing())?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button><button class="btn btn-out btn-sm" onclick="go(\'qtgroups\')">🗂 Organizar subgrupos</button></div>':''}
 <div class="row2">
 <div class="fld"><label class="lbl">Fecha día +1</label>
 <input type="date" id="qt_d1" value="${todayVal}" oninput="qtCalc()" style="font-family:inherit"></div>
@@ -9612,7 +9645,7 @@ copy(v);
 
 
 VIEWS.phone=()=>{
-const _adm=hpCanEditDir();
+const _adm=hpCanEditDir()&&hpEditing();
 return `<div class="card">
 <h2>Listín Telefónico</h2>
 <p class="intro">Directorio de extensiones del HUNSC y red de centros. Agrupado por servicio. Usa el buscador para filtrar por servicio, ubicación o extensión.</p>
@@ -9629,7 +9662,7 @@ const q=($('ph_q')?.value||'').toLowerCase().trim();
 const _strip=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');const qn=_strip(q);
 const el=$('ph_list'); if(!el) return;
 const _EDIR=hpEffectiveDir();
-const _esAdm=hpCanEditDir();
+const _esAdm=hpCanEditDir()&&hpEditing();
 let groups=0, rows=0, totalRows=0, html='';
 for(const [svc,items0] of _EDIR){
   // Las entradas eliminadas (tombstone) desaparecen para TODOS, también para los editores
@@ -12274,7 +12307,7 @@ return `<div class="card">
 <textarea id="lc_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px"></textarea></div>
 <div id="lc_guard" style="margin-top:6px"></div>
 <div class="btns"><button class="btn btn-g" onclick="copyLabConv()">📋 Copiar resultado</button></div>
-${hpCanEditRed()?'<div class="btns" style="margin-top:6px"><button id="lc_edit_lab" class="btn btn-out btn-sm" onclick="lcEditOpen()">✏️ Editar diccionario y plantilla</button><button id="lc_edit_rx" class="btn btn-out btn-sm" style="display:none" onclick="rxEditOpen()">✏️ Editar diccionario de recetas</button></div>':''}
+${(hpCanEditRed()&&hpEditing())?'<div class="btns" style="margin-top:6px"><button id="lc_edit_lab" class="btn btn-out btn-sm" onclick="lcEditOpen()">✏️ Editar diccionario y plantilla</button><button id="lc_edit_rx" class="btn btn-out btn-sm" style="display:none" onclick="rxEditOpen()">✏️ Editar diccionario de recetas</button></div>':''}
 
 <div class="coll" style="margin-top:10px">
 <div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>⚙️ Formato de salida (tu preferencia)</span><span class="ar">▶</span></div>
