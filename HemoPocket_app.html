@@ -6445,7 +6445,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 238;
+const HP_BUILD = 239;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9250,11 +9250,15 @@ function _hpDirBase(){
 function hpEffectiveDir(){
   const norm=function(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();};
   const map=new Map();        // servicio canónico -> filas [d,l,t,s,id,flags]
-  const keyToName=new Map();  // clave normalizada -> nombre canónico (fusiona variantes)
+  const keyToName=new Map();  // clave normalizada exacta -> nombre canónico
+  const baseToName=new Map(); // clave normalizada SIN paréntesis -> nombre oficial (fusiona "Medicina Intensiva" con "MEDICINA INTENSIVA (UMI)")
   const byId={};              // id -> valores efectivos actuales (precarga del editor)
-  HOSP_DIR.forEach(function(sec){ map.set(sec[0], []); keyToName.set(norm(sec[0]), sec[0]); });
+  const normBase=function(s){return norm((s||'').toString().replace(/\([^)]*\)/g,' '));};
+  HOSP_DIR.forEach(function(sec){ map.set(sec[0], []); keyToName.set(norm(sec[0]), sec[0]); const bk=normBase(sec[0]); if(bk && !baseToName.has(bk)) baseToName.set(bk, sec[0]); });
   const add=hpDirAdd();
-  const canonSvc=function(raw){ const k=norm(raw); if(!k) return 'Otros'; let n=keyToName.get(k); if(!n){ n=(raw||'').trim()||'Otros'; keyToName.set(k,n); } if(!map.has(n)) map.set(n,[]); return n; };
+  // Asigna un servicio escrito a un grupo existente: 1) coincidencia exacta (ignora may/acentos),
+  // 2) coincidencia ignorando paréntesis con un servicio existente, 3) si no, grupo nuevo.
+  const canonSvc=function(raw){ const k=norm(raw); if(!k) return 'Otros'; let n=keyToName.get(k); if(!n){ const bk=normBase(raw); if(bk) n=baseToName.get(bk); } if(!n){ n=(raw||'').trim()||'Otros'; keyToName.set(k,n); const b2=normBase(raw); if(b2 && !baseToName.has(b2)) baseToName.set(b2,n); } if(!map.has(n)) map.set(n,[]); return n; };
   const push=function(svc,row){ if(!map.has(svc)) map.set(svc,[]); map.get(svc).push(row); };
   // 1) Entradas oficiales del HUNSC, aplicando override (edición) o tombstone (ocultar)
   _hpDirBase().forEach(function(b){
@@ -9292,7 +9296,11 @@ function _hpDirSvcNames(){ try{ return hpEffectiveDir().map(function(g){return g
 function _hpDirCanonSvc(raw){
   const norm=function(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();};
   const k=norm(raw); if(!k) return '';
-  const hit=_hpDirSvcNames().filter(function(n){return norm(n)===k;})[0];
+  const nb=function(s){return norm((s||'').toString().replace(/\([^)]*\)/g,' '));};
+  const kb=nb(raw);
+  const names=_hpDirSvcNames();
+  let hit=names.filter(function(n){return norm(n)===k;})[0];
+  if(!hit && kb) hit=names.filter(function(n){return nb(n)===kb;})[0];
   return hit||(raw||'').trim();
 }
 async function hpAddContacto(){
