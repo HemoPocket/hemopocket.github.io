@@ -1930,16 +1930,16 @@ sel.push(t.textContent.trim());
 });
 const result=r.textContent.replace(/\s+/g,' ').trim();
 const hallazgos=sel.length?sel.join('; '):'sin alteraciones moleculares específicas seleccionadas';
-const txt=`Estratificación ELN 2024 – LMA con tratamiento de baja intensidad
+const tpl=`Estratificación ELN 2024 – LMA con tratamiento de baja intensidad
 ─────────────────────────────────────────────
-${patientHeader()}Se aplica la clasificación de riesgo ELN 2024 específica para pacientes con leucemia mieloide aguda no candidatos a quimioterapia intensiva (tratamiento con HMA + venetoclax). Hallazgos del paciente: ${hallazgos}.
+{paciente}Se aplica la clasificación de riesgo ELN 2024 específica para pacientes con leucemia mieloide aguda no candidatos a quimioterapia intensiva (tratamiento con HMA + venetoclax). Hallazgos del paciente: {hallazgos}.
 
-Categoría obtenida: ${result}.
+Categoría obtenida: {categoria}.
 
 Esta categoría informa la expectativa de respuesta al esquema azacitidina/decitabina + venetoclax y orienta la valoración de ensayos clínicos o terapias dirigidas en pacientes de pronóstico desfavorable.
 
-[Fecha: ${new Date().toLocaleDateString('es-ES')}]`;
-copy(txt);
+[Fecha: {fecha}]`;
+copy(tpl, null, {paciente:patientHeader(), hallazgos:hallazgos, categoria:result, fecha:new Date().toLocaleDateString('es-ES')});
 }
 
 // === FERRARA: aptitud para QT intensiva (LMA) ===
@@ -4126,14 +4126,14 @@ const masccVal=masccMatch?masccMatch[1]:null;
 const isBajo=o5.toUpperCase().includes('RIESGO BAJO');
 sections.push(`Aplicada la escala MASCC${masccVal?` con puntuación de ${masccVal}`:''}, se clasifica como ${isBajo?'riesgo bajo. Es candidato a manejo ambulatorio con amoxicilina-clavulánico 875/125 mg/8 h vía oral asociado a ciprofloxacino 750 mg/12 h vía oral, administrando la primera dosis intravenosa en urgencias antes del alta. Reevaluación clínica en 48-72 h y reingreso si fiebre persistente o empeoramiento.':'riesgo alto. Se indica ingreso para estudio completo y antibioterapia intravenosa empírica con cefepime 2 g/8 h o piperacilina-tazobactam 4 g/6 h; en alergia a β-lactámicos, aztreonam 1 g/8 h + vancomicina.'}`);
 }
-const txt=`Neutropenia febril – evolución
+const tpl=`Neutropenia febril – evolución
 ─────────────────────────────────────────────
-${patientHeader()}${sections.join('\n\n')}
+{paciente}{evolucion}
 
 Se realizan hemocultivos de dos sitios (incluyendo uno del catéter central si lo porta), urocultivo, exudado nasofaríngeo / faríngeo según foco, radiografía de tórax y resto de pruebas dirigidas por el foco identificado. Reevaluación clínica y analítica en 24-48 h con descalamiento dirigido por antibiograma cuando proceda.
 
-[Fecha: ${new Date().toLocaleString('es-ES')}]`;
-copy(txt);
+[Fecha: {fecha}]`;
+copy(tpl, null, {paciente:patientHeader(), evolucion:sections.join('\n\n'), fecha:new Date().toLocaleString('es-ES')});
 }
 
 // === INDEXEDDB (almacenamiento de PDFs sin límite 5MB) ===
@@ -6808,7 +6808,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 250;
+const HP_BUILD = 251;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12336,7 +12336,7 @@ function runAssistant(){
   else if(!date)toast('No se detectó fecha en el texto');
 }
 function runLabConv(){runAssistant();}
-function copyLabConv(){const v=$('lc_out').value;if(!v.trim()){toast('Procesa primero');return}copy(v);}
+function copyLabConv(){const v=$('lc_out').value;if(!v.trim()){toast('Procesa primero');return}copyPlain(v);}
 
 
 // === TASPE (Trasplante Autólogo de Progenitores Hematopoyéticos) ===
