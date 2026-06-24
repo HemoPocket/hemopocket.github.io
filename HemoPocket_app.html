@@ -4308,6 +4308,8 @@ function hpRebuildMenu(){ try{
       s.items=out;
     }
   });
+  // Orden personalizado de los apartados de AJUSTES (los demás temas mantienen su orden natural).
+  try{ const _aju=byH['AJUSTES']; if(_aju&&_aju.items.length) _aju.items.sort(_hpAjustesCmp); }catch(e){}
   MENU.splice.apply(MENU,[0,MENU.length].concat(secs));
 }catch(e){} }
 function _hpSecOptions(curH){
@@ -4340,8 +4342,32 @@ async function hpAsignarSub(id,val){
   if(window.hpSaveItem){ try{ await window.hpSaveItem(id,{sub:sub}); toast('✓ Subsección actualizada · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
   else toast('✓ Subsección actualizada');
 }
+// Reordenar (subir/bajar) un apartado de AJUSTES. Solo admin; se sincroniza para todos.
+async function hpMoverAjuste(id,dir){
+  if(!_hpAdminUI()){ toast('Solo administradores'); return; }
+  const items=_hpAjustesOrdered();
+  const i=items.findIndex(function(x){return x.id===id;}); if(i<0) return;
+  const j=i+dir; if(j<0||j>=items.length) return;
+  const m=hpItemMap();
+  items.forEach(function(it,idx){ m[it.id]=Object.assign({},m[it.id],{orden:idx}); });
+  const a=items[i].id, b=items[j].id; const t=m[a].orden; m[a].orden=m[b].orden; m[b].orden=t;
+  try{ls.s('itemOverrides',m);}catch(e){}
+  hpRebuildMenu();
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  go('gsecciones');
+  if(window.hpSaveItem){
+    try{ for(var x=0;x<items.length;x++){ await window.hpSaveItem(items[x].id,{orden:m[items[x].id].orden}); } toast('✓ Orden de Ajustes actualizado · para todos'); }
+    catch(e){ toast('Guardado solo en este equipo'); }
+  } else toast('✓ Orden actualizado');
+}
 function hpItemHidden(id){ const o=hpItemMap()[id]; return !!(o&&o.oculta); }
 function hpItemName(id,def){ const o=hpItemMap()[id]; return (o&&o.nombre)||def; }
+// ── Orden personalizado de los apartados de AJUSTES (reordenables por admin, efectivo para todos) ──
+function _hpAjustesBase(){ for(var i=0;i<MENU0.length;i++){ if((MENU0[i].h||'')==='AJUSTES') return MENU0[i].items; } return []; }
+function _hpAjustesDefIdx(id){ return _hpAjustesBase().findIndex(function(it){return it.id===id;}); }
+function _hpItemOrden(id){ const o=hpItemMap()[id]; return (o&&typeof o.orden==='number')?o.orden:null; }
+function _hpAjustesCmp(a,b){ const oa=_hpItemOrden(a.id),ob=_hpItemOrden(b.id); const ia=(oa==null?_hpAjustesDefIdx(a.id):oa), ib=(ob==null?_hpAjustesDefIdx(b.id):ob); return (ia-ib)||(_hpAjustesDefIdx(a.id)-_hpAjustesDefIdx(b.id)); }
+function _hpAjustesOrdered(){ return _hpAjustesBase().slice().sort(_hpAjustesCmp); }
 function hpItemOculto(id){ if(!id) return false; if((''+id).indexOf('g_')===0) return hpSecHidden((''+id).slice(2)); return hpItemHidden(id); }
 function _hpAdminUI(){ return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
 function _hpItemAllowed(it){ if(!it) return false; if(it.admin && !_hpAdminUI()) return false; return true; }
@@ -4492,6 +4518,21 @@ VIEWS.gsecciones=()=>{
     if(sid && _full) h+=_hpAddContenido(sid);
     h+='</div></details>';
   }); }catch(e){}
+  // Apartados de AJUSTES (reordenables por administradores; el resto del menú de Ajustes es fijo)
+  if(_full){
+    const _aj=_hpAjustesOrdered();
+    h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">⚙️ Ajustes</summary>';
+    h+='<div style="margin-top:8px"><div style="font-size:12px;color:var(--mut);margin-bottom:8px">Reordena con ↑/↓ los apartados del menú de <strong>Ajustes</strong>. Es <strong>efectivo para todos</strong>.</div>';
+    _aj.forEach(function(it,i){
+      const nm=hpItemName(it.id,it.name);
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(nm)+(it.admin?' <span style="color:var(--mut);font-size:11px">(admin)</span>':'')+'</span>';
+      h+='<button class="btn btn-out btn-sm" onclick="hpMoverAjuste(\''+it.id+'\',-1)"'+(i===0?' disabled':'')+' title="Subir">↑</button>';
+      h+='<button class="btn btn-out btn-sm" onclick="hpMoverAjuste(\''+it.id+'\',1)"'+(i===_aj.length-1?' disabled':'')+' title="Bajar">↓</button>';
+      h+='</div>';
+    });
+    h+='</div></details>';
+  }
   // Secciones nuevas creadas por la administración (solo administradores)
   if(_full){
   const nuevas=hpNewSectionsOrdered();
@@ -6622,7 +6663,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 244;
+const HP_BUILD = 245;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
