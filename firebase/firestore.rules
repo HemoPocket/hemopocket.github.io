@@ -23,6 +23,11 @@ service cloud.firestore {
     function isAdmin() {
       return hasRole() && roleData().role == 'admin';
     }
+    // Cualquier editor (de cualquier sección) o administrador. Lo usa el listín
+    // telefónico, que no está ligado a una sección concreta de guías.
+    function isEditor() {
+      return hasRole() && (roleData().role == 'admin' || roleData().role == 'editor');
+    }
     // ¿Puede el usuario actual editar guías de la sección indicada?
     function canEdit(section) {
       return isAdmin()
@@ -226,10 +231,10 @@ service cloud.firestore {
     }
 
     // ── Directorio: contactos personalizados del hospital (listín telefónico) ──
-    // Editable SOLO por administradores; efectivo para todos los usuarios autorizados.
+    // Editable por administradores y por cualquier editor; efectivo para todos los usuarios autorizados.
     match /directorio/{id} {
       allow read:   if isApproved();
-      allow write:  if isAdmin();
+      allow write:  if isEditor();
     }
 
     // ── Textos legales (Aviso Legal): solo la admin PRINCIPAL los edita ──
