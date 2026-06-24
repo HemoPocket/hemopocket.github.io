@@ -6409,8 +6409,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 231;
-const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
+const HP_BUILD = 232;
+const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -8236,8 +8236,8 @@ function chatRefsHTML(results){
 const CHAT_INTROS=['Claro, esto es lo que encontré 👇','Por supuesto, aquí lo tienes:','Encantado, mira lo que encontré sobre esto:','Genial, esto es lo que hay en la app:'];
 function chatLead(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! 👋 Soy <strong>Eri</strong>, tu asistente de HemoPocket. Con gusto te ayudo — esto es lo que encontré:';}return CHAT_INTROS[Math.floor(Math.random()*CHAT_INTROS.length)];}
 // Lead NEUTRO para preguntas de actitud terapéutica / caso / diagnóstico: Eri nunca emite un juicio ("claro/por supuesto" da por hecho un "sí"); solo remite a la fuente.
-const CHAT_INTROS_NEUTRAL=['No me corresponde decidir el manejo, pero te remito a lo que aplica 👇','No emito juicios clínicos; esto es lo que dice la fuente:','La decisión es del clínico según el caso — aquí tienes la referencia:','Eso no lo decido yo por el paciente; te abro lo que aplica 👇'];
-function chatLeadNeutral(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! 👋 Soy <strong>Eri</strong>. No me corresponde decidir el manejo de un paciente, pero te remito a la fuente que aplica:';}return CHAT_INTROS_NEUTRAL[Math.floor(Math.random()*CHAT_INTROS_NEUTRAL.length)];}
+const CHAT_INTROS_NEUTRAL=['Lo siento, no puedo ayudarte con la decisión clínica de un caso, pero aquí tienes una referencia que puede servirte de ayuda 👇','No me corresponde decidir el manejo del paciente, pero te dejo la referencia que puede orientarte:','Esa decisión es del clínico según cada caso — aun así, aquí tienes una referencia que puede ayudarte 👇','Disculpa, eso no puedo decidirlo yo, pero con gusto te abro la fuente que puede servirte de ayuda:'];
+function chatLeadNeutral(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! 👋 Soy <strong>Eri</strong>. Lo siento, no puedo ayudarte con la decisión clínica de un caso concreto, pero con gusto te dejo la referencia que puede servirte de ayuda:';}return CHAT_INTROS_NEUTRAL[Math.floor(Math.random()*CHAT_INTROS_NEUTRAL.length)];}
 function chatAnswerHTML(query,results,neutral){
   if(!results.length){const hi=_chatGreeted?'':'¡Hola! 👋 Soy <strong>Eri</strong>. ';_chatGreeted=true;return `<div style="${CHAT_BOT}">${hi}No he encontrado nada sobre <em>"${chatEsc(query)}"</em> en el contenido de la app 🤔. Prueba con el nombre del fármaco, el esquema, una sección o «teléfono de …».</div>`;}
   let h=`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${neutral?chatLeadNeutral():chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">`;
