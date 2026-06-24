@@ -4293,21 +4293,13 @@ function hpRebuildMenu(){ try{
   const extra=[]; Object.keys(itMap).forEach(function(id){ var sc=itMap[id]&&itMap[id].seccion; if(sc&&!byH[sc]&&extra.indexOf(sc)<0) extra.push(sc); });
   if(extra.length){ var aj=secs.findIndex(function(s){return s.h==='AJUSTES';}); var at=aj>=0?aj:secs.length; extra.forEach(function(sc,k){ var ns={h:sc,items:[],custom:true}; secs.splice(at+k,0,ns); byH[sc]=ns; }); }
   MENU0.forEach(function(s0){ s0.items.forEach(function(it){ var sc=itMap[it.id]&&itMap[it.id].seccion; var eff=(sc&&byH[sc])?sc:s0.h; byH[eff].items.push(it); }); });
-  // Reorganiza cada sección por subsección: ítems sueltos primero, luego cada grupo con su cabecera.
+  // Distribuye cada sección en su orden (personalizado si lo hay) con las cabeceras de subsección.
   secs.forEach(function(s){
-    var loose=[], groups=[], gmap={};
-    s.items.forEach(function(it){
-      if(it.sub) return; // ignora cabeceras heredadas (no debería haber)
-      var sub=_hpItemSub(it.id);
-      if(sub){ if(!gmap[sub]){ gmap[sub]={name:sub,items:[]}; groups.push(gmap[sub]); } gmap[sub].items.push(it); }
-      else loose.push(it);
-    });
-    if(groups.length){
-      var out=loose.slice();
-      groups.forEach(function(g){ out.push({sub:true,name:g.name}); for(var i=0;i<g.items.length;i++) out.push(g.items[i]); });
-      s.items=out;
-    }
+    var reales=s.items.filter(function(it){return !it.sub;});
+    s.items=_hpLayoutSection(reales);
   });
+  // Orden personalizado de los apartados de AJUSTES (los demás temas mantienen su orden natural).
+  try{ const _aju=byH['AJUSTES']; if(_aju&&_aju.items.length) _aju.items.sort(_hpAjustesCmp); }catch(e){}
   MENU.splice.apply(MENU,[0,MENU.length].concat(secs));
 }catch(e){} }
 function _hpSecOptions(curH){
@@ -4340,8 +4332,81 @@ async function hpAsignarSub(id,val){
   if(window.hpSaveItem){ try{ await window.hpSaveItem(id,{sub:sub}); toast('✓ Subsección actualizada · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
   else toast('✓ Subsección actualizada');
 }
+// Reordenar (subir/bajar) un apartado de AJUSTES. Solo admin; se sincroniza para todos.
+async function hpMoverAjuste(id,dir){
+  if(!_hpAdminUI()){ toast('Solo administradores'); return; }
+  const items=_hpAjustesOrdered();
+  const i=items.findIndex(function(x){return x.id===id;}); if(i<0) return;
+  const j=i+dir; if(j<0||j>=items.length) return;
+  const m=hpItemMap();
+  items.forEach(function(it,idx){ m[it.id]=Object.assign({},m[it.id],{orden:idx}); });
+  const a=items[i].id, b=items[j].id; const t=m[a].orden; m[a].orden=m[b].orden; m[b].orden=t;
+  try{ls.s('itemOverrides',m);}catch(e){}
+  hpRebuildMenu();
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  go('gsecciones');
+  if(window.hpSaveItem){
+    try{ for(var x=0;x<items.length;x++){ await window.hpSaveItem(items[x].id,{orden:m[items[x].id].orden}); } toast('✓ Orden de Ajustes actualizado · para todos'); }
+    catch(e){ toast('Guardado solo en este equipo'); }
+  } else toast('✓ Orden actualizado');
+}
 function hpItemHidden(id){ const o=hpItemMap()[id]; return !!(o&&o.oculta); }
 function hpItemName(id,def){ const o=hpItemMap()[id]; return (o&&o.nombre)||def; }
+// ── Orden personalizado de los apartados de AJUSTES (reordenables por admin, efectivo para todos) ──
+function _hpAjustesBase(){ for(var i=0;i<MENU0.length;i++){ if((MENU0[i].h||'')==='AJUSTES') return MENU0[i].items; } return []; }
+function _hpAjustesDefIdx(id){ return _hpAjustesBase().findIndex(function(it){return it.id===id;}); }
+function _hpItemOrden(id){ const o=hpItemMap()[id]; return (o&&typeof o.orden==='number')?o.orden:null; }
+function _hpAjustesCmp(a,b){ const oa=_hpItemOrden(a.id),ob=_hpItemOrden(b.id); const ia=(oa==null?_hpAjustesDefIdx(a.id):oa), ib=(ob==null?_hpAjustesDefIdx(b.id):ob); return (ia-ib)||(_hpAjustesDefIdx(a.id)-_hpAjustesDefIdx(b.id)); }
+function _hpAjustesOrdered(){ return _hpAjustesBase().slice().sort(_hpAjustesCmp); }
+// Distribuye los ítems REALES de una sección en su orden (personalizado vía override 'orden' si lo
+// hay; si no, el orden natural: sueltos primero y luego cada subsección). Inserta la cabecera
+// {sub:true,name} al CAMBIAR de subsección, de modo que un ítem suelto pueda ir en cualquier
+// posición (incluso por debajo de las subsecciones, p. ej. «Ann Arbor» al final).
+function _hpLayoutSection(items){
+  var loose=[], groups=[], gmap={};
+  items.forEach(function(it){
+    var sub=_hpItemSub(it.id);
+    if(sub){ if(!gmap[sub]){ gmap[sub]={name:sub,items:[]}; groups.push(gmap[sub]); } gmap[sub].items.push(it); }
+    else loose.push(it);
+  });
+  var base=loose.slice();
+  groups.forEach(function(g){ for(var i=0;i<g.items.length;i++) base.push(g.items[i]); });
+  var baseIdx={}; base.forEach(function(it,i){ baseIdx[it.id]=i; });
+  var ordered=base.slice().sort(function(a,b){
+    var oa=_hpItemOrden(a.id), ob=_hpItemOrden(b.id);
+    var ia=(oa==null?baseIdx[a.id]:oa), ib=(ob==null?baseIdx[b.id]:ob);
+    return (ia-ib)||(baseIdx[a.id]-baseIdx[b.id]);
+  });
+  var out=[], cur=null;
+  ordered.forEach(function(it){
+    var sub=_hpItemSub(it.id)||'';
+    if(sub && sub!==cur) out.push({sub:true,name:sub});
+    cur=sub;
+    out.push(it);
+  });
+  return out;
+}
+// Reordenar (subir/bajar) una calculadora/ítem dentro de su sección. Solo admin; efectivo para todos.
+// Reasigna 'orden' a TODOS los ítems de la sección (permutación completa) y los sincroniza, para que
+// el orden sea coherente en todos los dispositivos.
+async function hpMoverItem(secH,id,dir){
+  if(!_hpAdminUI()){ toast('Solo administradores'); return; }
+  const sec=MENU.find(function(s){return (s.h||'')===secH;}); if(!sec) return;
+  const flat=sec.items.filter(function(it){return !it.sub;}); // ya en su orden actual
+  const i=flat.findIndex(function(x){return x.id===id;}); if(i<0) return;
+  const j=i+dir; if(j<0||j>=flat.length) return;
+  const m=hpItemMap();
+  flat.forEach(function(it,idx){ m[it.id]=Object.assign({},m[it.id],{orden:idx}); });
+  const a=flat[i].id, b=flat[j].id; const t=m[a].orden; m[a].orden=m[b].orden; m[b].orden=t;
+  try{ls.s('itemOverrides',m);}catch(e){}
+  hpRebuildMenu();
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  go('gsecciones');
+  if(window.hpSaveItem){
+    try{ await Promise.all(flat.map(function(it){return window.hpSaveItem(it.id,{orden:m[it.id].orden});})); toast('✓ Orden actualizado · para todos'); }
+    catch(e){ toast('Guardado solo en este equipo'); }
+  } else toast('✓ Orden actualizado');
+}
 function hpItemOculto(id){ if(!id) return false; if((''+id).indexOf('g_')===0) return hpSecHidden((''+id).slice(2)); return hpItemHidden(id); }
 function _hpAdminUI(){ return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
 function _hpItemAllowed(it){ if(!it) return false; if(it.admin && !_hpAdminUI()) return false; return true; }
@@ -4434,6 +4499,15 @@ function _hpSecRow(s,esNueva,i,total){
 }
 function _hpContenidoTema(sec, full){
   if(full===undefined) full=_hpAdminUI();
+  const flat=sec.items.filter(function(it){return !it.sub;}); // ítems reales en su orden actual
+  const nf=flat.length;
+  const mv=function(id){
+    if(!full) return '';
+    const p=flat.findIndex(function(x){return x.id===id;});
+    let s='<button class="btn btn-out btn-sm" onclick="hpMoverItem(\''+sec.h+'\',\''+id+'\',-1)"'+(p<=0?' disabled':'')+' title="Subir">↑</button>';
+    s+='<button class="btn btn-out btn-sm" onclick="hpMoverItem(\''+sec.h+'\',\''+id+'\',1)"'+(p<0||p>=nf-1?' disabled':'')+' title="Bajar">↓</button>';
+    return s;
+  };
   let body=''; let n=0;
   sec.items.forEach(function(it){
     if(it.admin) return;
@@ -4444,10 +4518,12 @@ function _hpContenidoTema(sec, full){
     if(esGuia){
       const sid=it.id.slice(2); const oc=hpSecHidden(sid); n++;
       body+='<span style="flex:1;min-width:130px">📄 Guías clínicas (PDF)'+(oc?' <span style="color:var(--mut);font-size:11px">(oculto)</span>':'')+'</span>';
+      body+=mv(it.id);
       body+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
     } else {
       const oc=hpItemHidden(it.id); n++;
       body+='<span style="flex:1;min-width:130px">'+_hpEsc(hpItemName(it.id,it.name))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</span>';
+      body+=mv(it.id);
       if(full){
         body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarItem(\''+it.id+'\')">Renombrar</button>';
         body+='<button class="btn btn-out btn-sm" onclick="hpOcultarItem(\''+it.id+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
@@ -4466,7 +4542,7 @@ VIEWS.gsecciones=()=>{
   if(!_full && !_ed) return '<div class="card"><h2>Gestionar secciones</h2><div class="alert y">Este apartado solo está disponible para administradores y editores.</div></div>';
   let h='<div class="card"><h2>🗂️ Secciones y su contenido</h2>';
   h+= _full
-    ? '<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>mostrar/ocultar, renombrar, mover a otra sección</strong> o <strong>agrupar en subsecciones</strong> sus calculadoras. Para <strong>crear una sección</strong>, mueve una calculadora a «➕ Nueva sección…»; para <strong>crear una subsección</strong> (p. ej. «Linfoma B»/«Linfoma T»), usa el desplegable de subsección de cada calculadora y elige «➕ Nueva subsección…». Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>'
+    ? '<p class="intro">Todo el menú en un solo sitio: <strong>renombrar, ocultar, crear, reordenar o eliminar</strong> secciones y, dentro de cada una, <strong>reordenar (↑/↓), mostrar/ocultar, renombrar, mover a otra sección</strong> o <strong>agrupar en subsecciones</strong> sus calculadoras. Con ↑/↓ puedes colocar cada calculadora donde quieras: un ítem suelto (p. ej. «Ann Arbor») puede quedar incluso por debajo de las subsecciones. Para <strong>crear una sección</strong>, mueve una calculadora a «➕ Nueva sección…»; para <strong>crear una subsección</strong> (p. ej. «Linfoma B»/«Linfoma T»), usa el desplegable de subsección de cada calculadora y elige «➕ Nueva subsección…». Abajo del todo, <strong>⚙️ Ajustes</strong> reordena los apartados del menú de Ajustes. Todo es <strong>efectivo para todos</strong>. Despliega una sección para ver su contenido.</p>'
     : '<p class="intro">Organiza en <strong>subsecciones</strong> las calculadoras de las secciones que tienes asignadas como editor (p. ej. «Linfoma B» / «Linfoma T»). En cada calculadora, usa el desplegable de <strong>subsección</strong>: elige una existente, créala con «➕ Nueva subsección…» o déjala sin subsección. Es <strong>efectivo para todos</strong>.</p>';
   if(_full) h+='<button class="btn" style="margin-bottom:14px" onclick="hpCrearSeccion()">➕ Crear sección nueva</button>';
   // Temas del menú (categorías de fábrica), excepto Ajustes
@@ -4492,6 +4568,21 @@ VIEWS.gsecciones=()=>{
     if(sid && _full) h+=_hpAddContenido(sid);
     h+='</div></details>';
   }); }catch(e){}
+  // Apartados de AJUSTES (reordenables por administradores; el resto del menú de Ajustes es fijo)
+  if(_full){
+    const _aj=_hpAjustesOrdered();
+    h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">⚙️ Ajustes</summary>';
+    h+='<div style="margin-top:8px"><div style="font-size:12px;color:var(--mut);margin-bottom:8px">Reordena con ↑/↓ los apartados del menú de <strong>Ajustes</strong>. Es <strong>efectivo para todos</strong>.</div>';
+    _aj.forEach(function(it,i){
+      const nm=hpItemName(it.id,it.name);
+      h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(nm)+(it.admin?' <span style="color:var(--mut);font-size:11px">(admin)</span>':'')+'</span>';
+      h+='<button class="btn btn-out btn-sm" onclick="hpMoverAjuste(\''+it.id+'\',-1)"'+(i===0?' disabled':'')+' title="Subir">↑</button>';
+      h+='<button class="btn btn-out btn-sm" onclick="hpMoverAjuste(\''+it.id+'\',1)"'+(i===_aj.length-1?' disabled':'')+' title="Bajar">↓</button>';
+      h+='</div>';
+    });
+    h+='</div></details>';
+  }
   // Secciones nuevas creadas por la administración (solo administradores)
   if(_full){
   const nuevas=hpNewSectionsOrdered();
@@ -5034,7 +5125,7 @@ window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls
 // Propaga a la nube (efectivo para todos) un cambio de apartados. Best-effort con aviso.
 async function _hpPropagaSubtipos(id,subs,okMsg){
   if(window.hpSaveSubtipos){
-    try{ await window.hpSaveSubtipos(id,(subs||[]).map(function(s){return {id:s.id,name:s.name};})); toast(okMsg+' · visible para todos'); }
+    try{ await window.hpSaveSubtipos(id,(subs||[]).map(function(s){var o={id:s.id,name:s.name};if(Array.isArray(s.order)&&s.order.length)o.order=s.order;if(Array.isArray(s.hidden)&&s.hidden.length)o.hidden=s.hidden;if(s.names&&typeof s.names==='object'&&Object.keys(s.names).length)o.names=s.names;return o;})); toast(okMsg+' · visible para todos'); }
     catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); }
   } else { toast(okMsg); }
 }
@@ -5432,13 +5523,15 @@ h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+
 h+='</div>';
 }
 if(editing){
-h+='<p style="font-size:12px;color:var(--mut);margin-bottom:8px">Edita los nombres directamente. Crear, renombrar o eliminar apartados se guarda en la nube y es <strong>efectivo para todos</strong>. Al borrar un apartado, sus PDFs de la nube dejan de mostrarse (bórralos antes si quieres eliminarlos del todo).</p>';
+h+='<p style="font-size:12px;color:var(--mut);margin-bottom:8px">Edita los nombres directamente y usa <strong>↑/↓</strong> para reordenar los apartados. Crear, renombrar, reordenar o eliminar apartados se guarda en la nube y es <strong>efectivo para todos</strong>. Al borrar un apartado, sus PDFs de la nube dejan de mostrarse (bórralos antes si quieres eliminarlos del todo).<br>Para reordenar, renombrar o borrar <strong>cada guía</strong> (incluidas las antiguas que venían con la app), sal de este modo, abre el apartado y usa los botones ↑ ↓ ✏️ 🗑️ de cada guía.</p>';
 if(!subs.length){
 h+='<div class="alert b">Sin apartados. Añade uno con el botón ➕.</div>';
 }else{
 subs.forEach((st,i)=>{
 const v=st.name.replace(/"/g,'&quot;');
-h+=`<div class="st-edit"><input type="text" value="${v}" data-id="${id}" data-i="${i}" onchange="renameSubtype(this)"><button onclick="delSubtype('${id}',${i})" title="Eliminar">×</button></div>`;
+const upB=i>0?`<button onclick="moveSubtype('${id}',${i},-1)" title="Subir apartado" style="background:var(--c2)">↑</button>`:'';
+const dnB=i<subs.length-1?`<button onclick="moveSubtype('${id}',${i},1)" title="Bajar apartado" style="background:var(--c2)">↓</button>`:'';
+h+=`<div class="st-edit"><input type="text" value="${v}" data-id="${id}" data-i="${i}" onchange="renameSubtype(this)">${upB}${dnB}<button onclick="delSubtype('${id}',${i})" title="Eliminar">×</button></div>`;
 });
 }
 }else{
@@ -5468,6 +5561,16 @@ return h;
 }
 
 function toggleEditGuide(id){_editGuide=_editGuide===id?null:id;go('g_'+id)}
+
+// Reordenar apartados (subir/bajar). El orden es el del array, que se sincroniza tal cual.
+async function moveSubtype(id,i,dir){
+const subs=getSubtypes(id);
+const j=i+dir;if(j<0||j>=subs.length)return;
+const t=subs[i];subs[i]=subs[j];subs[j]=t;
+setSubtypes(id,subs);
+go('g_'+id);
+await _hpPropagaSubtipos(id,subs,'✓ Orden de apartados actualizado');
+}
 
 async function addSubtype(id){
 const name=prompt('Nombre del nuevo apartado:');
@@ -5515,6 +5618,11 @@ if(window.hpResetSubtipos){ try{ await window.hpResetSubtipos(id); toast('✓ Re
 else toast('✓ Restaurado');
 }
 
+// Identificador estable de una guía dentro de su apartado: lo que sigue al primer '|'
+// (la URL en las estáticas, o 'cloud:ruta' en las de la nube). Sirve de clave para orden/ocultas/nombres.
+function _guideIdent(key){const p=key.indexOf('|');return p<0?key:key.slice(p+1);}
+// Ordena las guías de un apartado según st.order (las no listadas van al final, en su orden actual).
+function _sortGuides(items,ord){ord=Array.isArray(ord)?ord:[];const base=items.slice();items.sort(function(a,b){var ia=ord.indexOf(a.ident),ib=ord.indexOf(b.ident);if(ia<0)ia=ord.length+base.indexOf(a);if(ib<0)ib=ord.length+base.indexOf(b);return ia-ib;});return items;}
 async function loadPDFs(k,section){
 const el=$(`pdfs_${k}`);
 if(!el||el.dataset.loaded==='1')return;
@@ -5523,25 +5631,91 @@ el.innerHTML='<div style="color:var(--mut);font-size:12px;padding:6px 0">Cargand
 try{
 const allKeys=await idb.keys();
 const matching=allKeys.filter(key=>typeof key==='string'&&key.startsWith(k+'|'));
-if(!matching.length){
+// Metadatos del apartado (orden, ocultas, renombrados), guardados en el subtipo y sincronizados.
+const subId=section?k.slice(section.length+1):'';
+const st=(section?getSubtypes(section):[]).find(s=>s.id===subId)||{};
+const hidden=Array.isArray(st.hidden)?st.hidden:[];
+const names=(st.names&&typeof st.names==='object')?st.names:{};
+const visibleKeys=matching.filter(key=>hidden.indexOf(_guideIdent(key))===-1);
+if(!visibleKeys.length){
 el.innerHTML='<div style="color:var(--mut);font-size:12px;padding:6px 0">Sin PDFs en este apartado.</div>';
 return;
 }
-const items=await Promise.all(matching.map(async key=>{
+let items=await Promise.all(visibleKeys.map(async key=>{
 const data=await idb.get(key);
-return data?{key,...data}:null;
+return data?{key,ident:_guideIdent(key),...data}:null;
 }));
+items=_sortGuides(items.filter(Boolean),st.order);
 const canEdit=!!(section&&window.HemoCloud&&HemoCloud.canEdit(section));
-el.innerHTML=items.filter(Boolean).map(item=>{
+const n=items.length;
+el.innerHTML=items.map((item,idx)=>{
 const safeKey=encodeURIComponent(item.key);
+const safeIdent=encodeURIComponent(item.ident);
+const dispName=names[item.ident]||item.name;
 const cloudTag=item.cloud?' <span title="Guía en la nube" style="font-size:11px;color:var(--mut)">☁️</span>':'';
-const delBtn=(item.cloud&&canEdit)?`<button title="Eliminar para todos los usuarios" onclick="event.stopPropagation();hcDeleteGuide('${safeKey}','${section}')">🗑️</button>`:'';
-return `<div class="pdf-item" onclick="openPDF('${safeKey}')"><span class="name">📄 ${item.name}${item.size?' ('+(item.size/1024).toFixed(0)+' KB)':''}${cloudTag}</span>${delBtn}</div>`;
+let btns='';
+if(canEdit){
+const upB=idx>0?`<button title="Subir" style="color:var(--c2)" onclick="event.stopPropagation();moveGuide('${section}','${subId}','${safeIdent}',-1)">↑</button>`:'';
+const dnB=idx<n-1?`<button title="Bajar" style="color:var(--c2)" onclick="event.stopPropagation();moveGuide('${section}','${subId}','${safeIdent}',1)">↓</button>`:'';
+const renB=`<button title="Renombrar para todos" style="color:var(--c2)" onclick="event.stopPropagation();renameGuide('${safeKey}','${section}','${subId}')">✏️</button>`;
+const delAct=item.cloud?`hcDeleteGuide('${safeKey}','${section}')`:`hcHideGuide('${safeKey}','${section}','${subId}')`;
+const delB=`<button title="Eliminar para todos los usuarios" onclick="event.stopPropagation();${delAct}">🗑️</button>`;
+btns=upB+dnB+renB+delB;
+}
+return `<div class="pdf-item" onclick="openPDF('${safeKey}')"><span class="name">📄 ${dispName}${item.size?' ('+(item.size/1024).toFixed(0)+' KB)':''}${cloudTag}</span>${btns}</div>`;
 }).join('');
 }catch(e){
 el.innerHTML=`<div style="color:var(--er);font-size:12px;padding:6px 0">Error: ${e.message}</div>`;
 }
 }
+// Reordenar una guía dentro de su apartado (subir/bajar). Guarda el orden en st.order (sincronizado).
+window.moveGuide=async function(section,subId,encIdent,dir){
+if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return;}
+const ident=decodeURIComponent(encIdent);
+const k=section+'_'+subId;
+const subs=getSubtypes(section);const st=subs.find(s=>s.id===subId);if(!st){toast('No se encontró el apartado');return;}
+let keys=[];try{keys=(await idb.keys()).filter(x=>typeof x==='string'&&x.startsWith(k+'|'));}catch(e){}
+const hidden=Array.isArray(st.hidden)?st.hidden:[];
+let idents=keys.map(_guideIdent).filter(id=>hidden.indexOf(id)===-1);
+// Aplica el orden actual antes de mover, para que ↑/↓ sea coherente con lo que se ve.
+const ord=Array.isArray(st.order)?st.order:[];const base=idents.slice();
+idents.sort(function(a,b){var ia=ord.indexOf(a),ib=ord.indexOf(b);if(ia<0)ia=ord.length+base.indexOf(a);if(ib<0)ib=ord.length+base.indexOf(b);return ia-ib;});
+const i=idents.indexOf(ident);if(i<0)return;const j=i+dir;if(j<0||j>=idents.length)return;
+const t=idents[i];idents[i]=idents[j];idents[j]=t;
+st.order=idents;setSubtypes(section,subs);
+const el=$('pdfs_'+k);if(el){el.dataset.loaded='';loadPDFs(k,section);}
+await _hpPropagaSubtipos(section,subs,'✓ Orden de guías actualizado');
+};
+// Renombrar una guía (de la nube o antigua) para TODOS. Guarda el nombre en st.names (sincronizado)
+// y, si es de la nube, también actualiza Firestore para quien aún no la haya descargado.
+window.renameGuide=async function(encodedKey,section,subId){
+if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return;}
+const key=decodeURIComponent(encodedKey);const ident=_guideIdent(key);
+let rec;try{rec=await idb.get(key);}catch(e){}
+const subs=getSubtypes(section);const st=subs.find(s=>s.id===subId);if(!st){toast('No se encontró el apartado');return;}
+const cur=(st.names&&st.names[ident])||(rec&&rec.name)||'';
+const nv=prompt('Nuevo nombre de la guía:',cur);if(nv===null)return;const name=nv.trim();if(!name)return;
+if(rec){rec.name=name;try{await idb.set(key,rec);}catch(e){}}
+st.names=st.names||{};st.names[ident]=name;setSubtypes(section,subs);
+if(rec&&rec.cloud&&rec.docId&&navigator.onLine&&window.HemoCloud.renameGuide){try{await HemoCloud.renameGuide(rec.docId,name);}catch(e){}}
+const kk=key.split('|')[0];const el=$('pdfs_'+kk);if(el){el.dataset.loaded='';loadPDFs(kk,section);}
+await _hpPropagaSubtipos(section,subs,'✓ Guía renombrada');
+};
+// Ocultar (borrar) una guía ANTIGUA (estática, viene con la app) para TODOS. Reversible con «Restaurar default».
+window.hcHideGuide=async function(encodedKey,section,subId){
+if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return;}
+const key=decodeURIComponent(encodedKey);const ident=_guideIdent(key);
+const subs=getSubtypes(section);const st=subs.find(s=>s.id===subId);if(!st){toast('No se encontró el apartado');return;}
+if(!confirm('¿Eliminar esta guía para TODOS los usuarios?\n\nEs una guía de las que vienen incluidas en la app; dejará de mostrarse para todo el equipo. Podrás recuperarla con «Restaurar default».'))return;
+st.hidden=Array.isArray(st.hidden)?st.hidden:[];
+if(st.hidden.indexOf(ident)===-1)st.hidden.push(ident);
+if(Array.isArray(st.order))st.order=st.order.filter(x=>x!==ident);
+if(st.names&&st.names[ident])delete st.names[ident];
+setSubtypes(section,subs);
+try{await idb.del(key);}catch(e){}
+const kk=key.split('|')[0];const el=$('pdfs_'+kk);if(el){el.dataset.loaded='';loadPDFs(kk,section);}
+await _hpPropagaSubtipos(section,subs,'✓ Guía eliminada');
+};
 
 // === GUÍAS EN LA NUBE (Firebase Storage + Firestore) ===
 // Las guías subidas por los editores se guardan en idb con la MISMA convención de
@@ -6539,7 +6713,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 243;
+const HP_BUILD = 246;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -6673,10 +6847,15 @@ ls.s('collaborators',data.collaborators);
 const desired=new Map();
 for(const sectionId in data.subtypes){
 if(!GUIDES_TITLES[sectionId])continue;
+// Apartados locales (ya sincronizados arriba): de aquí salen las guías OCULTADAS por el equipo.
+const subsLocal=getSubtypes(sectionId);
 for(const subtype of data.subtypes[sectionId]){
 if(!subtype.pdfs||!Array.isArray(subtype.pdfs))continue;
+const stLocal=(subsLocal||[]).find(s=>s.id===subtype.id);
+const hidden=(stLocal&&Array.isArray(stLocal.hidden))?stLocal.hidden:[];
 for(const pdf of subtype.pdfs){
 if(!pdf.url||!pdf.name)continue;
+if(hidden.indexOf(pdf.url)!==-1)continue; // guía antigua eliminada por el equipo: no re-descargar
 const key=`${sectionId}_${subtype.id}|${pdf.url}`;
 desired.set(key,{url:pdf.url,name:pdf.name});
 }
@@ -13257,6 +13436,10 @@ window.HemoCloud = {
       if(this.token){ try{ await ghDeleteFile(this.token, path, `App: eliminar guía (${path})`); }catch(e){ console.warn('[hp] gh delete', e.message); } }
     }
     await deleteDoc(doc(fs,'guias',docId));
+  },
+  // Renombrar una guía de la nube: actualiza solo el campo 'name' (efectivo al re-descargar).
+  async renameGuide(docId, name){
+    await setDoc(doc(fs,'guias',docId), { name: name }, { merge:true });
   },
   // Los PDF se sirven desde github.io con su ruta relativa (mismo origen → offline + sin bloqueo).
   async downloadURL(path){ return path; }
