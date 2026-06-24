@@ -783,21 +783,32 @@ function _hpDoCopy(t){
   if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('✓ Copiado al portapapeles')}).catch(fb); else fb();
   function fb(){ var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');toast('✓ Copiado')}catch(e){toast('Error al copiar')} document.body.removeChild(ta); }
 }
-function copy(t, id, vars){
+// copy(arg, id, vars):
+//  · Forma clásica copy(texto): el texto ya montado. La plantilla por defecto es ese mismo texto;
+//    el editor permite además añadir formato alrededor con {resultado}.
+//  · Forma con valores copy(plantilla, id, {clave:valor}): 'arg' es el TEXTO ACTUAL con huecos
+//    (p. ej. 'R-IPI: {puntos} puntos ({categoria})'); el editor muestra ese texto con sus huecos
+//    para que admin/editor ajuste la redacción manteniendo los valores que cambian.
+function copy(arg, id, vars){
   id = id || (typeof S!=='undefined' && S.view) || '';
-  _hpDoCopy(_hpFillTpl(hpReportTpls()[id], t, vars));
+  var hasVars = !!(vars && typeof vars==='object' && Object.keys(vars).length);
+  var defTpl = hasVars ? String(arg) : '{resultado}';
+  var resultText = hasVars ? _hpFillTpl(String(arg), '', vars) : String(arg); // el texto ACTUAL
+  var saved = hpReportTpls()[id];
+  var tpl = (saved!=null) ? saved : defTpl;
+  _hpDoCopy(_hpFillTpl(tpl, resultText, vars));
   // Editores/admin: ofrecer ajustar la plantilla de informe de ESTA calculadora (para todos).
   try{
     if(id && window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()
        && !(localStorage.getItem('hpTplHide')==='1')){
-      hpReportTplModal(id, t, vars);
+      hpReportTplModal(id, resultText, vars, defTpl);
     }
   }catch(e){}
 }
 function _hpCalcName(id){ try{ var it=getAll&&getAll().find(function(x){return x.id===id;}); if(it&&it.name) return (typeof hpItemName==='function')?hpItemName(id,it.name):it.name; }catch(e){} return id||''; }
-function hpReportTplModal(id, resultText, vars){
+function hpReportTplModal(id, resultText, vars, defTpl){
   if(document.getElementById('hp-tpl-modal')) return;
-  var saved=hpReportTpls()[id]; var tpl=(saved==null?'{resultado}':saved);
+  var saved=hpReportTpls()[id]; var tpl=(saved==null?(defTpl||'{resultado}'):saved);
   var phHelp='<code>{resultado}</code> = el resultado calculado';
   try{ if(vars){ var ks=Object.keys(vars); if(ks.length) phHelp+=' · '+ks.map(function(k){return '<code>{'+k+'}</code>';}).join(' · '); } }catch(e){}
   var ov=document.createElement('div'); ov.id='hp-tpl-modal';
@@ -3081,7 +3092,7 @@ el.style.display='block';
 el.className='res '+(abn?'hi':'lo');
 el.innerHTML=`<div class="res-h"><span class="score">${total} pts</span><span>${abn?'Puntuación ANORMAL':'Puntuación normal'}</span></div><div class="res-txt">ISTH-BAT (${pop.label}): <b>${total} ${Math.abs(total)===1?'punto':'puntos'}</b> · umbral ≥ ${pop.cut} → <b>${abn?'anormal':'normal'}</b>.${answered<ISTHBAT.items.length?` <span style="color:var(--mut)">(${answered}/${ISTHBAT.items.length} categorías respondidas)</span>`:''}</div>${abn?'<div class="res-s">Apoya la realización de estudio de hemostasia dirigido.</div>':'<div class="res-s">No descarta un trastorno hemorrágico si la sospecha clínica es alta.</div>'}`;
 }
-function copyISTHBAT(){const c=ibCollect();if(!c.answered){toast('Completa al menos una categoría');return}const pop=ISTHBAT.pop[$('ib_pop').value];const abn=c.total>=pop.cut;copy('ISTH-BAT: '+c.total+' '+(c.total===1?'punto':'puntos')+' ('+(abn?'anormal':'normal')+', umbral ≥'+pop.cut+')');}
+function copyISTHBAT(){const c=ibCollect();if(!c.answered){toast('Completa al menos una categoría');return}const pop=ISTHBAT.pop[$('ib_pop').value];const abn=c.total>=pop.cut;copy('ISTH-BAT: {puntos} {unidad} ({valoracion}, umbral ≥{umbral})',null,{puntos:c.total,unidad:(c.total===1?'punto':'puntos'),valoracion:(abn?'anormal':'normal'),umbral:pop.cut});}
 
 VIEWS.hb=()=>pointCalc({
 id:'hb',title:'HAS-BLED',
@@ -3349,7 +3360,7 @@ ${ibw!==null&&Math.abs(cg-cgReal)>1?`<small style="color:var(--mut)">C-G con pes
 <div class="res-s" style="margin-top:6px"><small>Paciente${bmiTxt}${ibwTxt}. <strong>Recomendación</strong>: usar C-G para ajuste de dosis de quimio según ficha técnica; CKD-EPI como referencia general.</small></div>`;
 window._cgData={a,s,h,w,cr,cg,cgReal,ckdepi,pesoUsado,pesoLabel,bmi,ibw,abw,cat,cgCalvert,capped:cg>125};
 }
-function copyCG(){const d=window._cgData;if(!d){toast('Calcula primero');return}copy('Aclaramiento de creatinina (Cockcroft-Gault): '+Math.round(d.cg)+' mL/min · CKD-EPI '+Math.round(d.ckdepi)+' mL/min/1,73 m² ('+d.cat.toLowerCase()+')');}
+function copyCG(){const d=window._cgData;if(!d){toast('Calcula primero');return}copy('Aclaramiento de creatinina (Cockcroft-Gault): {cg} mL/min · CKD-EPI {ckdepi} mL/min/1,73 m² ({categoria})',null,{cg:Math.round(d.cg),ckdepi:Math.round(d.ckdepi),categoria:d.cat.toLowerCase()});}
 
 VIEWS.obw=()=>`<div class="card">
 <h2>Ajuste de peso por obesidad — paciente oncohematológico</h2>
@@ -3422,7 +3433,7 @@ Peso real está ${w>ibw?'+':''}${aboveIBW}% respecto al ideal.
 <div class="res-s" style="margin-top:6px"><small>Fórmula general: <strong>ABW = IBW + factor × (peso real − IBW)</strong>. Mira la tabla inferior para elegir el peso según el fármaco. Regla general en oncohematología: <strong>peso real</strong> para quimio citotóxica BSA-based, <strong>ABW40</strong> para aminoglucósidos/Cockcroft-Gault en obesos, <strong>IBW</strong> para aciclovir/ganciclovir en obesos.</small></div>`;
 window._obData={s,h,w,ibw,abw40,abw25,abw20,lbw,bmi,cat};
 }
-function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}copy('Peso ideal '+d.ibw.toFixed(1).replace('.',',')+' kg · ajustado ABW40 '+d.abw40.toFixed(1).replace('.',',')+' kg · masa magra '+d.lbw.toFixed(1).replace('.',',')+' kg (IMC '+d.bmi.toFixed(1).replace('.',',')+')');}
+function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}copy('Peso ideal {ibw} kg · ajustado ABW40 {abw40} kg · masa magra {lbw} kg (IMC {imc})',null,{ibw:d.ibw.toFixed(1).replace('.',','),abw40:d.abw40.toFixed(1).replace('.',','),lbw:d.lbw.toFixed(1).replace('.',','),imc:d.bmi.toFixed(1).replace('.',',')});}
 
 VIEWS.bsa=()=>`<div class="card">
 <h2>Superficie corporal — paciente oncohematológico</h2>
@@ -3449,7 +3460,7 @@ const el=$('bs_res');el.style.display='block';el.className='res in';
 el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(2)} m²</span><span>BSA (DuBois)</span></div>`;
 window._bsaData={h,w,bsaMost,bsaDuBois};
 }
-function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}copy('Superficie corporal: '+d.bsaDuBois.toFixed(2).replace('.',',')+' m² (DuBois)');}
+function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}copy('Superficie corporal: {bsa} m² (DuBois)',null,{bsa:d.bsaDuBois.toFixed(2).replace('.',',')});}
 
 // === CALCIO CORREGIDO ===
 VIEWS.cacorr=()=>`<div class="card">
@@ -3506,7 +3517,7 @@ el.innerHTML=`<div class="res-h"><span class="score">${corr.toFixed(2)} mg/dL</s
 ${extra?`<div class="res-s" style="margin-top:8px">${extra}</div>`:''}`;
 window._cacData={ca,mode,alb,prot,corr:corr.toFixed(2),cat,formula,sourceTxt,extra};
 }
-function copyCaCorr(){const d=window._cacData;if(!d){toast('Calcula primero');return}copy('Calcio corregido: '+(''+d.corr).replace('.',',')+' mg/dL ('+d.cat.toLowerCase()+')');}
+function copyCaCorr(){const d=window._cacData;if(!d){toast('Calcula primero');return}copy('Calcio corregido: {calcio} mg/dL ({categoria})',null,{calcio:(''+d.corr).replace('.',','),categoria:d.cat.toLowerCase()});}
 
 // === LÍQUIDO PLEURAL — CRITERIOS DE LIGHT ===
 VIEWS.light=()=>`<div class="card">
@@ -3583,7 +3594,7 @@ const el=$('lt_res');el.style.display='block';el.className='res '+cls;
 el.innerHTML=`<div class="res-h"><span class="score">${cat}</span><span>${nCrit}/3 criterios de Light</span></div>${critTxt}<div class="res-s" style="margin-top:8px">${extra}</div>${warn}`;
 window._lightData={pp,ps,lp,ls_,uln,rProt:rProt.toFixed(2),rLDH:rLDH.toFixed(2),ldhCut:ldhCut.toFixed(2),nCrit,cat,c1,c2,c3};
 }
-function copyLight(){const d=window._lightData;if(!d){toast('Calcula primero');return}copy('Criterios de Light: '+d.cat+' ('+d.nCrit+'/3 criterios)');}
+function copyLight(){const d=window._lightData;if(!d){toast('Calcula primero');return}copy('Criterios de Light: {categoria} ({n}/3 criterios)',null,{categoria:d.cat,n:d.nCrit});}
 
 VIEWS.cb=()=>`<div class="card">
 <h2>Síndrome de Lisis Tumoral (Cairo-Bishop)</h2>
@@ -6385,7 +6396,7 @@ el.innerHTML=`<div class="res-h"><span class="score">${mme.toFixed(2)} MME/día<
 window._opioData={fromName,dose,fromUnit:OPIO_FACT[from]?OPIO_FACT[from].unit:'mg',mme,toName,toDose,toUnit,isRotation,riskTxt};
 }
 
-function copyOpio(){const d=window._opioData;if(!d){toast('Calcula primero');return}copy('Conversión opioides: '+d.dose+' '+d.fromUnit+' de '+d.fromName+' = '+d.mme.toFixed(0)+' MME/día'+(d.isRotation?' = '+d.toDose.toFixed(1).replace('.',',')+' '+d.toUnit+' de '+d.toName:'')+' ('+d.riskTxt.toLowerCase()+')');}
+function copyOpio(){const d=window._opioData;if(!d){toast('Calcula primero');return}copy('Conversión opioides: {dosis} {unidadOrigen} de {origen} = {mme} MME/día{rotacion} ({riesgo})',null,{dosis:d.dose,unidadOrigen:d.fromUnit,origen:d.fromName,mme:d.mme.toFixed(0),rotacion:(d.isRotation?' = '+d.toDose.toFixed(1).replace('.',',')+' '+d.toUnit+' de '+d.toName:''),riesgo:d.riskTxt.toLowerCase()});}
 
 // === BACTERIEMIA POR S. AUREUS ===
 VIEWS.saureus=()=>`<div class="card">
@@ -6782,7 +6793,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 247;
+const HP_BUILD = 248;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
