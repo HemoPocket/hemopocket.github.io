@@ -1061,6 +1061,8 @@ function hpCanEditPage(id){ if(!hpPageEditable(id)) return false; const sec=hpPa
 // ¿Puede editar los ASISTENTES (quimio, redacción, recetas)? Admin o editor del área 'asistentes'.
 function hpCanEditRed(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&(window.HemoCloud.canEdit('asist_red')||window.HemoCloud.canEdit('asistentes'))))); }
 function hpCanEditQt(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&(window.HemoCloud.canEdit('asist_qt')||window.HemoCloud.canEdit('asistentes'))))); }
+// Listín telefónico: editable por administradores y por cualquier editor (de cualquier sección).
+function hpCanEditDir(){ return !!(window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()); }
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
 function hpPageWrap(id, base){
@@ -6409,8 +6411,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 231;
-const APP_BUILD = '2026.06.21 (build ' + HP_BUILD + ')';
+const HP_BUILD = 234;
+const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -8236,8 +8238,8 @@ function chatRefsHTML(results){
 const CHAT_INTROS=['Claro, esto es lo que encontré 👇','Por supuesto, aquí lo tienes:','Encantado, mira lo que encontré sobre esto:','Genial, esto es lo que hay en la app:'];
 function chatLead(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! 👋 Soy <strong>Eri</strong>, tu asistente de HemoPocket. Con gusto te ayudo — esto es lo que encontré:';}return CHAT_INTROS[Math.floor(Math.random()*CHAT_INTROS.length)];}
 // Lead NEUTRO para preguntas de actitud terapéutica / caso / diagnóstico: Eri nunca emite un juicio ("claro/por supuesto" da por hecho un "sí"); solo remite a la fuente.
-const CHAT_INTROS_NEUTRAL=['No me corresponde decidir el manejo, pero te remito a lo que aplica 👇','No emito juicios clínicos; esto es lo que dice la fuente:','La decisión es del clínico según el caso — aquí tienes la referencia:','Eso no lo decido yo por el paciente; te abro lo que aplica 👇'];
-function chatLeadNeutral(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! 👋 Soy <strong>Eri</strong>. No me corresponde decidir el manejo de un paciente, pero te remito a la fuente que aplica:';}return CHAT_INTROS_NEUTRAL[Math.floor(Math.random()*CHAT_INTROS_NEUTRAL.length)];}
+const CHAT_INTROS_NEUTRAL=['Lo siento, no puedo ayudarte con la decisión clínica de un caso, pero aquí tienes una referencia que puede servirte de ayuda 👇','No me corresponde decidir el manejo del paciente, pero te dejo la referencia que puede orientarte:','Esa decisión es del clínico según cada caso — aun así, aquí tienes una referencia que puede ayudarte 👇','Disculpa, eso no puedo decidirlo yo, pero con gusto te abro la fuente que puede servirte de ayuda:'];
+function chatLeadNeutral(){if(!_chatGreeted){_chatGreeted=true;return '¡Hola! 👋 Soy <strong>Eri</strong>. Lo siento, no puedo ayudarte con la decisión clínica de un caso concreto, pero con gusto te dejo la referencia que puede servirte de ayuda:';}return CHAT_INTROS_NEUTRAL[Math.floor(Math.random()*CHAT_INTROS_NEUTRAL.length)];}
 function chatAnswerHTML(query,results,neutral){
   if(!results.length){const hi=_chatGreeted?'':'¡Hola! 👋 Soy <strong>Eri</strong>. ';_chatGreeted=true;return `<div style="${CHAT_BOT}">${hi}No he encontrado nada sobre <em>"${chatEsc(query)}"</em> en el contenido de la app 🤔. Prueba con el nombre del fármaco, el esquema, una sección o «teléfono de …».</div>`;}
   let h=`<div style="${CHAT_BOT}"><div style="margin-bottom:9px;font-size:13.5px;color:var(--txt)">${neutral?chatLeadNeutral():chatLead()}</div><div style="display:flex;flex-direction:column;gap:9px">`;
@@ -9124,7 +9126,7 @@ copy(v);
 
 
 VIEWS.phone=()=>{
-const _adm=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
+const _adm=hpCanEditDir();
 return `<div class="card">
 <h2>Listín Telefónico</h2>
 <p class="intro">Directorio de extensiones del HUNSC y red de centros. Agrupado por servicio. Usa el buscador para filtrar por servicio, ubicación o extensión.</p>
@@ -9141,30 +9143,45 @@ const q=($('ph_q')?.value||'').toLowerCase().trim();
 const _strip=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');const qn=_strip(q);
 const el=$('ph_list'); if(!el) return;
 const _EDIR=hpEffectiveDir();
-const _esAdm=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
-let groups=0, rows=0, html='';
-for(const [svc,items] of _EDIR){
+const _esAdm=hpCanEditDir();
+let groups=0, rows=0, totalRows=0, html='';
+for(const [svc,items0] of _EDIR){
+  // Las entradas ocultadas solo las ven los editores (para poder restaurarlas)
+  const items = _esAdm ? items0 : items0.filter(it=>!(it[5]&&it[5].del));
+  totalRows += items.length;
   let matched=items;
   const svcMatch = !q || _strip(svc.toLowerCase()).includes(qn);
   if(q && !svcMatch){
     matched=items.filter(it=>_strip((it[0]+' '+it[1]+' '+it[2]+' '+it[3]).toLowerCase()).includes(qn));
-    if(!matched.length) continue;
   }
+  if(!matched.length) continue;
   groups++; rows+=matched.length;
   const open = q ? ' open' : '';
   let inner='<div class="dir-rows">';
-  for(const [d,l,t,s,cid] of matched){
+  for(const [d,l,t,s,cid,fl] of matched){
+    const flags=fl||{};
     const show = s || t || '';
     let right='';
-    if(t){
-      right=`<button class="dir-ext-btn" onclick="event.stopPropagation();copy('${show}')" title="Copiar ${show}">${show}</button>`+
-            `<a class="dir-call" href="tel:${t}" aria-label="Llamar ${t}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg></a>`;
-    } else if(s){
-      right=`<button class="dir-ext-btn" onclick="event.stopPropagation();copy('${s}')" title="Copiar ${s}">${s}</button><span class="dir-int-badge">interna</span>`;
+    if(flags.del){
+      // Entrada oficial ocultada: etiqueta + botón de restaurar (solo la ven editores)
+      right=`<span class="dir-int-badge">oculto</span>`+
+            `<button class="dir-ext-btn" onclick="event.stopPropagation();hpRestaurarContacto('${cid}')" title="Restaurar esta entrada">↩</button>`;
+    } else {
+      if(t){
+        right=`<button class="dir-ext-btn" onclick="event.stopPropagation();copy('${show}')" title="Copiar ${show}">${show}</button>`+
+              `<a class="dir-call" href="tel:${t}" aria-label="Llamar ${t}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg></a>`;
+      } else if(s){
+        right=`<button class="dir-ext-btn" onclick="event.stopPropagation();copy('${s}')" title="Copiar ${s}">${s}</button><span class="dir-int-badge">interna</span>`;
+      }
+      if(cid && _esAdm){
+        right+='<button class="dir-ext-btn" onclick="event.stopPropagation();hpEditContacto(\''+cid+'\')" title="Editar">✏️</button>';
+        if(flags.edited) right+='<button class="dir-ext-btn" onclick="event.stopPropagation();hpRestaurarContacto(\''+cid+'\')" title="Restaurar original">↩</button>';
+        right+='<button class="dir-ext-btn" style="color:#c41e3a" onclick="event.stopPropagation();hpDelContacto(\''+cid+'\')" title="'+(flags.og?'Ocultar entrada':'Eliminar contacto')+'">×</button>';
+      }
     }
-    if(cid && _esAdm) right+='<button class="dir-ext-btn" style="color:#c41e3a" onclick="event.stopPropagation();hpDelContacto(\''+cid+'\')" title="Eliminar contacto">×</button>';
+    const nameStyle=flags.del?' style="text-decoration:line-through;opacity:.55"':'';
     inner+=`<div class="dir-row">
-      <div class="dir-main"><div class="dir-name">${d==='—'?'·':hlMark(d.replace(/\n/g,' '),q)}</div>${l?`<div class="dir-sub">${hlMark(l,q)}</div>`:''}</div>
+      <div class="dir-main"><div class="dir-name"${nameStyle}>${d==='—'?'·':hlMark(d.replace(/\n/g,' '),q)}</div>${l?`<div class="dir-sub">${hlMark(l,q)}</div>`:''}</div>
       <div class="dir-right">${right}</div>
     </div>`;
   }
@@ -9177,41 +9194,132 @@ for(const [svc,items] of _EDIR){
   </div>`;
 }
 if(!groups){ el.innerHTML='<div style="padding:16px;text-align:center;color:var(--mut);font-size:13px">Sin resultados.</div>'; $('ph_meta').textContent=''; return; }
-$('ph_meta').textContent = q ? `${rows} extensiones en ${groups} servicios` : `${_EDIR.length} servicios · ${_EDIR.reduce((a,g)=>a+g[1].length,0)} extensiones`;
+$('ph_meta').textContent = q ? `${rows} extensiones en ${groups} servicios` : `${groups} servicios · ${totalRows} extensiones`;
 el.innerHTML=html;
 }
-// ── Listín editable: contactos personalizados (admin), sincronizados a todos ──
+// ── Listín editable: contactos personalizados + ediciones de los oficiales ──
+// Política "todo editable": cualquier entrada (incluidas las oficiales del HUNSC)
+// puede editarse, ocultarse o restaurarse. Las ediciones se guardan como "overrides"
+// en la misma colección que los contactos nuevos, con un id estable derivado del
+// contenido original de la entrada (prefijo og_). __del:true = entrada ocultada.
 function hpDirAdd(){ try{ return ls.g('dirAdd')||{}; }catch(e){ return {}; } }
 window.hpApplyDirectorio=function(map){ try{ ls.s('dirAdd', map||{}); }catch(e){} };
+// Hash determinista (cyrb53) -> id estable e igual en todos los dispositivos.
+function _hpHash(str){var h1=0xdeadbeef,h2=0x41c6ce57;for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507);h1^=Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507);h2^=Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);}
+// Aplana HOSP_DIR una sola vez y asigna a cada entrada oficial su id og_ estable.
+let _HP_DIR_BASE=null;
+function _hpDirBase(){
+  if(_HP_DIR_BASE) return _HP_DIR_BASE;
+  const nrm=function(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/\s+/g,' ').trim();};
+  const out=[];
+  HOSP_DIR.forEach(function(sec){
+    (sec[1]||[]).forEach(function(e){
+      const id='og_'+_hpHash(nrm(sec[0])+'|'+nrm(e[0])+'|'+(e[2]||'')+'|'+(e[3]||''));
+      out.push({svc:sec[0], d:e[0], l:e[1]||'', t:e[2]||'', s:e[3]||'', id:id});
+    });
+  });
+  _HP_DIR_BASE=out; return out;
+}
 function hpEffectiveDir(){
-  const map=new Map();
-  HOSP_DIR.forEach(function(sec){ map.set(sec[0], (sec[1]||[]).slice()); });
-  const add=hpDirAdd();
-  Object.keys(add).forEach(function(id){ const x=add[id]; if(!x||(!x.nombre&&!x.ext&&!x.tel))return; const svc=(x.servicio||'Otros'); if(!map.has(svc))map.set(svc,[]); map.get(svc).push([x.nombre||'—', x.loc||'', x.tel||'', x.ext||'', id]); });
   const norm=function(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();};
+  const map=new Map();        // servicio canónico -> filas [d,l,t,s,id,flags]
+  const keyToName=new Map();  // clave normalizada -> nombre canónico (fusiona variantes)
+  const byId={};              // id -> valores efectivos actuales (precarga del editor)
+  HOSP_DIR.forEach(function(sec){ map.set(sec[0], []); keyToName.set(norm(sec[0]), sec[0]); });
+  const add=hpDirAdd();
+  const canonSvc=function(raw){ const k=norm(raw); if(!k) return 'Otros'; let n=keyToName.get(k); if(!n){ n=(raw||'').trim()||'Otros'; keyToName.set(k,n); } if(!map.has(n)) map.set(n,[]); return n; };
+  const push=function(svc,row){ if(!map.has(svc)) map.set(svc,[]); map.get(svc).push(row); };
+  // 1) Entradas oficiales del HUNSC, aplicando override (edición) o tombstone (ocultar)
+  _hpDirBase().forEach(function(b){
+    const ov=add[b.id];
+    if(ov&&ov.__del){
+      byId[b.id]={nombre:b.d,servicio:b.svc,ext:b.s,tel:b.t,loc:b.l};
+      push(b.svc,[b.d,b.l,b.t,b.s,b.id,{og:true,del:true}]);
+    }else if(ov){
+      const svc=canonSvc(ov.servicio||b.svc);
+      byId[b.id]={nombre:ov.nombre||'',servicio:svc,ext:ov.ext||'',tel:ov.tel||'',loc:ov.loc||''};
+      push(svc,[ov.nombre||'—',ov.loc||'',ov.tel||'',ov.ext||'',b.id,{og:true,edited:true}]);
+    }else{
+      byId[b.id]={nombre:b.d,servicio:b.svc,ext:b.s,tel:b.t,loc:b.l};
+      push(b.svc,[b.d,b.l,b.t,b.s,b.id,{og:true}]);
+    }
+  });
+  // 2) Contactos nuevos (los oficiales editados llevan prefijo og_ y ya se procesaron arriba)
+  Object.keys(add).forEach(function(id){
+    if(id.indexOf('og_')===0) return;
+    const x=add[id]; if(!x||x.__del||(!x.nombre&&!x.ext&&!x.tel)) return;
+    const svc=canonSvc(x.servicio||'Otros');
+    byId[id]={nombre:x.nombre||'',servicio:svc,ext:x.ext||'',tel:x.tel||'',loc:x.loc||''};
+    push(svc,[x.nombre||'—', x.loc||'', x.tel||'', x.ext||'', id, {}]);
+  });
+  window._hpDirById=byId;
   const out=Array.from(map.entries());
   out.forEach(function(sec){ sec[1].sort(function(a,b){return norm(a[0]).localeCompare(norm(b[0]),'es');}); });
   out.sort(function(a,b){return norm(a[0]).localeCompare(norm(b[0]),'es');});
   return out;
 }
+// Nombres de servicio ya existentes (oficiales + añadidos), para agrupar sin duplicar.
+function _hpDirSvcNames(){ try{ return hpEffectiveDir().map(function(g){return g[0];}); }catch(e){ return []; } }
+// Si el servicio escrito coincide (ignorando mayúsculas/acentos) con uno existente,
+// devuelve el nombre canónico de ese servicio; si no, el texto tal cual (recortado).
+function _hpDirCanonSvc(raw){
+  const norm=function(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();};
+  const k=norm(raw); if(!k) return '';
+  const hit=_hpDirSvcNames().filter(function(n){return norm(n)===k;})[0];
+  return hit||(raw||'').trim();
+}
 async function hpAddContacto(){
-  const servicio=prompt('Servicio (p. ej. Hematología):'); if(servicio==null)return;
+  const servicio=prompt('Servicio (p. ej. Hematología).\nSi ya existe, el contacto se añade a ese servicio (no se duplica):'); if(servicio==null)return;
   const nombre=prompt('Nombre / descripción del contacto:'); if(nombre==null)return;
   const ext=(prompt('Extensión interna (opcional):')||'').trim();
   const tel=(prompt('Teléfono externo (opcional):')||'').trim();
   const loc=(prompt('Ubicación / planta (opcional):')||'').trim();
   if(!servicio.trim()&&!nombre.trim()&&!ext&&!tel){ return; }
-  const id='ct_'+Date.now(); const data={nombre:nombre.trim(),servicio:servicio.trim()||'Otros',ext:ext,tel:tel,loc:loc};
+  const id='ct_'+Date.now(); const data={nombre:nombre.trim(),servicio:_hpDirCanonSvc(servicio)||'Otros',ext:ext,tel:tel,loc:loc};
   const m=hpDirAdd(); m[id]=data; try{ls.s('dirAdd',m);}catch(e){}
   renderDir();
   if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto añadido · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
   else toast('✓ Añadido');
 }
+// Editar cualquier entrada del listín (oficial o añadida). Precarga con los valores
+// efectivos actuales; al guardar crea/actualiza el override (oficial) o el contacto (nuevo).
+async function hpEditContacto(id){
+  const cur=(window._hpDirById&&window._hpDirById[id])||hpDirAdd()[id]||{};
+  const servicio=prompt('Servicio:', cur.servicio||''); if(servicio==null)return;
+  const nombre=prompt('Nombre / descripción del contacto:', cur.nombre||''); if(nombre==null)return;
+  const ext=(prompt('Extensión interna (opcional):', cur.ext||'')||'').trim();
+  const tel=(prompt('Teléfono externo (opcional):', cur.tel||'')||'').trim();
+  const loc=(prompt('Ubicación / planta (opcional):', cur.loc||'')||'').trim();
+  if(!nombre.trim()&&!ext&&!tel){ toast('Sin datos: no se guardó'); return; }
+  const data={nombre:nombre.trim(),servicio:_hpDirCanonSvc(servicio)||'Otros',ext:ext,tel:tel,loc:loc};
+  const m=hpDirAdd(); m[id]=data; try{ls.s('dirAdd',m);}catch(e){}
+  renderDir();
+  if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  else toast('✓ Actualizado');
+}
 async function hpDelContacto(id){
+  const esOficial=String(id).indexOf('og_')===0;
+  if(esOficial){
+    // No se puede borrar del código una entrada oficial: se "oculta" con un tombstone (restaurable)
+    if(!confirm('¿Ocultar esta entrada del listín para todos? Podrás restaurarla después.'))return;
+    const data={__del:true};
+    const m=hpDirAdd(); m[id]=data; try{ls.s('dirAdd',m);}catch(e){}
+    renderDir();
+    if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Entrada ocultada · para todos'); }catch(e){ toast('Ocultada solo en este equipo (sin permiso o sin conexión)'); } }
+    else toast('✓ Ocultada');
+    return;
+  }
   if(!confirm('¿Eliminar este contacto para todos?'))return;
   const m=hpDirAdd(); delete m[id]; try{ls.s('dirAdd',m);}catch(e){}
   renderDir();
   if(window.hpDelContactoCloud){ try{ await window.hpDelContactoCloud(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } }
+}
+// Restaurar el original de una entrada oficial editada u ocultada (borra el override).
+async function hpRestaurarContacto(id){
+  if(!confirm('¿Restaurar el contenido original de esta entrada? Se perderá la edición para todos.'))return;
+  const m=hpDirAdd(); delete m[id]; try{ls.s('dirAdd',m);}catch(e){}
+  renderDir();
+  if(window.hpDelContactoCloud){ try{ await window.hpDelContactoCloud(id); toast('✓ Original restaurado'); }catch(e){ toast('Restaurado solo en este equipo'); } }
 }
 
 // ================================================================
@@ -12978,6 +13086,9 @@ window.HemoCloud = {
   role: null,                 // null | {role:'admin'} | {role:'editor', sections:[...]}
   token: null,                // token de GitHub (leído de Firestore config/github)
   isAdmin(){ return !!this.role && this.role.role === 'admin'; },
+  // Cualquier editor (de cualquier sección) o administrador. Lo usa el listín telefónico,
+  // que no está ligado a una sección concreta de guías.
+  isEditor(){ return !!this.role && (this.role.role === 'admin' || this.role.role === 'editor'); },
   canEdit(section){
     const r = this.role; if(!r) return false;
     if(r.role === 'admin') return true;
