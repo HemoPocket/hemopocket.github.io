@@ -4309,6 +4309,34 @@ Se realizan hemocultivos de dos sitios (incluyendo uno del catéter central si l
 copy(tpl, null, {paciente:patientHeader(), evolucion:sections.join('\n\n'), fecha:new Date().toLocaleString('es-ES')});
 }
 
+// Copiado simple de algoritmos: toma el RESULTADO MOSTRADO en pantalla (que ya refleja las
+// ediciones del equipo, porque es el mismo texto editable) y lo copia con cabecera y fecha.
+function _algoCopy(title, ctxLines, bodyEls){
+  var parts=[];
+  (bodyEls||[]).forEach(function(el){ if(el && el.innerText && el.innerText.trim()) parts.push(el.innerText.replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim()); });
+  var body=parts.join('\n\n');
+  if(!body){ if(typeof toast==='function') toast('Completa el algoritmo primero'); return; }
+  var ctx=(ctxLines||[]).filter(Boolean);
+  var txt=title+'\n'+'─────────────────────────────────────────────\n'+(ctx.length?ctx.join('\n')+'\n\n':'')+body+'\n\n[Fecha: '+new Date().toLocaleString('es-ES')+']';
+  copyPlain(txt);
+}
+function copyRv(){
+  var d=$('rv_drug'), s=$('rv_sev');
+  if(!d||!d.value||!s||!s.value){ if(typeof toast==='function') toast('Elige anticoagulante y gravedad'); return; }
+  _algoCopy('Reversión de anticoagulación en sangrado',
+    ['Anticoagulante: '+d.options[d.selectedIndex].text, 'Gravedad: '+s.options[s.selectedIndex].text],
+    [$('rv_out')]);
+}
+function copyBr(){
+  _algoCopy('Bridging perioperatorio en paciente anticoagulado', [], [$('br_out')]);
+}
+function copyRca(){
+  if(typeof RCA==='undefined' || !RCA.sc){ if(typeof toast==='function') toast('Elige primero el escenario'); return; }
+  var names={cir:'Cirugía urgente o programada',trauma:'Politraumático grave',obst:'Hemorragia obstétrica'};
+  _algoCopy('Manejo de coagulopatía guiado por ROTEM', ['Escenario: '+(names[RCA.sc]||'')],
+    [$('rca_o1'),$('rca_o2'),$('rca_o3'),$('rca_o4'),$('rca_o5')]);
+}
+
 // === INDEXEDDB (almacenamiento de PDFs sin límite 5MB) ===
 const idb={
 _db:null,
@@ -7003,7 +7031,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 262;
+const HP_BUILD = 263;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10758,7 +10786,7 @@ return `<div class="card">
 <div id="br_out"></div>
 </div>
 
-<div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="go('bridging')">Reiniciar</button></div>
+<div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="copyBr()">📋 Copiar</button><button class="btn btn-out btn-sm" onclick="go('bridging')">Reiniciar</button></div>
 <div class="ref">Douketis JD et al. Perioperative Management of Antithrombotic Therapy: ACCP CHEST Guideline. Chest. 2022;162(5):e207-e243. Steffel J et al. EHRA Practical Guide on the Use of NOACs in Patients with AF. Europace. 2021;23(10):1612-1676. PAUSE Study (Douketis 2019). BRIDGE Trial (Douketis 2015 NEJM).</div>
 </div>`;
 };
@@ -10940,6 +10968,7 @@ VIEWS.reversion=()=>`<div class="card">
 </div>
 
 <div id="rv_out"></div>
+<div class="btns" style="margin-top:10px"><button class="btn btn-out btn-sm" onclick="copyRv()">📋 Copiar</button></div>
 
 <div class="ref">Frontera JA et al. Guideline for Reversal of Antithrombotics in Intracranial Hemorrhage. Neurocrit Care. 2016;24(1):6-46. Tomaselli GF et al. ACC Expert Consensus Decision Pathway on Management of Bleeding in Patients on Oral Anticoagulants. J Am Coll Cardiol. 2020;76(5):594-622. Connolly SJ et al. (ANNEXA-I) Andexanet for Factor Xa Inhibitor–Associated Acute Intracerebral Hemorrhage. N Engl J Med. 2024;390(19):1745-1755 (mejor control hemostático, pero mayor riesgo de eventos trombóticos, incluido ictus). Pollack CV et al. RE-VERSE AD (idarucizumab). NEJM. 2017;377:431-441.</div>
 </div>`;
@@ -11173,6 +11202,7 @@ VIEWS.rotem=()=>`<div class="card">
 <div class="row2"><button class="btn btn-2" onclick="rcaStep(5,'si')">Sí</button><button class="btn btn-out" onclick="rcaStep(5,'no')">No</button></div>
 <div id="rca_o5"></div>
 </div>
+<div class="btns" style="margin-top:12px"><button class="btn btn-out btn-sm" onclick="copyRca()">📋 Copiar manejo</button></div>
 </div>
 
 <h3>Indicaciones de hemocomponentes y fármacos hemostáticos</h3>
