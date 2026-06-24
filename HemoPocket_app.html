@@ -7003,7 +7003,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 260;
+const HP_BUILD = 261;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9998,8 +9998,8 @@ html=`<div class="step" id="da_s2">
 <tr><td><strong>Transfusión de grupo distinto</strong></td><td>A/B/AB transfundido con grupo O → doble población.</td></tr>
 <tr><td><strong>Quimerismo post-TPH</strong></td><td>Receptor O con donante A o B (o viceversa).</td></tr>
 </table>
-<div class="alert g" style="margin-top:10px"><strong>🛠️ Resolución</strong><br>
-Mejorar la reacción Ag–Ac: <strong>incubar los hematíes con anti-A y anti-B 30 min a temperatura ambiente</strong> (en tarjeta o en tubo). Las reacciones débiles suelen revelarse así.</div>
+<div class="alert g" style="margin-top:10px">`+EB('da_hem_res',`<strong>🛠️ Resolución</strong><br>
+Mejorar la reacción Ag–Ac: <strong>incubar los hematíes con anti-A y anti-B 30 min a temperatura ambiente</strong> (en tarjeta o en tubo). Las reacciones débiles suelen revelarse así.`)+`</div>
 </div>`;
 }
 else if(branch==='ser'){
@@ -10013,13 +10013,12 @@ html=`<div class="step" id="da_s2">
 <tr><td><strong>TPH ABO incompatible / quimerismo</strong></td><td>Cambio gradual del grupo sérico tras el trasplante.</td></tr>
 <tr><td><strong>Anticuerpos irregulares</strong></td><td>Ej.: anti-M en receptor A puede simular grupo O si la célula A1 es M+.</td></tr>
 </table>
-<div class="alert g" style="margin-top:10px"><strong>🛠️ Resolución</strong>
+<div class="alert g" style="margin-top:10px">`+EB('da_ser_res',`<strong>🛠️ Resolución</strong>
 <ol style="padding-left:20px;margin-top:6px">
 <li>Incubar suero + hemantígenos A1, A2 y B <strong>30 min a temperatura ambiente</strong>. Si no se resuelve, <strong>30 min a 4 °C</strong>.</li>
 <li>Autocontrol (hematíes propios + suero propio) y control negativo con O para descartar aglutininas frías inespecíficas.</li>
 <li>Descartar AAII: si hay anti-M, repetir grupo sérico con células A1 M-negativas.</li>
-</ol>
-</div>
+</ol>`)+`</div>
 </div>`;
 }
 else{
@@ -10030,15 +10029,14 @@ html=`<div class="step" id="da_s2">
 <tr><td><strong>Crioaglutininas</strong></td></tr>
 <tr><td><strong>Autoanticuerpos</strong></td></tr>
 </table>
-<div class="alert y" style="margin-top:10px"><strong>Estudio obligatorio</strong><br>
-Realizar <strong>Coombs directo</strong>; si es positivo, desglosar en <strong>IgG y C3d</strong>.</div>
-<div class="alert g" style="margin-top:10px"><strong>🛠️ Resolución</strong>
+<div class="alert y" style="margin-top:10px">`+EB('da_both_estudio',`<strong>Estudio obligatorio</strong><br>
+Realizar <strong>Coombs directo</strong>; si es positivo, desglosar en <strong>IgG y C3d</strong>.`)+`</div>
+<div class="alert g" style="margin-top:10px">`+EB('da_both_res',`<strong>🛠️ Resolución</strong>
 <ul style="padding-left:20px;margin-top:6px">
 <li><strong>Falsos positivos en grupo hemático por autoanticuerpos fríos</strong>: lavar la muestra con <strong>solución salina caliente</strong>.</li>
 <li>Si persiste, <strong>cloroquina</strong> para disociar IgG unido, o incubar eritrocitos con <strong>DTT</strong>.</li>
 <li><strong>Falsos en grupo sérico por aglutinación fría</strong>: incubar a <strong>37 °C 30–60 min</strong>. Si no se resuelve, <strong>autoadsorciones en frío</strong>.</li>
-</ul>
-</div>
+</ul>`)+`</div>
 </div>`;
 }
 $('da_out').innerHTML=html;
@@ -10226,7 +10224,7 @@ body=`<p>En el <strong>70–80%</strong> de los pacientes con Coombs directo pos
 <li>Si transfusión imprescindible: unidades <strong>fenotípicamente compatibles</strong> con vigilancia estricta. La presencia de autoAc <strong>no contraindica</strong> la transfusión si está indicada.</li>
 </ul>`;
 }
-$('pa_final').innerHTML=`<div class="alert ${cls}" style="margin-top:14px"><div style="font-size:15px;font-weight:600;margin-bottom:6px">${title}</div>${body}</div>`;
+$('pa_final').innerHTML=`<div class="alert ${cls}" style="margin-top:14px"><div style="font-size:15px;font-weight:600;margin-bottom:6px">${title}</div>`+EB('pa_'+r,body)+`</div>`;
 }
 }
 
@@ -10714,7 +10712,7 @@ html=`<div class="step" id="ca_s2"><div class="step-h"><span class="step-n">2</s
 </ol>
 </div>`;
 }
-$('ca_out').innerHTML=html;
+$('ca_out').innerHTML=EB('ca_'+b,html);
 }
 
 
@@ -10791,25 +10789,23 @@ $('br_s2_wrap').innerHTML=`<div class="step" id="br_s2">
 }
 else if(d==='hbpm'){
 $('br_s2_wrap').innerHTML='';
-$('br_out').innerHTML=`<div class="alert b" style="margin-top:14px"><strong>HBPM a dosis terapéuticas (p. ej. enoxaparina 1 mg/kg/12h o 1.5 mg/kg/24h)</strong>
+$('br_out').innerHTML=`<div class="alert b" style="margin-top:14px">`+EB('br_hbpm',`<strong>HBPM a dosis terapéuticas (p. ej. enoxaparina 1 mg/kg/12h o 1.5 mg/kg/24h)</strong>
 <ul style="padding-left:20px;margin-top:6px">
 <li><strong>Última dosis 24 h antes</strong> del procedimiento (para anestesia neuroaxial: <strong>24 h</strong>).</li>
 <li>HBPM a dosis profilácticas: <strong>12 h antes</strong>.</li>
 <li><strong>Reanudación postoperatoria</strong>: 24 h tras cirugía de bajo riesgo · 48–72 h tras cirugía de alto riesgo. Iniciar con dosis profiláctica las primeras 24–48 h, después escalar a terapéutica.</li>
 <li>Anti-Xa preoperatorio: solo si insuficiencia renal severa o duda de adherencia.</li>
-</ul>
-</div>`;
+</ul>`)+`</div>`;
 }
 else{
 $('br_s2_wrap').innerHTML='';
-$('br_out').innerHTML=`<div class="alert b" style="margin-top:14px"><strong>HNF en perfusión (paciente hospitalizado)</strong>
+$('br_out').innerHTML=`<div class="alert b" style="margin-top:14px">`+EB('br_hnf',`<strong>HNF en perfusión (paciente hospitalizado)</strong>
 <ul style="padding-left:20px;margin-top:6px">
 <li><strong>Suspender 4–6 h antes</strong> del procedimiento.</li>
 <li>Comprobar TTPa preoperatorio (debe estar &lt; 1.5 × control).</li>
 <li><strong>Reanudación postoperatoria</strong>: 24–48 h tras hemostasia adecuada, sin bolo inicial (perfusión directa).</li>
 <li><strong>Reversión urgente</strong>: protamina 1 mg por cada 100 UI de heparina infundidas en las últimas 2–3 h (máx. 50 mg).</li>
-</ul>
-</div>`;
+</ul>`)+`</div>`;
 }
 }
 
@@ -10861,7 +10857,7 @@ html=`<div class="alert g" style="margin-top:14px"><strong>AVK + RIESGO TROMBÓT
 </ul>
 </div>`;
 }
-$('br_out').innerHTML=html;
+$('br_out').innerHTML=EB('br_avk_'+r,html);
 }
 
 function brACOD(t){
@@ -10902,7 +10898,7 @@ html=`<div class="alert b" style="margin-top:14px"><strong>Dabigatrán (anti-IIa
 <p style="margin-top:6px"><strong>Reversión urgente</strong>: idarucizumab (Praxbind®) 5 g IV.</p>
 </div>`;
 }
-$('br_out').innerHTML=html;
+$('br_out').innerHTML=EB('br_acod_'+t,html);
 }
 
 
