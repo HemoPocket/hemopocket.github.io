@@ -235,6 +235,8 @@ body.view-home .app-footer{padding-bottom:18px}
 #hp-edit-fab{position:fixed;left:14px;bottom:16px;z-index:9000;border:none;border-radius:22px;padding:10px 16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);background:var(--card,#fff);color:var(--c2,#1d4ed8);border:1px solid var(--bd,#ccc)}
 #hp-edit-fab.on{background:#1d8a4e;color:#fff;border-color:#1d8a4e}
 body:not(.hp-editing) .eb-btn{display:none}
+.ed-chip{font-size:11px;color:#fff;border-radius:10px;padding:2px 8px;font-weight:600;line-height:1.4}
+.ed-actions{position:sticky;bottom:0;display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;padding:10px 0 6px;background:var(--card,#fff);border-top:1px solid var(--bd);z-index:5}
 #pg-grip:active{cursor:grabbing}
 .coll-h .ar{transition:transform .2s;font-size:10px;color:var(--mut)}
 .qtc-row{display:grid;grid-template-columns:max-content 1fr 92px;gap:12px;align-items:center;margin:12px 0}
@@ -4927,11 +4929,31 @@ let _algoDraft=null;
 function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{}}; go('algoedit'); }
 function algoEditOpen(id){ const a=hpAlgos()[id]; if(!a){toast('No encontrado');return;} _algoDraft=JSON.parse(JSON.stringify(a)); if(!_algoDraft.nodos)_algoDraft.nodos={}; go('algoedit'); }
 function _algoNodeLabel(n){ if(!n)return '(paso)'; const t=(n.texto||'').replace(/\s+/g,' ').trim(); return (t?t.slice(0,32):(n.tipo==='resultado'?'(resultado)':'(pregunta)')); }
+// ── Aspecto COMÚN de los mini-editores (calculadora / algoritmo / información) ──
+// Cabecera con chip de estado + barra de acciones idéntica y fija al hacer scroll.
+function _edChip(estado){
+  return estado==='publicado'
+    ? '<span class="ed-chip" style="background:#1d8a4e">Publicado</span>'
+    : '<span class="ed-chip" style="background:#b8860b">Borrador</span>';
+}
+function _edHead(emoji,title,estado){
+  return '<div class="card"><h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">'+emoji+' '+title+_edChip(estado)+'</h2>';
+}
+function _edActions(o){
+  var h='<div class="ed-actions">';
+  h+='<button class="btn btn-out btn-sm" onclick="'+o.cancel+'">✖ Cancelar</button>';
+  h+='<button class="btn btn-sm" onclick="'+o.preview+'">👁️ Vista previa</button>';
+  if(o.check) h+='<button class="btn btn-out btn-sm" onclick="'+o.check+'">🔍 Comprobar</button>';
+  h+='<button class="btn btn-out btn-sm" onclick="'+o.save+'">💾 Guardar borrador</button>';
+  h+='<button class="btn btn-g btn-sm" onclick="'+o.publish+'">✅ Publicar</button>';
+  h+='</div>';
+  return h;
+}
 VIEWS.algoedit=()=>{
   const d=_algoDraft; if(!d) return '<div class="card"><h2>Editar algoritmo</h2><div class="alert y">Nada que editar.</div></div>';
   if(!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(d.seccion))) return '<div class="card"><h2>Editar algoritmo</h2><div class="alert y">No tienes permiso para editar en esta sección.</div></div>';
   const nodeIds=Object.keys(d.nodos);
-  let h='<div class="card"><h2>🧩 Editar algoritmo</h2>';
+  let h=_edHead('🧩','Editar algoritmo',d.estado);
   h+='<p class="intro">Construye el árbol: añade preguntas con opciones que llevan a otros pasos, y resultados con la recomendación. Prueba con <strong>Vista previa</strong> y, cuando esté listo, <strong>Publica</strong>.</p>';
   h+='<div class="fld"><label class="lbl">Título</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="algoSetField(\'titulo\',this.value)" placeholder="Ej: Diagnóstico diferencial de AHAI"></div>';
   h+='<div class="fld"><label class="lbl">Introducción (opcional)</label><textarea onchange="algoSetField(\'intro\',this.value)" placeholder="Contexto breve...">'+_hpEsc(d.intro||'')+'</textarea></div>';
@@ -4942,7 +4964,7 @@ VIEWS.algoedit=()=>{
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
-  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="algoCancelar()">✖ Cancelar</button><button class="btn" onclick="algoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="algoComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="algoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="algoPublicar()">✅ Publicar</button></div>';
+  h+=_edActions({cancel:'algoCancelar()',preview:'algoVistaPrevia()',check:'algoComprobar()',save:'algoGuardar()',publish:'algoPublicar()'});
   h+='</div>'; return h;
 };
 function _algoEditNode(d,nid,nodeIds){
@@ -5203,7 +5225,7 @@ VIEWS.calcedit=()=>{
   const d=_calcDraft; if(!d) return '<div class="card"><h2>Editar calculadora</h2><div class="alert y">Nada que editar.</div></div>';
   if(!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(d.seccion))) return '<div class="card"><h2>Editar calculadora</h2><div class="alert y">No tienes permiso para editar en esta sección.</div></div>';
   const esF=d.tipo==='formula';
-  let h='<div class="card"><h2>🧮 Editar calculadora ('+(esF?'fórmula':'puntuación')+')</h2>';
+  let h=_edHead('🧮','Editar calculadora ('+(esF?'fórmula':'puntuación')+')',d.estado);
   h+='<p class="intro">'+(esF?'Añade campos con su <strong>nombre de variable</strong> y escribe la <strong>fórmula</strong>. La app calcula el valor.':'Añade campos (opciones con puntos o casillas sí/no). La app suma los puntos y muestra la categoría.')+' Prueba con <strong>Vista previa</strong> y, cuando esté lista, <strong>Publica</strong>.</p>';
   h+='<div class="fld"><label class="lbl">Título</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="calcSetMeta(\'titulo\',this.value)" placeholder="'+(esF?'Ej: Aclaramiento de creatinina':'Ej: CLL-IPI')+'"></div>';
   h+='<div class="fld"><label class="lbl">Introducción (opcional)</label><textarea onchange="calcSetMeta(\'intro\',this.value)" placeholder="Para qué sirve, población...">'+_hpEsc(d.intro||'')+'</textarea></div>';
@@ -5227,7 +5249,7 @@ VIEWS.calcedit=()=>{
   }
   (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri,(d.resultados||[]).length); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
-  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="calcCancelar()">✖ Cancelar</button><button class="btn" onclick="calcVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="calcComprobar()">🔍 Comprobar</button><button class="btn btn-out" onclick="calcGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="calcPublicar()">✅ Publicar</button></div>';
+  h+=_edActions({cancel:'calcCancelar()',preview:'calcVistaPrevia()',check:'calcComprobar()',save:'calcGuardar()',publish:'calcPublicar()'});
   h+='</div>'; return h;
 };
 function _calcEditCampo(campo,ci,calcTipo,total){
@@ -5351,13 +5373,13 @@ function _infoSecOptions(sel){ return hpAllSections().filter(function(s){return 
 VIEWS.infoedit=()=>{
   const d=_infoDraft; if(!d) return '<div class="card"><h2>Editar información</h2><div class="alert y">Nada que editar.</div></div>';
   if(!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(d.seccion))) return '<div class="card"><h2>Editar información</h2><div class="alert y">No tienes permiso para editar en esta sección.</div></div>';
-  let h='<div class="card"><h2>📋 Editar información</h2>';
+  let h=_edHead('📋','Editar información',d.estado);
   h+='<p class="intro">Escribe el texto tal cual (sin HTML); se respetan los saltos de línea. Prueba con <strong>Vista previa</strong> y <strong>Publica</strong> cuando esté listo.</p>';
   h+='<div class="fld"><label class="lbl">Título</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="infoSetField(\'titulo\',this.value)" placeholder="Ej: Profilaxis antifúngica — resumen"></div>';
   h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="infoSetField(\'seccion\',this.value)">'+_infoSecOptions(d.seccion)+'</select></div>';
   h+='<div class="fld"><label class="lbl">Contenido</label><textarea style="min-height:220px" onchange="infoSetField(\'cuerpo\',this.value)" placeholder="Escribe aquí la información...">'+_hpEsc(d.cuerpo||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
-  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="infoCancelar()">✖ Cancelar</button><button class="btn" onclick="infoVistaPrevia()">👁️ Vista previa</button><button class="btn btn-out" onclick="infoGuardar()">💾 Guardar borrador</button><button class="btn btn-g" onclick="infoPublicar()">✅ Publicar</button></div>';
+  h+=_edActions({cancel:'infoCancelar()',preview:'infoVistaPrevia()',save:'infoGuardar()',publish:'infoPublicar()'});
   h+='</div>'; return h;
 };
 function infoSetField(f,v){ if(!_infoDraft)return; _infoDraft[f]=v; if(f==='seccion') go('infoedit'); }
@@ -6978,7 +7000,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 257;
+const HP_BUILD = 258;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
