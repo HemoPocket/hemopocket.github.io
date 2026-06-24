@@ -4962,20 +4962,17 @@ if(st.id==='fol'||/folicular/.test(n))return GELTAMO_ALGOS_FOL;
 if(st.id==='lbdcg'||/difuso|lbdcg|ldcgb|c[eé]lulas grandes|dlbcl/.test(n))return GELTAMO_ALGOS_LBDCG;
 return [];
 }
-const DEFAULT_COLLABORATORS={"inf": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dr. Kevin García Roulston"}], "uh": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Carmen Rodríguez Esteban"}, {"n": "Dr. Tomás Moreno"}], "th": [{"n": "Dr. Mario Ríos"}, {"n": "Dra. Minerva Montalvo"}, {"n": "Dr. Carlos Quintero"}, {"n": "Dra. Y. Lorenzo"}], "bs": [{"n": "Dra. Isabel Peris Fernaud"}, {"n": "Dr. Alexander Figueroa"}, {"n": "Dra. Laura Francisca Ávila Idrovo"}], "lf": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Patricia Hernández"}, {"n": "Dr. Jorge De Ramos"}], "mm": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Pablo Ríos Rull"}], "llc": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "leuc_ag": [{"n": "Dra. M.T. Busnego Barreto"}, {"n": "Dra. Ana Oliva"}, {"n": "Dra. Silvia Martín"}], "mieloide": [{"n": "Dra. Carmen Marrero"}, {"n": "Dra. Nuria Hernanz"}], "cito": [{"n": "Dra. Elena Herrero"}, {"n": "Dra. Y. Lorenzo"}], "ped": [{"n": "Dr. Héctor González Méndez"}], "cart": [{"n": "Dra. Ana Sánchez Quintana"}, {"n": "Dr. Jorge De Ramos"}, {"n": "Dra. M.T. Busnego Barreto"}], "citodiag": [{"n": "Dr. Joaquín Breña", "r": "Citodiagnóstico"}, {"n": "Dra. Cristina Notario", "r": "Citodiagnóstico"}, {"n": "Dra. M. Pilar Alberich", "r": "Citodiagnóstico"}, {"n": "Dra. Julia Climent", "r": "Citodiagnóstico"}], "farmacia": [{"n": "Jorge Esquivel", "r": "Farmacéutico"}, {"n": "Juan Alfredo Montero Delgado", "r": "Farmacéutico"}]};
+// Equipo fijo de colaboradores RETIRADO del código (a petición): ahora SOLO figuran como
+// colaboradores/revisores quienes tengan una cuenta de EDITOR creada y validada, acreditados
+// por la administradora y sincronizados desde Firestore 'colaboradores' → 'editorCollabs'.
+const DEFAULT_COLLABORATORS={};
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
 function getAllCollaborators(){
-// El equipo se mantiene en el código (DEFAULT_COLLABORATORS) y es la fuente
-// autoritativa: así siempre está al día tras actualizar la app, aunque la
-// sincronización remota traiga datos antiguos. Se conservan secciones extra
-// que pudieran venir de la sincronización y no estén en el código.
-const stored=ls.g('collaborators')||{};
-const base=Object.assign({},stored,DEFAULT_COLLABORATORS);
-// Los EDITORES asignados (sincronizados desde 'colaboradores') SUSTITUYEN a los colaboradores
-// fijos en SU tema, para que el Aviso Legal refleje quién mantiene cada sección.
+// Única fuente: los EDITORES validados que la administradora ha acreditado (cada uno con su
+// nombre de crédito y sus secciones). Ya no se mezcla ningún equipo fijo ni lista heredada,
+// de modo que el Aviso Legal y los créditos por sección reflejan solo a los editores reales.
 let ed=null; try{ ed=ls.g('editorCollabs'); }catch(e){}
-if(ed){ Object.keys(ed).forEach(function(sec){ if(ed[sec]&&ed[sec].length) base[sec]=ed[sec]; }); }
-return base;
+return ed||{};
 }
 // Cache local del crédito de editores por tema (la rellena la sincronización de 'colaboradores').
 window.hpStoreEditorCollabs=function(map){ try{ ls.s('editorCollabs', map||{}); }catch(e){} };
@@ -6411,7 +6408,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 235;
+const HP_BUILD = 236;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12700,8 +12697,8 @@ if(document.readyState!=='loading')init();
     <h3 style="color:#c41e3a; font-size:0.9rem; border-bottom:1px solid #f0d0d5; padding-bottom:0.3rem; margin-top:1rem;">Revisión de contenido clínico</h3>
     <p style="font-size:0.85rem; line-height:1.6; color:var(--txt);">Los contenidos clínicos han sido revisados por profesionales del Servicio de Hematología y Hemoterapia del HUNSC, quienes participan a título personal como <strong>revisores clínicos</strong>. Su participación se limita a la validación del contenido y no implica coautoría sobre la aplicación ni vinculación institucional de la misma.</p>
     <ul id="aviso-revisores" style="font-size:0.85rem; line-height:1.8; color:var(--txt); padding-left:1.2rem;">
-      <!-- Lista generada automáticamente desde DEFAULT_COLLABORATORS (fuente única).
-           No editar a mano aquí: actualizar el equipo en DEFAULT_COLLABORATORS. -->
+      <!-- Lista generada automáticamente desde los editores acreditados (editorCollabs).
+           No editar a mano aquí: se gestiona asignando/validando editores. -->
       <li>Cargando equipo de revisores…</li>
     </ul>
 
@@ -12754,7 +12751,7 @@ function poblarRevisoresAviso() {
       if (role) e.explicit.add(role); else if (area) e.areas.add(area);
     });
   });
-  if (!map.size) return; // sin datos: dejamos el listado estático por defecto
+  if (!map.size) { ul.innerHTML = '<li style="list-style:none;margin-left:-1.2rem;color:var(--mut)">Los revisores se acreditarán aquí conforme se incorporen editores al equipo.</li>'; return; }
   // Fusiona la misma persona escrita con/ sin apellido: si una clave (≥3 palabras) es prefijo de otra más larga.
   var entries = Array.from(map.entries());
   entries.sort(function (a, b) { return a[0].length - b[0].length; });
