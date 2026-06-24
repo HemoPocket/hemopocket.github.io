@@ -813,6 +813,51 @@ function hpEditFab(){
   b.title=on?'Estás editando · toca para salir':'Activar modo edición';
   b.textContent=on?'✓ Editando':'✏️ Editar';
 }
+// ── «➕ Añadir» unificado por sección: un único punto para crear calculadora / algoritmo /
+// información / subir guía, en lugar de botones dispersos. ──
+function _addOpt(ic,t,d,onclick){
+  return '<button class="btn btn-out" style="display:flex;align-items:center;gap:10px;text-align:left;padding:10px;width:100%" onclick="'+onclick+'"><span style="font-size:20px;width:26px;text-align:center;flex:none">'+ic+'</span><span><span style="font-weight:600;display:block">'+t+'</span><span style="font-size:.78rem;color:var(--mut,#666)">'+d+'</span></span></button>';
+}
+function hpAddChooser(sec){
+  if(!hpEditUISec(sec)){ toast('Activa el modo edición'); return; }
+  if(document.getElementById('add-modal')) return;
+  var title=(typeof hpSecTitle==='function')?hpSecTitle(sec):sec;
+  var ov=document.createElement('div'); ov.id='add-modal';
+  ov.setAttribute('style','position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10001;display:flex;align-items:center;justify-content:center;padding:1rem');
+  ov.innerHTML='<div id="add-box" style="background:var(--card,#fff);color:var(--txt,#222);border-radius:12px;padding:1rem;max-width:440px;width:100%;max-height:88vh;overflow:auto;position:relative">'
+    +'<button onclick="hpAddClose()" style="position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888" aria-label="Cerrar">✕</button>'
+    +'<h2 style="color:#c41e3a;margin:0 0 .2rem;font-size:1.05rem">➕ Añadir a «'+_hpEsc(title)+'»</h2>'
+    +'<p style="font-size:.8rem;color:var(--mut,#666);margin:.1rem 0 .8rem">Elige qué quieres crear. Se guarda para todo el equipo.</p>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'
+      +_addOpt('🧮','Calculadora de puntuación','Suma puntos de varias opciones','hpAddPick(\''+sec+'\',\'calc_score\')')
+      +_addOpt('ƒ','Calculadora con fórmula','Cálculo a partir de variables','hpAddPick(\''+sec+'\',\'calc_formula\')')
+      +_addOpt('🧩','Algoritmo interactivo','Árbol de decisión paso a paso','hpAddPick(\''+sec+'\',\'algo\')')
+      +_addOpt('📋','Información / nota','Ficha de texto','hpAddPick(\''+sec+'\',\'info\')')
+      +_addOpt('📄','Guía (PDF)','Subir un PDF a un apartado','hpAddPick(\''+sec+'\',\'guia\')')
+    +'</div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){ if(e.target===ov) hpAddClose(); });
+}
+function hpAddClose(){ var m=document.getElementById('add-modal'); if(m&&m.remove)m.remove(); }
+function hpAddPick(sec,type){
+  if(type==='guia') return _hpAddGuia(sec);
+  hpAddClose();
+  if(type==='calc_score') return calcNuevo(sec,'score');
+  if(type==='calc_formula') return calcNuevo(sec,'formula');
+  if(type==='algo') return algoNuevo(sec);
+  if(type==='info') return infoNuevo(sec);
+}
+function _hpAddGuia(sec){
+  var subs=(typeof getSubtypes==='function')?getSubtypes(sec):[];
+  var box=document.getElementById('add-box'); if(!box)return;
+  var head='<button onclick="hpAddClose()" style="position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888" aria-label="Cerrar">✕</button>';
+  if(!subs.length){
+    box.innerHTML=head+'<h2 style="color:#c41e3a;margin:0 0 .4rem;font-size:1.05rem">📄 Subir guía</h2><div class="alert b">Esta sección no tiene apartados todavía. Crea uno con «✏️ Editar apartados» y luego sube la guía.</div>';
+    return;
+  }
+  var opts=subs.map(function(st){ return '<button class="btn btn-out" style="display:block;width:100%;text-align:left;padding:9px;margin-bottom:6px" onclick="hpAddClose();hcUpload(\''+sec+'\',\''+st.id+'\')">📄 '+_hpEsc(st.name)+'</button>'; }).join('');
+  box.innerHTML=head+'<h2 style="color:#c41e3a;margin:0 0 .2rem;font-size:1.05rem">📄 ¿A qué apartado?</h2><p style="font-size:.8rem;color:var(--mut,#666);margin:.1rem 0 .7rem">Elige el apartado donde subir el PDF.</p>'+opts;
+}
 function EB(key, defHtml){
   var ov=hpBloques()[key];
   var html=(ov!=null && String(ov).trim()!=='') ? _hpSanHtml(ov) : defHtml;
@@ -4829,7 +4874,7 @@ function algosForSection(sec){ const m=hpAlgos(); return Object.keys(m).map(func
 function renderAlgosBlock(sec){
   const canEd=hpEditUISec(sec);
   const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';});
-  if(!canEd) return '';
+  if(!canEd && !pub.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧩 Algoritmos interactivos</span><span class="ar">▶</span></div><div class="coll-c">';
   (canEd?list:pub).forEach(function(a){
     const draft=a.estado!=='publicado';
@@ -4838,7 +4883,6 @@ function renderAlgosBlock(sec){
     if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="algoEditOpen(\''+a.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="algoEliminar(\''+a.id+'\')">×</button>'; }
     h+='</div>';
   });
-  if(canEd) h+='<button class="btn btn-out btn-sm" style="margin-top:10px" onclick="algoNuevo(\''+sec+'\')">➕ Crear algoritmo</button>';
   h+='</div></div>';
   return h;
 }
@@ -5023,7 +5067,7 @@ function calcsForSection(sec){ const m=hpCalcs(); return Object.keys(m).map(func
 function renderCalcsBlock(sec){
   const canEd=hpEditUISec(sec);
   const list=calcsForSection(sec); const pub=list.filter(function(c){return c.estado==='publicado';});
-  if(!canEd) return '';
+  if(!canEd && !pub.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧮 Calculadoras propias</span><span class="ar">▶</span></div><div class="coll-c">';
   (canEd?list:pub).forEach(function(c){
     const draft=c.estado!=='publicado';
@@ -5032,7 +5076,6 @@ function renderCalcsBlock(sec){
     if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="calcEditOpen(\''+c.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="calcEliminar(\''+c.id+'\')">×</button>'; }
     h+='</div>';
   });
-  if(canEd) h+='<div class="btns" style="margin-top:10px"><button class="btn btn-out btn-sm" onclick="calcNuevo(\''+sec+'\',\'score\')">➕ De puntuación</button><button class="btn btn-out btn-sm" onclick="calcNuevo(\''+sec+'\',\'formula\')">➕ Con fórmula</button></div>';
   h+='</div></div>';
   return h;
 }
@@ -5271,7 +5314,7 @@ function infosForSection(sec){ const m=hpInfos(); return Object.keys(m).map(func
 function renderInfosBlock(sec){
   const canEd=hpEditUISec(sec);
   const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';});
-  if(!canEd) return '';
+  if(!canEd && !pub.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Información y notas</span><span class="ar">▶</span></div><div class="coll-c">';
   (canEd?list:pub).forEach(function(x){
     const draft=x.estado!=='publicado';
@@ -5280,7 +5323,6 @@ function renderInfosBlock(sec){
     if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="infoEditOpen(\''+x.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="infoEliminar(\''+x.id+'\')">×</button>'; }
     h+='</div>';
   });
-  if(canEd) h+='<button class="btn btn-out btn-sm" style="margin-top:10px" onclick="infoNuevo(\''+sec+'\')">➕ Crear información</button>';
   h+='</div></div>'; return h;
 }
 let _infoState=null;
@@ -5731,6 +5773,10 @@ h+='<div class="btns" style="margin-bottom:12px">';
 h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🚫 Ocultar del menú')+'</button>';
 h+='</div>';
+}
+// Punto único para crear contenido en esta sección (solo en modo edición).
+if(hpEditUISec(id)){
+h+='<div class="btns" style="margin-bottom:12px"><button class="btn btn-2 btn-sm" onclick="hpAddChooser(\''+id+'\')">➕ Añadir calculadora, algoritmo, info o guía</button></div>';
 }
 if(editing){
 h+='<p style="font-size:12px;color:var(--mut);margin-bottom:8px">Edita los nombres directamente y usa <strong>↑/↓</strong> para reordenar los apartados. Crear, renombrar, reordenar o eliminar apartados se guarda en la nube y es <strong>efectivo para todos</strong>. Al borrar un apartado, sus PDFs de la nube dejan de mostrarse (bórralos antes si quieres eliminarlos del todo).<br>Para reordenar, renombrar o borrar <strong>cada guía</strong> (incluidas las antiguas que venían con la app), sal de este modo, abre el apartado y usa los botones ↑ ↓ ✏️ 🗑️ de cada guía.</p>';
@@ -6923,7 +6969,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 255;
+const HP_BUILD = 256;
 const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
