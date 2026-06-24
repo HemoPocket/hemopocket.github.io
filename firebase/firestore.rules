@@ -158,11 +158,20 @@ service cloud.firestore {
     }
 
     // ── Elementos del menú (calculadoras): visibilidad y nombre, por tema ──
-    // Editable SOLO por administradores; efectiva para todos. Permite a cada hospital
-    // mostrar/ocultar o renombrar las calculadoras de cada sección sin tocar el código.
+    // Editable por administradores (cualquier campo). Los editores SOLO pueden cambiar el campo
+    // 'sub' (la subsección dentro de la sección): no pueden renombrar/ocultar/mover calculadoras.
+    // El reparto por sección lo controla la app; aquí se acota el cambio al campo de subsección.
+    function _soloSub() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['sub', 'actualizadoPor', 'fechaActualizacion']);
+    }
     match /menuitems/{id} {
       allow read:   if isApproved();
-      allow write:  if isAdmin();
+      allow create: if isAdmin()
+                    || (isEditor() && request.resource.data.keys()
+                          .hasOnly(['sub', 'actualizadoPor', 'fechaActualizacion']));
+      allow update: if isAdmin() || (isEditor() && _soloSub());
+      allow delete: if isAdmin();
     }
 
     // ── Orden de las categorías del menú (reordenar las secciones) ──
