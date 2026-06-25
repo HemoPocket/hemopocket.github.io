@@ -904,7 +904,7 @@ async function ebSave(key){
   var m=hpBloques(); m[key]=html; try{ ls.s('bloques',m); }catch(e){}
   try{ document.querySelectorAll('[data-eb="'+key+'"] .eb-c').forEach(function(c){ c.innerHTML=html; }); }catch(e){}
   ebClose();
-  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Guardado');
 }
 async function ebRestore(key){
@@ -981,7 +981,7 @@ async function hpTplSave(){
   var c=window._hpTplCtx; if(!c)return; var a=document.getElementById('hp_tpl_area'); if(!a)return; var tpl=a.value;
   var m=hpReportTpls(); m[c.id]=tpl; try{ls.s('reportTpls',m);}catch(e){}
   _hpDoCopy(_hpFillTpl(tpl, c.resultText, c.vars)); hpCloseTpl();
-  if(window.hpSavePlantilla){ try{ await window.hpSavePlantilla(c.id, tpl); toast('✓ Plantilla guardada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  if(window.hpSavePlantilla){ try{ await window.hpSavePlantilla(c.id, tpl); toast('✓ Plantilla guardada · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Plantilla guardada');
 }
 async function hpTplRestore(){
@@ -1406,7 +1406,7 @@ VIEWS.pageedit=()=>{
   h+='</div>'; return h;
 };
 function pageCancelar(){ const id=_pageDraft&&_pageDraft.id; _pageDraft=null; if(id) go(id); else go('home'); }
-async function pageGuardar(){ const d=_pageDraft; if(!d) return; const a=document.getElementById('page-edit-area'); if(!a) return; try{Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(e){e.classList.remove('pg-cur');});}catch(e){} const html=_hpSanHtml(a.innerHTML); const data={html:html, seccion:d.seccion||null, estado:'publicado'}; const m=hpPages(); m[d.id]=data; try{ls.s('pageOv',m);}catch(e){} if(window.hpSavePage){ try{ await window.hpSavePage(d.id, data); toast('✓ Página actualizada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _pageDraft=null; go(d.id); }
+async function pageGuardar(){ const d=_pageDraft; if(!d) return; const a=document.getElementById('page-edit-area'); if(!a) return; try{Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(e){e.classList.remove('pg-cur');});}catch(e){} const html=_hpSanHtml(a.innerHTML); const data={html:html, seccion:d.seccion||null, estado:'publicado'}; const m=hpPages(); m[d.id]=data; try{ls.s('pageOv',m);}catch(e){} if(window.hpSavePage){ try{ await window.hpSavePage(d.id, data); toast('✓ Página actualizada · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _pageDraft=null; go(d.id); }
 async function hpRestaurarPage(id){ if(!confirm('¿Restaurar el contenido original de esta página? Se perderá la edición para todos.'))return; const m=hpPages(); delete m[id]; try{ls.s('pageOv',m);}catch(e){} if(window.hpDeletePage){ try{ await window.hpDeletePage(id); toast('✓ Original restaurado'); }catch(e){ toast('Restaurado solo en este equipo'); } } _pageDraft=null; go(id); }
 
 function hpVerifyBanner(id){
@@ -2870,7 +2870,7 @@ function clEditDelItem(si,ii){ _clDraft[si].items.splice(ii,1); go('checklistedi
 function clEditMoverItem(si,ii,dir){ const items=_clDraft[si].items; const j=ii+dir; if(j<0||j>=items.length)return; const t=items[ii]; items[ii]=items[j]; items[j]=t; go('checklistedit'); }
 function clEditItemField(si,ii,f,v){ const it=_clDraft[si]&&_clDraft[si].items[ii]; if(!it)return; if(f==='hl'||f==='cond'){ if(v) it[f]=true; else delete it[f]; } else it[f]=v; }
 function clEditCancelar(){ _clDraft=null; go('checklist'); }
-async function clEditGuardar(){ const arr=_clDraft||[]; if(!arr.length){ toast('Añade al menos un apartado'); return; } try{ls.s('clOverride',arr);}catch(e){} if(window.hpSaveChecklist){ try{ await window.hpSaveChecklist(arr); toast('✓ Check list actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _clDraft=null; go('checklist'); }
+async function clEditGuardar(){ const arr=_clDraft||[]; if(!arr.length){ toast('Añade al menos un apartado'); return; } try{ls.s('clOverride',arr);}catch(e){} if(window.hpSaveChecklist){ try{ await window.hpSaveChecklist(arr); toast('✓ Check list actualizado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _clDraft=null; go('checklist'); }
 async function clEditReset(){ if(!confirm('¿Restablecer el check list de fábrica? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_clOverride'); }catch(e){} if(window.hpDeleteChecklist){ try{ await window.hpDeleteChecklist(); }catch(e){} } _clDraft=JSON.parse(JSON.stringify(CL_SECTIONS)); toast('✓ Restablecido de fábrica'); go('checklistedit'); }
 
 
@@ -4750,7 +4750,7 @@ async function hpRenombrarSeccion(id){
   if(nuevo==null) return; const t=nuevo.trim(); if(!t) return;
   const m=hpSecMap(); m[id]=Object.assign({},m[id],{titulo:t}); try{ls.s('secOverrides',m);}catch(e){}
   if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); go((typeof S!=='undefined'&&S.view==='gsecciones')?'gsecciones':'g_'+id);
-  if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{titulo:t}); toast('✓ Sección renombrada · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{titulo:t}); toast('✓ Sección renombrada · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Renombrada');
 }
 async function hpOcultarSeccion(id){
@@ -5065,7 +5065,7 @@ function _algoValidar(d){
   return {errs:errs, warns:warns};
 }
 function algoComprobar(){ const v=_algoValidar(_algoDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, listo para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
-async function algoGuardar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
+async function algoGuardar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
 async function algoPublicar(){ const d=_algoDraft; const _v=_algoValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } go('g_'+d.seccion); }
 async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!confirm('¿Eliminar el algoritmo "'+(a.titulo||'')+'" para todos?'))return; const sec=a.seccion; const m=hpAlgos(); delete m[id]; try{ls.s('algos',m);}catch(e){} if(window.hpDeleteAlgo){ try{ await window.hpDeleteAlgo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_'+sec); }
 
@@ -5383,7 +5383,7 @@ function _calcValidar(d){
   return {errs:errs,warns:warns};
 }
 function calcComprobar(){ const v=_calcValidar(_calcDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, lista para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
-async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
+async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
 async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
 async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; const _st=_calcsStored(); if(DEFAULT_CALCS[id] && !_st[id]){ toast('Es una calculadora de ejemplo integrada en la app; edítala para personalizarla.'); return; } if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=_calcsStored(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
 
@@ -5436,7 +5436,7 @@ VIEWS.infoedit=()=>{
 function infoSetField(f,v){ if(!_infoDraft)return; _infoDraft[f]=v; if(f==='seccion') go('infoedit'); }
 function infoVistaPrevia(){ _infoState=Object.assign({},JSON.parse(JSON.stringify(_infoDraft)),{preview:true}); go('info'); }
 function infoCancelar(){ const s=_infoDraft&&_infoDraft.seccion; _infoDraft=null; if(s) go('g_'+s); else go('home'); }
-async function infoGuardar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('💾 Guardado'); }
+async function infoGuardar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
 async function infoPublicar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!(d.cuerpo||'').trim() && !confirm('No has escrito contenido. ¿Publicar igualmente?'))return; d.estado='publicado'; const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
 async function infoEliminar(id){ const x=hpInfos()[id]; if(!x)return; if(!confirm('¿Eliminar "'+(x.titulo||'')+'" para todos?'))return; const sec=x.seccion; const m=hpInfos(); delete m[id]; try{ls.s('infos',m);}catch(e){} if(window.hpDeleteInfo){ try{ await window.hpDeleteInfo(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
 // Botonera unificada para AÑADIR contenido a una sección (calculadora, algoritmo, información, PDF).
@@ -5459,7 +5459,7 @@ window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls
 async function _hpPropagaSubtipos(id,subs,okMsg){
   if(window.hpSaveSubtipos){
     try{ await window.hpSaveSubtipos(id,(subs||[]).map(function(s){var o={id:s.id,name:s.name};if(Array.isArray(s.order)&&s.order.length)o.order=s.order;if(Array.isArray(s.hidden)&&s.hidden.length)o.hidden=s.hidden;if(s.names&&typeof s.names==='object'&&Object.keys(s.names).length)o.names=s.names;return o;})); toast(okMsg+' · visible para todos'); }
-    catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); }
+    catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); }
   } else { toast(okMsg); }
 }
 // Algoritmos GELTAMO empaquetados en la app (NO dependen del Gist/sincronización):
@@ -7038,7 +7038,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 268;
+const HP_BUILD = 269;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -7141,6 +7141,8 @@ ls.s('subtypes_'+k,data.subtypes[k]);
 sectionsUpdated++;
 }
 }
+// Antes de LEER de la nube, PUBLICA lo que se editó sin conexión (si no, se machacaría).
+if(window.hpFlushWrites){try{await window.hpFlushWrites();}catch(e){}}
 // Los apartados editados desde la app (colección 'subtipos') prevalecen sobre el JSON estático.
 if(window.hpSyncSubtipos){try{await window.hpSyncSubtipos();}catch(e){}}
 if(window.hpSyncSecciones){try{await window.hpSyncSecciones();}catch(e){}}
@@ -8499,7 +8501,7 @@ function qtDelDrug(i){ _qtDraft.drugs.splice(i,1); go('qtedit'); }
 function qtDrugField(i,f,v){ const dr=_qtDraft.drugs[i]; if(dr) dr[f]=v; }
 function qtDrugDays(i,v){ const dr=_qtDraft.drugs[i]; if(dr) dr.days=(''+v).split(',').map(function(s){return parseInt(s.trim(),10);}).filter(function(n){return !isNaN(n);}); }
 function qtCancelar(){ _qtDraft=null; go('qt'); }
-async function qtGuardar(){ const d=_qtDraft; if(!d) return; if(!d.key||!d.key.trim()){ toast('Ponle una clave al esquema'); return; } if(!d.label||!d.label.trim()){ toast('Ponle un nombre visible'); return; } const key=d.key.trim(); const sc=JSON.parse(JSON.stringify(d)); delete sc.key; delete sc._isNew; delete sc._isCustom; const m=qtOverride(); m[key]=sc; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Esquema guardado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _qtDraft=null; go('qt'); }
+async function qtGuardar(){ const d=_qtDraft; if(!d) return; if(!d.key||!d.key.trim()){ toast('Ponle una clave al esquema'); return; } if(!d.label||!d.label.trim()){ toast('Ponle un nombre visible'); return; } const key=d.key.trim(); const sc=JSON.parse(JSON.stringify(d)); delete sc.key; delete sc._isNew; delete sc._isCustom; const m=qtOverride(); m[key]=sc; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Esquema guardado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _qtDraft=null; go('qt'); }
 async function qtEliminar(){ const d=_qtDraft; if(!d||!d.key) return; if(QT_SCHEMES[d.key]){ toast('Es un esquema de fábrica; edítalo (no se puede eliminar)'); return; } if(!confirm('¿Eliminar el esquema "'+(d.label||d.key)+'" para todos?'))return; const m=qtOverride(); delete m[d.key]; try{ls.s('qtOverride',m);}catch(e){} if(window.hpSaveQt){ try{ await window.hpSaveQt(m); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } _qtDraft=null; go('qt'); }
 
 // ── Gestor de subgrupos (estilo editor analítico) ──
@@ -9913,7 +9915,7 @@ async function hpAddContacto(){
   const id='ct_'+Date.now(); const data={nombre:nombre.trim(),servicio:_hpDirCanonSvc(servicio)||'Otros',ext:ext,tel:tel,loc:loc};
   const m=hpDirAdd(); m[id]=data; try{ls.s('dirAdd',m);}catch(e){}
   renderDir();
-  if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto añadido · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto añadido · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Añadido');
 }
 // Editar cualquier entrada del listín (oficial o añadida). Precarga con los valores
@@ -9929,7 +9931,7 @@ async function hpEditContacto(id){
   const data={nombre:nombre.trim(),servicio:_hpDirCanonSvc(servicio)||'Otros',ext:ext,tel:tel,loc:loc};
   const m=hpDirAdd(); m[id]=data; try{ls.s('dirAdd',m);}catch(e){}
   renderDir();
-  if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  if(window.hpSaveContacto){ try{ await window.hpSaveContacto(id,data); toast('✓ Contacto actualizado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Actualizado');
 }
 async function hpDelContacto(id){
@@ -12070,7 +12072,7 @@ function lcDelCat(i){ if(!_lcDraft)return; var k=_lcDraft.catOrder[i]; if(CAT_OR
 function lcFmtField(k,v){ if(!_lcDraft)return; if(!_lcDraft.fmt)_lcDraft.fmt={}; _lcDraft.fmt[k]=v; go('lcedit'); }
 function lcFmtPreview(fmt){ fmt=fmt||{}; const sepMap={coma:', ',medio:' · ',puntocoma:'; ',linea:'\n'}; const sep=sepMap[fmt.sep]||', '; const dd=(fmt.date!==false)?' (18-06-26)':''; const items=['Hb 13,2 g/dl','VCM 87 fl','Plaquetas 83 x10E9/L']; return 'Hemograma'+dd+((sep==='\n')?':\n'+items.join('\n'):': '+items.join(sep)); }
 function lcEditCancelar(){ _lcDraft=null; go('labconv'); }
-async function lcEditGuardar(){ const d=_lcDraft; if(!d)return; const o={ syn:d.syn||{}, hidden:d.hidden||{}, custom:(d.custom||[]).filter(function(p){return p&&(p.a+'').trim();}).map(function(p){var q=Object.assign({},p);delete q._open;return q;}), catLabel:d.catLabel||{}, catOrder:d.catOrder||[] }; try{ls.s('lcOverride',o);}catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc(o); toast('✓ Asistente actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _lcDraft=null; go('labconv'); }
+async function lcEditGuardar(){ const d=_lcDraft; if(!d)return; const o={ syn:d.syn||{}, hidden:d.hidden||{}, custom:(d.custom||[]).filter(function(p){return p&&(p.a+'').trim();}).map(function(p){var q=Object.assign({},p);delete q._open;return q;}), catLabel:d.catLabel||{}, catOrder:d.catOrder||[] }; try{ls.s('lcOverride',o);}catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc(o); toast('✓ Asistente actualizado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _lcDraft=null; go('labconv'); }
 async function lcEditReset(){ if(!confirm('¿Restablecer el diccionario y la plantilla de fábrica? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_lcOverride'); }catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc({}); }catch(e){} } _lcDraft={ syn:{}, hidden:{}, fmt:{sep:'coma',date:true}, custom:[], catLabel:Object.assign({},CAT_LABEL), catOrder:CAT_ORDER.slice() }; toast('✓ Restablecido de fábrica'); go('lcedit'); }
 // Exponer los manejadores del editor al ámbito GLOBAL: los onclick/onchange en línea del HTML se
 // ejecutan en 'window', pero estas funciones viven dentro de este módulo (IIFE). Sin esto, el botón
@@ -12479,7 +12481,7 @@ function rxField(list,i,f,v){ if(!_rxDraft||!_rxDraft[list]||!_rxDraft[list][i])
 function rxAdd(list){ if(!_rxDraft)return; if(!_rxDraft[list])_rxDraft[list]=[]; _rxDraft[list].push({from:'',to:''}); go('rxedit'); }
 function rxDel(list,i){ if(!_rxDraft||!_rxDraft[list])return; _rxDraft[list].splice(i,1); go('rxedit'); }
 function rxEditCancelar(){ _rxDraft=null; go('labconv'); }
-async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ ejemplos:clean(d.ejemplos), rename:clean(d.rename), abbr:clean(d.abbr), pauta:clean(d.pauta) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
+async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ ejemplos:clean(d.ejemplos), rename:clean(d.rename), abbr:clean(d.abbr), pauta:clean(d.pauta) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
 async function rxEditReset(){ if(!confirm('¿Restablecer el diccionario de recetas? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_rxOverride'); }catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx({}); }catch(e){} } _rxDraft={rename:[],abbr:[]}; toast('✓ Restablecido'); go('rxedit'); }
 
 // ── Blindaje del asistente de redacción: verificación de integridad numérica ──
@@ -13487,7 +13489,7 @@ async function hpGuardarAviso(){
   try{ls.s('avisoLegal',html);}catch(e){}
   _avisoRenderCuerpo(); poblarRevisoresAviso();
   var eb=document.getElementById('aviso-edit-btn'); if(eb) eb.style.display=(window.__hpUid===HP_PRINCIPAL_UID)?'inline-block':'none';
-  if(window.hpSaveAviso){ try{ await window.hpSaveAviso(html); if(typeof toast==='function')toast('✓ Aviso Legal actualizado · para todos'); }catch(e){ if(typeof toast==='function')toast('Guardado solo en este equipo (sin permiso o sin conexión)'); } }
+  if(window.hpSaveAviso){ try{ await window.hpSaveAviso(html); if(typeof toast==='function')toast('✓ Aviso Legal actualizado · para todos'); }catch(e){ if(typeof toast==='function')toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else if(typeof toast==='function')toast('✓ Guardado'); }
 function abrirAvisoLegal() {
   _avisoRenderCuerpo();
@@ -13880,20 +13882,27 @@ function revealAndEnter(user){
   HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
   if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
-  if (window.hpSyncSubtipos) setTimeout(() => window.hpSyncSubtipos(), 950);
-  if (window.hpSyncSecciones) setTimeout(() => window.hpSyncSecciones(), 1000);
-  if (window.hpSyncCatOrden) setTimeout(() => window.hpSyncCatOrden(), 1010);
-  if (window.hpSyncChecklist) setTimeout(() => window.hpSyncChecklist(), 1020);
-  if (window.hpSyncQt) setTimeout(() => window.hpSyncQt(), 1030);
-  if (window.hpSyncQtGroups) setTimeout(() => window.hpSyncQtGroups(), 1035);
-  if (window.hpSyncLc) setTimeout(() => window.hpSyncLc(), 1040);
-  if (window.hpSyncPages) setTimeout(() => window.hpSyncPages(), 1050);
-  if (window.hpSyncAlgos) setTimeout(() => window.hpSyncAlgos(), 1050);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
-  if (window.hpSyncItems) setTimeout(() => window.hpSyncItems(), 1250);
-  if (window.hpSyncCalcs) setTimeout(() => window.hpSyncCalcs(), 1300);
-  if (window.hpSyncInfos) setTimeout(() => window.hpSyncInfos(), 1350);
+  // Ediciones de contenido: primero SUBE lo que quedó pendiente sin conexión y solo
+  // entonces LEE de la nube (si no, el pull machacaría lo editado offline).
+  setTimeout(() => {
+    const _syncContent = () => {
+      if (window.hpSyncSubtipos) window.hpSyncSubtipos();
+      if (window.hpSyncSecciones) window.hpSyncSecciones();
+      if (window.hpSyncCatOrden) window.hpSyncCatOrden();
+      if (window.hpSyncChecklist) window.hpSyncChecklist();
+      if (window.hpSyncQt) window.hpSyncQt();
+      if (window.hpSyncQtGroups) window.hpSyncQtGroups();
+      if (window.hpSyncLc) window.hpSyncLc();
+      if (window.hpSyncPages) window.hpSyncPages();
+      if (window.hpSyncAlgos) window.hpSyncAlgos();
+      if (window.hpSyncItems) window.hpSyncItems();
+      if (window.hpSyncCalcs) window.hpSyncCalcs();
+      if (window.hpSyncInfos) window.hpSyncInfos();
+    };
+    (window.hpFlushWrites ? window.hpFlushWrites() : Promise.resolve()).finally(_syncContent);
+  }, 1000);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
@@ -14057,10 +14066,53 @@ window.hpListColaboradores = async function(){
   const out = {}; snap.forEach(d => { out[d.id] = d.data(); }); return out;
 };
 // ── Apartados (subtipos) por sección, COMPARTIDOS ──
+// ── Cola de escrituras PENDIENTES (ediciones hechas sin conexión) ──────────────
+// Si un guardado falla estando offline, se encola en localStorage (clave estable:
+// la última edición de un mismo recurso sustituye a la anterior). Al volver internet
+// (evento 'online' o arranque) se reintenta y se publica para todos. El arranque
+// vacía la cola ANTES de leer la nube, para que el pull no machaque lo editado offline.
+function hpwqGet(){ try{ return JSON.parse(localStorage.getItem('hc_pendingWrites'))||{}; }catch(e){ return {}; } }
+function hpwqSet(q){ try{ localStorage.setItem('hc_pendingWrites', JSON.stringify(q||{})); }catch(e){} }
+function hpwqCount(){ try{ return Object.keys(hpwqGet()).length; }catch(e){ return 0; } }
+async function hpQSet(key, colId, docId, data, merge){
+  const stamp=function(){ return Object.assign({}, data||{}, { actualizadoPor: (curUid||null), fechaActualizacion: serverTimestamp() }); };
+  try{
+    await setDoc(doc(fs, colId, docId), stamp(), merge?{merge:true}:undefined);
+    const q=hpwqGet(); if(q[key]){ delete q[key]; hpwqSet(q); }
+    return true;
+  }catch(e){
+    if(!navigator.onLine){ const q=hpwqGet(); q[key]={colId:colId,docId:docId,data:data||{},merge:!!merge,ts:Date.now()}; hpwqSet(q); }
+    throw e;
+  }
+}
+let _hpFlushing=false;
+window.hpFlushWrites = async function(){
+  if(_hpFlushing||!navigator.onLine) return;
+  const q=hpwqGet(); const keys=Object.keys(q);
+  if(!keys.length) return;
+  _hpFlushing=true; let _ok=0;
+  try{
+    for(const k of keys){
+      const op=q[k]; if(!op||!op.colId||!op.docId){ const cur=hpwqGet(); delete cur[k]; hpwqSet(cur); continue; }
+      try{
+        const payload=Object.assign({}, op.data||{}, { actualizadoPor: (curUid||null), fechaActualizacion: serverTimestamp() });
+        await setDoc(doc(fs, op.colId, op.docId), payload, op.merge?{merge:true}:undefined);
+        const cur=hpwqGet(); delete cur[k]; hpwqSet(cur); _ok++;
+      }catch(e){
+        const cur=hpwqGet(); if(cur[k]){ cur[k].tries=(cur[k].tries||0)+1; if(cur[k].tries>=8) delete cur[k]; hpwqSet(cur); }
+        if(!navigator.onLine) break;
+      }
+    }
+  } finally { _hpFlushing=false; }
+  if(_ok>0 && typeof toast==='function'){ try{ toast('✓ '+_ok+' cambio'+(_ok===1?'':'s')+' pendiente'+(_ok===1?'':'s')+' publicado'+(_ok===1?'':'s')); }catch(e){} }
+};
+// Al recuperar la conexión, publica lo que quedó pendiente.
+try{ window.addEventListener('online', function(){ setTimeout(function(){ if(window.hpFlushWrites) window.hpFlushWrites(); }, 1200); }); }catch(e){}
+
 // Quien puede editar la sección (admin o editor de ella) crea/renombra/elimina apartados y es
 // efectivo para TODOS. Lo leen los usuarios autorizados (reglas: read isApproved, write canEdit).
 window.hpSaveSubtipos = async function(section, items){
-  await setDoc(doc(fs, 'subtipos', section), { items: Array.isArray(items)?items:[], updatedAt: serverTimestamp(), updatedBy: curUid || null });
+  await hpQSet('subt:'+section, 'subtipos', section, { items: Array.isArray(items)?items:[] });
 };
 window.hpResetSubtipos = async function(section){
   await deleteDoc(doc(fs, 'subtipos', section));
@@ -14074,7 +14126,7 @@ window.hpSyncSubtipos = async function(){
 };
 // ── Secciones de guías (título/visibilidad), por sección. Solo admin escribe; lee cualquier autorizado.
 window.hpSaveSeccion = async function(id, data){
-  await setDoc(doc(fs, 'secciones', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true });
+  await hpQSet('sec:'+id, 'secciones', id, data||{}, true);
 };
 window.hpSyncSecciones = async function(){
   try{
@@ -14086,27 +14138,27 @@ window.hpSyncSecciones = async function(){
 };
 window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones', id)); };
 // ── Orden de las categorías del menú. Lo escribe un admin; lo leen todos.
-window.hpSaveCatOrden = async function(m){ await setDoc(doc(fs, 'menuconfig', 'orden'), { orden: m||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSaveCatOrden = async function(m){ await hpQSet('catorden', 'menuconfig', 'orden', { orden: m||{} }); };
 
 // ── Check list de ingreso (estructura). Lo edita un admin; lo leen todos. ──
-window.hpSaveChecklist = async function(arr){ await setDoc(doc(fs, 'checklists', 'ingreso'), { sections: arr||[], actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSaveChecklist = async function(arr){ await hpQSet('checklist', 'checklists', 'ingreso', { sections: arr||[] }); };
 window.hpDeleteChecklist = async function(){ await deleteDoc(doc(fs, 'checklists', 'ingreso')); };
 // ── Esquemas de QT propios. Los edita un admin; los leen todos. ──
-window.hpSaveQt = async function(map){ await setDoc(doc(fs, 'qtschemes', 'custom'), { schemes: map||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSaveQt = async function(map){ await hpQSet('qt', 'qtschemes', 'custom', { schemes: map||{} }); };
 window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschemes', 'custom')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQt) window.hpApplyQt(d.schemes||{}); } return true; }catch(e){ return false; } };
-window.hpSaveQtGroups = async function(c){ await setDoc(doc(fs, 'menuconfig', 'qtgroups'), { data: c||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSaveQtGroups = async function(c){ await hpQSet('qtg', 'menuconfig', 'qtgroups', { data: c||{} }); };
 window.hpSyncQtGroups = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'qtgroups')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQtGroups) window.hpApplyQtGroups(d.data||{}); } return true; }catch(e){ return false; } };
 
 // ── Diccionario/plantilla del asistente de redacción. Los edita un admin; los leen todos. ──
-window.hpSaveLc = async function(o){ await setDoc(doc(fs, 'menuconfig', 'redaccion'), { data: o||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSaveLc = async function(o){ await hpQSet('lc', 'menuconfig', 'redaccion', { data: o||{} }); };
 window.hpSyncLc = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'redaccion')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyLc) window.hpApplyLc(d.data||{}); } return true; }catch(e){ return false; } };
 
 // ── Diccionario del asistente de recetas. Lo editan admin/editores del área "Asistentes"; lo leen todos. ──
-window.hpSaveRx = async function(o){ await setDoc(doc(fs, 'menuconfig', 'recetas'), { data: o||{}, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
+window.hpSaveRx = async function(o){ await hpQSet('rx', 'menuconfig', 'recetas', { data: o||{} }); };
 window.hpSyncRx = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'recetas')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyRx) window.hpApplyRx(d.data||{}); } return true; }catch(e){ return false; } };
 
 // ── Páginas editadas (override de contenido). Las edita quien edita esa sección (o admin). ──
-window.hpSavePage = async function(id, data){ await setDoc(doc(fs, 'paginas', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{})); };
+window.hpSavePage = async function(id, data){ await hpQSet('page:'+id, 'paginas', id, data||{}); };
 window.hpDeletePage = async function(id){ await deleteDoc(doc(fs, 'paginas', id)); };
 window.hpSyncPages = async function(){ try{ const snap = await getDocs(collection(fs, 'paginas')); const map = {}; snap.forEach(d => { map[d.id] = d.data()||{}; }); if(window.hpApplyPages) window.hpApplyPages(map); return true; }catch(e){ return false; } };
 
@@ -14125,7 +14177,7 @@ window.hpSyncCatOrden = async function(){ try{ const s = await getDoc(doc(fs, 'm
 
 
 // ── Elementos del menú (calculadoras): visibilidad/nombre por hospital. Solo admin escribe; lo leen todos.
-window.hpSaveItem = async function(id, data){ await setDoc(doc(fs, 'menuitems', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true }); };
+window.hpSaveItem = async function(id, data){ await hpQSet('item:'+id, 'menuitems', id, data||{}, true); };
 window.hpSyncItems = async function(){
   try{
     const snap = await getDocs(collection(fs, 'menuitems'));
@@ -14136,7 +14188,7 @@ window.hpSyncItems = async function(){
 };
 // ── Plantillas de informe (formato del texto que se copia de cada calculadora). Doc por id de
 // calculadora; las edita admin/editor y las lee todo el equipo. ──
-window.hpSavePlantilla = async function(id, tpl){ await setDoc(doc(fs, 'plantillas', id), { tpl: tpl, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, { merge:true }); };
+window.hpSavePlantilla = async function(id, tpl){ await hpQSet('tpl:'+id, 'plantillas', id, { tpl: tpl }, true); };
 window.hpDeletePlantilla = async function(id){ await deleteDoc(doc(fs, 'plantillas', id)); };
 window.hpSyncPlantillas = async function(){
   try{
@@ -14147,7 +14199,7 @@ window.hpSyncPlantillas = async function(){
   }catch(e){ return false; }
 };
 // ── Bloques editables (texto de algoritmos/herramientas). Doc por clave; admin/editor escriben. ──
-window.hpSaveBloque = async function(key, html){ await setDoc(doc(fs, 'bloques', key), { html: html, actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, { merge:true }); };
+window.hpSaveBloque = async function(key, html){ await hpQSet('bloque:'+key, 'bloques', key, { html: html }, true); };
 window.hpDeleteBloque = async function(key){ await deleteDoc(doc(fs, 'bloques', key)); };
 window.hpSyncBloques = async function(){
   try{
@@ -14159,11 +14211,11 @@ window.hpSyncBloques = async function(){
 };
 
 // ── Algoritmos interactivos (por sección). Lo escribe quien edita esa sección; lo leen todos.
-window.hpSaveAlgo = async function(algo){ await setDoc(doc(fs, 'algoritmos', algo.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, algo)); };
+window.hpSaveAlgo = async function(algo){ await hpQSet('algo:'+algo.id, 'algoritmos', algo.id, algo); };
 window.hpDeleteAlgo = async function(id){ await deleteDoc(doc(fs, 'algoritmos', id)); };
 
 // ── Calculadoras propias (por sección). Las edita quien edita esa sección; las leen todos.
-window.hpSaveCalc = async function(calc){ await setDoc(doc(fs, 'calculadoras', calc.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, calc)); };
+window.hpSaveCalc = async function(calc){ await hpQSet('calc:'+calc.id, 'calculadoras', calc.id, calc); };
 window.hpDeleteCalc = async function(id){ await deleteDoc(doc(fs, 'calculadoras', id)); };
 window.hpSyncCalcs = async function(){
   try{
@@ -14175,7 +14227,7 @@ window.hpSyncCalcs = async function(){
 };
 
 // ── Contenido informativo (por sección). Lo edita quien edita esa sección; lo leen todos.
-window.hpSaveInfo = async function(x){ await setDoc(doc(fs, 'infos', x.id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, x)); };
+window.hpSaveInfo = async function(x){ await hpQSet('info:'+x.id, 'infos', x.id, x); };
 window.hpDeleteInfo = async function(id){ await deleteDoc(doc(fs, 'infos', id)); };
 window.hpSyncInfos = async function(){
   try{
