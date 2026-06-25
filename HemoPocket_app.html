@@ -1298,8 +1298,13 @@ function hpPageWrap(id, base){
   const ov=hpPages()[id]; const canEd=hpCanEditPage(id) && hpEditing();
   if(ov && ov.html && ov.estado==='publicado'){
     let h='<div class="card">';
-    if(canEd){ h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span style="flex:1"></span><button class="btn btn-out btn-sm" onclick="hpEditPage(\''+id+'\')">✏️ Editar</button><button class="btn btn-out btn-sm" onclick="hpRestaurarPage(\''+id+'\')">↺ Restaurar original</button></div>'; }
-    h+='<div class="hp-page-body">'+_hpSanHtml(ov.html)+'</div></div>';
+    if(canEd){
+      h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span style="flex:1;font-size:11.5px;color:var(--mut)">✏️ Toca el contenido para editarlo</span><button class="btn btn-out btn-sm" onclick="hpRestaurarPage(\''+id+'\')">↺ Restaurar original</button></div>';
+      h+='<div class="hp-page-body" onclick="hpEditPage(\''+id+'\')" style="cursor:pointer;outline:1px dashed var(--c2,#1d4ed8);outline-offset:4px;border-radius:8px" title="Tocar para editar esta página">'+_hpSanHtml(ov.html)+'</div>';
+    } else {
+      h+='<div class="hp-page-body">'+_hpSanHtml(ov.html)+'</div>';
+    }
+    h+='</div>';
     return {html:h, skipPost:true};
   }
   let h=base;
@@ -7033,7 +7038,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 266;
+const HP_BUILD = 267;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
