@@ -7038,7 +7038,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 271;
+const HP_BUILD = 272;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13051,8 +13051,14 @@ try{ if(window.hpFlushWrites) await window.hpFlushWrites(); }catch(e){}
 const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncPlantillas','hpSyncBloques'];
 for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
-// Refresca la vista actual SOLO si es una sección de guías/página (contenido pasivo), para mostrar lo nuevo.
-if(opts.rerender){ try{ if(typeof S!=='undefined' && S && /^g_/.test(S.view||'') && typeof go==='function') go(S.view); }catch(e){} }
+// Refresca la vista actual si es contenido PASIVO (sección de guías o página editada),
+// para mostrar lo nuevo sin recargar. No re-pinta vistas interactivas (no resetea algoritmos).
+if(opts.rerender){ try{
+  var _v=(typeof S!=='undefined'&&S&&S.view)||'';
+  var _ov=(typeof hpPages==='function')?hpPages()[_v]:null;
+  var _isPage=!!(_ov&&_ov.html&&_ov.estado==='publicado');
+  if((/^g_/.test(_v)||_isPage)&&typeof go==='function') go(_v);
+}catch(e){} }
 } finally { _hpResyncing=false; }
 };
 try{
@@ -13956,7 +13962,7 @@ function revealAndEnter(user){
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
   // Ediciones de contenido: sube lo pendiente sin conexión y LEE de la nube todas las
   // secciones (incluida recetas). Reutiliza la resync en vivo para no duplicar la lista.
-  setTimeout(() => { if (window.hpResyncContent) window.hpResyncContent({ force:true }); }, 1000);
+  setTimeout(() => { if (window.hpResyncContent) window.hpResyncContent({ force:true, rerender:true }); }, 1000);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
