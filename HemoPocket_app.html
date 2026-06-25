@@ -7038,7 +7038,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 269;
+const HP_BUILD = 270;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12991,6 +12991,33 @@ document.addEventListener('visibilitychange',()=>{
 if(document.visibilityState==='visible')setTimeout(autoCheckUpdate,500);
 });
 }catch(e){console.warn('auto-update setup:',e.message)}
+// === Sincronización de CONTENIDO en vivo entre equipos ===
+// Los editores publican en la nube; aquí RE-LEEMOS los cambios al volver el foco, al
+// reconectar y cada pocos minutos, para que un equipo YA ABIERTO vea lo editado en otro
+// (móvil/ordenador) sin tener que recargar. Antes solo se leía al arrancar.
+let _hpResyncAt=0,_hpResyncing=false;
+window.hpResyncContent=async function(opts){
+opts=opts||{};
+if(_hpResyncing) return;
+if(!navigator.onLine || !window.__hpUid) return;
+const now=Date.now();
+if(!opts.force && now-_hpResyncAt<20000) return;
+_hpResyncAt=now; _hpResyncing=true;
+try{
+try{ if(window.hpFlushWrites) await window.hpFlushWrites(); }catch(e){}
+const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncPlantillas','hpSyncBloques'];
+for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
+try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
+// Refresca la vista actual SOLO si es una sección de guías/página (contenido pasivo), para mostrar lo nuevo.
+if(opts.rerender){ try{ if(typeof S!=='undefined' && S && /^g_/.test(S.view||'') && typeof go==='function') go(S.view); }catch(e){} }
+} finally { _hpResyncing=false; }
+};
+try{
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') window.hpResyncContent({rerender:true}); });
+window.addEventListener('focus',()=>window.hpResyncContent({rerender:true}));
+window.addEventListener('online',()=>setTimeout(()=>window.hpResyncContent({force:true,rerender:true}),1800));
+setInterval(()=>window.hpResyncContent(),180000);
+}catch(e){}
 }
 
 // === COMMAND PALETTE + SHORTCUTS (búsqueda global) ===
@@ -13884,25 +13911,9 @@ function revealAndEnter(user){
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
-  // Ediciones de contenido: primero SUBE lo que quedó pendiente sin conexión y solo
-  // entonces LEE de la nube (si no, el pull machacaría lo editado offline).
-  setTimeout(() => {
-    const _syncContent = () => {
-      if (window.hpSyncSubtipos) window.hpSyncSubtipos();
-      if (window.hpSyncSecciones) window.hpSyncSecciones();
-      if (window.hpSyncCatOrden) window.hpSyncCatOrden();
-      if (window.hpSyncChecklist) window.hpSyncChecklist();
-      if (window.hpSyncQt) window.hpSyncQt();
-      if (window.hpSyncQtGroups) window.hpSyncQtGroups();
-      if (window.hpSyncLc) window.hpSyncLc();
-      if (window.hpSyncPages) window.hpSyncPages();
-      if (window.hpSyncAlgos) window.hpSyncAlgos();
-      if (window.hpSyncItems) window.hpSyncItems();
-      if (window.hpSyncCalcs) window.hpSyncCalcs();
-      if (window.hpSyncInfos) window.hpSyncInfos();
-    };
-    (window.hpFlushWrites ? window.hpFlushWrites() : Promise.resolve()).finally(_syncContent);
-  }, 1000);
+  // Ediciones de contenido: sube lo pendiente sin conexión y LEE de la nube todas las
+  // secciones (incluida recetas). Reutiliza la resync en vivo para no duplicar la lista.
+  setTimeout(() => { if (window.hpResyncContent) window.hpResyncContent({ force:true }); }, 1000);
   setTimeout(() => { if (window.mostrarAceptacionLegal) window.mostrarAceptacionLegal(); }, 600);
 }
 
