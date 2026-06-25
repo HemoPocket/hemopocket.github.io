@@ -7038,7 +7038,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 270;
+const HP_BUILD = 271;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11942,7 +11942,50 @@ function hpAfterDate(orig,fromIdx,maxScan){const win=orig.slice(fromIdx,fromIdx+
 function hpValUnit(orig,folded,rs,re,labelRe){const region=folded.slice(rs,re);const mm=region.match(labelRe);if(!mm)return '';const abs=rs+mm.index+mm[0].length;const s=hpLine(orig,abs).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/[↑↓▲▼]/g,' ').replace(/\([^)]*\)/g,p=>/[a-z]/i.test(p)?' ':p).replace(/\s+/g,' ').trim();const vm=s.match(/([<>]?\s*\d+(?:[.,]\d+)?)\s*([A-Za-zµ%][A-Za-zµ%\/]*)?/);if(!vm)return '';return (vm[1].replace(/\s+/g,'')+(vm[2]?' '+vm[2]:'')).trim();}
 function parseCoombs(orig,folded,rs,re){const region=folded.slice(rs,re);const comps=[{a:'IgG',p:/tadm[\s\-]*igg/},{a:'IgM',p:/tadm[\s\-]*igm/},{a:'C3',p:/tadm[\s\-]*c3/},{a:'C4',p:/tadm[\s\-]*c4/}];const parts=[];comps.forEach(c=>{const mm=region.match(c.p);if(!mm)return;const r=hpResult(orig,rs+mm.index+mm[0].length).toLowerCase();if(r)parts.push(c.a+' '+r);});let iga='';const im=region.match(/\biga\b/);if(im){const r2=hpResult(orig,rs+im.index+im[0].length).toLowerCase();if(r2)iga='IgA '+r2;}if(!parts.length&&!iga){const cm=region.match(/coombs directo|antiglobulina directa/);if(cm){const rc=hpResult(orig,rs+cm.index+cm[0].length).toLowerCase();if(rc)return rc;}return '';}let out=parts.join(', ');if(iga)out+='. '+iga;return out;}
 const AUTOINM_BLOCK=[{a:'Ac. Antinucleares (ANAs)'},{a:'Ac. Anticardiolipina'},{a:'Ac. B2 glicoproteina'},{a:'Anticoagulante lúpico'}];
-function parseAutoinm(orig,folded,rs,re){const region=folded.slice(rs,re);const lines=[];const _hid=(typeof lcOverride==='function'&&lcOverride().hidden)||{};const anaM=region.match(/antinucleares/);if(anaM&&!_hid['Ac. Antinucleares (ANAs)']){let res=hpAfterDate(orig,rs+anaM.index,320);if(res){res=res.replace(/\.\s*$/,'').replace(/\binferior a\b/gi,'<').replace(/\bsuperior a\b/gi,'>').replace(/\.\s+/g,', ').replace(/\bt[íi]tulo\b/gi,'título').replace(/\s+/g,' ').trim();lines.push('Ac. Antinucleares (ANAs): '+res);}}const aclG=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igg/),aclM=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igm/);if((aclG||aclM)&&!_hid['Ac. Anticardiolipina']){const b=[];if(aclG)b.push('IgG '+aclG);if(aclM)b.push('IgM '+aclM);lines.push('Ac. Anticardiolipina '+b.join(', '));}const b2G=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igg/),b2M=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igm/);if((b2G||b2M)&&!_hid['Ac. B2 glicoproteina']){const b2=[];if(b2G)b2.push('IgG '+b2G);if(b2M)b2.push('IgM '+b2M);lines.push('Ac. B2 glicoproteina '+b2.join(', '));}const alM=region.match(/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(alM&&!_hid['Anticoagulante lúpico']){let r=seroResult(orig,rs+alM.index+alM[0].length);if(!r){const v=hpValUnit(orig,folded,rs,re,/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(v)r=v;}if(r)lines.push('Anticoagulante lúpico: '+r);}return lines;}
+// Panel ampliado de autoinmunidad: cada anticuerpo con su patrón (folded). Orden = específico→genérico.
+const AUTOINM_AB=[
+{l:'Ac. anti-DNAds',rx:/antidnads|anti\s*-?\s*dna\s*ds|anti\s*ds\s*-?\s*dna/},
+{l:'Ac. anti-DNA (DOT)',rx:/antidnadot|anti\s*-?\s*dna\s*dot/},
+{l:'Ac. anti-nucleosomas',rx:/nucleosomas?/},
+{l:'Ac. anti-histonas',rx:/histonas?/},
+{l:'Ac. anti-SSA/Ro 52 kD',rx:/ssa\s*\/\s*ro\s*52|\bro\s*52\b/},
+{l:'Ac. anti-SSA/Ro 60 kD',rx:/ssa\s*\/\s*ro\s*60|\bro\s*60\b/},
+{l:'Ac. anti-SSA (Ro)',rx:/\bssa\b/},
+{l:'Ac. anti-SSB (La)',rx:/\bssb\b/},
+{l:'Ac. anti-Scl-70',rx:/scl\s*-?\s*70|topoisomerasa/},
+{l:'Ac. anti-Jo-1',rx:/\bjo\s*-?\s*1\b/},
+{l:'Ac. anti-CENP-B',rx:/cenp\s*-?\s*b/},
+{l:'Ac. anti-PM-Scl',rx:/pm\s*-?\s*scl|\bpm\s*-?\s*1\b/},
+{l:'Ac. anti-RNP (U1-RNP)',rx:/\brnp\b|u1\s*-?\s*rnp/},
+{l:'Ac. anti-Sm',rx:/anti\s*-?\s*sm\b/},
+{l:'Ac. anti-ribosomales',rx:/ribosomal/},
+{l:'Ac. anti-PCNA',rx:/\bpcna\b|antigeno nuclear de\s*proliferacion/},
+{l:'Ac. antimitocondrial M2',rx:/antimitocondrial|mitocondrial\s*m2/},
+{l:'Ac. anti-ENAs',rx:/\benas?\b|anti\s*-?\s*ena\b/}
+];
+function _autoinmVal(line){var p=(''+line).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/\([^)]*\)/g,' ');var m=p.match(/([<>]?\s*\d+(?:[.,]\d+)?)\s*(ui\.?\s*\/\s*m?l|u\s*\/\s*m?l|kui\s*\/\s*l|mg\/dl|g\/l|%)?/i);if(!m)return '';var v=m[1].replace(/\s+/g,'');var u=m[2]?m[2].replace(/\s+/g,'').replace(/ui\.?\/m?l/i,'UI/mL').replace(/u\/m?l/i,'U/mL').replace(/kui\/l/i,'kUI/L'):'';return v+(u?' '+u:'');}
+function parseAutoinm(orig,folded,rs,re){const region=folded.slice(rs,re);const lines=[];const _hid=(typeof lcOverride==='function'&&lcOverride().hidden)||{};const anaM=region.match(/antinucleares/);if(anaM&&!_hid['Ac. Antinucleares (ANAs)']){let res=hpAfterDate(orig,rs+anaM.index,320);if(res){res=res.replace(/\.\s*$/,'').replace(/\binferior a\b/gi,'<').replace(/\bsuperior a\b/gi,'>').replace(/\.\s+/g,', ').replace(/\bt[íi]tulo\b/gi,'título').replace(/\s+/g,' ').trim();lines.push('Ac. Antinucleares (ANAs): '+res);}}const aclG=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igg/),aclM=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igm/);if((aclG||aclM)&&!_hid['Ac. Anticardiolipina']){const b=[];if(aclG)b.push('IgG '+aclG);if(aclM)b.push('IgM '+aclM);lines.push('Ac. Anticardiolipina '+b.join(', '));}const b2G=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igg/),b2M=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igm/);if((b2G||b2M)&&!_hid['Ac. B2 glicoproteina']){const b2=[];if(b2G)b2.push('IgG '+b2G);if(b2M)b2.push('IgM '+b2M);lines.push('Ac. B2 glicoproteina '+b2.join(', '));}const alM=region.match(/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(alM&&!_hid['Anticoagulante lúpico']){let r=seroResult(orig,rs+alM.index+alM[0].length);if(!r){const v=hpValUnit(orig,folded,rs,re,/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(v)r=v;}if(r)lines.push('Anticoagulante lúpico: '+r);}
+// Panel ampliado: anticuerpos con valor+unidad / positivo-negativo / "en proceso".
+const _consumed={};
+AUTOINM_AB.forEach(function(ab){
+  if(_hid[ab.l])return;
+  var g=new RegExp(ab.rx.source,'g'),mm;
+  while((mm=g.exec(region))!==null){
+    var lsRel=region.lastIndexOf('\n',mm.index)+1;
+    if(_consumed[lsRel])continue;
+    var leRel=region.indexOf('\n',mm.index),leAbs=leRel<0?re:rs+leRel;
+    var lineFold=folded.slice(rs+lsRel,leAbs);
+    _consumed[lsRel]=1;
+    var res='';
+    if(/en\s*proceso/.test(lineFold))res='en proceso';
+    else{var origLine=orig.slice(rs+lsRel,leAbs);var v=_autoinmVal(origLine);if(v)res=v;else{var sr=seroResult(orig,rs+mm.index+mm[0].length);if(sr)res=sr;}}
+    if(!res)continue;
+    var methM=orig.slice(rs+lsRel,leAbs).match(/\((FPIA|CLIA|ELIA|EIA|IIF|IFI|FEIA|QLIA|CLEIA|ENA[A-Z]*)\)/i);
+    var meth=methM?(' ('+methM[1].toUpperCase()+')'):'';
+    lines.push(ab.l+meth+': '+res);
+  }
+});
+return lines;}
 const ORINA=[{a:'pH',p:/\bph\b/},{a:'glucosa',p:/glucosa/},{a:'proteinas',p:/prote[ií]nas/},{a:'densidad',p:/densidad/},{a:'hematies',p:/hematies/},{a:'leucocitos',p:/leucocitos/},{a:'nitritos',p:/nitritos/}];
 function parseOrina(orig,folded,rs,re){const parts=[];ORINA.forEach(o=>{const region=folded.slice(rs,re);const mm=region.match(o.p);if(!mm)return;const s=hpLine(orig,rs+mm.index+mm[0].length).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/[↑↓▲▼]/g,' ').replace(/\([^)]*\)/g,p=>/[a-z]/i.test(p)?' ':p).replace(/\s+/g,' ').trim().replace(/^[:=\-\s]+/,'').trim();if(!s)return;const vm=s.match(/^([<>]?\d+(?:[.,]\d+)?)\s*([A-Za-zµ%][A-Za-zµ%\/]*)?/);const val=vm?(vm[1]+(vm[2]?' '+vm[2]:'')):s.split(/\s/)[0].toLowerCase();parts.push(o.a+' '+val);});return parts;}
 // === LCR (líquido cefalorraquídeo) ===
@@ -11961,7 +12004,7 @@ let gType='',gIdx=-1;const gmH=work.match(/gasometria[\t ]+(arterial|venosa|capi
 if(gIdx>=0){const gEnd=nextHdr(gIdx,SECT);const region=work.slice(gIdx,gEnd);const gitems=[];for(const g of GASO){const mm=region.match(new RegExp(g.pat));if(!mm)continue;const rv=gasReadLine(orig,gIdx+mm.index+mm[0].length);if(!rv)continue;const val=(Math.round(rv.f*1000)/1000).toString().replace('.',',');gitems.push(g.a+' '+val+(g.u?' '+g.u:''));}if(gitems.length){found.gasometria=gitems;found.__gasoLabel=(gType?('Gasometría '+gType):'Gasometría');}work=work.slice(0,gIdx)+work.slice(gIdx,gEnd).replace(/[^\n\r]/g,' ')+work.slice(gEnd);}
 // === Bloques especiales (Coombs directo, autoinmunidad, sistemático de orina): se extraen aparte y se borran del texto ===
 const cmH=work.match(/inmunohematologia|test de coombs directo|antiglobulina directa/);if(cmH){const cs=cmH.index,ce=nextHdr(cs,SECT);const out=parseCoombs(orig,work,cs,ce);if(out){found.__coombs=out;work=work.slice(0,cs)+work.slice(cs,ce).replace(/[^\n\r]/g,' ')+work.slice(ce);}else{if(/coombs|antiglobulina|tadm/.test(work.slice(cs,ce)))found.__coombsPend=1;}}
-const aH=work.match(/autoinmunidad/);if(aH){const as=aH.index,ae=nextHdr(as,SECT);const out=parseAutoinm(orig,work,as,ae);if(out&&out.length)found.autoinmunidad=(found.autoinmunidad||[]).concat(out);const _akw=/antinucleares|anticardiolipina|glicoprote[ií]na|anticoagulante\s+l[uú]pico|\bl[uú]pico\b|antifosfol[ií]pid/;const _aseg=work.slice(as,ae).split('\n').map(function(ln){return _akw.test(ln)?ln.replace(/[^\n\r]/g,' '):ln;}).join('\n');work=work.slice(0,as)+_aseg+work.slice(ae);}
+const aH=work.match(/autoinmunidad/);if(aH){const as=aH.index,ae=nextHdr(as,SECT);const out=parseAutoinm(orig,work,as,ae);if(out&&out.length)found.autoinmunidad=(found.autoinmunidad||[]).concat(out);const _akw=/antinucleares|anticardiolipina|glicoprote[ií]na|anticoagulante\s+l[uú]pico|\bl[uú]pico\b|antifosfol[ií]pid/;const _abkw=new RegExp((typeof AUTOINM_AB!=='undefined'?AUTOINM_AB.map(function(a){return a.rx.source;}).join('|'):'(?!x)x'));const _aseg=work.slice(as,ae).split('\n').map(function(ln){return (_akw.test(ln)||_abkw.test(ln))?ln.replace(/[^\n\r]/g,' '):ln;}).join('\n');work=work.slice(0,as)+_aseg+work.slice(ae);}
 const oH=work.match(/sistematico de orina/);if(oH){const os=oH.index,oeFull=nextHdr(os,SECT);const sedRel=work.slice(os,oeFull).search(/sedimento de orina/);const oeParam=sedRel>=0?os+sedRel:oeFull;const out=parseOrina(orig,work,os,oeParam);if(out&&out.length)found.__orina=out;work=work.slice(0,os)+work.slice(os,oeFull).replace(/[^\n\r]/g,' ')+work.slice(oeFull);}
 const lH=work.match(/liquidos biologicos|cefalorraquideo|\blcr\b/);if(lH){const lx=lH.index,lend=nextHdr(lx,SECT);const out=parseLCR(orig,work,lx,lend);if(out&&out.length)found.__lcr=out;work=work.slice(0,lx)+work.slice(lx,lend).replace(/[^\n\r]/g,' ')+work.slice(lend);}
 // === Proteinograma "En Proceso": la electroforesis está pendiente; se anota aparte (antes de extraer/borrar) ===
