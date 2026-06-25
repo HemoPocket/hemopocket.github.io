@@ -7038,7 +7038,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 267;
+const HP_BUILD = 268;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11767,6 +11767,7 @@ const DICT=[
 {a:'E',u:'',c:'hemograma',k:'count',rp:1,defHidden:1,pats:['eosinofilos absolutos','eosinofilos','\\beos\\b']},
 {a:'B',u:'',c:'hemograma',k:'count',rp:1,defHidden:1,pats:['basofilos absolutos','basofilos','\\bbaso\\b']},
 {a:'Plaquetas',u:'',c:'hemograma',k:'count',pats:['recuento de plaquetas','plaquetas','\\bplt\\b','\\bplaq\\b']},
+{a:'VPM',u:'fl',c:'hemograma',k:'num',defHidden:1,pats:['volumen\\s+plaquetar(?:io)?\\s+medio','\\bvpm\\b','\\bmpv\\b']},
 {a:'Reticulocitos',u:'',c:'hemograma',k:'retic',pats:['reticulocitos absolutos','reticulocitos','\\breti\\b']},
 {a:'Frotis',u:'',c:'hemograma',k:'text',pats:['frotis de sangre periferica','extension de sangre periferica','frotis sangre periferica','morfologia eritrocitaria','frotis \\(sp\\)','frotis sp','frotis']},
 {a:'VSG',u:'mm/h',c:'hemograma',k:'num',keepUnit:1,pats:['velocidad de sedimentacion(?:\\s+globular)?','\\bvsg\\b','v\\.s\\.g\\.?','\\besr\\b']},
