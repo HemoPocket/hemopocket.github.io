@@ -5827,7 +5827,6 @@ const lastUpd=ls.g('lastUpdate');
 // Solo admin o editor de ESTA sección pueden gestionar (editar apartados / subir guías).
 // En modo edición apagado se ocultan los controles (la app queda limpia).
 const canManage=hpEditUISec(id);
-const editing=canManage&&_editGuide===id;
 let h=`<div class="card"><h2>Guías Clínicas - ${title}</h2>`;
 h+=renderCollaboratorsBlock(id);
 if(!lastUpd){
@@ -5836,13 +5835,7 @@ h+='<div class="alert y" style="margin-bottom:14px">⚠️ <strong>Sin sincroniz
 h+=`<p class="intro">Última actualización: <strong>${new Date(lastUpd).toLocaleDateString('es-ES')}</strong>. <a onclick="go('sync')" style="cursor:pointer;text-decoration:underline">Actualizar</a></p>`;
 }
 if(canManage){
-h+=`<div class="btns" style="margin-bottom:12px">
-<button class="btn ${editing?'btn-2':'btn-out'} btn-sm" onclick="toggleEditGuide('${id}')">${editing?'✓ Salir de edición':'✏️ Editar apartados'}</button>`;
-if(editing){
-h+=`<button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">➕ Añadir</button>
-<button class="btn btn-out btn-sm" onclick="resetSubtypes('${id}')">Restaurar default</button>`;
-}
-h+='</div>';
+h+=`<div class="btns" style="margin-bottom:12px"><button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">➕ Añadir apartado</button><button class="btn btn-out btn-sm" onclick="resetSubtypes('${id}')">↺ Restaurar apartados</button></div>`;
 }
 // Gestión de la SECCIÓN (renombrar / ocultar del menú): SOLO administradores, no editores. Efectivo para todos.
 if(hpEditUIAdmin()){
@@ -5855,23 +5848,10 @@ h+='</div>';
 if(hpEditUISec(id)){
 h+='<div class="btns" style="margin-bottom:12px"><button class="btn btn-2 btn-sm" onclick="hpAddChooser(\''+id+'\')">➕ Añadir calculadora, algoritmo, info o guía</button></div>';
 }
-if(editing){
-h+='<p style="font-size:12px;color:var(--mut);margin-bottom:8px">Edita los nombres directamente y usa <strong>↑/↓</strong> para reordenar los apartados. Crear, renombrar, reordenar o eliminar apartados se guarda en la nube y es <strong>efectivo para todos</strong>. Al borrar un apartado, sus PDFs de la nube dejan de mostrarse (bórralos antes si quieres eliminarlos del todo).<br>Para reordenar, renombrar o borrar <strong>cada guía</strong> (incluidas las antiguas que venían con la app), sal de este modo, abre el apartado y usa los botones ↑ ↓ ✏️ 🗑️ de cada guía.</p>';
 if(!subs.length){
-h+='<div class="alert b">Sin apartados. Añade uno con el botón ➕.</div>';
+h+=canManage?'<div class="alert b">Sin apartados todavía. Crea uno con «➕ Añadir apartado».</div>':'<div class="alert b">Sin contenido por ahora.</div>';
 }else{
 subs.forEach((st,i)=>{
-const v=st.name.replace(/"/g,'&quot;');
-const upB=i>0?`<button onclick="moveSubtype('${id}',${i},-1)" title="Subir apartado" style="background:var(--c2)">↑</button>`:'';
-const dnB=i<subs.length-1?`<button onclick="moveSubtype('${id}',${i},1)" title="Bajar apartado" style="background:var(--c2)">↓</button>`:'';
-h+=`<div class="st-edit"><input type="text" value="${v}" data-id="${id}" data-i="${i}" onchange="renameSubtype(this)">${upB}${dnB}<button onclick="delSubtype('${id}',${i})" title="Eliminar">×</button></div>`;
-});
-}
-}else{
-if(!subs.length){
-h+=canManage?'<div class="alert b">Sin apartados. Pulsa «✏️ Editar apartados» para añadir.</div>':'<div class="alert b">Sin contenido por ahora.</div>';
-}else{
-subs.forEach(st=>{
 const k=`${id}_${st.id}`;
 const algos=geltamoAlgosFor(id,st);
 let bundled='';
@@ -5881,10 +5861,17 @@ bundled=algos.map(p=>`<div class="pdf-item" onclick="openPDFurl('${p.url}','${p.
 }
 const canUp=hpEditUISec(id);
 const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out btn-sm" onclick="event.stopPropagation();hcUpload('${id}','${st.id}')">⬆️ Subir guía a este apartado</button></div>`:'';
-h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span class="ar">▶</span></div>
-<div class="coll-c">${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
-});
+// En modo edición, controles del apartado (renombrar / reordenar / eliminar) inline, sin 2º botón.
+let ctrls='';
+if(canManage){
+const v=st.name.replace(/"/g,'&quot;');
+const upA=i>0?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},-1)" title="Subir apartado" style="background:var(--c2)">↑</button>`:'';
+const dnA=i<subs.length-1?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},1)" title="Bajar apartado" style="background:var(--c2)">↓</button>`:'';
+ctrls=`<div class="st-edit" style="margin:0 0 6px"><input type="text" value="${v}" data-id="${id}" data-i="${i}" onchange="renameSubtype(this)" onclick="event.stopPropagation()" title="Renombrar apartado">${upA}${dnA}<button onclick="event.stopPropagation();delSubtype('${id}',${i})" title="Eliminar apartado">×</button></div>`;
 }
+h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span class="ar">▶</span></div>
+<div class="coll-c">${ctrls}${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
+});
 }
 h+=renderAlgosBlock(id);
 h+=renderCalcsBlock(id);
@@ -7046,7 +7033,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 265;
+const HP_BUILD = 266;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
