@@ -218,6 +218,12 @@ body.view-home .app-footer{padding-bottom:18px}
 .tbl-scroll>.tbl{margin:0;min-width:max-content}
 .tbl th,.tbl td{padding:8px 9px;border:1px solid var(--bd);text-align:left;vertical-align:top}
 .tbl th{background:var(--bg2);font-weight:600;font-size:12px}
+/* Contenido editado como PÁGINA: tipografía coherente (mismo tamaño que el resto), y tablas
+   con el mismo aspecto compacto aunque hayan perdido la clase .tbl al editar. */
+.hp-page-body{font-size:14px;line-height:1.5}
+.hp-page-body table:not(.tbl){width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px;display:block;overflow-x:auto}
+.hp-page-body table:not(.tbl) th,.hp-page-body table:not(.tbl) td{padding:8px 9px;border:1px solid var(--bd);text-align:left;vertical-align:top}
+.hp-page-body table:not(.tbl) th{background:var(--bg2);font-weight:600;font-size:12px}
 .coll{margin-bottom:8px;border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden}
 .coll-h{padding:11px 14px;cursor:pointer;background:var(--bg2);font-weight:500;display:flex;justify-content:space-between;align-items:center;font-size:13px;user-select:none}
 .coll-h:hover{background:var(--hov)}
@@ -7038,7 +7044,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 273;
+const HP_BUILD = 274;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13507,6 +13513,16 @@ function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
   s=s.replace(/<\s*(script|style|iframe|object|embed|link|meta|form|input)\b[^>]*>/gi,'');
   s=s.replace(/\son(\w+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi,function(m,ev,val){ if(ev.toLowerCase()==='click'){ var inner=String(val).replace(/^["']|["']$/g,''); if(_hpSafeHandler(inner)) return m; } return ''; });
   s=s.replace(/(href|src)\s*=\s*("\s*javascript:[^"]*"|'\s*javascript:[^']*')/gi,'$1="#"');
+  // Normaliza la TIPOGRAFÍA del contenido editado: el editor (sobre todo en iPhone/Safari)
+  // introduce tamaños/fuentes sueltos (<font>, style="font-size:…") al editar o pegar, lo que
+  // deja letras de distinto tamaño. Los quitamos para que todo use el tamaño coherente de la app.
+  s=s.replace(/<\/?font[^>]*>/gi,'');
+  s=s.replace(/style\s*=\s*("[^"]*"|'[^']*')/gi,function(m,val){
+    var q=val.charAt(0), inner=val.slice(1,-1);
+    inner=inner.replace(/(?:^|;)\s*(?:font-size|font-family|font|line-height)\s*:[^;]*/gi,'');
+    inner=inner.replace(/^;+/,'').replace(/;+$/,'').replace(/;{2,}/g,';').trim();
+    return inner ? ('style='+q+inner+q) : '';
+  });
   return s;
 }
 function _avisoRenderCuerpo(){ const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); cu.innerHTML=(ov&&ov.trim())?_hpSanHtml(ov):_AVISO_DEFAULT; }
