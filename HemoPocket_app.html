@@ -230,6 +230,10 @@ body.view-home .app-footer{padding-bottom:18px}
 #page-edit-area .pg-cur,#aviso-cuerpo .pg-cur{outline:2px dashed var(--c2);outline-offset:1px;border-radius:5px}
 .pg-drag{opacity:.4}
 .eb{position:relative}
+#hp-edit-banner{display:none}
+body.hp-editing #hp-edit-banner{display:flex;align-items:center;gap:10px;background:#1d8a4e;color:#fff;padding:8px 14px;border-radius:10px;margin:0 0 12px;font-size:12.5px;line-height:1.4}
+#hp-edit-banner span{flex:1}
+#hp-edit-banner button{flex-shrink:0;background:#fff;color:#1d8a4e;border:none;border-radius:8px;padding:5px 12px;font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer}
 .eb-edit{cursor:pointer;outline:1px dashed var(--c2,#1d4ed8);outline-offset:3px;border-radius:6px}
 .eb-edit:hover{background:rgba(29,78,216,.06)}
 .eb-edit::after{content:'✏️ tocar para editar';display:inline-block;margin-top:6px;font-size:10.5px;color:var(--c2,#1d4ed8);font-weight:600}
@@ -598,6 +602,7 @@ body{font-size:13px}
   <span id="hp_user_label"></span>
 </button>
 </div>
+<div id="hp-edit-banner"><span>✏️ <strong>Modo edición.</strong> Toca los recuadros resaltados para cambiarlos · usa <strong>➕ Añadir</strong> para crear. Se guarda para todo el equipo.</span><button onclick="hpToggleEdit()">Salir</button></div>
 <div id="installBar" class="install-bar" hidden>
 <svg class="install-bar-ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 6v8"/><path d="m9 11 3 3 3-3"/><line x1="10" y1="18.5" x2="14" y2="18.5"/></svg>
 <span class="install-bar-txt" id="installBarTxt">Instala <b>HemoPocket</b> en tu dispositivo</span>
@@ -7041,7 +7046,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 264;
+const HP_BUILD = 265;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10388,7 +10393,7 @@ if(!v){$('pq_out').innerHTML='';return}
 const d=PQ_SC[v];
 $('pq_out').innerHTML=`<div class="res ${d.cls==='r'?'hi':d.cls==='y'?'md':d.cls==='b'?'':'lo'}" style="display:block">
 <div class="res-h"><span class="score">${d.u}</span><span>Recomendación ${d.gr}</span></div>
-<div class="res-s" style="margin-top:8px">${d.desc}</div>
+<div class="res-s" style="margin-top:8px">`+EB('pq_'+v,d.desc)+`</div>
 </div>`;
 }
 
@@ -11464,7 +11469,7 @@ const d=$('hu_dx').value,s=$('hu_sev').value;
 if(!d||!s){$('hu_out').innerHTML='';return}
 const txt=HU[d][s];
 const cls=s==='vit'?'r':s==='may'?'y':s==='mod'?'b':'g';
-$('hu_out').innerHTML=`<div class="alert ${cls}" style="margin-top:14px">${txt}</div>`;
+$('hu_out').innerHTML=`<div class="alert ${cls}" style="margin-top:14px">`+EB('hu_'+d+'_'+s,txt)+`</div>`;
 }
 
 function calcHu(){
@@ -12864,12 +12869,12 @@ const out=$('atb_out');
 if(!out)return;
 if(!k){out.innerHTML='<div class="alert b" style="padding:10px;margin:0">Selecciona un patógeno para ver tratamiento dirigido.</div>';return}
 const p=ATB_PATH[k];
-let html=`<div class="card-inner" style="background:var(--bg2);padding:12px;border-radius:8px"><h3 style="margin-top:0">${p.n}</h3>`;
+let inner='';
 p.rec.forEach(r=>{
-html+=`<div style="margin:8px 0"><strong>${r.l}:</strong> ${r.d}</div>`;
+inner+=`<div style="margin:8px 0"><strong>${r.l}:</strong> ${r.d}</div>`;
 });
-if(p.ev){html+=`<div class="alert y" style="padding:10px;margin-top:10px"><strong>Evidencia:</strong> ${p.ev}</div>`;}
-html+=`</div>`;
+if(p.ev){inner+=`<div class="alert y" style="padding:10px;margin-top:10px"><strong>Evidencia:</strong> ${p.ev}</div>`;}
+let html=`<div class="card-inner" style="background:var(--bg2);padding:12px;border-radius:8px"><h3 style="margin-top:0">${p.n}</h3>`+EB('atb_'+k,inner)+`</div>`;
 out.innerHTML=html;
 }
 
