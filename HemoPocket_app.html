@@ -4336,6 +4336,16 @@ function copyRca(){
   _algoCopy('Manejo de coagulopatía guiado por ROTEM', ['Escenario: '+(names[RCA.sc]||'')],
     [$('rca_o1'),$('rca_o2'),$('rca_o3'),$('rca_o4'),$('rca_o5')]);
 }
+function copyDA(){
+  if(typeof DA==='undefined' || !DA.branch){ if(typeof toast==='function') toast('Completa el algoritmo primero'); return; }
+  var names={hem:'Discrepancia hemática',ser:'Discrepancia sérica',amb:'Discrepancia en ambas tipificaciones'};
+  _algoCopy('Discrepancia ABO', ['Tipo: '+(names[DA.branch]||DA.branch)], [$('da_out')]);
+}
+function copyPA(){
+  var ctx=[];
+  if(typeof PA!=='undefined' && PA.ac) ctx.push('Autocontrol: '+(PA.ac==='pos'?'POSITIVO':'NEGATIVO'));
+  _algoCopy('Panaglutinación — estudio inmunohematológico', ctx, [$('pa_final')]);
+}
 
 // === INDEXEDDB (almacenamiento de PDFs sin límite 5MB) ===
 const idb={
@@ -7031,8 +7041,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 263;
-const APP_BUILD = '2026.06.24 (build ' + HP_BUILD + ')';
+const HP_BUILD = 264;
+const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -10005,7 +10015,7 @@ return `<div class="card">
 <div id="da_out"></div>
 </div>
 
-<div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="go('disc_abo')">Reiniciar</button></div>
+<div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="copyDA()">📋 Copiar</button><button class="btn btn-out btn-sm" onclick="go('disc_abo')">Reiniciar</button></div>
 <div class="ref">Manual del Residente Hematología HUNSC. AABB Technical Manual, 20th ed. (Cohn CS et al., 2020). SETS: Guía sobre la transfusión de componentes sanguíneos y derivados plasmáticos, 5ª ed., 2015.</div>
 </div>`;
 };
@@ -10175,7 +10185,7 @@ return `<div class="card">
 <div id="pa_final"></div>
 </div>
 
-<div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="go('panag')">Reiniciar</button></div>
+<div class="btns" style="margin-top:14px"><button class="btn btn-out btn-sm" onclick="copyPA()">📋 Copiar</button><button class="btn btn-out btn-sm" onclick="go('panag')">Reiniciar</button></div>
 
 <div class="ref">Manual del Residente Hematología HUNSC. Petz LD, Garratty G. Immune Hemolytic Anemias, 2nd ed., Churchill Livingstone, 2004. AABB Technical Manual, 20th ed., 2020.</div>
 </div>`;
