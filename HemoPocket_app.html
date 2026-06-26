@@ -7062,7 +7062,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 277;
+const HP_BUILD = 278;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -8463,7 +8463,7 @@ const QT_GROUPS = [
 // se asignan a un grupo por su nombre canónico (sc.group). El config (orden/renombrados/
 // ocultos/grupos nuevos) se guarda en 'menuconfig/qtgroups' y rige solo la presentación.
 function qtGroupsCfg(){ try{ return ls.g('qtGroups')||{}; }catch(e){ return {}; } }
-window.hpApplyQtGroups=function(c){ try{ ls.s('qtGroups', c||{}); }catch(e){} try{ if(typeof S!=='undefined'&&S&&(S.view==='qt'||S.view==='qtgroups')&&typeof go==='function') go(S.view); }catch(e){} };
+window.hpApplyQtGroups=function(c){ var _ch=true; try{ _ch=(JSON.stringify(ls.g('qtGroups')||{})!==JSON.stringify(c||{})); }catch(e){} try{ ls.s('qtGroups', c||{}); }catch(e){} if(!_ch) return; try{ if(typeof S!=='undefined'&&S&&(S.view==='qt'||S.view==='qtgroups')&&typeof go==='function') go(S.view); }catch(e){} };
 function qtFactoryGroupOf(key){ for(var i=0;i<QT_GROUPS.length;i++){ if(QT_GROUPS[i].keys.indexOf(key)>=0) return QT_GROUPS[i].label; } return null; }
 function qtGroupIds(){
   var cfg=qtGroupsCfg(); var ids=[];
@@ -8484,7 +8484,7 @@ function qtGroupedKeys(){ var _qS=qtSchemes(); var map={}; qtGroupIds().forEach(
 // (qtCalc) usa la versión fusionada. Todo el texto se escapa. Se guardan en Firestore ('qtschemes').
 function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {}; } }
 function qtSchemes(){ return Object.assign({}, QT_SCHEMES, qtOverride()); }
-window.hpApplyQt=function(map){ try{ ls.s('qtOverride', map||{}); }catch(e){} try{ if(typeof S!=='undefined' && S && S.view==='qt' && typeof go==='function') go('qt'); }catch(e){} };
+window.hpApplyQt=function(map){ var _ch=true; try{ _ch=(JSON.stringify(ls.g('qtOverride')||{})!==JSON.stringify(map||{})); }catch(e){} try{ ls.s('qtOverride', map||{}); }catch(e){} if(!_ch) return; try{ if(typeof S!=='undefined' && S && S.view==='qt' && typeof go==='function') go('qt'); }catch(e){} };
 let _qtDraft=null;
 function qtEditSel(){ if(!hpCanEditQt()){toast('Sin permiso para editar');return;} const sel=$('qt_scheme'); const key=sel?sel.value:''; if(!key){ toast('Elige primero un esquema'); return; } const sc=qtSchemes()[key]; if(!sc){ toast('Esquema no encontrado'); return; } _qtDraft=Object.assign({key:key,_isCustom:!QT_SCHEMES[key]}, JSON.parse(JSON.stringify(sc))); go('qtedit'); }
 function qtNuevo(){ if(!hpCanEditQt()){toast('Sin permiso para editar');return;} _qtDraft={key:'',_isNew:true,_isCustom:true,label:'',drugs:[{name:'',dose:'',route:'IV',days:[1]}],premed:[],notes:[]}; go('qtedit'); }
