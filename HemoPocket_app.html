@@ -7062,7 +7062,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 280;
+const HP_BUILD = 281;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9726,7 +9726,7 @@ function fmtDrugLine(drug,dateStr){
     const calc=qtCalcDose(drug.dose,bsa,peso);
     if(calc){
       const doseLabel=drug.dose.replace(/\s*\(\s*máx\s*([^)]+?)\s*\)/i,' - máx $1');
-      return '* '+drug.name+' ('+doseLabel+') → '+(typeof calc.mg==='number'?calc.mg.toFixed(2):calc.mg)+' mg '+drug.route+': '+dateStr;
+      return '* '+drug.name+' ('+doseLabel+') = '+(typeof calc.mg==='number'?calc.mg.toFixed(2):calc.mg)+' mg '+drug.route+': '+dateStr;
     }
   }
   return '* '+drug.name+' '+drug.dose+' '+drug.route+': '+dateStr;
@@ -9771,7 +9771,7 @@ if(scheme.conditioning){
   });
 }
 // Esquema (calendario) → recuadro copiable
-if($('qt_out'))$('qt_out').value=lines.join('\n');
+if($('qt_out'))$('qt_out').value=lines.join('\n').replace(/→/g,'/');
 // Premedicación → recuadro copiable aparte (ondansetrón general + premed de rituximab si aplica + premed específica del esquema)
 const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
 const _pmList=[];
@@ -9786,7 +9786,7 @@ if(scheme.conditioning){
 if(drugsList.some(d=>/rituximab/i.test(d.name)))
   _pmList.push('Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg + metilprednisolona (o el corticoide del esquema el día correspondiente), 30 min antes de iniciar la infusión.');
 _pmList.push(...(scheme.premed||[]));
-if(_pm)_pm.value=_pmList.join('\n');
+if(_pm)_pm.value=_pmList.join('\n').replace(/→/g,'/');
 if(_pmw)_pmw.style.display='';
 // Notas (solo lectura) + esquema en días del ciclo
 const _nt=$('qt_notes');let _nh='';
