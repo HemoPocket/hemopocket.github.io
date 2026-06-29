@@ -1834,7 +1834,7 @@ VIEWS.mipi=()=>`<div class="card">
 <div class="fld"><label class="lbl">Edad (años)</label><input type="number" id="mipi_age" value="${S.p.age||''}"></div>
 <div class="fld"><label class="lbl">ECOG</label><select id="mipi_ecog"><option value="0">0-1</option><option value="1">2-4</option></select></div>
 <div class="fld"><label class="lbl">LDH (U/L)</label><input type="number" id="mipi_ldh"></div>
-<div class="fld"><label class="lbl">LDH ULN (U/L)</label><input type="number" id="mipi_uln" value="240"></div>
+<div class="fld"><label class="lbl">LDH ULN (U/L)</label><input type="number" id="mipi_uln" value="220"></div>
 <div class="fld"><label class="lbl">Leucocitos (×10⁹/L)</label><input type="number" step="0.1" id="mipi_wbc"></div>
 </div>
 <div class="btns"><button class="btn" onclick="calcMIPI()">Calcular</button>
@@ -3741,7 +3741,7 @@ VIEWS.light=()=>`<div class="card">
 <div class="fld"><label class="lbl">Proteínas en suero (g/dL)</label><input type="number" step="0.01" id="lt_ps" placeholder="ej: 7.0" oninput="calcLight()"></div>
 <div class="fld"><label class="lbl">LDH en líquido pleural (U/L)</label><input type="number" step="1" id="lt_lp" placeholder="ej: 250" oninput="calcLight()"></div>
 <div class="fld"><label class="lbl">LDH en suero (U/L)</label><input type="number" step="1" id="lt_ls" placeholder="ej: 200" oninput="calcLight()"></div>
-<div class="fld"><label class="lbl">Límite superior normal de LDH sérica (U/L)</label><input type="number" step="1" id="lt_uln" value="240" oninput="calcLight()"></div>
+<div class="fld"><label class="lbl">Límite superior normal de LDH sérica (U/L)</label><input type="number" step="1" id="lt_uln" value="220" oninput="calcLight()"></div>
 </div>
 <div id="lt_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn" onclick="calcLight()">Calcular</button><button class="btn btn-out btn-sm" onclick="copyLight()">Copiar evolución</button></div>
@@ -7077,7 +7077,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 287;
+const HP_BUILD = 288;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
