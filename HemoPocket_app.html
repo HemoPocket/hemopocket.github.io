@@ -1169,7 +1169,8 @@ const MENU=[
 {h:'CITODIAGNÓSTICO',items:[
 {id:'citodx',name:'Tubos para estudios',kw:'citodiagnostico citogenetica cariotipo citometria flujo inmunofenotipo fish biologia molecular ngs tubos muestras edta heparina litio citrato medula osea aspirado que pedir estudios',new:'2026-06-04'},
 {id:'citomol',name:'Seguimiento molecular / EMR',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
-{id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'}
+{id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'},
+{id:'g_citodiag',name:'Guías clínicas',kw:'guias clinicas citodiagnostico citogenetica inmunofenotipo fish biologia molecular ngs protocolo pdf'}
 ]},
 {h:'AJUSTES',items:[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones ajustes configuracion'},
@@ -4229,7 +4230,7 @@ $('nf_o3').innerHTML=`<div class="fld" style="margin-top:10px"><label class="lbl
 }else{nfUnlock(4)}
 }else if(s===4){
 NF.ar=[];
-[1,2,3,4,5,6].forEach(i=>{if($(`ar${i}`).checked)NF.ar.push(i)});
+[1,2,3,4,5,6].forEach(i=>{const _el=$(`ar${i}`);if(_el&&_el.checked)NF.ar.push(i);});
 if(NF.ar.length>0){
 nfShow(4,'r','ALTO RIESGO',`<div><strong>Ingreso obligado. Antibioterapia IV empírica:</strong>
 <ul style="padding-left:20px;margin-top:6px">
@@ -4414,7 +4415,8 @@ const GUIDES_TITLES={
 'mm':'Mieloma y Gammapatías',
 'lf':'Linfoma',
 'llc':'LLC',
-'ped':'Hematología pediátrica'
+'ped':'Hematología pediátrica',
+'citodiag':'Citodiagnóstico'
 };
 
 const EMBEDDED_VERSION='2026.05.23';
@@ -7062,7 +7064,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 281;
+const HP_BUILD = 282;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
