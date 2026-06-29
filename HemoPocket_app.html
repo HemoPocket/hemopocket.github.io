@@ -1045,19 +1045,18 @@ const MENU=[
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
 {h:'ESCALAS DE VALORACIÓN',items:[
-{sub:true,name:'① Cribado (¿necesita valoración?)'},
+{sub:true,name:'① Cribado funcional (CGA)'},
 {id:'ecog',name:'ECOG',kw:'ecog estado funcional performance valoracion escala cribado'},
 {id:'g8',name:'G8 fragilidad',kw:'g8 fragilidad anciano geriatrico valoracion escala cribado cga vulnerable'},
-{sub:true,name:'② Valoración funcional'},
 {id:'barthel',name:'Barthel (ABVD)',kw:'barthel abvd avd actividades basicas vida diaria adl independencia dependencia funcional cga valoracion'},
 {id:'lawton',name:'Lawton-Brody (AIVD)',kw:'lawton brody aivd iadl actividades instrumentales vida diaria funcional cga valoracion'},
-{sub:true,name:'③ Por patología'},
+{sub:true,name:'② Específicas por patología'},
 {id:'imwgfr',name:'IMWG Frailty (MM)',kw:'imwg imwgfr frailty mieloma multiple fragilidad fit frail intermediate fitness valoracion'},
 {id:'sga',name:'sGA — linfoma (DLBCL)',kw:'sga simplified geriatric assessment linfoma dlbcl fil elderly fit unfit frail valoracion'},
 {id:'ferrara',name:'Ferrara — QT intensiva (LMA)',kw:'ferrara fit unfit frail aptitud fragilidad candidato quimioterapia intensiva lma anciano comorbilidad ecog fraccion eyeccion viale-a valoracion'},
 {id:'ferrara_bi',name:'Ferrara — QT baja intensidad (LMA)',kw:'ferrara baja intensidad no intensiva soporte frail unfit azacitidina decitabina venetoclax mejor tratamiento soporte hidroxiurea lma valoracion'},
 {id:'cirsg',name:'CIRS-G (LLC)',kw:'cirsg cumulative illness rating scale geriatric comorbilidad llc cll go go fcr valoracion'},
-{sub:true,name:'④ Comorbilidad y social'},
+{sub:true,name:'③ Comorbilidad y social'},
 {id:'hctci',name:'HCT-CI (Sorror)',kw:'hctci sorror trasplante comorbilidad valoracion escala'},
 {id:'tso',name:'Valoración Sociofamiliar (TSO)',kw:'tso gijon sociofamiliar social familiar anciano geriatrico valoracion escala riesgo social trabajo social alicante osona',new:'2026-06-19'}
 ]},
@@ -7064,7 +7063,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 282;
+const HP_BUILD = 283;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
