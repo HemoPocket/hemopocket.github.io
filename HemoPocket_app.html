@@ -6213,6 +6213,14 @@ window.hpUpdateRevBadge=async function(){
     const pend=Array.isArray(data.pendientes)?data.pendientes:(Array.isArray(data.problemas)?data.problemas:[]);
     window._hpRevNew=pend.length;
     if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+    // Aviso al abrir la app: una sola vez por informe nuevo (no molesta en cada carga).
+    if(pend.length>0){
+      let visto=''; try{ visto=localStorage.getItem('hpRevSeen')||''; }catch(e){}
+      if(visto!==(data.fecha||'') && typeof toast==='function'){
+        toast('⚠️ La revisión encontró '+pend.length+' aviso(s) que necesitan aprobación · Ajustes → Revisión');
+        try{ localStorage.setItem('hpRevSeen', data.fecha||''); }catch(e){}
+      }
+    }
   }catch(e){}
 };
 // Cuenta las solicitudes de acceso PENDIENTES y muestra el número junto a «Solicitudes de acceso».
@@ -7162,7 +7170,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 294;
+const HP_BUILD = 295;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
