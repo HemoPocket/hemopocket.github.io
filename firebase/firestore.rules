@@ -243,6 +243,13 @@ service cloud.firestore {
       allow delete: if canEdit(resource.data.seccion);
     }
 
+    // ── Ensayos clínicos / estudios (sección 'ensayos') ──
+    // Los lee cualquier usuario autorizado; los gestionan admin y editores de 'ensayos'.
+    match /ensayos/{id} {
+      allow read:  if isApproved();
+      allow write: if canEdit('ensayos');
+    }
+
     // ── Páginas editadas (override del contenido de vistas existentes) ──
     // Lo lee cualquier usuario autorizado. Lo edita quien puede editar la sección a la que pertenece
     // la página (campo 'seccion'); si la página no tiene sección (vistas generales), solo un admin.
