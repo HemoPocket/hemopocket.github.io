@@ -1191,7 +1191,7 @@ function getAll(){return MENU.flatMap(s=>s.items)}
 
 function renderMenu(filter=''){
 const f=filter.toLowerCase().trim();
-const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id);}).slice(0,4);
+const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id) && !(id.indexOf('g_')===0 && !hpSecVisibleUser(id.slice(2)));}).slice(0,4);
 let h='';
 if(favs.length){
 h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px">Acceso Rápido</div>';
@@ -1202,7 +1202,7 @@ _hpMenuCats().forEach(({sec,si})=>{
 const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
 const isEditorUI=!!(window.HemoCloud&&window.HemoCloud.isEditor&&window.HemoCloud.isEditor());
 const _admHide=it=>(it.admin&&!isAdminUI&&!(it.edOk&&isEditorUI));
-const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&hpSecHidden(it.id.slice(2)));
+const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&(hpSecHidden(it.id.slice(2))||!hpSecVisibleUser(it.id.slice(2))));
 const realItems=sec.items.filter(it=>!it.sub && !_admHide(it) && !isGuideHidden(it) && !hpItemHidden(it.id) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
 if(!realItems.length)return;
 const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidden(it.id));
@@ -1226,6 +1226,7 @@ h+='</div></div>';
 // Secciones de guías NUEVAS (creadas por admin): categorías propias al final del menú.
 try{ if(typeof hpNewSectionsOrdered==='function'){ hpNewSectionsOrdered().forEach(function(s){
   if(s.oculta) return;
+  if(!hpSecVisibleUser(s.id)) return;
   if(f && !(('guias clinicas '+(s.titulo||'')).toLowerCase().includes(f))) return;
   const vid='g_'+s.id; const act=(S.view===vid); const op=(f||act);
   h+='<div class="menu-section"><div class="menu-cat'+(op?' open':'')+'" onclick="this.classList.toggle(\'open\')"><span>'+(s.titulo||'').toUpperCase()+'</span><span class="ar">▶</span></div><div class="menu-items"><div class="menu-item '+(act?'active':'')+'" onclick="go(\''+vid+'\')"><span class="nm-wrap"><span>Guías clínicas</span></span></div></div></div>';
@@ -1468,7 +1469,7 @@ const LOGO_SVG=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fi
 const ICON_PHONE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>`;
 
 var _hpNovedades=[];
-function _hpContentKeys(){ var items=[]; try{ Object.keys(GUIDES_TITLES||{}).forEach(function(sec){ (getSubtypes(sec)||[]).forEach(function(st){ (st.pdfs||[]).forEach(function(p){ if(p&&p.url&&p.name) items.push({key:'g:'+p.url,tipo:'Guía',titulo:p.name,sec:sec}); }); }); }); }catch(e){} try{ var A=hpAlgos(); Object.keys(A).forEach(function(id){ var a=A[id]; if(a&&a.estado==='publicado') items.push({key:'a:'+id,tipo:'Algoritmo',titulo:a.titulo||'Algoritmo',sec:a.seccion,id:id}); }); }catch(e){} try{ var C=_calcsStored(); Object.keys(C).forEach(function(id){ var cc=C[id]; if(cc&&cc.estado==='publicado') items.push({key:'c:'+id,tipo:'Calculadora',titulo:cc.titulo||'Calculadora',sec:cc.seccion,id:id}); }); }catch(e){} try{ var I=hpInfos(); Object.keys(I).forEach(function(id){ var x=I[id]; if(x&&x.estado==='publicado') items.push({key:'i:'+id,tipo:'Información',titulo:x.titulo||'Información',sec:x.seccion,id:id}); }); }catch(e){} return items; }
+function _hpContentKeys(){ var items=[]; try{ Object.keys(GUIDES_TITLES||{}).forEach(function(sec){ if(!hpSecVisibleUser(sec)) return; (getSubtypes(sec)||[]).forEach(function(st){ (st.pdfs||[]).forEach(function(p){ if(p&&p.url&&p.name) items.push({key:'g:'+p.url,tipo:'Guía',titulo:p.name,sec:sec}); }); }); }); }catch(e){} try{ var A=hpAlgos(); Object.keys(A).forEach(function(id){ var a=A[id]; if(a&&a.estado==='publicado'&&hpVisible(a)) items.push({key:'a:'+id,tipo:'Algoritmo',titulo:a.titulo||'Algoritmo',sec:a.seccion,id:id}); }); }catch(e){} try{ var C=_calcsStored(); Object.keys(C).forEach(function(id){ var cc=C[id]; if(cc&&cc.estado==='publicado'&&hpVisible(cc)) items.push({key:'c:'+id,tipo:'Calculadora',titulo:cc.titulo||'Calculadora',sec:cc.seccion,id:id}); }); }catch(e){} try{ var I=hpInfos(); Object.keys(I).forEach(function(id){ var x=I[id]; if(x&&x.estado==='publicado'&&hpVisible(x)) items.push({key:'i:'+id,tipo:'Información',titulo:x.titulo||'Información',sec:x.seccion,id:id}); }); }catch(e){} return items; }
 function _hpSeenSet(){ try{ var r=localStorage.getItem('hpSeen'); if(r==null)return null; var o={}; (JSON.parse(r)||[]).forEach(function(k){o[k]=1;}); return o; }catch(e){ return {}; } }
 function hpNovedadesScan(){ try{ var cur=_hpContentKeys(); var seen=_hpSeenSet(); if(seen==null){ try{ localStorage.setItem('hpSeen',JSON.stringify(cur.map(function(it){return it.key;}))); }catch(e){} _hpNovedades=[]; return; } _hpNovedades=cur.filter(function(it){ return !seen[it.key]; }); }catch(e){ _hpNovedades=[]; } }
 function hpNovedadesVistas(){ try{ localStorage.setItem('hpSeen',JSON.stringify(_hpContentKeys().map(function(it){return it.key;}))); }catch(e){} _hpNovedades=[]; if(S&&S.view==='home'&&typeof go==='function') go('home'); }
@@ -4634,6 +4635,21 @@ async function hpMoverCategoria(h,dir){
 }
 function hpSecTitle(id){ const o=hpSecMap()[id]; return (o&&o.titulo)||GUIDES_TITLES[id]||id; }
 function hpSecHidden(id){ const o=hpSecMap()[id]; return !!(o&&o.oculta); }
+// ── Visibilidad de una SECCIÓN por hospital (Fase 2a). Sin 'vis' o vacío = la ven todos. ──
+function hpSecVis(id){ const o=hpSecMap()[id]; return (o&&Array.isArray(o.vis))?o.vis:[]; }
+function hpSecVisibleUser(id){ try{ if(window.HemoCloud && HemoCloud.isAdmin && HemoCloud.isAdmin()) return true; var v=hpSecVis(id); if(!v.length || v.indexOf('todos')!==-1) return true; return v.indexOf(hpUserCentro())!==-1; }catch(e){ return true; } }
+async function hpSetSecVis(id, arr){ const m=hpSecMap(); m[id]=Object.assign({}, m[id], {vis:arr}); try{ls.s('secOverrides',m);}catch(e){} if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{vis:arr}); toast(arr.length?'✓ Visibilidad de la sección actualizada · para todos':'✓ Sección visible para todos'); }catch(e){ toast('Guardado solo en este equipo'); } } }
+// Control de checkboxes «¿qué hospitales ven esta sección?» (solo si hay más de un centro).
+function hpSecVisControlHtml(id){
+  try{ if(_hpCentrosOrden().length<2) return ''; }catch(e){ return ''; }
+  var v=hpSecVis(id).filter(function(x){return x!=='todos';});
+  var ids=_hpCentrosOrden(); var tok='secv_'+id;
+  var h='<div class="fld" style="margin-top:8px"><label class="lbl">¿Qué hospitales ven esta sección?</label>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 5px">Sin marcar ninguno = la ven <strong>todos</strong>. Marca hospitales para mostrarla <strong>solo</strong> a ellos.</div>';
+  ids.forEach(function(cid){ h+='<label style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin-bottom:2px"><input type="checkbox" data-vis="'+tok+'" value="'+_hpEsc(cid)+'" '+(v.indexOf(cid)!==-1?'checked':'')+' onchange="hpSetSecVis(\''+id+'\',_hpVisRead(\''+tok+'\'))"> '+_hpEsc(hpCentroNombre(cid))+'</label>'; });
+  h+='</div>'; return h;
+}
+function hpSecVisEtiqueta(id){ var v=hpSecVis(id); if(!Array.isArray(v)||!v.length||v.indexOf('todos')!==-1) return ''; return ' <span class="ed-chip" style="background:#8a5a00">Solo: '+v.map(function(c){return _hpEsc(hpCentroNombre(c));}).join(', ')+'</span>'; }
 
 // ── Capa de ELEMENTOS del menú (calculadoras): visibilidad y nombre por hospital, efectiva para TODOS ──
 window.hpApplyItems=function(map){ try{ ls.s('itemOverrides', map||{}); }catch(e){} try{ hpRebuildMenu(); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
@@ -4934,7 +4950,7 @@ VIEWS.gsecciones=()=>{
     if(!_canEd) return; // los editores solo ven y gestionan las secciones que tienen asignadas
     const nombre = sid?hpSecTitle(sid):(sec.h||'');
     h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
-    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(nombre)+'</summary>';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(nombre)+(sid?hpSecVisEtiqueta(sid):'')+'</summary>';
     h+='<div style="margin-top:8px">';
     if(_full){
       h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
@@ -4942,6 +4958,7 @@ VIEWS.gsecciones=()=>{
       h+='<button class="btn btn-out btn-sm" onclick="hpMoverCategoria(\''+sec.h+'\',1)"'+(_ci===_arr.length-1?' disabled':'')+' title="Bajar en el menú">↓</button>';
       if(sid) h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+sid+'\')">✏️ Renombrar sección</button>';
       h+='</div>';
+      if(sid) h+=hpSecVisControlHtml(sid);
       if(!sid) h+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px">Sección general del menú (sin apartado de guías).</div>';
     }
     const cont=_hpContenidoTema(sec,_full);
@@ -4972,7 +4989,7 @@ VIEWS.gsecciones=()=>{
   nuevas.forEach(function(s,i){
     const oc=hpSecHidden(s.id);
     h+='<details style="margin-bottom:8px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px">';
-    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(hpSecTitle(s.id))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</summary>';
+    h+='<summary style="cursor:pointer;font-weight:600;padding:4px 0">'+_hpEsc(hpSecTitle(s.id))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+hpSecVisEtiqueta(s.id)+'</summary>';
     h+='<div style="margin-top:8px"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
     h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+s.id+'\')">✏️ Renombrar</button>';
     h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+s.id+'\')">'+(oc?'👁️ Mostrar':'🚫 Ocultar')+'</button>';
@@ -4981,6 +4998,7 @@ VIEWS.gsecciones=()=>{
     h+='<button class="btn btn-out btn-sm" onclick="go(\'g_'+s.id+'\')">Abrir</button>';
     h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="hpBorrarSeccionNueva(\''+s.id+'\')">Eliminar</button>';
     h+='</div>';
+    h+=hpSecVisControlHtml(s.id);
     h+=_hpAddContenido(s.id);
     h+='</div></details>';
   });
@@ -6093,6 +6111,7 @@ async function ensayoPublicar(){ const d=_ensayoDraft; if(!d||!d.titulo||!d.titu
 async function ensayoEliminar(id){ const e=hpEnsayos()[id]; if(!e)return; if(!confirm('¿Eliminar el ensayo "'+(e.titulo||'')+'" para todos?'))return; const m=hpEnsayos(); delete m[id]; try{ ls.s('ensayos',m); }catch(e){} if(window.hpDeleteEnsayo){ try{ await window.hpDeleteEnsayo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_ensayos'); }
 function guidesView(id){
 if(id==='ensayos' && typeof ensayosView==='function') return ensayosView();
+if(!hpSecVisibleUser(id)) return '<div class="card"><h2>No disponible</h2><div class="alert y">Esta sección no está disponible para tu hospital.</div></div>';
 const title=hpSecTitle(id);
 const subs=getSubtypes(id);
 const lastUpd=ls.g('lastUpdate');
@@ -7326,7 +7345,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 299;
+const HP_BUILD = 300;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
