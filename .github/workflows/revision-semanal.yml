@@ -23,23 +23,24 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Ejecutar revisión de salud
+      - name: Ejecutar revisión y autocorregir lo seguro
         id: check
         continue-on-error: true
         run: |
-          node scripts/health-check.mjs | tee revision.txt
+          node scripts/health-check.mjs --fix | tee revision.txt
           echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
-      - name: Guardar el informe en el repo (para el panel de la app)
+      - name: Guardar autocorrecciones + informe en el repo
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add revisiones/ultima.json
+          git add -A
+          git reset -q -- revision.txt 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "Informe sin cambios."
+            echo "Sin cambios que guardar."
           else
-            git commit -m "Revisión semanal: informe automático"
+            git commit -m "Revisión automática: autocorrecciones seguras + informe"
             git push origin HEAD:main
           fi
 
@@ -51,7 +52,7 @@ jobs:
             const fs = require('fs');
             const cuerpo = fs.readFileSync('revision.txt', 'utf8');
             const marca = '<!-- revision-semanal-hemopocket -->';
-            const titulo = '🔍 Revisión semanal: problemas detectados';
+            const titulo = '⚠️ Revisión: hay algo que necesita aprobación de un administrador';
             const body = marca + '\n\n' + cuerpo +
               '\n\n_Generado automáticamente por la acción «Revisión semanal HemoPocket». ' +
               'Cuando se corrijan los problemas, cierra este aviso (la próxima revisión limpia no lo reabre)._';

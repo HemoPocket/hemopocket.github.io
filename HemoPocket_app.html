@@ -1178,7 +1178,7 @@ const MENU=[
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
 {id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true},
-{id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administradora principal estado app',admin:true,principal:true}
+{id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true}
 ]}
 ];
 const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
@@ -1205,7 +1205,7 @@ const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidd
 const open=f||sec._o||sec.o;
 // Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
 let _hdr=sec.h; const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=_t.toUpperCase();}
-h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}${(!open&&(sec.h==='AJUSTES')&&(((window._hpRepNew||0)+(window._hpSolNew||0))>0))?`<span class="tag-new" style="background:#c41e3a" title="solicitudes y reportes pendientes">${(window._hpRepNew||0)+(window._hpSolNew||0)}</span>`:''}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
+h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}${(!open&&(sec.h==='AJUSTES')&&(((window._hpRepNew||0)+(window._hpSolNew||0)+(window._hpRevNew||0))>0))?`<span class="tag-new" style="background:#c41e3a" title="solicitudes, reportes y revisión pendientes">${(window._hpRepNew||0)+(window._hpSolNew||0)+(window._hpRevNew||0)}</span>`:''}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
 let inSub=false;
 visible.forEach(it=>{
 if(_admHide(it))return;
@@ -1214,7 +1214,8 @@ const isFav=S.favs.includes(it.id);
 const isNew=it.new && isRecentlyNew(it.new);
 const repBadge=(it.id==='reportes'&&window._hpRepNew)?`<span class="tag-new" style="background:#c41e3a" title="reportes sin resolver">${window._hpRepNew}</span>`:'';
 const solBadge=(it.id==='solicitudes'&&window._hpSolNew)?`<span class="tag-new" style="background:#c41e3a" title="solicitudes pendientes">${window._hpSolNew}</span>`:'';
-h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${_hpEsc(hpItemName(it.id,it.name))}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}${solBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
+const revBadge=(it.id==='revision'&&window._hpRevNew)?`<span class="tag-new" style="background:#c41e3a" title="revisión: algo necesita aprobación">${window._hpRevNew}</span>`:'';
+h+=`<div class="menu-item ${inSub?'in-sub ':''}${S.view===it.id?'active':''}" onclick="go('${it.id}')"><span class="nm-wrap"><span>${_hpEsc(hpItemName(it.id,it.name))}</span>${isNew?'<span class="tag-new">nuevo</span>':''}${repBadge}${solBadge}${revBadge}</span><span class="fav ${isFav?'on':''}" onclick="event.stopPropagation();toggleFav('${it.id}')">${isFav?'★':'☆'}</span></div>`;
 });
 h+='</div></div>';
 });
@@ -5821,21 +5822,28 @@ if(window.hpConfirm) window.hpConfirm(msg,()=>_hpDoAccion(uid,'aprobar',role,sec
 window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
 
 // === ERRORES REPORTADOS (solo administradora) ===
-// === REVISIÓN SEMANAL (panel solo para la administradora principal) ===
-// Muestra el último informe de salud generado automáticamente por la GitHub Action
-// (revisiones/ultima.json). No depende de ninguna sesión: el archivo lo publica la acción.
+// === REVISIÓN DE SALUD (panel para administradores) ===
+// Muestra el último informe generado por la GitHub Action (revisiones/ultima.json). La acción
+// AUTOCORRIGE lo seguro y aquí solo aparece, para aprobación, lo que necesita criterio humano.
+// Cada hallazgo lleva un CÓDIGO: si se lo dices a Claude, localiza y corrige ese error.
 VIEWS.revision=()=>{
-  if(typeof HP_PRINCIPAL_UID==='undefined' || window.__hpUid!==HP_PRINCIPAL_UID){
-    return '<div class="card"><h2>🔍 Revisión semanal</h2><div class="alert y">Solo disponible para la administradora principal.</div></div>';
+  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
+    return '<div class="card"><h2>🔍 Revisión de la app</h2><div class="alert y">Solo disponible para administradores.</div></div>';
   }
   return `<div class="card">
-  <h2>🔍 Revisión semanal</h2>
-  <p class="intro">Estado de salud de la app, comprobado <strong>automáticamente cada semana</strong> en la nube: sincronización de ediciones, versiones, sintaxis y reglas. Si algo falla, aparecerá aquí.</p>
+  <h2>🔍 Revisión de la app</h2>
+  <p class="intro">Estado de salud comprobado <strong>automáticamente cada semana</strong> en la nube. Lo que se puede arreglar solo, <strong>ya se arregla</strong>; aquí solo aparece lo que <strong>necesita tu aprobación</strong>. Cada problema lleva un <strong>código</strong>: pásaselo a Claude y lo corrige.</p>
   <div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="hpRenderRevision()">↻ Actualizar</button></div>
   <div id="rev_body">Cargando informe…</div>
   </div>`;
 };
 VIEWS.revision_post=()=>hpRenderRevision();
+function _revLista(arr){
+  return '<ul style="padding-left:18px;margin:6px 0;line-height:1.6">'+arr.map(function(x){
+    if(x&&typeof x==='object'){ return '<li><span style="display:inline-block;font-size:11px;font-weight:700;background:var(--bg2);border:1px solid var(--bd);border-radius:6px;padding:1px 6px;margin-right:6px">'+_hpEsc(x.code||'—')+'</span><strong>'+_hpEsc(x.titulo||'')+'</strong>'+(x.detalle?('<br><span style="font-size:12.5px;color:var(--mut)">'+_hpEsc(x.detalle)+'</span>'):'')+'</li>'; }
+    return '<li>'+_hpEsc(String(x))+'</li>';
+  }).join('')+'</ul>';
+}
 async function hpRenderRevision(){
   const el=document.getElementById('rev_body'); if(!el) return;
   el.innerHTML='Cargando informe…';
@@ -5845,13 +5853,18 @@ async function hpRenderRevision(){
     el.innerHTML='<div class="alert b">Aún no hay ningún informe publicado. La primera revisión automática se publicará el próximo lunes; también puedes lanzarla a mano desde GitHub → pestaña <strong>Actions</strong> → «Revisión semanal HemoPocket».</div>';
     return;
   }
+  // Compatibilidad: el formato nuevo trae corregidos/pendientes; el viejo traía «problemas».
+  const corregidos=Array.isArray(data.corregidos)?data.corregidos:[];
+  const pendientes=Array.isArray(data.pendientes)?data.pendientes:(Array.isArray(data.problemas)?data.problemas:[]);
   let fecha=data.fecha||''; try{ fecha=new Date(data.fecha).toLocaleString('es-ES'); }catch(e){}
   let h='';
-  if(data.ok){
-    h+='<div class="alert g"><strong>✅ Todo correcto</strong><br>No se han detectado problemas.</div>';
+  if(!pendientes.length){
+    h+='<div class="alert g"><strong>✅ Todo en orden</strong><br>No hay nada pendiente de aprobación.</div>';
   }else{
-    const ps=Array.isArray(data.problemas)?data.problemas:[];
-    h+='<div class="alert r"><strong>❌ '+ps.length+' problema(s) detectado(s):</strong><ul style="padding-left:20px;margin-top:6px">'+ps.map(p=>'<li>'+_hpEsc(p)+'</li>').join('')+'</ul></div>';
+    h+='<div class="alert r"><strong>⚠️ '+pendientes.length+' cosa(s) necesitan tu aprobación</strong>'+_revLista(pendientes)+'<div style="font-size:12px;color:var(--mut)">Pásale a Claude el código de cada una para que lo corrija.</div></div>';
+  }
+  if(corregidos.length){
+    h+='<div class="alert g" style="margin-top:8px"><strong>🔧 Corregido automáticamente ('+corregidos.length+')</strong>'+_revLista(corregidos)+'</div>';
   }
   h+='<div style="font-size:12px;color:var(--mut);margin:8px 0">Última revisión: <strong>'+_hpEsc(fecha)+'</strong>'+(data.build?(' · build '+_hpEsc(String(data.build))):'')+'</div>';
   const cs=Array.isArray(data.comprobaciones)?data.comprobaciones:[];
@@ -6178,7 +6191,7 @@ if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpLoadPushState)window.hpLoadPushState();};
+window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpUpdateRevBadge)window.hpUpdateRevBadge();if(window.hpLoadPushState)window.hpLoadPushState();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
 window.hpUpdateRepBadge=async function(){
   try{
@@ -6186,6 +6199,19 @@ window.hpUpdateRepBadge=async function(){
     if(!navigator.onLine||!window.hpListReportes)return;
     const list=await window.hpListReportes();
     window._hpRepNew=list.filter(r=>r.estado!=='resuelto').length;
+    if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  }catch(e){}
+};
+// Cuenta los hallazgos de la revisión que NECESITAN APROBACIÓN y los marca junto a «Revisión» (solo admin).
+window.hpUpdateRevBadge=async function(){
+  try{
+    if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){window._hpRevNew=0;return;}
+    if(!navigator.onLine)return;
+    const r=await fetch('revisiones/ultima.json?ts='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const data=await r.json();
+    const pend=Array.isArray(data.pendientes)?data.pendientes:(Array.isArray(data.problemas)?data.problemas:[]);
+    window._hpRevNew=pend.length;
     if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
   }catch(e){}
 };
