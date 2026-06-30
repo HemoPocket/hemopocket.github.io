@@ -251,9 +251,11 @@ service cloud.firestore {
     }
 
     // ── Centros / hospitales (multi-hospital) ──
-    // Los lee cualquier usuario autorizado; solo los administradores los crean/editan.
+    // Lectura PÚBLICA (solo id + nombre del hospital, no es información sensible): la necesita el
+    // desplegable «elige tu hospital» de la pantalla de registro, antes de tener cuenta aprobada.
+    // Solo los administradores los crean/editan.
     match /centros/{id} {
-      allow read:  if isApproved();
+      allow read:  if true;
       allow write: if isAdmin();
     }
 
