@@ -1172,6 +1172,9 @@ const MENU=[
 {id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'},
 {id:'g_citodiag',name:'Guías clínicas',kw:'guias clinicas citodiagnostico citogenetica inmunofenotipo fish biologia molecular ngs protocolo pdf'}
 ]},
+{h:'ENSAYOS CLÍNICOS',items:[
+{id:'g_ensayos',name:'Ensayos clínicos',kw:'ensayos clinicos clinical trials estudios investigacion reclutamiento protocolo fase criterios inclusion exclusion promotor monitor crd consentimiento informado',new:'2026-06-30'}
+]},
 {h:'AJUSTES',items:[
 {id:'sync',name:'Sincronización',kw:'sincronizacion actualizar online offline backup exportar importar guias actualizaciones ajustes configuracion'},
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
@@ -4438,6 +4441,7 @@ const GUIDES_TITLES={
 'llc':'LLC',
 'ped':'Hematología pediátrica',
 'citodiag':'Citodiagnóstico',
+'ensayos':'Ensayos clínicos',
 'asist_red':'Asistente de redacción',
 'asist_qt':'Asistente de quimioterapia'
 };
@@ -7170,7 +7174,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 295;
+const HP_BUILD = 296;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
