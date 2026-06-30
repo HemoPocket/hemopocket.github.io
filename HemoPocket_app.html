@@ -5940,7 +5940,76 @@ window.hpReporteBorrarUI=function(id){ if(window.hpConfirm) window.hpConfirm('¿
 
 let _editGuide=null;
 
+// ════════════════ ENSAYOS CLÍNICOS / ESTUDIOS ════════════════
+// Gestor estructurado: cada ensayo lleva resumen + criterios de INCLUSIÓN y EXCLUSIÓN.
+// Lo crean admin/editores de la sección 'ensayos'; el resto del equipo lo consulta.
+// Se guarda y sincroniza como el resto del contenido (colección 'ensayos').
+let _ensayoDraft=null;
+function hpEnsayos(){ try{ return ls.g('ensayos')||{}; }catch(e){ return {}; } }
+window.hpApplyEnsayos=function(map){ try{ ls.s('ensayos', map||{}); }catch(e){} };
+function _ensReclLabel(r){ return r==='reclutando'?'🟢 Reclutando':r==='proximamente'?'🟡 Próximamente':r==='cerrado'?'⛔ Cerrado':''; }
+function _ensCriterios(t){ const L=String(t||'').split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean); if(!L.length) return ''; return '<ul style="padding-left:20px;margin:6px 0;line-height:1.6">'+L.map(function(x){return '<li>'+_hpEsc(x)+'</li>';}).join('')+'</ul>'; }
+function renderEnsayoCard(e, canEd){
+  const draft=e.estado!=='publicado';
+  const recl=_ensReclLabel(e.reclut);
+  let h='<div class="card" style="margin-bottom:12px">';
+  h+='<div style="display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap"><h3 style="margin:0;flex:1;min-width:150px">'+_hpEsc(e.titulo||'(sin título)')+'</h3>';
+  if(e.fase) h+='<span class="ed-chip" style="background:#1d4ed8">'+_hpEsc(e.fase)+'</span>';
+  if(recl) h+='<span class="ed-chip" style="background:'+(e.reclut==='reclutando'?'#1d8a4e':e.reclut==='proximamente'?'#b8860b':'#888')+'">'+recl+'</span>';
+  if(draft) h+='<span class="ed-chip" style="background:#b8860b">Borrador</span>';
+  h+='</div>';
+  if(e.promotor) h+='<div style="font-size:12px;color:var(--mut);margin-top:2px">Promotor / PI: <strong>'+_hpEsc(e.promotor)+'</strong></div>';
+  if(e.resumen) h+='<p style="margin:8px 0;line-height:1.6">'+_hpEsc(e.resumen).replace(/\n/g,'<br>')+'</p>';
+  const inc=_ensCriterios(e.inclusion), exc=_ensCriterios(e.exclusion);
+  if(inc) h+='<div class="alert g" style="margin-top:8px"><strong>✅ Criterios de inclusión</strong>'+inc+'</div>';
+  if(exc) h+='<div class="alert r" style="margin-top:8px"><strong>⛔ Criterios de exclusión</strong>'+exc+'</div>';
+  if(e.contacto) h+='<div style="font-size:12.5px;margin-top:8px">📞 <strong>Contacto:</strong> '+_hpEsc(e.contacto)+'</div>';
+  if(e.enlace) h+='<div style="font-size:12.5px;margin-top:4px">🔗 <a href="'+_hpEsc(e.enlace)+'" target="_blank" rel="noopener">'+_hpEsc(e.enlace)+'</a></div>';
+  if(canEd){ h+='<div class="btns" style="margin-top:10px"><button class="btn btn-out btn-sm" onclick="ensayoEditOpen(\''+e.id+'\')">✏️ Editar</button><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="ensayoEliminar(\''+e.id+'\')">🗑 Eliminar</button></div>'; }
+  h+='</div>';
+  return h;
+}
+function ensayosView(){
+  const canEd=hpEditUISec('ensayos');
+  const all=Object.keys(hpEnsayos()).map(function(k){return hpEnsayos()[k];}).filter(Boolean);
+  const list=(canEd?all:all.filter(function(e){return e.estado==='publicado';})).slice();
+  const rank={reclutando:0,proximamente:1,cerrado:2};
+  list.sort(function(a,b){ const ra=rank[a.reclut]!=null?rank[a.reclut]:3, rb=rank[b.reclut]!=null?rank[b.reclut]:3; if(ra!==rb) return ra-rb; return String(a.titulo||'').localeCompare(String(b.titulo||'')); });
+  let h='<div class="card"><h2>🧪 Ensayos clínicos y estudios</h2>';
+  h+='<p class="intro">Ensayos y estudios disponibles en el servicio, con un resumen y sus criterios de inclusión y exclusión. '+(canEd?'Como editor, mantén la lista para el resto del equipo.':'Consulta los criterios antes de proponer un paciente.')+'</p>';
+  if(canEd){ h+='<div class="btns" style="margin-bottom:4px"><button class="btn btn-2 btn-sm" onclick="ensayoNuevo()">➕ Añadir ensayo / estudio</button></div>'; }
+  h+='</div>';
+  if(!list.length){ h+='<div class="card"><div class="alert b">'+(canEd?'Aún no hay ensayos. Pulsa «➕ Añadir ensayo / estudio» para crear el primero.':'No hay ensayos disponibles ahora mismo.')+'</div></div>'; }
+  else { list.forEach(function(e){ h+=renderEnsayoCard(e, canEd); }); }
+  return h;
+}
+function _ensPuede(){ return !!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit('ensayos')); }
+function ensayoNuevo(){ if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft={id:'ens_'+Date.now(), titulo:'', fase:'', promotor:'', reclut:'reclutando', resumen:'', inclusion:'', exclusion:'', contacto:'', enlace:'', estado:'borrador'}; go('ensayoedit'); }
+function ensayoEditOpen(id){ const e=hpEnsayos()[id]; if(!e){ toast('No encontrado'); return; } if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft=JSON.parse(JSON.stringify(e)); go('ensayoedit'); }
+function ensayoSetField(f,v){ if(_ensayoDraft) _ensayoDraft[f]=v; }
+VIEWS.ensayoedit=()=>{
+  const d=_ensayoDraft; if(!d) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">Nada que editar.</div></div>';
+  if(!_ensPuede()) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">No tienes permiso para editar ensayos.</div></div>';
+  let h=_edHead('🧪','Ensayo clínico / estudio',d.estado);
+  h+='<p class="intro">Rellena el resumen y los criterios. En inclusión y exclusión, escribe <strong>un criterio por línea</strong>.</p>';
+  h+='<div class="fld"><label class="lbl">Título / acrónimo</label><input value="'+_hpEsc(d.titulo||'')+'" onchange="ensayoSetField(\'titulo\',this.value)" placeholder="Ej: ZUMA-7, estudio de mantenimiento…"></div>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:140px"><label class="lbl">Fase</label><select onchange="ensayoSetField(\'fase\',this.value)">'+['','Fase I','Fase I/II','Fase II','Fase III','Fase IV','Observacional','Registro/Estudio'].map(function(o){return '<option'+(d.fase===o?' selected':'')+'>'+_hpEsc(o)+'</option>';}).join('')+'</select></div>';
+  h+='<div class="fld" style="flex:1;min-width:140px"><label class="lbl">Reclutamiento</label><select onchange="ensayoSetField(\'reclut\',this.value)">'+[['reclutando','Reclutando'],['proximamente','Próximamente'],['cerrado','Cerrado']].map(function(o){return '<option value="'+o[0]+'"'+(d.reclut===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div></div>';
+  h+='<div class="fld"><label class="lbl">Promotor / investigador principal (opcional)</label><input value="'+_hpEsc(d.promotor||'')+'" onchange="ensayoSetField(\'promotor\',this.value)" placeholder="Promotor, PI…"></div>';
+  h+='<div class="fld"><label class="lbl">Resumen del estudio</label><textarea style="min-height:90px" onchange="ensayoSetField(\'resumen\',this.value)" placeholder="Objetivo, población, intervención…">'+_hpEsc(d.resumen||'')+'</textarea></div>';
+  h+='<div class="fld"><label class="lbl">Criterios de INCLUSIÓN (uno por línea)</label><textarea style="min-height:110px" onchange="ensayoSetField(\'inclusion\',this.value)" placeholder="Diagnóstico de…&#10;Edad ≥ 18 años&#10;ECOG 0-1">'+_hpEsc(d.inclusion||'')+'</textarea></div>';
+  h+='<div class="fld"><label class="lbl">Criterios de EXCLUSIÓN (uno por línea)</label><textarea style="min-height:110px" onchange="ensayoSetField(\'exclusion\',this.value)" placeholder="Afectación del SNC&#10;Insuficiencia orgánica…">'+_hpEsc(d.exclusion||'')+'</textarea></div>';
+  h+='<div class="fld"><label class="lbl">Contacto (opcional)</label><input value="'+_hpEsc(d.contacto||'')+'" onchange="ensayoSetField(\'contacto\',this.value)" placeholder="Persona / extensión / email"></div>';
+  h+='<div class="fld"><label class="lbl">Enlace (opcional)</label><input value="'+_hpEsc(d.enlace||'')+'" onchange="ensayoSetField(\'enlace\',this.value)" placeholder="https://…"></div>';
+  h+='<div class="ed-actions"><button class="btn btn-out btn-sm" onclick="ensayoCancelar()">✖ Cancelar</button><button class="btn btn-out btn-sm" onclick="ensayoGuardar()">💾 Guardar borrador</button><button class="btn btn-g btn-sm" onclick="ensayoPublicar()">✅ Publicar</button></div>';
+  h+='</div>'; return h;
+};
+function ensayoCancelar(){ _ensayoDraft=null; go('g_ensayos'); }
+async function ensayoGuardar(){ const d=_ensayoDraft; if(!d||!d.titulo||!d.titulo.trim()){ toast('Ponle un título'); return; } const m=hpEnsayos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ ls.s('ensayos',m); }catch(e){} if(window.hpSaveEnsayo){ try{ await window.hpSaveEnsayo(d); toast('💾 Guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará al reconectar'); } } }
+async function ensayoPublicar(){ const d=_ensayoDraft; if(!d||!d.titulo||!d.titulo.trim()){ toast('Ponle un título'); return; } d.estado='publicado'; const m=hpEnsayos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ ls.s('ensayos',m); }catch(e){} if(window.hpSaveEnsayo){ try{ await window.hpSaveEnsayo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } _ensayoDraft=null; go('g_ensayos'); }
+async function ensayoEliminar(id){ const e=hpEnsayos()[id]; if(!e)return; if(!confirm('¿Eliminar el ensayo "'+(e.titulo||'')+'" para todos?'))return; const m=hpEnsayos(); delete m[id]; try{ ls.s('ensayos',m); }catch(e){} if(window.hpDeleteEnsayo){ try{ await window.hpDeleteEnsayo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_ensayos'); }
 function guidesView(id){
+if(id==='ensayos' && typeof ensayosView==='function') return ensayosView();
 const title=hpSecTitle(id);
 const subs=getSubtypes(id);
 const lastUpd=ls.g('lastUpdate');
@@ -7174,7 +7243,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 296;
+const HP_BUILD = 297;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -7297,6 +7366,7 @@ if(window.hpSyncPlantillas){try{await window.hpSyncPlantillas();}catch(e){}}
 if(window.hpSyncBloques){try{await window.hpSyncBloques();}catch(e){}}
 if(window.hpSyncCalcs){try{await window.hpSyncCalcs();}catch(e){}}
 if(window.hpSyncInfos){try{await window.hpSyncInfos();}catch(e){}}
+if(window.hpSyncEnsayos){try{await window.hpSyncEnsayos();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -13246,7 +13316,7 @@ const before=_hpSig();
 // TODAS las colecciones editables: guías/apartados, secciones, orden, checklist, quimio,
 // lab, recetas, páginas, algoritmos, calculadoras, infos, plantillas, bloques, DIRECTORIO,
 // AVISO legal, colaboradores y estado de verificación. Si falta alguna aquí, sus cambios no llegarían en vivo.
-const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncPlantillas','hpSyncBloques','hpSyncDirectorio','hpSyncAviso','hpSyncColaboradores','hpSyncVerificados'];
+const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncEnsayos','hpSyncPlantillas','hpSyncBloques','hpSyncDirectorio','hpSyncAviso','hpSyncColaboradores','hpSyncVerificados'];
 for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
 const changed=(_hpSig()!==before);
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
@@ -14511,6 +14581,17 @@ window.hpSyncInfos = async function(){
     const snap = await getDocs(collection(fs, 'infos'));
     const map = {}; snap.forEach(d => { map[d.id] = Object.assign({ id:d.id }, d.data()); });
     if(window.hpApplyInfos) window.hpApplyInfos(map);
+    return true;
+  }catch(e){ return false; }
+};
+// Ensayos clínicos / estudios (mismo patrón que infos; cola offline vía hpQSet).
+window.hpSaveEnsayo = async function(x){ await hpQSet('ensayo:'+x.id, 'ensayos', x.id, x); };
+window.hpDeleteEnsayo = async function(id){ await deleteDoc(doc(fs, 'ensayos', id)); };
+window.hpSyncEnsayos = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'ensayos'));
+    const map = {}; snap.forEach(d => { map[d.id] = Object.assign({ id:d.id }, d.data()); });
+    if(window.hpApplyEnsayos) window.hpApplyEnsayos(map);
     return true;
   }catch(e){ return false; }
 };
