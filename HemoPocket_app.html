@@ -1177,7 +1177,8 @@ const MENU=[
 {id:'acerca',name:'Acerca de',kw:'acerca about objetivo informacion proposito mision aviso legal politica privacidad terminos condiciones responsabilidad',new:'2026-06-09'},
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
-{id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true}
+{id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true},
+{id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administradora principal estado app',admin:true,principal:true}
 ]}
 ];
 const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
@@ -4762,7 +4763,7 @@ async function hpMoverItem(secH,id,dir){
 }
 function hpItemOculto(id){ if(!id) return false; if((''+id).indexOf('g_')===0) return hpSecHidden((''+id).slice(2)); return hpItemHidden(id); }
 function _hpAdminUI(){ return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }
-function _hpItemAllowed(it){ if(!it) return false; if(it.admin && !_hpAdminUI()) return false; return true; }
+function _hpItemAllowed(it){ if(!it) return false; if(it.admin && !_hpAdminUI()) return false; if(it.principal && (typeof HP_PRINCIPAL_UID==='undefined' || window.__hpUid!==HP_PRINCIPAL_UID)) return false; return true; }
 async function hpOcultarItem(id){
   const nuevo=!hpItemHidden(id);
   const m=hpItemMap(); m[id]=Object.assign({},m[id],{oculta:nuevo}); try{ls.s('itemOverrides',m);}catch(e){}
@@ -5801,6 +5802,45 @@ if(window.hpConfirm) window.hpConfirm(msg,()=>_hpDoAccion(uid,'aprobar',role,sec
 window.hpRechazarUI=function(uid){ if(window.hpConfirm) window.hpConfirm('¿Rechazar esta cuenta?',()=>_hpDoAccion(uid,'rechazar')); else _hpDoAccion(uid,'rechazar'); };
 
 // === ERRORES REPORTADOS (solo administradora) ===
+// === REVISIÓN SEMANAL (panel solo para la administradora principal) ===
+// Muestra el último informe de salud generado automáticamente por la GitHub Action
+// (revisiones/ultima.json). No depende de ninguna sesión: el archivo lo publica la acción.
+VIEWS.revision=()=>{
+  if(typeof HP_PRINCIPAL_UID==='undefined' || window.__hpUid!==HP_PRINCIPAL_UID){
+    return '<div class="card"><h2>🔍 Revisión semanal</h2><div class="alert y">Solo disponible para la administradora principal.</div></div>';
+  }
+  return `<div class="card">
+  <h2>🔍 Revisión semanal</h2>
+  <p class="intro">Estado de salud de la app, comprobado <strong>automáticamente cada semana</strong> en la nube: sincronización de ediciones, versiones, sintaxis y reglas. Si algo falla, aparecerá aquí.</p>
+  <div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="hpRenderRevision()">↻ Actualizar</button></div>
+  <div id="rev_body">Cargando informe…</div>
+  </div>`;
+};
+VIEWS.revision_post=()=>hpRenderRevision();
+async function hpRenderRevision(){
+  const el=document.getElementById('rev_body'); if(!el) return;
+  el.innerHTML='Cargando informe…';
+  let data=null;
+  try{ const r=await fetch('revisiones/ultima.json?ts='+Date.now(),{cache:'no-store'}); if(r.ok) data=await r.json(); }catch(e){}
+  if(!data){
+    el.innerHTML='<div class="alert b">Aún no hay ningún informe publicado. La primera revisión automática se publicará el próximo lunes; también puedes lanzarla a mano desde GitHub → pestaña <strong>Actions</strong> → «Revisión semanal HemoPocket».</div>';
+    return;
+  }
+  let fecha=data.fecha||''; try{ fecha=new Date(data.fecha).toLocaleString('es-ES'); }catch(e){}
+  let h='';
+  if(data.ok){
+    h+='<div class="alert g"><strong>✅ Todo correcto</strong><br>No se han detectado problemas.</div>';
+  }else{
+    const ps=Array.isArray(data.problemas)?data.problemas:[];
+    h+='<div class="alert r"><strong>❌ '+ps.length+' problema(s) detectado(s):</strong><ul style="padding-left:20px;margin-top:6px">'+ps.map(p=>'<li>'+_hpEsc(p)+'</li>').join('')+'</ul></div>';
+  }
+  h+='<div style="font-size:12px;color:var(--mut);margin:8px 0">Última revisión: <strong>'+_hpEsc(fecha)+'</strong>'+(data.build?(' · build '+_hpEsc(String(data.build))):'')+'</div>';
+  const cs=Array.isArray(data.comprobaciones)?data.comprobaciones:[];
+  if(cs.length){
+    h+='<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>Detalle de comprobaciones</span><span class="ar">▶</span></div><div class="coll-c"><ul style="padding-left:20px;line-height:1.7">'+cs.map(c=>'<li>'+_hpEsc(c)+'</li>').join('')+'</ul></div></div>';
+  }
+  el.innerHTML=h;
+}
 VIEWS.reportes=()=>{
 if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
 return `<div class="card"><h2>Errores reportados</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
@@ -7077,8 +7117,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 292;
-const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
+const HP_BUILD = 293;
+const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.

@@ -1,0 +1,12 @@
+{
+  "fecha": "2026-06-30T19:47:41.887Z",
+  "ok": true,
+  "build": 293,
+  "problemas": [],
+  "comprobaciones": [
+    "Bloques <script> validados: 11 (todos correctos)",
+    "Versión coherente: build 293 = caché SW v293.",
+    "firestore.rules: llaves balanceadas (63).",
+    "Sincronización en vivo: las 19 colecciones editables están todas enganchadas."
+  ]
+}
