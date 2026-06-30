@@ -7077,7 +7077,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 288;
+const HP_BUILD = 289;
 const APP_BUILD = '2026.06.25 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12052,7 +12052,7 @@ function parseOrina(orig,folded,rs,re){const parts=[];ORINA.forEach(o=>{const re
 // === LCR (líquido cefalorraquídeo) ===
 function lcrUnit(u){u=(u||'').toLowerCase();if(/cel/.test(u)||/mm3/.test(u))return 'cel/mm3';if(u==='mg/dl')return 'mg/dl';if(u==='g/l')return 'g/L';return u;}
 function lcrRead(orig,folded,rs,re,labelRe){const region=folded.slice(rs,re);const mm=region.match(labelRe);if(!mm)return '';let s=hpLine(orig,rs+mm.index+mm[0].length).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/[↑↓▲▼]/g,' ').replace(/\([^)]*\)/g,' ').replace(/\s+/g,' ').trim().replace(/^[:=\-\s]+/,'').trim();if(!s)return '';const vm=s.match(/^([<>]?\d+(?:[.,]\d+)?)\s*([A-Za-zµ%][A-Za-zµ%\/0-9]*)?/);if(vm){const unit=vm[2]?lcrUnit(vm[2]):'';return vm[1]+(unit?' '+unit:'');}return s.toLowerCase();}
-const LCR=[{a:'aspecto',p:/aspecto/},{a:'hematíes',p:/hematies/},{a:'leucocitos',p:/leucocitos/},{a:'neutrófilos',p:/neutrofilos/},{a:'glucosa',p:/glucosa/},{a:'proteinas',p:/prote[ií]nas/}];
+const LCR=[{a:'aspecto',p:/aspecto/},{a:'hematíes',p:/hematies/},{a:'leucocitos',p:/leucocitos/},{a:'neutrófilos',p:/neutrofilos/},{a:'mononucleares',p:/mononucleares/},{a:'glucosa',p:/glucosa/},{a:'proteinas',p:/prote[ií]nas/}];
 function parseLCR(orig,folded,rs,re){const parts=[];LCR.forEach(o=>{const v=lcrRead(orig,folded,rs,re,o.p);if(v)parts.push(o.a+' '+v);});return parts;}
 // Proteinograma (electroforesis): extrae los valores ABSOLUTOS (g/dL) de proteínas totales, albúmina y fracciones,
 // ignorando las líneas de porcentaje. Cada etiqueta se busca al principio de su línea.
@@ -12067,7 +12067,7 @@ if(gIdx>=0){const gEnd=nextHdr(gIdx,SECT);const region=work.slice(gIdx,gEnd);con
 const cmH=work.match(/inmunohematologia|test de coombs directo|antiglobulina directa/);if(cmH){const cs=cmH.index,ce=nextHdr(cs,SECT);const out=parseCoombs(orig,work,cs,ce);if(out){found.__coombs=out;work=work.slice(0,cs)+work.slice(cs,ce).replace(/[^\n\r]/g,' ')+work.slice(ce);}else{if(/coombs|antiglobulina|tadm/.test(work.slice(cs,ce)))found.__coombsPend=1;}}
 const aH=work.match(/autoinmunidad/);if(aH){const as=aH.index,ae=nextHdr(as,SECT);const out=parseAutoinm(orig,work,as,ae);if(out&&out.length)found.autoinmunidad=(found.autoinmunidad||[]).concat(out);const _akw=/antinucleares|anticardiolipina|glicoprote[ií]na|anticoagulante\s+l[uú]pico|\bl[uú]pico\b|antifosfol[ií]pid/;const _abkw=new RegExp((typeof AUTOINM_AB!=='undefined'?AUTOINM_AB.map(function(a){return a.rx.source;}).join('|'):'(?!x)x'));const _aseg=work.slice(as,ae).split('\n').map(function(ln){return (_akw.test(ln)||_abkw.test(ln))?ln.replace(/[^\n\r]/g,' '):ln;}).join('\n');work=work.slice(0,as)+_aseg+work.slice(ae);}
 const oH=work.match(/sistematico de orina/);if(oH){const os=oH.index,oeFull=nextHdr(os,SECT);const sedRel=work.slice(os,oeFull).search(/sedimento de orina/);const oeParam=sedRel>=0?os+sedRel:oeFull;const out=parseOrina(orig,work,os,oeParam);if(out&&out.length)found.__orina=out;work=work.slice(0,os)+work.slice(os,oeFull).replace(/[^\n\r]/g,' ')+work.slice(oeFull);}
-const lH=work.match(/liquidos biologicos|cefalorraquideo|\blcr\b/);if(lH){const lx=lH.index,lend=nextHdr(lx,SECT);const out=parseLCR(orig,work,lx,lend);if(out&&out.length)found.__lcr=out;work=work.slice(0,lx)+work.slice(lx,lend).replace(/[^\n\r]/g,' ')+work.slice(lend);}
+const lH=work.match(/liquidos biologicos|cefalorraquideo|\blcr\b/);if(lH){const lx=lH.index;const _SECT_nolcr=SECT.replace('|liquidos biologicos','').replace('|cefalorraquideo','').replace('|\\blcr\\b','');const lend=nextHdr(lx,_SECT_nolcr);const out=parseLCR(orig,work,lx,lend);if(out&&out.length)found.__lcr=out;work=work.slice(0,lx)+work.slice(lx,lend).replace(/[^\n\r]/g,' ')+work.slice(lend);}
 // === Proteinograma "En Proceso": la electroforesis está pendiente; se anota aparte (antes de extraer/borrar) ===
 if(/proteinograma[\t ]*[\r\n]?[\t ]*en proceso/.test(work))found.__protproc=true;
 // === Proteinograma (electroforesis): extrae PT, albúmina y fracciones en g/dL de la sección y la borra ===
