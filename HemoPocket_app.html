@@ -5019,13 +5019,14 @@ function algosForSection(sec){ const m=hpAlgos(); return Object.keys(m).map(func
 function renderAlgosBlock(sec){
   const canEd=hpEditUISec(sec);
   const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';}); const pubV=pub.filter(hpVisible);
+  const shown=canEd?list.filter(function(a){return (a.estado==='publicado'&&hpVisible(a))||hpCanEditAmbito(a,sec);}):pubV;
   if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧩 Algoritmos interactivos</span><span class="ar">▶</span></div><div class="coll-c">';
-  (canEd?list:pubV).forEach(function(a){
-    const draft=a.estado!=='publicado';
-    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(a.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpVisEtiqueta(a):'')+'</span>';
+  shown.forEach(function(a){
+    const draft=a.estado!=='publicado'; const canEdItem=canEd&&hpCanEditAmbito(a,sec);
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(a.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpAmbitoEtiqueta(a)+hpVisEtiqueta(a):'')+'</span>';
     h+='<button class="btn btn-out btn-sm" onclick="algoOpen(\''+a.id+'\')">Abrir</button>';
-    if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="algoEditOpen(\''+a.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="algoEliminar(\''+a.id+'\')">×</button>'; }
+    if(canEdItem){ h+='<button class="btn btn-out btn-sm" onclick="algoEditOpen(\''+a.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="algoEliminar(\''+a.id+'\')">×</button>'; }
     h+='</div>';
   });
   h+='</div></div>';
@@ -5060,8 +5061,8 @@ function algoReset(){ const st=_algoState; if(st){ st.current=st.algo.inicio; st
 function algoOpen(id){ const a=hpAlgos()[id]; if(!a){toast('Algoritmo no encontrado');return;} _algoState={algo:JSON.parse(JSON.stringify(a)),current:a.inicio,history:[]}; go('algo'); }
 // ── Editor por formulario ──
 let _algoDraft=null;
-function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{}}; go('algoedit'); }
-function algoEditOpen(id){ const a=hpAlgos()[id]; if(!a){toast('No encontrado');return;} _algoDraft=JSON.parse(JSON.stringify(a)); if(!_algoDraft.nodos)_algoDraft.nodos={}; go('algoedit'); }
+function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{},ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; go('algoedit'); }
+function algoEditOpen(id){ const a=hpAlgos()[id]; if(!a){toast('No encontrado');return;} if(!hpCanEditAmbito(a,a.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _algoDraft=JSON.parse(JSON.stringify(a)); if(!_algoDraft.nodos)_algoDraft.nodos={}; go('algoedit'); }
 function _algoNodeLabel(n){ if(!n)return '(paso)'; const t=(n.texto||'').replace(/\s+/g,' ').trim(); return (t?t.slice(0,32):(n.tipo==='resultado'?'(resultado)':'(pregunta)')); }
 // ── Aspecto COMÚN de los mini-editores (calculadora / algoritmo / información) ──
 // Cabecera con chip de estado + barra de acciones idéntica y fija al hacer scroll.
@@ -5098,6 +5099,7 @@ VIEWS.algoedit=()=>{
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
+  h+=hpAmbitoControlHtml(d.ambito,'algoSetAmbito');
   h+=hpVisControlHtml(d.vis,'algoSetVis');
   h+=_edActions({cancel:'algoCancelar()',preview:'algoVistaPrevia()',check:'algoComprobar()',save:'algoGuardar()',publish:'algoPublicar()'});
   h+='</div>'; return h;
@@ -5120,7 +5122,8 @@ function _algoEditNode(d,nid,nodeIds){
   h+='</div></div>'; return h;
 }
 function algoSetField(f,v){ if(_algoDraft) _algoDraft[f]=v; }
-function algoSetVis(arr){ if(_algoDraft) _algoDraft.vis=arr; }
+function algoSetVis(arr){ if(_algoDraft){ _algoDraft.vis=arr; go('algoedit'); } }
+function algoSetAmbito(a){ if(_algoDraft){ _algoDraft.ambito=a; go('algoedit'); } }
 function algoMover(v){ if(_algoDraft){ _algoDraft.seccion=v; go('algoedit'); } }
 function algoAddNode(tipo){ const id='n_'+Date.now(); _algoDraft.nodos[id]={id:id,tipo:tipo,texto:'',opciones:[],cuerpo:''}; if(!_algoDraft.inicio)_algoDraft.inicio=id; go('algoedit'); }
 function algoMoverNodo(nid,dir){ const keys=Object.keys(_algoDraft.nodos); const i=keys.indexOf(nid); const j=i+dir; if(i<0||j<0||j>=keys.length)return; keys.splice(j,0,keys.splice(i,1)[0]); const o={}; keys.forEach(function(k){o[k]=_algoDraft.nodos[k];}); _algoDraft.nodos=o; go('algoedit'); }
@@ -5152,7 +5155,7 @@ function _algoValidar(d){
 function algoComprobar(){ const v=_algoValidar(_algoDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, listo para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
 async function algoGuardar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
 async function algoPublicar(){ const d=_algoDraft; const _v=_algoValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } go('g_'+d.seccion); }
-async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!confirm('¿Eliminar el algoritmo "'+(a.titulo||'')+'" para todos?'))return; const sec=a.seccion; const m=hpAlgos(); delete m[id]; try{ls.s('algos',m);}catch(e){} if(window.hpDeleteAlgo){ try{ await window.hpDeleteAlgo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_'+sec); }
+async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!hpCanEditAmbito(a,a.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes eliminarlo'); return; } if(!confirm('¿Eliminar el algoritmo "'+(a.titulo||'')+'" para todos?'))return; const sec=a.seccion; const m=hpAlgos(); delete m[id]; try{ls.s('algos',m);}catch(e){} if(window.hpDeleteAlgo){ try{ await window.hpDeleteAlgo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_'+sec); }
 
 // ════════════════ CONSTRUCTOR DE CALCULADORAS (puntuaciones y fórmulas) ════════════════
 // Dos tipos:
@@ -5234,13 +5237,14 @@ function calcsForSection(sec){ const m=hpCalcs(); return Object.keys(m).map(func
 function renderCalcsBlock(sec){
   const canEd=hpEditUISec(sec);
   const list=calcsForSection(sec); const pub=list.filter(function(c){return c.estado==='publicado';}); const pubV=pub.filter(hpVisible);
+  const shown=canEd?list.filter(function(c){return (c.estado==='publicado'&&hpVisible(c))||hpCanEditAmbito(c,sec);}):pubV;
   if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧮 Calculadoras propias</span><span class="ar">▶</span></div><div class="coll-c">';
-  (canEd?list:pubV).forEach(function(c){
-    const draft=c.estado!=='publicado';
-    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(c.titulo||'(sin título)')+(c.tipo==='formula'?' <span style="color:var(--mut);font-size:11px">ƒ</span>':'')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpVisEtiqueta(c):'')+'</span>';
+  shown.forEach(function(c){
+    const draft=c.estado!=='publicado'; const canEdItem=canEd&&hpCanEditAmbito(c,sec);
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(c.titulo||'(sin título)')+(c.tipo==='formula'?' <span style="color:var(--mut);font-size:11px">ƒ</span>':'')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpAmbitoEtiqueta(c)+hpVisEtiqueta(c):'')+'</span>';
     h+='<button class="btn btn-out btn-sm" onclick="calcOpen(\''+c.id+'\')">Abrir</button>';
-    if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="calcEditOpen(\''+c.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="calcEliminar(\''+c.id+'\')">×</button>'; }
+    if(canEdItem){ h+='<button class="btn btn-out btn-sm" onclick="calcEditOpen(\''+c.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="calcEliminar(\''+c.id+'\')">×</button>'; }
     h+='</div>';
   });
   h+='</div></div>';
@@ -5354,8 +5358,8 @@ VIEWS.calc=()=>{
 function calcOpen(id){ const c=hpCalcs()[id]; if(!c){toast('Calculadora no encontrada');return;} _calcState={calc:JSON.parse(JSON.stringify(c)),vals:{}}; go('calc'); }
 // ── Editor por formulario ──
 let _calcDraft=null;
-function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[]}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
-function calcEditOpen(id){ const c=hpCalcs()[id]; if(!c){toast('No encontrada');return;} _calcDraft=JSON.parse(JSON.stringify(c)); if(!_calcDraft.tipo)_calcDraft.tipo='score'; if(!_calcDraft.campos)_calcDraft.campos=[]; if(!_calcDraft.resultados)_calcDraft.resultados=[]; go('calcedit'); }
+function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[],ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
+function calcEditOpen(id){ const c=hpCalcs()[id]; if(!c){toast('No encontrada');return;} if(!hpCanEditAmbito(c,c.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _calcDraft=JSON.parse(JSON.stringify(c)); if(!_calcDraft.tipo)_calcDraft.tipo='score'; if(!_calcDraft.campos)_calcDraft.campos=[]; if(!_calcDraft.resultados)_calcDraft.resultados=[]; go('calcedit'); }
 function _calcSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
 VIEWS.calcedit=()=>{
   const d=_calcDraft; if(!d) return '<div class="card"><h2>Editar calculadora</h2><div class="alert y">Nada que editar.</div></div>';
@@ -5385,6 +5389,7 @@ VIEWS.calcedit=()=>{
   }
   (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri,(d.resultados||[]).length); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
+  h+=hpAmbitoControlHtml(d.ambito,'calcSetAmbito');
   h+=hpVisControlHtml(d.vis,'calcSetVis');
   h+=_edActions({cancel:'calcCancelar()',preview:'calcVistaPrevia()',check:'calcComprobar()',save:'calcGuardar()',publish:'calcPublicar()'});
   h+='</div>'; return h;
@@ -5419,7 +5424,8 @@ function _calcEditResultado(r,ri,total){
   return '<div style="display:flex;gap:4px;margin-top:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px">de</span><input type="number" style="width:60px" value="'+(r.min!=null?(+r.min):'')+'" onchange="calcResField('+ri+',\'min\',this.value)"><span style="font-size:12px">a</span><input type="number" style="width:60px" value="'+(r.max!=null?(+r.max):'')+'" onchange="calcResField('+ri+',\'max\',this.value)"><input style="flex:1;min-width:120px" value="'+_hpEsc(r.etiqueta||'')+'" onchange="calcResField('+ri+',\'etiqueta\',this.value)" placeholder="Categoría (ej: Riesgo bajo)"><button class="btn btn-out btn-sm" onclick="calcMoverResultado('+ri+',-1)"'+(ri===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="calcMoverResultado('+ri+',1)"'+(ri===total-1?' disabled':'')+'>↓</button><button class="btn btn-out btn-sm" onclick="calcDelResultado('+ri+')">×</button><textarea style="width:100%;margin-top:4px" onchange="calcResField('+ri+',\'detalle\',this.value)" placeholder="Detalle / recomendación (opcional)">'+_hpEsc(r.detalle||'')+'</textarea></div>';
 }
 function calcSetMeta(f,v){ if(!_calcDraft)return; if(f==='decimales')_calcDraft[f]=(+v||0); else _calcDraft[f]=v; if(f==='seccion') go('calcedit'); }
-function calcSetVis(arr){ if(_calcDraft) _calcDraft.vis=arr; }
+function calcSetVis(arr){ if(_calcDraft){ _calcDraft.vis=arr; go('calcedit'); } }
+function calcSetAmbito(a){ if(_calcDraft){ _calcDraft.ambito=a; go('calcedit'); } }
 function calcAddCampo(kind){ if(!_calcDraft.campos)_calcDraft.campos=[]; const id='c_'+Date.now()+'_'+Math.floor(Math.random()*1000); const campo={id:id,etiqueta:'',tipo:kind};
   if(_calcDraft.tipo==='formula'){ campo.clave='v'+(_calcDraft.campos.length+1); if(kind==='select')campo.opciones=[{etiqueta:'',valor:0}]; if(kind==='number')campo.unidad=''; }
   else { if(kind==='check')campo.puntos=1; else campo.opciones=[{etiqueta:'',puntos:0}]; }
@@ -5472,7 +5478,7 @@ function _calcValidar(d){
 function calcComprobar(){ const v=_calcValidar(_calcDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, lista para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
 async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
 async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
-async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; const _st=_calcsStored(); if(DEFAULT_CALCS[id] && !_st[id]){ toast('Es una calculadora de ejemplo integrada en la app; edítala para personalizarla.'); return; } if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=_calcsStored(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
+async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; if(!hpCanEditAmbito(c,c.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes eliminarlo'); return; } const _st=_calcsStored(); if(DEFAULT_CALCS[id] && !_st[id]){ toast('Es una calculadora de ejemplo integrada en la app; edítala para personalizarla.'); return; } if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=_calcsStored(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
 
 // ════════════════ CONTENIDO INFORMATIVO (notas / fichas por sección) ════════════════
 // Un "info" = título + texto (SIN HTML; se muestra escapado y respetando saltos de línea). Se guarda
@@ -5483,13 +5489,14 @@ function infosForSection(sec){ const m=hpInfos(); return Object.keys(m).map(func
 function renderInfosBlock(sec){
   const canEd=hpEditUISec(sec);
   const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';}); const pubV=pub.filter(hpVisible);
+  const shown=canEd?list.filter(function(x){return (x.estado==='publicado'&&hpVisible(x))||hpCanEditAmbito(x,sec);}):pubV;
   if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Información y notas</span><span class="ar">▶</span></div><div class="coll-c">';
-  (canEd?list:pubV).forEach(function(x){
-    const draft=x.estado!=='publicado';
-    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(x.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpVisEtiqueta(x):'')+'</span>';
+  shown.forEach(function(x){
+    const draft=x.estado!=='publicado'; const canEdItem=canEd&&hpCanEditAmbito(x,sec);
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(x.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpAmbitoEtiqueta(x)+hpVisEtiqueta(x):'')+'</span>';
     h+='<button class="btn btn-out btn-sm" onclick="infoOpen(\''+x.id+'\')">Abrir</button>';
-    if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="infoEditOpen(\''+x.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="infoEliminar(\''+x.id+'\')">×</button>'; }
+    if(canEdItem){ h+='<button class="btn btn-out btn-sm" onclick="infoEditOpen(\''+x.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="infoEliminar(\''+x.id+'\')">×</button>'; }
     h+='</div>';
   });
   h+='</div></div>'; return h;
@@ -5505,8 +5512,8 @@ VIEWS.info=()=>{
 };
 function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); go('info'); }
 let _infoDraft=null;
-function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador'}; go('infoedit'); }
-function infoEditOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoDraft=JSON.parse(JSON.stringify(x)); go('infoedit'); }
+function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador',ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; go('infoedit'); }
+function infoEditOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} if(!hpCanEditAmbito(x,x.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _infoDraft=JSON.parse(JSON.stringify(x)); go('infoedit'); }
 function _infoSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
 VIEWS.infoedit=()=>{
   const d=_infoDraft; if(!d) return '<div class="card"><h2>Editar información</h2><div class="alert y">Nada que editar.</div></div>';
@@ -5517,17 +5524,19 @@ VIEWS.infoedit=()=>{
   h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="infoSetField(\'seccion\',this.value)">'+_infoSecOptions(d.seccion)+'</select></div>';
   h+='<div class="fld"><label class="lbl">Contenido</label><textarea style="min-height:220px" onchange="infoSetField(\'cuerpo\',this.value)" placeholder="Escribe aquí la información...">'+_hpEsc(d.cuerpo||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
+  h+=hpAmbitoControlHtml(d.ambito,'infoSetAmbito');
   h+=hpVisControlHtml(d.vis,'infoSetVis');
   h+=_edActions({cancel:'infoCancelar()',preview:'infoVistaPrevia()',save:'infoGuardar()',publish:'infoPublicar()'});
   h+='</div>'; return h;
 };
 function infoSetField(f,v){ if(!_infoDraft)return; _infoDraft[f]=v; if(f==='seccion') go('infoedit'); }
-function infoSetVis(arr){ if(_infoDraft) _infoDraft.vis=arr; }
+function infoSetVis(arr){ if(_infoDraft){ _infoDraft.vis=arr; go('infoedit'); } }
+function infoSetAmbito(a){ if(_infoDraft){ _infoDraft.ambito=a; go('infoedit'); } }
 function infoVistaPrevia(){ _infoState=Object.assign({},JSON.parse(JSON.stringify(_infoDraft)),{preview:true}); go('info'); }
 function infoCancelar(){ const s=_infoDraft&&_infoDraft.seccion; _infoDraft=null; if(s) go('g_'+s); else go('home'); }
 async function infoGuardar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
 async function infoPublicar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!(d.cuerpo||'').trim() && !confirm('No has escrito contenido. ¿Publicar igualmente?'))return; d.estado='publicado'; const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } go('g_'+d.seccion); }
-async function infoEliminar(id){ const x=hpInfos()[id]; if(!x)return; if(!confirm('¿Eliminar "'+(x.titulo||'')+'" para todos?'))return; const sec=x.seccion; const m=hpInfos(); delete m[id]; try{ls.s('infos',m);}catch(e){} if(window.hpDeleteInfo){ try{ await window.hpDeleteInfo(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
+async function infoEliminar(id){ const x=hpInfos()[id]; if(!x)return; if(!hpCanEditAmbito(x,x.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes eliminarlo'); return; } if(!confirm('¿Eliminar "'+(x.titulo||'')+'" para todos?'))return; const sec=x.seccion; const m=hpInfos(); delete m[id]; try{ls.s('infos',m);}catch(e){} if(window.hpDeleteInfo){ try{ await window.hpDeleteInfo(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } go('g_'+sec); }
 // Botonera unificada para AÑADIR contenido a una sección (calculadora, algoritmo, información, PDF).
 function _hpAddContenido(sec){
   let h='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px;padding-top:8px;border-top:1px dashed var(--bd)">';
@@ -6018,6 +6027,49 @@ window.hpApplyCentros=function(map){ try{ var m=map||{}; if(!m.hunsc) m.hunsc={n
 // Centro del usuario actual (Fase 1: se usará en la Fase 2 para el filtrado). Por defecto HUNSC.
 function hpUserCentro(){ try{ return window.__hpCentro || 'hunsc'; }catch(e){ return 'hunsc'; } }
 function hpCentroNombre(id){ var m=hpCentros(); return (m[id]&&m[id].nombre)||id||''; }
+// ════════ ÁMBITO (propiedad) de un contenido (Fase 3) ════════
+// 'global' = base común (la mantiene la admin principal y el equipo de la casa/HUNSC).
+// id de hospital = lo gestiona y edita ESE hospital. Sin ámbito = 'global' (retrocompatible).
+function hpCasaCentro(){ try{ var m=hpCentros(); for(var k in m){ if(m[k]&&m[k].casa) return k; } }catch(e){} return 'hunsc'; }
+function hpIsPrincipal(){ try{ return typeof HP_PRINCIPAL_UID!=='undefined' && window.__hpUid===HP_PRINCIPAL_UID; }catch(e){ return false; } }
+function hpItemAmbito(item){ var a=item&&item.ambito; return (a&&a!=='global')?a:'global'; }
+// ¿Puede el usuario actual EDITAR este contenido, según su ámbito y la sección?
+//  - Principal: todo.  - Global: equipo de la casa (HUNSC) con permiso de la sección.
+//  - Hospital X: admin/editor de X con permiso de la sección.
+function hpCanEditAmbito(item, sec){
+  try{
+    if(hpIsPrincipal()) return true;
+    if(!window.HemoCloud) return false;
+    var puedeSeccion = sec ? !!(HemoCloud.canEdit&&HemoCloud.canEdit(sec)) : !!(HemoCloud.isEditor&&HemoCloud.isEditor());
+    if(!puedeSeccion) return false;
+    var amb=hpItemAmbito(item), mi=hpUserCentro();
+    if(amb==='global') return mi===hpCasaCentro();
+    return amb===mi;
+  }catch(e){ return false; }
+}
+// Etiqueta visual del ámbito (solo se muestra a admin/editor).
+function hpAmbitoEtiqueta(item){
+  var a=hpItemAmbito(item);
+  if(a==='global') return ' <span class="ed-chip" style="background:#3a4a6b">🌐 Global</span>';
+  return ' <span class="ed-chip" style="background:#1d6a4e">🏥 '+_hpEsc(hpCentroNombre(a))+'</span>';
+}
+// Ámbito que se asigna a un contenido NUEVO según quién lo crea.
+function hpAmbitoNuevo(){ try{ if(hpIsPrincipal()) return 'global'; var c=hpUserCentro(); return (c===hpCasaCentro())?'global':c; }catch(e){ return 'global'; } }
+// Visibilidad inicial de un contenido nuevo: privado a su hospital salvo que lo cree la casa/principal.
+function hpVisNueva(){ try{ if(hpIsPrincipal()) return []; var c=hpUserCentro(); return (c===hpCasaCentro())?[]:[c]; }catch(e){ return []; } }
+// Control «¿De quién es esto?» — SOLO la admin principal lo ve. cbName recibe el nuevo ámbito.
+function hpAmbitoControlHtml(ambito, cbName){
+  if(!hpIsPrincipal()) return '';
+  var a=(ambito&&ambito!=='global')?ambito:'global';
+  var ids=_hpCentrosOrden();
+  var h='<div class="fld"><label class="lbl">¿De quién es esto? (propiedad)</label>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 5px"><strong>Global</strong> = base común que mantienes tú y el equipo de la casa. Un <strong>hospital</strong> concreto = lo gestiona y edita ese hospital.</div>';
+  h+='<select onchange="'+cbName+'(this.value)" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card,#fff);color:var(--txt,#222)">';
+  h+='<option value="global"'+(a==='global'?' selected':'')+'>🌐 Global (para todos los hospitales)</option>';
+  ids.forEach(function(id){ h+='<option value="'+_hpEsc(id)+'"'+(a===id?' selected':'')+'>🏥 '+_hpEsc(hpCentroNombre(id))+'</option>'; });
+  h+='</select></div>';
+  return h;
+}
 // ¿Puede el usuario actual VER este contenido? (separación funcional, Fase 2a)
 // Sin 'vis', o vacío, o con 'todos' = público. Los administradores ven todo (lo gestionan).
 function hpVisible(item){
@@ -6038,9 +6090,14 @@ function hpVisEtiqueta(item){
 function hpVisControlHtml(vis, cbName){
   var v = Array.isArray(vis)?vis.filter(function(x){return x!=='todos';}):[];
   var ids = _hpCentrosOrden();
+  var todos = v.length===0;
   var h = '<div class="fld"><label class="lbl">¿Quién puede verlo?</label>';
-  h += '<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 5px">Si no marcas ninguno, lo ven <strong>todos</strong>. Marca hospitales para mostrarlo <strong>solo</strong> a ellos.</div>';
-  ids.forEach(function(id){ h += '<label style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin-bottom:2px"><input type="checkbox" data-vis="'+cbName+'" value="'+_hpEsc(id)+'" '+(v.indexOf(id)!==-1?'checked':'')+' onchange="'+cbName+'(_hpVisRead(\''+cbName+'\'))"> '+_hpEsc(hpCentroNombre(id))+'</label>'; });
+  h += '<div style="font-size:12px;margin:-2px 0 6px">Ahora mismo: <strong>'+(todos?'🌐 Visible para todos los hospitales':'🏥 Solo: '+v.map(function(id){return _hpEsc(hpCentroNombre(id));}).join(', '))+'</strong></div>';
+  h += '<button type="button" class="btn '+(todos?'btn-2':'btn-out')+' btn-sm" style="margin-bottom:8px" onclick="'+cbName+'([])"'+(todos?' disabled':'')+'>🌐 Visible para todos</button>';
+  if(ids.length>1){
+    h += '<div style="font-size:11.5px;color:var(--mut,#666);margin:0 0 4px">…o márcalo <strong>solo</strong> para hospitales concretos:</div>';
+    ids.forEach(function(id){ h += '<label style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin-bottom:2px"><input type="checkbox" data-vis="'+cbName+'" value="'+_hpEsc(id)+'" '+(v.indexOf(id)!==-1?'checked':'')+' onchange="'+cbName+'(_hpVisRead(\''+cbName+'\'))"> '+_hpEsc(hpCentroNombre(id))+'</label>'; });
+  }
   h += '</div>';
   return h;
 }
@@ -6055,7 +6112,7 @@ function renderEnsayoCard(e, canEd){
   if(e.fase) h+='<span class="ed-chip" style="background:#1d4ed8">'+_hpEsc(e.fase)+'</span>';
   if(recl) h+='<span class="ed-chip" style="background:'+(e.reclut==='reclutando'?'#1d8a4e':e.reclut==='proximamente'?'#b8860b':'#888')+'">'+recl+'</span>';
   if(draft) h+='<span class="ed-chip" style="background:#b8860b">Borrador</span>';
-  if(canEd) h+=hpVisEtiqueta(e);
+  if(canEd) h+=hpAmbitoEtiqueta(e)+hpVisEtiqueta(e);
   h+='</div>';
   if(e.promotor) h+='<div style="font-size:12px;color:var(--mut);margin-top:2px">Promotor / PI: <strong>'+_hpEsc(e.promotor)+'</strong></div>';
   if(e.resumen) h+='<p style="margin:8px 0;line-height:1.6">'+_hpEsc(e.resumen).replace(/\n/g,'<br>')+'</p>';
@@ -6064,14 +6121,14 @@ function renderEnsayoCard(e, canEd){
   if(exc) h+='<div class="alert r" style="margin-top:8px"><strong>⛔ Criterios de exclusión</strong>'+exc+'</div>';
   if(e.contacto) h+='<div style="font-size:12.5px;margin-top:8px">📞 <strong>Contacto:</strong> '+_hpEsc(e.contacto)+'</div>';
   if(e.enlace) h+='<div style="font-size:12.5px;margin-top:4px">🔗 <a href="'+_hpEsc(e.enlace)+'" target="_blank" rel="noopener">'+_hpEsc(e.enlace)+'</a></div>';
-  if(canEd){ h+='<div class="btns" style="margin-top:10px"><button class="btn btn-out btn-sm" onclick="ensayoEditOpen(\''+e.id+'\')">✏️ Editar</button><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="ensayoEliminar(\''+e.id+'\')">🗑 Eliminar</button></div>'; }
+  if(canEd && hpCanEditAmbito(e,null)){ h+='<div class="btns" style="margin-top:10px"><button class="btn btn-out btn-sm" onclick="ensayoEditOpen(\''+e.id+'\')">✏️ Editar</button><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="ensayoEliminar(\''+e.id+'\')">🗑 Eliminar</button></div>'; }
   h+='</div>';
   return h;
 }
 function ensayosView(){
   const canEd=hpEditUISec('ensayos');
   const all=Object.keys(hpEnsayos()).map(function(k){return hpEnsayos()[k];}).filter(Boolean);
-  const list=(canEd?all:all.filter(function(e){return e.estado==='publicado' && hpVisible(e);})).slice();
+  const list=(canEd?all.filter(function(e){return (e.estado==='publicado'&&hpVisible(e))||hpCanEditAmbito(e,null);}):all.filter(function(e){return e.estado==='publicado' && hpVisible(e);})).slice();
   const rank={reclutando:0,proximamente:1,cerrado:2};
   list.sort(function(a,b){ const ra=rank[a.reclut]!=null?rank[a.reclut]:3, rb=rank[b.reclut]!=null?rank[b.reclut]:3; if(ra!==rb) return ra-rb; return String(a.titulo||'').localeCompare(String(b.titulo||'')); });
   let h='<div class="card"><h2>🧪 Ensayos clínicos y estudios</h2>';
@@ -6083,10 +6140,11 @@ function ensayosView(){
   return h;
 }
 function _ensPuede(){ return !!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit('ensayos')); }
-function ensayoNuevo(){ if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft={id:'ens_'+Date.now(), titulo:'', fase:'', promotor:'', reclut:'reclutando', resumen:'', inclusion:'', exclusion:'', contacto:'', enlace:'', estado:'borrador'}; go('ensayoedit'); }
-function ensayoEditOpen(id){ const e=hpEnsayos()[id]; if(!e){ toast('No encontrado'); return; } if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft=JSON.parse(JSON.stringify(e)); go('ensayoedit'); }
+function ensayoNuevo(){ if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft={id:'ens_'+Date.now(), titulo:'', fase:'', promotor:'', reclut:'reclutando', resumen:'', inclusion:'', exclusion:'', contacto:'', enlace:'', estado:'borrador', ambito:hpAmbitoNuevo(), vis:hpVisNueva()}; go('ensayoedit'); }
+function ensayoEditOpen(id){ const e=hpEnsayos()[id]; if(!e){ toast('No encontrado'); return; } if(!_ensPuede()){ toast('Sin permiso'); return; } if(!hpCanEditAmbito(e,null)){ toast('Este ensayo pertenece a otro hospital; no puedes editarlo'); return; } _ensayoDraft=JSON.parse(JSON.stringify(e)); go('ensayoedit'); }
 function ensayoSetField(f,v){ if(_ensayoDraft) _ensayoDraft[f]=v; }
-function ensayoSetVis(arr){ if(_ensayoDraft) _ensayoDraft.vis=arr; }
+function ensayoSetVis(arr){ if(_ensayoDraft){ _ensayoDraft.vis=arr; go('ensayoedit'); } }
+function ensayoSetAmbito(a){ if(_ensayoDraft){ _ensayoDraft.ambito=a; go('ensayoedit'); } }
 VIEWS.ensayoedit=()=>{
   const d=_ensayoDraft; if(!d) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">Nada que editar.</div></div>';
   if(!_ensPuede()) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">No tienes permiso para editar ensayos.</div></div>';
@@ -6101,6 +6159,7 @@ VIEWS.ensayoedit=()=>{
   h+='<div class="fld"><label class="lbl">Criterios de EXCLUSIÓN (uno por línea)</label><textarea style="min-height:110px" onchange="ensayoSetField(\'exclusion\',this.value)" placeholder="Afectación del SNC&#10;Insuficiencia orgánica…">'+_hpEsc(d.exclusion||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Contacto (opcional)</label><input value="'+_hpEsc(d.contacto||'')+'" onchange="ensayoSetField(\'contacto\',this.value)" placeholder="Persona / extensión / email"></div>';
   h+='<div class="fld"><label class="lbl">Enlace (opcional)</label><input value="'+_hpEsc(d.enlace||'')+'" onchange="ensayoSetField(\'enlace\',this.value)" placeholder="https://…"></div>';
+  h+=hpAmbitoControlHtml(d.ambito,'ensayoSetAmbito');
   h+=hpVisControlHtml(d.vis,'ensayoSetVis');
   h+='<div class="ed-actions"><button class="btn btn-out btn-sm" onclick="ensayoCancelar()">✖ Cancelar</button><button class="btn btn-out btn-sm" onclick="ensayoGuardar()">💾 Guardar borrador</button><button class="btn btn-g btn-sm" onclick="ensayoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
@@ -6108,7 +6167,7 @@ VIEWS.ensayoedit=()=>{
 function ensayoCancelar(){ _ensayoDraft=null; go('g_ensayos'); }
 async function ensayoGuardar(){ const d=_ensayoDraft; if(!d||!d.titulo||!d.titulo.trim()){ toast('Ponle un título'); return; } const m=hpEnsayos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ ls.s('ensayos',m); }catch(e){} if(window.hpSaveEnsayo){ try{ await window.hpSaveEnsayo(d); toast('💾 Guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará al reconectar'); } } }
 async function ensayoPublicar(){ const d=_ensayoDraft; if(!d||!d.titulo||!d.titulo.trim()){ toast('Ponle un título'); return; } d.estado='publicado'; const m=hpEnsayos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ ls.s('ensayos',m); }catch(e){} if(window.hpSaveEnsayo){ try{ await window.hpSaveEnsayo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } _ensayoDraft=null; go('g_ensayos'); }
-async function ensayoEliminar(id){ const e=hpEnsayos()[id]; if(!e)return; if(!confirm('¿Eliminar el ensayo "'+(e.titulo||'')+'" para todos?'))return; const m=hpEnsayos(); delete m[id]; try{ ls.s('ensayos',m); }catch(e){} if(window.hpDeleteEnsayo){ try{ await window.hpDeleteEnsayo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_ensayos'); }
+async function ensayoEliminar(id){ const e=hpEnsayos()[id]; if(!e)return; if(!hpCanEditAmbito(e,null)){ toast('Este ensayo pertenece a otro hospital; no puedes eliminarlo'); return; } if(!confirm('¿Eliminar el ensayo "'+(e.titulo||'')+'" para todos?'))return; const m=hpEnsayos(); delete m[id]; try{ ls.s('ensayos',m); }catch(e){} if(window.hpDeleteEnsayo){ try{ await window.hpDeleteEnsayo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } go('g_ensayos'); }
 function guidesView(id){
 if(id==='ensayos' && typeof ensayosView==='function') return ensayosView();
 if(!hpSecVisibleUser(id)) return '<div class="card"><h2>No disponible</h2><div class="alert y">Esta sección no está disponible para tu hospital.</div></div>';
@@ -7345,7 +7404,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 300;
+const HP_BUILD = 301;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
