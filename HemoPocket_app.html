@@ -530,6 +530,10 @@ body{font-size:13px}
         <input class="hp-login-input" id="hp_reg_apellido" type="text" autocomplete="family-name">
       </div>
       <div class="hp-login-field">
+        <label class="hp-login-label" for="hp_reg_centro">Hospital / centro</label>
+        <select class="hp-login-input" id="hp_reg_centro"><option value="">Cargando hospitales…</option></select>
+      </div>
+      <div class="hp-login-field">
         <label class="hp-login-label" for="hp_reg_email">Correo electrónico</label>
         <input class="hp-login-input" id="hp_reg_email" type="email" autocomplete="email" placeholder="usuario@hospital.es" inputmode="email">
       </div>
@@ -5674,7 +5678,7 @@ function hpCentroSelector(uid, cur){
   s+='<div style="font-size:11px;color:var(--mut,#666);margin-top:4px">Determina qué contenidos restringidos podrá ver este usuario.</div></div>';
   return s;
 }
-function hpReadCentro(uid){ var el=document.getElementById('centro_'+uid); return el?el.value:'hunsc'; }
+function hpReadCentro(uid){ var el=document.getElementById('centro_'+uid); return el?el.value:null; }
 VIEWS.solicitudes=()=>{
 if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
 return `<div class="card"><h2>Solicitudes de acceso</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
@@ -5708,7 +5712,8 @@ h+='</div><div class="coll-c">';
 if(c.origen==='manual') h+='<div style="font-size:11.5px;color:#5a6a85;margin-bottom:4px">Usuario creado a mano en consola (sin solicitud en la app).</div>';
 if(fecha) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>Aceptó términos:</strong> '+fecha+(c.versionTerminos?(' (v'+c.versionTerminos+')'):'')+'</div>';
 if(acceso) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>Último acceso:</strong> '+acceso+'</div>';
-if(withActions||manageable){ const _cred=(colabInfo&&colabInfo.nombre)||((c.nombre||'')+' '+(c.apellido||'')).trim()||((c.email||'').split('@')[0]); const _crole=(colabInfo&&(colabInfo.rol||colabInfo.r))||''; h+=hpRoleSelector(c.uid,roleInfo,_cred,_crole); if(c.uid!==HP_PRINCIPAL_UID) h+=hpCentroSelector(c.uid, c.centro); }
+if(c.uid!==HP_PRINCIPAL_UID) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>🏥 Hospital:</strong> '+_hpEsc(hpCentroNombre(c.centro||hpCasaCentro()))+'</div>';
+if(withActions||manageable){ const _cred=(colabInfo&&colabInfo.nombre)||((c.nombre||'')+' '+(c.apellido||'')).trim()||((c.email||'').split('@')[0]); const _crole=(colabInfo&&(colabInfo.rol||colabInfo.r))||''; h+=hpRoleSelector(c.uid,roleInfo,_cred,_crole); if(c.uid!==HP_PRINCIPAL_UID && hpIsPrincipal()) h+=hpCentroSelector(c.uid, c.centro); }
 if(withActions){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
@@ -5813,7 +5818,7 @@ window.hpGuardarRol=function(uid){
 };
 async function _hpDoRol(uid,role,secs,nombre,spec){
   const centro=hpReadCentro(uid);
-  try{ if(window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs,nombre,spec); if(window.hpSetUserCentro){ try{ await window.hpSetUserCentro(uid, centro); }catch(e){} } if(window.hpSyncColaboradores) window.hpSyncColaboradores(); if(typeof toast==='function')toast('✔ Perfil actualizado'); if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); }
+  try{ if(window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs,nombre,spec); if(window.hpSetUserCentro && centro){ try{ await window.hpSetUserCentro(uid, centro); }catch(e){} } if(window.hpSyncColaboradores) window.hpSyncColaboradores(); if(typeof toast==='function')toast('✔ Perfil actualizado'); if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); }
   catch(e){ if(typeof toast==='function')toast('Error: '+(e.message||'')); }
 }
 // Acredita automáticamente como colaboradores a los editores/administradores que YA existen
@@ -5859,7 +5864,9 @@ Object.keys(usuarios).forEach(uid=>{
 // Acredita a editores/administradores ya existentes que aún no figuran (una sola vez; idempotente).
 // Se usa byUid (cuentas + usuarios) para tomar el mejor nombre disponible.
 try{ if(await hpReconcileColaboradores(roles, byUid, colabs)){ if(window.hpListColaboradores) colabs=await window.hpListColaboradores(); if(window.hpSyncColaboradores) window.hpSyncColaboradores(); } }catch(e){}
-const all=Object.values(byUid);
+let all=Object.values(byUid);
+// Admin de hospital: solo ve y gestiona los usuarios de SU hospital. La principal los ve todos.
+if(!hpIsPrincipal()){ const _mi=hpUserCentro(); all=all.filter(function(c){ if(c.uid===HP_PRINCIPAL_UID) return false; return (c.centro||hpCasaCentro())===_mi; }); }
 const pend=all.filter(c=>c.estado==='pendiente'); window._hpSolNew=pend.length; if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
 const rech=all.filter(c=>c.estado==='rechazada');
 const activos=all.filter(c=>c.estado!=='pendiente'&&c.estado!=='rechazada').sort((a,b)=>((a.email||'')<(b.email||'')?-1:1));
@@ -5878,7 +5885,7 @@ try{
 if(acc==='aprobar'){
 await window.hpAprobarCuenta(uid);
 if((role==='editor'||role==='admin') && window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs,nombre);
-if(window.hpSetUserCentro){ try{ await window.hpSetUserCentro(uid, hpReadCentro(uid)); }catch(e){} }
+if(window.hpSetUserCentro){ var _ct=hpReadCentro(uid); if(_ct){ try{ await window.hpSetUserCentro(uid, _ct); }catch(e){} } }
 if(window.hpSyncColaboradores) window.hpSyncColaboradores();
 } else await window.hpRechazarCuenta(uid);
 if(typeof toast==='function') toast(acc==='aprobar'?'✔ Cuenta aprobada':'Cuenta rechazada');
@@ -6489,7 +6496,8 @@ window.hpUpdateSolBadge=async function(){
     if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){window._hpSolNew=0;return;}
     if(!navigator.onLine||!window.hpListCuentas)return;
     const list=await window.hpListCuentas();
-    window._hpSolNew=list.filter(c=>c&&c.estado==='pendiente').length;
+    const _mi=hpUserCentro(), _prin=hpIsPrincipal();
+    window._hpSolNew=list.filter(c=>c&&c.estado==='pendiente'&&(_prin||(c.centro||hpCasaCentro())===_mi)).length;
     if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
   }catch(e){}
 };
@@ -7432,7 +7440,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 302;
+const HP_BUILD = 303;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14467,6 +14475,21 @@ window.hpShowRegister = function(){
   const l = document.getElementById('hp-login-view'); if (l) l.style.display = 'none';
   const r = document.getElementById('hp-register-view'); if (r) r.style.display = '';
   const e = document.getElementById('hp_reg_err'); if (e) { e.textContent = ''; e.className = 'hp-login-err'; }
+  try{ window.hpFillRegCentros && window.hpFillRegCentros(); }catch(_e){}
+};
+// Rellena el desplegable de hospitales del registro. Lista pública (solo id+nombre).
+window.hpFillRegCentros = async function(){
+  const sel = document.getElementById('hp_reg_centro'); if(!sel) return;
+  try{
+    const snap = await getDocs(collection(fs, 'centros'));
+    const arr = []; snap.forEach(d => { const x = d.data()||{}; arr.push({ id:d.id, nombre:x.nombre||d.id, orden:(x.orden!=null?x.orden:999) }); });
+    if(!arr.length) arr.push({ id:'hunsc', nombre:'HUNSC', orden:0 });
+    arr.sort((a,b)=>(a.orden-b.orden)||String(a.nombre).localeCompare(String(b.nombre)));
+    const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    sel.innerHTML = '<option value="">— Elige tu hospital —</option>' + arr.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.nombre)+'</option>').join('');
+  }catch(e){
+    sel.innerHTML = '<option value="hunsc">HUNSC</option>';
+  }
 };
 window.hpShowLogin = function(){
   const r = document.getElementById('hp-register-view'); if (r) r.style.display = 'none';
@@ -14477,6 +14500,7 @@ window.hpRegister = async function(){
   const nombre = (document.getElementById('hp_reg_nombre').value || '').trim();
   const apellido = (document.getElementById('hp_reg_apellido').value || '').trim();
   const email = (document.getElementById('hp_reg_email').value || '').trim();
+  const centro = ((document.getElementById('hp_reg_centro')||{}).value || '').trim();
   const pw = document.getElementById('hp_reg_pw').value;
   const pw2 = document.getElementById('hp_reg_pw2').value;
   const terms = document.getElementById('hp_reg_terms').checked;
@@ -14484,6 +14508,7 @@ window.hpRegister = async function(){
   const btn = document.getElementById('hp_reg_btn');
   errEl.className = 'hp-login-err';
   if (!nombre || !apellido || !email || !pw) { errEl.textContent = 'Completa todos los campos.'; return; }
+  if (!centro) { errEl.textContent = 'Elige tu hospital en el desplegable.'; return; }
   if (pw.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
   if (pw !== pw2) { errEl.textContent = 'Las contraseñas no coinciden.'; return; }
   if (!terms) { errEl.textContent = 'Debes aceptar el Aviso Legal y la Política de Privacidad.'; return; }
@@ -14495,7 +14520,7 @@ window.hpRegister = async function(){
     try { await updateProfile(user, { displayName: (nombre + ' ' + apellido).trim() }); } catch(e) {}
     // Ficha de cuenta + registro de aceptación de términos (queda como prueba auditable).
     await setDoc(doc(fs, 'cuentas', user.uid), {
-      email, nombre, apellido,
+      email, nombre, apellido, centro, centroSolicitado: centro,
       aceptaTerminos: true, versionTerminos: TERMS_VERSION,
       fechaAceptacion: serverTimestamp(),
       estado: 'pendiente', createdAt: serverTimestamp()
