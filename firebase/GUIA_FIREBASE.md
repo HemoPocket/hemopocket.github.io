@@ -53,6 +53,7 @@ usando su **UID** (lo copias de *Authentication → Users*). Campos:
 | `bs` | Banco de Sangre | `llc` | LLC |
 | `cart` | Terapia celular | `ped` | Hematología pediátrica |
 | `cito` | Citopenias | `leuc_ag` | Leucemias agudas |
+| `citodiag` | Citodiagnóstico | | |
 
 ---
 
