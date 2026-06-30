@@ -1268,6 +1268,7 @@ function go(id, params) {
     try{ const _pw = hpPageWrap(id, _base); _base = _pw.html; _skipPost = _pw.skipPost; }catch(e){}
     $('content').innerHTML = hpVerifyBanner(id) + _base;
     if (typeof wrapTbls==='function') wrapTbls($('content'));
+    if (!HP_NO_BANNER.has(id)){try{var _uit=getAll().find(function(x){return x.id===id;});var _udt=(_uit&&(_uit.upd||_uit.new))||HP_UPD_DATES[id]||null;if(_udt){var _up=_udt.split('-');if(_up.length===3){var _uel=document.createElement('p');_uel.style.cssText='font-size:11px;color:var(--mut);text-align:right;padding:4px 4px 10px;margin:0';_uel.textContent='Actualizado: '+_up[2]+'/'+_up[1]+'/'+_up[0];var _uc=$('content');if(_uc)_uc.appendChild(_uel);}}}catch(e){}}
     if (!_skipPost && VIEWS[id + '_post']) VIEWS[id + '_post'](params);
     document.body.classList.toggle('view-home', !!document.querySelector('#content .home-screen'));
     const _ew = $('eriWrap');
@@ -1283,6 +1284,24 @@ const VIEWS={};
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
 const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
+// Fechas de "última actualización" para apartados sin campo new:/upd: en el MENU.
+const HP_UPD_DATES={
+'qtc':'2026-04-01','crcl':'2026-04-01','obw':'2026-04-01','bsa':'2026-04-01','cb':'2026-04-01','qt':'2026-04-01',
+'ecog':'2026-04-01','g8':'2026-04-01','barthel':'2026-04-01','lawton':'2026-04-01',
+'imwgfr':'2026-04-01','sga':'2026-04-01','ferrara':'2026-04-01','ferrara_bi':'2026-04-01','cirsg':'2026-04-01','hctci':'2026-04-01',
+'nf':'2026-04-01','atb':'2026-04-01','g_inf':'2026-04-01','g_uh':'2026-04-01',
+'plasmic':'2026-04-01','cid':'2026-04-01','tt':'2026-04-01','wells':'2026-04-01','hb':'2026-04-01',
+'bridging':'2026-04-01','reversion':'2026-04-01','rotem':'2026-04-01','hemof_urg':'2026-04-01','g_th':'2026-04-01',
+'disc_abo':'2026-04-01','aaii':'2026-04-01','panag':'2026-04-01',
+'trans_ch':'2026-04-01','trans_pq':'2026-04-01','trans_pfc':'2026-04-01','pre_op':'2026-04-01','g_bs':'2026-04-01',
+'crs':'2026-04-01','icans':'2026-04-01','taspe':'2026-04-01','g_cart':'2026-04-01',
+'g_cito':'2026-04-01','eln':'2026-04-01','eln24':'2026-04-01','g_leuc_ag':'2026-04-01','g_citodiag':'2026-04-01',
+'ipssr':'2026-04-01','ipssm':'2026-04-01','icpss':'2026-04-01','sokal':'2026-04-01','elts':'2026-04-01','g_mieloide':'2026-04-01',
+'riss':'2026-04-01','r2iss':'2026-04-01','g_mm':'2026-04-01',
+'ripi':'2026-04-01','cnsipi':'2026-04-01','flipi':'2026-04-01','mipi':'2026-04-01','ips':'2026-04-01',
+'pit':'2026-04-01','aitl':'2026-04-01','aa':'2026-04-01','g_lf':'2026-04-01',
+'cllipi':'2026-04-01','g_llc':'2026-04-01','g_ped':'2026-04-01'
+};
 // ── Edición de CUALQUIER página de contenido (algoritmos, info) por usuarios autorizados ──
 // Una "página editada" sustituye al contenido del código con HTML saneado (sin scripts ni handlers).
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
@@ -7117,7 +7136,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 293;
+const HP_BUILD = 294;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
