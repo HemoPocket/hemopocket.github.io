@@ -8,6 +8,7 @@ import fs from 'node:fs';
 
 const problems = [];
 const notes = [];
+let buildNum = null;
 function problem(msg){ problems.push(msg); }
 function note(msg){ notes.push(msg); }
 
@@ -42,6 +43,7 @@ catch(e){ problem('No se puede leer HemoPocket_app.html: ' + e.message); finish(
   let sw = '';
   try { sw = fs.readFileSync(SW, 'utf8'); } catch(e){ problem('No se puede leer sw.js: ' + e.message); }
   const c = sw.match(/hemopocket-v(\d+)/);
+  if (b) buildNum = parseInt(b[1], 10);
   if (!b) problem('No se encuentra HP_BUILD en HemoPocket_app.html.');
   if (!c) problem('No se encuentra la versión del caché (hemopocket-vN) en sw.js.');
   if (b && c) {
@@ -100,7 +102,20 @@ catch(e){ problem('No se puede leer HemoPocket_app.html: ' + e.message); finish(
 finish();
 
 function finish(){
-  const fecha = new Date().toISOString().slice(0, 10);
+  const ahora = new Date().toISOString();
+  const fecha = ahora.slice(0, 10);
+  // Informe legible por la APP (panel admin principal). Se guarda siempre, pase o no.
+  try {
+    fs.mkdirSync(root + 'revisiones', { recursive: true });
+    fs.writeFileSync(root + 'revisiones/ultima.json', JSON.stringify({
+      fecha: ahora,
+      ok: problems.length === 0,
+      build: buildNum,
+      problemas: problems,
+      comprobaciones: notes
+    }, null, 2) + '\n');
+  } catch(e){ /* no romper la revisión por no poder escribir el informe */ }
+
   let out = '# 🔍 Revisión semanal HemoPocket — ' + fecha + '\n\n';
   if (problems.length) {
     out += '## ❌ Problemas detectados (' + problems.length + ')\n';
