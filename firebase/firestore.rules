@@ -250,6 +250,13 @@ service cloud.firestore {
       allow write: if canEdit('ensayos');
     }
 
+    // ── Centros / hospitales (multi-hospital) ──
+    // Los lee cualquier usuario autorizado; solo los administradores los crean/editan.
+    match /centros/{id} {
+      allow read:  if isApproved();
+      allow write: if isAdmin();
+    }
+
     // ── Páginas editadas (override del contenido de vistas existentes) ──
     // Lo lee cualquier usuario autorizado. Lo edita quien puede editar la sección a la que pertenece
     // la página (campo 'seccion'); si la página no tiene sección (vistas generales), solo un admin.
