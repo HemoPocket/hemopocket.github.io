@@ -6306,7 +6306,10 @@ const subId=section?k.slice(section.length+1):'';
 const st=(section?getSubtypes(section):[]).find(s=>s.id===subId)||{};
 const hidden=Array.isArray(st.hidden)?st.hidden:[];
 const names=(st.names&&typeof st.names==='object')?st.names:{};
-const visibleKeys=matching.filter(key=>hidden.indexOf(_guideIdent(key))===-1);
+const visMap=(st.vis&&typeof st.vis==='object')?st.vis:{};
+const canManagePdf=hpEditUISec(section);
+let visibleKeys=matching.filter(key=>hidden.indexOf(_guideIdent(key))===-1);
+if(!canManagePdf) visibleKeys=visibleKeys.filter(key=>hpVisible({vis:visMap[_guideIdent(key)]}));
 if(!visibleKeys.length){
 el.innerHTML='<div style="color:var(--mut);font-size:12px;padding:6px 0">Sin PDFs en este apartado.</div>';
 return;
@@ -6323,16 +6326,27 @@ const safeKey=encodeURIComponent(item.key);
 const safeIdent=encodeURIComponent(item.ident);
 const dispName=names[item.ident]||item.name;
 const cloudTag=item.cloud?' <span title="Guía en la nube" style="font-size:11px;color:var(--mut)">☁️</span>':'';
-let btns='';
+const curVis=Array.isArray(visMap[item.ident])?visMap[item.ident]:[];
+const multi=(typeof _hpCentrosOrden==='function')&&_hpCentrosOrden().length>1;
+const visChip=(canEdit&&curVis.length)?` <span class="ed-chip" style="background:#8a5a00">Solo: ${curVis.map(c=>_hpEsc(hpCentroNombre(c))).join(', ')}</span>`:'';
+let btns='',panel='';
 if(canEdit){
 const upB=idx>0?`<button title="Subir" style="color:var(--c2)" onclick="event.stopPropagation();moveGuide('${section}','${subId}','${safeIdent}',-1)">↑</button>`:'';
 const dnB=idx<n-1?`<button title="Bajar" style="color:var(--c2)" onclick="event.stopPropagation();moveGuide('${section}','${subId}','${safeIdent}',1)">↓</button>`:'';
 const renB=`<button title="Renombrar para todos" style="color:var(--c2)" onclick="event.stopPropagation();renameGuide('${safeKey}','${section}','${subId}')">✏️</button>`;
+const visB=multi?`<button title="¿Quién puede ver este PDF?" onclick="event.stopPropagation();var p=document.getElementById('pv_${idx}_panel');p.style.display=p.style.display==='none'?'block':'none'">👁️</button>`:'';
 const delAct=item.cloud?`hcDeleteGuide('${safeKey}','${section}')`:`hcHideGuide('${safeKey}','${section}','${subId}')`;
 const delB=`<button title="Eliminar para todos los usuarios" onclick="event.stopPropagation();${delAct}">🗑️</button>`;
-btns=upB+dnB+renB+delB;
+btns=upB+dnB+renB+visB+delB;
+if(multi){
+panel=`<div id="pv_${idx}_panel" onclick="event.stopPropagation()" style="display:none;padding:6px 8px;background:var(--bg2,#f3f3f3);border-radius:6px;margin:0 0 6px">`;
+panel+=`<div style="font-size:11.5px;color:var(--mut);margin-bottom:4px">¿Quién puede ver este PDF? Sin marcar ninguno = lo ven <strong>todos</strong>.</div>`;
+panel+=`<button type="button" class="btn ${curVis.length?'btn-out':'btn-2'} btn-sm" style="margin-bottom:5px" onclick="pdfSetVis('${section}','${subId}','${safeIdent}',[])"${curVis.length?'':' disabled'}>🌐 Visible para todos</button>`;
+_hpCentrosOrden().forEach(function(cid){ panel+=`<label style="display:flex;gap:6px;align-items:center;font-size:12px;margin-bottom:2px"><input type="checkbox" data-vis="pv_${idx}" value="${_hpEsc(cid)}" ${curVis.indexOf(cid)!==-1?'checked':''} onchange="pdfSetVis('${section}','${subId}','${safeIdent}',_hpVisRead('pv_${idx}'))"> ${_hpEsc(hpCentroNombre(cid))}</label>`; });
+panel+=`</div>`;
 }
-return `<div class="pdf-item" onclick="openPDF('${safeKey}')"><span class="name">📄 ${dispName}${item.size?' ('+(item.size/1024).toFixed(0)+' KB)':''}${cloudTag}</span>${btns}</div>`;
+}
+return `<div class="pdf-item" onclick="openPDF('${safeKey}')"><span class="name">📄 ${dispName}${item.size?' ('+(item.size/1024).toFixed(0)+' KB)':''}${cloudTag}${visChip}</span>${btns}</div>`+panel;
 }).join('');
 }catch(e){
 el.innerHTML=`<div style="color:var(--er);font-size:12px;padding:6px 0">Error: ${e.message}</div>`;
@@ -6385,6 +6399,18 @@ setSubtypes(section,subs);
 try{await idb.del(key);}catch(e){}
 const kk=key.split('|')[0];const el=$('pdfs_'+kk);if(el){el.dataset.loaded='';loadPDFs(kk,section);}
 await _hpPropagaSubtipos(section,subs,'✓ Guía eliminada');
+};
+// Visibilidad por PDF (protocolos): qué hospitales pueden ver una guía concreta. Sin marcar = todos.
+// Se guarda en st.vis[ident] (mapa ident→[centros]) dentro del apartado, que ya se sincroniza.
+window.pdfSetVis=async function(section,subId,encIdent,arr){
+if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return;}
+const ident=decodeURIComponent(encIdent);
+const subs=getSubtypes(section);const st=subs.find(s=>s.id===subId);if(!st){toast('No se encontró el apartado');return;}
+st.vis=(st.vis&&typeof st.vis==='object')?st.vis:{};
+if(Array.isArray(arr)&&arr.length)st.vis[ident]=arr;else delete st.vis[ident];
+setSubtypes(section,subs);
+const kk=section+'_'+subId;const el=$('pdfs_'+kk);if(el){el.dataset.loaded='';loadPDFs(kk,section);}
+await _hpPropagaSubtipos(section,subs,(arr&&arr.length)?'✓ Visibilidad del PDF actualizada · para todos':'✓ PDF visible para todos');
 };
 
 // === GUÍAS EN LA NUBE (Firebase Storage + Firestore) ===
@@ -6487,6 +6513,8 @@ if(!HemoCloud.token){ try{ await HemoCloud.loadToken(); }catch(_t){} }
 if(!HemoCloud.token){ alert('No se puede subir: falta configurar el token de GitHub (config/github en Firebase). Es un ajuste único que hace quien administra la app.'); return; }
 const {id,path,indexError}=await HemoCloud.uploadGuide(section,subtypeId,file,finalName);
 try{ const key=`${section}_${subtypeId}|cloud:${path}`; await idb.set(key,{name:finalName,size:file.size,blob:file,cloud:true,docId:id,path}); }catch(_i){}
+// Privado por defecto: si lo sube un hospital (no la casa/principal), el PDF nace visible solo para su hospital.
+try{ const vnew=(typeof hpVisNueva==='function')?hpVisNueva():[]; if(vnew&&vnew.length){ const subs=getSubtypes(section);const st=subs.find(s=>s.id===subtypeId); if(st){ st.vis=(st.vis&&typeof st.vis==='object')?st.vis:{}; st.vis['cloud:'+path]=vnew; setSubtypes(section,subs); _hpPropagaSubtipos(section,subs,''); } } }catch(_v){}
 const k=`${section}_${subtypeId}`;const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';loadPDFs(k,section)}
 if(indexError){ const ie=String((indexError&&(indexError.message||indexError.code))||''); const r2=/permission|insufficient|denied|missing/i.test(ie)?'permiso de la base de datos: revisa que tu cuenta tenga rol de editor de esta sección (o admin) y que las reglas de «guias» estén publicadas en Firebase':/(unavailable|offline|network|deadline)/i.test(ie)?'no se pudo conectar con la base de datos; revisa la conexión':ie||'desconocido'; alert('⚠️ La guía SE SUBIÓ y ya la ves en este dispositivo, pero no se pudo registrar para que la vea el resto del equipo.\n\nMotivo: '+r2+'\n\nDetalle técnico: '+(ie||'(sin detalle)')+'\n\nNo se ha perdido nada: reinténtalo cuando se resuelva.'); }
 else { toast('✓ Guía subida correctamente'); }
@@ -7404,7 +7432,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 301;
+const HP_BUILD = 302;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9106,7 +9134,7 @@ function chatBuildBase(){
   try{Object.keys(qtSchemes()).forEach(k=>{const s=qtSchemes()[k];const dt=(s.drugs||[]).map(d=>d.name+' '+(d.dose||'')+' '+(d.route||'')).join(' ');docs.push({type:'scheme',id:k,title:s.label,body:chatNorm(k+' '+s.label+' '+dt+' '+(s.kw||'')),kwn:chatNorm(s.label+' '+(s.kw||'')+' '+k),data:s});});}catch(e){}
   // Guías/protocolos por NOMBRE (desde la estructura): así son localizables aunque el PDF no esté descargado.
   // Si luego se descarga, chatIndexGuides añade el doc 'pdf' (con texto completo) y chatIndexAll descarta este stub.
-  try{Object.keys(GUIDES_TITLES).forEach(sec=>{const secName=GUIDES_TITLES[sec]||'';(getSubtypes(sec)||[]).forEach(st=>{(st.pdfs||[]).forEach(p=>{if(!p||!p.url||!p.name)return;const ttl=secName+' · '+p.name;docs.push({type:'guide',id:sec,url:p.url,name:p.name,title:ttl,body:chatNorm(ttl+' '+(st.name||''))});});});});}catch(e){}
+  try{Object.keys(GUIDES_TITLES).forEach(sec=>{if(!hpSecVisibleUser(sec))return;const secName=GUIDES_TITLES[sec]||'';(getSubtypes(sec)||[]).forEach(st=>{const vm=(st.vis&&typeof st.vis==='object')?st.vis:{};(st.pdfs||[]).forEach(p=>{if(!p||!p.url||!p.name)return;if(!hpVisible({vis:vm[p.url]}))return;const ttl=secName+' · '+p.name;docs.push({type:'guide',id:sec,url:p.url,name:p.name,title:ttl,body:chatNorm(ttl+' '+(st.name||''))});});});});}catch(e){}
   try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{docs.push({type:'phone',section:sn,title:(e[0]||'').replace(/\n/g,' '),loc:e[1],phone:e[2],ext:e[3],body:chatNorm(sn+' '+e[0]+' '+(e[1]||'')+' '+(e[3]||'')),kwn:chatNorm((e[0]||'')+' '+sn)});});});}catch(e){}
   return docs;
 }
