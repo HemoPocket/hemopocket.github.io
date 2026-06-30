@@ -1,12 +1,13 @@
 {
-  "fecha": "2026-06-30T19:47:41.887Z",
+  "fecha": "2026-06-30T20:02:43.799Z",
+  "build": 294,
   "ok": true,
-  "build": 293,
-  "problemas": [],
+  "corregidos": [],
+  "pendientes": [],
   "comprobaciones": [
-    "Bloques <script> validados: 11 (todos correctos)",
-    "Versión coherente: build 293 = caché SW v293.",
-    "firestore.rules: llaves balanceadas (63).",
-    "Sincronización en vivo: las 19 colecciones editables están todas enganchadas."
+    "Código revisado: 11 bloques (todos correctos)",
+    "Versión coherente: build 294 = caché v294.",
+    "Reglas de seguridad: correctas (63 bloques).",
+    "Sincronización en vivo: las 19 colecciones editables están todas conectadas."
   ]
 }

@@ -1,133 +1,177 @@
 #!/usr/bin/env node
 // Revisión automática de salud de HemoPocket.
-// Comprueba invariantes que, de romperse, causarían fallos (especialmente de SINCRONIZACIÓN:
-// que toda edición llegue a todos los dispositivos). Sale con código 1 si encuentra problemas.
-// Se ejecuta cada semana desde .github/workflows/revision-semanal.yml y también a mano:
-//   node scripts/health-check.mjs
+//
+// Detecta problemas que romperían la app o impedirían que las ediciones lleguen a todos.
+// Cada hallazgo lleva un CÓDIGO estable y una explicación en lenguaje claro.
+//
+// Con --fix, CORRIGE automáticamente lo que es SEGURO (mecánico, sin tocar lógica de la app)
+// y deja solo para APROBACIÓN de un administrador lo que requiere criterio humano.
+//
+// Uso:
+//   node scripts/health-check.mjs          (solo revisa; sale 1 si hay algo pendiente)
+//   node scripts/health-check.mjs --fix     (revisa, autocorrige lo seguro, y reporta)
 import fs from 'node:fs';
+import { execSync } from 'node:child_process';
 
-const problems = [];
-const notes = [];
-let buildNum = null;
-function problem(msg){ problems.push(msg); }
-function note(msg){ notes.push(msg); }
-
+const FIX = process.argv.includes('--fix');
 const root = new URL('..', import.meta.url).pathname;
 const APP = root + 'HemoPocket_app.html';
 const SW = root + 'sw.js';
 const RULES = root + 'firebase/firestore.rules';
 
-let html = '';
-try { html = fs.readFileSync(APP, 'utf8'); }
-catch(e){ problem('No se puede leer HemoPocket_app.html: ' + e.message); finish(); }
+const corregidos = [];   // autocorregidos en esta ejecución
+const pendientes = [];   // requieren aprobación de un administrador
+const comprobaciones = [];
+let buildNum = null;
 
-// 1) Sintaxis de TODOS los bloques <script> embebidos (no los que tienen src=).
-{
+const readHtml = () => fs.readFileSync(APP, 'utf8');
+
+// ── Comprobación 1: sintaxis del código ───────────────────────────────────────────────
+function checkSyntax(html){
   const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   let m, i = 0, bad = 0;
   while ((m = re.exec(html))) {
     i++;
-    const attrs = m[1] || '';
-    if (/\bsrc=/.test(attrs)) continue;
-    let code = m[2].replace(/^\s*import\b[^;]*;?\s*$/gm, '').replace(/^\s*export\b/gm, '');
+    if (/\bsrc=/.test(m[1] || '')) continue;
+    const code = m[2].replace(/^\s*import\b[^;]*;?\s*$/gm, '').replace(/^\s*export\b/gm, '');
     try { new Function(code); }
-    catch(e){ bad++; problem('Error de sintaxis JS en el bloque <script> #' + i + ': ' + e.message); }
+    catch (e) {
+      bad++;
+      pendientes.push({
+        code: 'COD-SINTAXIS',
+        titulo: 'Hay un error de programación en la app',
+        detalle: 'Un bloque de código (#' + i + ') tiene un fallo de sintaxis: «' + e.message +
+          '». La app podría no cargar. Requiere corrección manual de un técnico (díselo a Claude con el código COD-SINTAXIS).'
+      });
+    }
   }
-  note('Bloques <script> validados: ' + i + (bad ? (' (' + bad + ' con error)') : ' (todos correctos)'));
+  comprobaciones.push('Código revisado: ' + i + ' bloques' + (bad ? (' — ' + bad + ' con error') : ' (todos correctos)'));
 }
 
-// 2) La versión de compilación (HP_BUILD) debe coincidir con la del caché del service worker
-//    (de lo contrario, los dispositivos no reciben la versión nueva del código).
-{
-  const b = html.match(/const HP_BUILD = (\d+);/);
+// ── Comprobación 2: versión (para que la actualización llegue a los dispositivos) ──────
+// AUTOCORREGIBLE: si el código y el caché tienen distinto número, se igualan con ./bump.sh.
+function checkVersion(){
+  let html = readHtml();
   let sw = '';
-  try { sw = fs.readFileSync(SW, 'utf8'); } catch(e){ problem('No se puede leer sw.js: ' + e.message); }
-  const c = sw.match(/hemopocket-v(\d+)/);
+  try { sw = fs.readFileSync(SW, 'utf8'); } catch (e) {
+    pendientes.push({ code: 'VER-SW', titulo: 'No se puede leer el service worker', detalle: 'No se encontró sw.js: ' + e.message }); return;
+  }
+  let b = html.match(/const HP_BUILD = (\d+);/);
+  let c = sw.match(/hemopocket-v(\d+)/);
   if (b) buildNum = parseInt(b[1], 10);
-  if (!b) problem('No se encuentra HP_BUILD en HemoPocket_app.html.');
-  if (!c) problem('No se encuentra la versión del caché (hemopocket-vN) en sw.js.');
-  if (b && c) {
-    if (b[1] !== c[1]) problem('DESAJUSTE de versión: HP_BUILD=' + b[1] + ' pero el caché del SW es v' + c[1] + ' (ejecuta ./bump.sh).');
-    else note('Versión coherente: build ' + b[1] + ' = caché SW v' + c[1] + '.');
+  if (!b || !c) { pendientes.push({ code: 'VER-FALTA', titulo: 'Falta el número de versión', detalle: 'No se encuentra HP_BUILD o la versión del caché.' }); return; }
+
+  if (b[1] !== c[1]) {
+    if (FIX) {
+      try {
+        execSync('./bump.sh', { cwd: root, stdio: 'pipe' });
+        const nb = readHtml().match(/const HP_BUILD = (\d+);/);
+        if (nb) buildNum = parseInt(nb[1], 10);
+        corregidos.push({
+          code: 'VER-DESAJUSTE',
+          titulo: 'Corregido: la actualización ya llegará a todos los dispositivos',
+          detalle: 'El número de versión del código y del caché no coincidían (los dispositivos no recibían la versión nueva). Se han igualado automáticamente (ahora build ' + buildNum + ').'
+        });
+      } catch (e) {
+        pendientes.push({ code: 'VER-DESAJUSTE', titulo: 'La actualización no llegaría a los dispositivos', detalle: 'El código (build ' + b[1] + ') y el caché (v' + c[1] + ') no coinciden y no se pudo corregir solo: ' + e.message });
+      }
+    } else {
+      pendientes.push({ code: 'VER-DESAJUSTE', titulo: 'La actualización no llegaría a los dispositivos', detalle: 'El código (build ' + b[1] + ') y el caché (v' + c[1] + ') no coinciden. Se corrige igualándolos (./bump.sh).' });
+    }
+  } else {
+    comprobaciones.push('Versión coherente: build ' + b[1] + ' = caché v' + c[1] + '.');
   }
 }
 
-// 3) Reglas de Firestore: llaves balanceadas (un descuadre las rompería y bloquearía la nube).
-{
+// ── Comprobación 3: reglas de seguridad de la nube ─────────────────────────────────────
+function checkRules(){
   let r = '';
-  try { r = fs.readFileSync(RULES, 'utf8'); } catch(e){ problem('No se puede leer firestore.rules: ' + e.message); }
-  if (r) {
-    const o = (r.match(/\{/g) || []).length, cl = (r.match(/\}/g) || []).length;
-    if (o !== cl) problem('firestore.rules con llaves descuadradas: ' + o + ' "{" vs ' + cl + ' "}".');
-    else note('firestore.rules: llaves balanceadas (' + o + ').');
+  try { r = fs.readFileSync(RULES, 'utf8'); } catch (e) {
+    pendientes.push({ code: 'REGLAS-FALTA', titulo: 'No se pueden leer las reglas de seguridad', detalle: 'No se encontró firestore.rules: ' + e.message }); return;
+  }
+  const o = (r.match(/\{/g) || []).length, cl = (r.match(/\}/g) || []).length;
+  if (o !== cl) {
+    pendientes.push({
+      code: 'REGLAS-LLAVES',
+      titulo: 'Las reglas de seguridad de la nube están mal cerradas',
+      detalle: 'Hay ' + o + ' «{» y ' + cl + ' «}» (descuadradas). Podrían bloquear la nube. Requiere revisión de un técnico (código REGLAS-LLAVES).'
+    });
+  } else {
+    comprobaciones.push('Reglas de seguridad: correctas (' + o + ' bloques).');
   }
 }
 
-// 4) INVARIANTE DE SINCRONIZACIÓN (el más importante): toda función lectora window.hpSync*
-//    debe estar incluida en la lista de sincronización EN VIVO (hpResyncContent). Si alguien
-//    añade una edición nueva y olvida engancharla aquí, sus cambios no llegarían a los usuarios
-//    ya conectados. Este check lo detecta automáticamente.
-{
+// ── Comprobación 4 (la más importante): que TODA edición llegue a los usuarios ─────────
+// Si una colección editable (hpSync*) no está en la lista de sincronización en vivo, sus
+// cambios no llegarían a dispositivos ya abiertos. Requiere aprobación (toca lógica de la app).
+function checkSync(html){
   const readers = new Set();
   const rr = /window\.hpSync([A-Za-z]+)\s*=/g; let mm;
   while ((mm = rr.exec(html))) readers.add('hpSync' + mm[1]);
-
   const fnsMatch = html.match(/const\s+fns\s*=\s*\[([^\]]*)\]/);
   if (!fnsMatch) {
-    problem('No se encuentra la lista de sincronización en vivo (const fns=[...]) en hpResyncContent.');
-  } else {
-    const listed = new Set((fnsMatch[1].match(/'([^']+)'/g) || []).map(s => s.replace(/'/g, '')));
-    // Lectores que NO van en la sync en vivo a propósito (ninguno hoy; aquí por si acaso).
-    const EXCLUDE = new Set([]);
-    const missing = [...readers].filter(r => !EXCLUDE.has(r) && !listed.has(r));
-    if (missing.length) {
-      problem('Lectores de sincronización SIN enganchar a la sync en vivo (hpResyncContent): ' +
-        missing.join(', ') + '. Sus ediciones NO llegarían a dispositivos ya abiertos. Añádelos a const fns=[...].');
-    } else {
-      note('Sincronización en vivo: las ' + readers.size + ' colecciones editables están todas enganchadas.');
-    }
-    // Aviso si en la lista hay nombres que ya no existen como función (limpieza).
-    const ghost = [...listed].filter(x => !readers.has(x));
-    if (ghost.length) note('Aviso: en la lista de sync hay nombres sin función lectora: ' + ghost.join(', ') + '.');
+    pendientes.push({ code: 'SYNC-LISTA', titulo: 'No se encuentra la lista de sincronización', detalle: 'No aparece la lista «const fns=[…]» de sincronización en vivo.' });
+    return;
   }
+  const listed = new Set((fnsMatch[1].match(/'([^']+)'/g) || []).map(s => s.replace(/'/g, '')));
+  const EXCLUDE = new Set([]); // lectores que a propósito NO van en la sync en vivo (ninguno hoy)
+  const missing = [...readers].filter(r => !EXCLUDE.has(r) && !listed.has(r));
+  if (missing.length) {
+    pendientes.push({
+      code: 'SYNC-FALTA',
+      titulo: 'Una edición podría NO llegar a los usuarios',
+      detalle: 'Hay ediciones sin conectar a la sincronización en vivo: ' + missing.join(', ') +
+        '. Sus cambios no llegarían a dispositivos ya abiertos. Hay que añadirlas a la lista «fns» ' +
+        '(díselo a Claude con el código SYNC-FALTA y los nombres, y lo conecta).'
+    });
+  } else {
+    comprobaciones.push('Sincronización en vivo: las ' + readers.size + ' colecciones editables están todas conectadas.');
+  }
+  const ghost = [...listed].filter(x => !readers.has(x));
+  if (ghost.length) comprobaciones.push('Aviso menor: en la lista de sync hay nombres sin función: ' + ghost.join(', ') + '.');
 }
 
-// 5) Que el saneador de contenido editado siga quitando tamaños de letra sueltos
-//    (evita discrepancias de tipografía en páginas editadas, sobre todo desde iPhone).
-{
-  if (!/_hpSanHtml/.test(html)) problem('No se encuentra el saneador _hpSanHtml.');
-  else if (!/font-size\|font-family/.test(html)) note('Aviso: no se detecta el filtrado de font-size/font-family en _hpSanHtml (revisar si se busca coherencia tipográfica).');
-}
+// ── Ejecutar ───────────────────────────────────────────────────────────────────────────
+try { readHtml(); }
+catch (e) { pendientes.push({ code: 'APP-FALTA', titulo: 'No se puede leer la app', detalle: 'No se encontró HemoPocket_app.html: ' + e.message }); finish(); }
+
+checkSyntax(readHtml());
+checkVersion();          // puede autocorregir con --fix
+checkRules();
+checkSync(readHtml());   // re-lee por si la versión cambió el archivo
 
 finish();
 
 function finish(){
   const ahora = new Date().toISOString();
-  const fecha = ahora.slice(0, 10);
-  // Informe legible por la APP (panel admin principal). Se guarda siempre, pase o no.
+  const ok = pendientes.length === 0;
+
+  // Informe legible por la APP (panel de administradores).
   try {
     fs.mkdirSync(root + 'revisiones', { recursive: true });
     fs.writeFileSync(root + 'revisiones/ultima.json', JSON.stringify({
-      fecha: ahora,
-      ok: problems.length === 0,
-      build: buildNum,
-      problemas: problems,
-      comprobaciones: notes
+      fecha: ahora, build: buildNum, ok,
+      corregidos, pendientes, comprobaciones
     }, null, 2) + '\n');
-  } catch(e){ /* no romper la revisión por no poder escribir el informe */ }
+  } catch (e) { /* no romper la revisión por no poder escribir el informe */ }
 
-  let out = '# 🔍 Revisión semanal HemoPocket — ' + fecha + '\n\n';
-  if (problems.length) {
-    out += '## ❌ Problemas detectados (' + problems.length + ')\n';
-    for (const p of problems) out += '- ' + p + '\n';
+  // Salida legible (para el log y el issue de GitHub).
+  let out = '# 🔍 Revisión HemoPocket — ' + ahora.slice(0, 10) + '\n\n';
+  if (corregidos.length) {
+    out += '## 🔧 Corregido automáticamente (' + corregidos.length + ')\n';
+    for (const c of corregidos) out += '- [' + c.code + '] ' + c.titulo + ' — ' + c.detalle + '\n';
     out += '\n';
-  } else {
-    out += '## ✅ Todo correcto\nNo se han detectado problemas en las comprobaciones automáticas.\n\n';
   }
-  if (notes.length) {
-    out += '## Detalle de comprobaciones\n';
-    for (const n of notes) out += '- ' + n + '\n';
+  if (pendientes.length) {
+    out += '## ⚠️ Necesita aprobación de un administrador (' + pendientes.length + ')\n';
+    for (const p of pendientes) out += '- [' + p.code + '] ' + p.titulo + ' — ' + p.detalle + '\n';
+    out += '\n';
+  }
+  if (ok) out += '## ✅ Sin problemas pendientes\n\n';
+  if (comprobaciones.length) {
+    out += '## Comprobaciones\n';
+    for (const n of comprobaciones) out += '- ' + n + '\n';
   }
   process.stdout.write(out + '\n');
-  process.exit(problems.length ? 1 : 0);
+  process.exit(ok ? 0 : 1);
 }
