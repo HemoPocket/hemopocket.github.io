@@ -1181,7 +1181,8 @@ const MENU=[
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
 {id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true},
-{id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true}
+{id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true},
+{id:'centros',name:'Hospitales / Centros',kw:'hospitales centros organizaciones multihospital acceso visibilidad permisos administrador hunsc',admin:true}
 ]}
 ];
 const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
@@ -5605,6 +5606,42 @@ return `<div class="card">
 // === SOLICITUDES DE ACCESO (solo administrador) ===
 function _hpPushBtnHtml(){ var on = !!(window.hpPushActivo && window.hpPushActivo()); var aqui = !!(window.hpPushEsteDispositivo && window.hpPushEsteDispositivo()); var off='<button class="btn btn-out btn-sm" style="color:#c41e3a;border-color:#e3a3ab" onclick="if(window.hpDesactivarPush)hpDesactivarPush()">🔕 Desactivar (toda la cuenta)</button>'; if(!on) return '<button class="btn btn-out btn-sm" onclick="if(window.hpActivarPush)hpActivarPush()">🔔 Activar notificaciones</button>'; if(aqui) return off; return '<button class="btn btn-out btn-sm" onclick="if(window.hpRegistrarEsteDispositivo)hpRegistrarEsteDispositivo()">🔔 Recibir también en este equipo</button> '+off; }
 window.hpRefreshPushBtn=function(){ try{ var w=document.getElementById('hp-push-btn-wrap'); if(w) w.innerHTML=_hpPushBtnHtml(); }catch(e){} };
+// === HOSPITALES / CENTROS (gestión, solo administradores) ===
+VIEWS.centros=()=>{
+  if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return '<div class="card"><h2>🏥 Hospitales / Centros</h2><div class="alert y">Solo disponible para administradores.</div></div>';
+  return `<div class="card">
+  <h2>🏥 Hospitales / Centros</h2>
+  <p class="intro">Crea aquí los hospitales/centros que usan la app. Después, a cada usuario le asignas su centro en <strong>«Solicitudes de acceso»</strong>. Más adelante podrás restringir cada contenido a los centros que elijas (todo lo que no restrinjas seguirá siendo visible para todos).</p>
+  <div class="btns" style="margin-bottom:10px"><button class="btn btn-2 btn-sm" onclick="hpCentroNuevo()">➕ Añadir hospital / centro</button></div>
+  <div id="cent_list">Cargando…</div>
+  </div>`;
+};
+VIEWS.centros_post=()=>hpRenderCentros();
+function _hpCentrosOrden(){ const m=hpCentros(); return Object.keys(m).sort(function(a,b){ if(a==='hunsc')return -1; if(b==='hunsc')return 1; return hpCentroNombre(a).localeCompare(hpCentroNombre(b)); }); }
+function hpRenderCentros(){
+  const el=document.getElementById('cent_list'); if(!el) return;
+  const m=hpCentros(); const ids=_hpCentrosOrden();
+  let h='';
+  ids.forEach(function(id){ const c=m[id]||{}; const casa=!!c.casa||id==='hunsc';
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:0"><strong>'+_hpEsc(c.nombre||id)+'</strong>'+(casa?' <span class="ed-chip" style="background:#1d8a4e">Principal</span>':'')+'<br><span style="font-size:11px;color:var(--mut)">id: '+_hpEsc(id)+'</span></span>';
+    h+='<button class="btn btn-out btn-sm" onclick="hpCentroRen(\''+id+'\')" title="Renombrar">✏️</button>';
+    if(!casa) h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="hpCentroDel(\''+id+'\')" title="Eliminar">🗑</button>';
+    h+='</div>';
+  });
+  el.innerHTML=h||'<div class="alert b">Aún no hay centros.</div>';
+}
+async function hpCentroNuevo(){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()))return; const nombre=prompt('Nombre del hospital / centro:'); if(!nombre||!nombre.trim())return; const id='c_'+Date.now(); const m=hpCentros(); m[id]={nombre:nombre.trim()}; if(window.hpApplyCentros)window.hpApplyCentros(m); hpRenderCentros(); if(window.hpSaveCentro){ try{ await window.hpSaveCentro(id,{nombre:nombre.trim()}); toast('✓ Centro creado'); }catch(e){ toast('Creado solo en este equipo (sin permiso o sin conexión)'); } } }
+async function hpCentroRen(id){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()))return; const m=hpCentros(); const actual=(m[id]&&m[id].nombre)||''; const nombre=prompt('Nuevo nombre del centro:',actual); if(nombre==null||!nombre.trim())return; m[id]=Object.assign({},m[id],{nombre:nombre.trim()}); if(window.hpApplyCentros)window.hpApplyCentros(m); hpRenderCentros(); if(window.hpSaveCentro){ try{ await window.hpSaveCentro(id,{nombre:nombre.trim()}); toast('✓ Renombrado'); }catch(e){ toast('Guardado solo en este equipo'); } } }
+async function hpCentroDel(id){ if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()))return; if(id==='hunsc'){ toast('El centro principal no se puede eliminar'); return; } const m=hpCentros(); if(!confirm('¿Eliminar el centro «'+((m[id]&&m[id].nombre)||id)+'»? Los usuarios de ese centro quedarán sin centro asignado.'))return; delete m[id]; if(window.hpApplyCentros)window.hpApplyCentros(m); hpRenderCentros(); if(window.hpDeleteCentro){ try{ await window.hpDeleteCentro(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } }
+// Selector de centro para asignar a un usuario (se muestra en cada ficha de usuario).
+function hpCentroSelector(uid, cur){
+  const ids=_hpCentrosOrden(); const c=(cur||'hunsc');
+  let s='<div style="margin-top:8px;padding:9px 10px;border:1px solid var(--bd,#e2e2e2);border-radius:8px;background:var(--bg,#f7f8fa)"><label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">🏥 Centro / hospital</label>';
+  s+='<select id="centro_'+uid+'" style="width:100%;padding:7px;border:1px solid var(--bd,#ccc);border-radius:7px;font-size:13px;background:var(--card,#fff);color:var(--txt,#222)">'+ids.map(function(id){return '<option value="'+id+'"'+(c===id?' selected':'')+'>'+_hpEsc(hpCentroNombre(id))+'</option>';}).join('')+'</select>';
+  s+='<div style="font-size:11px;color:var(--mut,#666);margin-top:4px">Determina qué contenidos restringidos podrá ver este usuario.</div></div>';
+  return s;
+}
+function hpReadCentro(uid){ var el=document.getElementById('centro_'+uid); return el?el.value:'hunsc'; }
 VIEWS.solicitudes=()=>{
 if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){
 return `<div class="card"><h2>Solicitudes de acceso</h2><div class="alert y">Este apartado solo está disponible para la administradora.</div></div>`;
@@ -5638,7 +5675,7 @@ h+='</div><div class="coll-c">';
 if(c.origen==='manual') h+='<div style="font-size:11.5px;color:#5a6a85;margin-bottom:4px">Usuario creado a mano en consola (sin solicitud en la app).</div>';
 if(fecha) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>Aceptó términos:</strong> '+fecha+(c.versionTerminos?(' (v'+c.versionTerminos+')'):'')+'</div>';
 if(acceso) h+='<div style="font-size:12px;color:var(--mut);margin-bottom:3px"><strong>Último acceso:</strong> '+acceso+'</div>';
-if(withActions||manageable){ const _cred=(colabInfo&&colabInfo.nombre)||((c.nombre||'')+' '+(c.apellido||'')).trim()||((c.email||'').split('@')[0]); const _crole=(colabInfo&&(colabInfo.rol||colabInfo.r))||''; h+=hpRoleSelector(c.uid,roleInfo,_cred,_crole); }
+if(withActions||manageable){ const _cred=(colabInfo&&colabInfo.nombre)||((c.nombre||'')+' '+(c.apellido||'')).trim()||((c.email||'').split('@')[0]); const _crole=(colabInfo&&(colabInfo.rol||colabInfo.r))||''; h+=hpRoleSelector(c.uid,roleInfo,_cred,_crole); if(c.uid!==HP_PRINCIPAL_UID) h+=hpCentroSelector(c.uid, c.centro); }
 if(withActions){
 h+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">';
 h+='<button class="btn btn-sm" onclick="hpAprobarUI(\''+c.uid+'\')">Aprobar</button>';
@@ -5742,7 +5779,8 @@ window.hpGuardarRol=function(uid){
   if(window.hpConfirm) window.hpConfirm(msg,function(){_hpDoRol(uid,role,secs,nombre,spec);}); else _hpDoRol(uid,role,secs,nombre,spec);
 };
 async function _hpDoRol(uid,role,secs,nombre,spec){
-  try{ if(window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs,nombre,spec); if(window.hpSyncColaboradores) window.hpSyncColaboradores(); if(typeof toast==='function')toast('✔ Perfil actualizado'); if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); }
+  const centro=hpReadCentro(uid);
+  try{ if(window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs,nombre,spec); if(window.hpSetUserCentro){ try{ await window.hpSetUserCentro(uid, centro); }catch(e){} } if(window.hpSyncColaboradores) window.hpSyncColaboradores(); if(typeof toast==='function')toast('✔ Perfil actualizado'); if(window.hpRenderSolicitudes) window.hpRenderSolicitudes(); }
   catch(e){ if(typeof toast==='function')toast('Error: '+(e.message||'')); }
 }
 // Acredita automáticamente como colaboradores a los editores/administradores que YA existen
@@ -5807,6 +5845,7 @@ try{
 if(acc==='aprobar'){
 await window.hpAprobarCuenta(uid);
 if((role==='editor'||role==='admin') && window.hpAsignarRol) await window.hpAsignarRol(uid,role,secs,nombre);
+if(window.hpSetUserCentro){ try{ await window.hpSetUserCentro(uid, hpReadCentro(uid)); }catch(e){} }
 if(window.hpSyncColaboradores) window.hpSyncColaboradores();
 } else await window.hpRechazarCuenta(uid);
 if(typeof toast==='function') toast(acc==='aprobar'?'✔ Cuenta aprobada':'Cuenta rechazada');
@@ -5947,6 +5986,14 @@ let _editGuide=null;
 let _ensayoDraft=null;
 function hpEnsayos(){ try{ return ls.g('ensayos')||{}; }catch(e){ return {}; } }
 window.hpApplyEnsayos=function(map){ try{ ls.s('ensayos', map||{}); }catch(e){} };
+// ════════════════ CENTROS / HOSPITALES (multi-hospital) ════════════════
+// Perfiles de hospital que la administradora crea. Cada usuario pertenece a un centro
+// (por defecto 'hunsc'). En la Fase 2, cada contenido podrá restringirse a ciertos centros.
+function hpCentros(){ var m; try{ m=ls.g('centros')||{}; }catch(e){ m={}; } if(!m.hunsc) m.hunsc={nombre:'HUNSC',casa:true}; return m; }
+window.hpApplyCentros=function(map){ try{ var m=map||{}; if(!m.hunsc) m.hunsc={nombre:'HUNSC',casa:true}; ls.s('centros', m); }catch(e){} };
+// Centro del usuario actual (Fase 1: se usará en la Fase 2 para el filtrado). Por defecto HUNSC.
+function hpUserCentro(){ try{ return window.__hpCentro || 'hunsc'; }catch(e){ return 'hunsc'; } }
+function hpCentroNombre(id){ var m=hpCentros(); return (m[id]&&m[id].nombre)||id||''; }
 function _ensReclLabel(r){ return r==='reclutando'?'🟢 Reclutando':r==='proximamente'?'🟡 Próximamente':r==='cerrado'?'⛔ Cerrado':''; }
 function _ensCriterios(t){ const L=String(t||'').split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean); if(!L.length) return ''; return '<ul style="padding-left:20px;margin:6px 0;line-height:1.6">'+L.map(function(x){return '<li>'+_hpEsc(x)+'</li>';}).join('')+'</ul>'; }
 function renderEnsayoCard(e, canEd){
@@ -7243,7 +7290,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 297;
+const HP_BUILD = 298;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -7367,6 +7414,7 @@ if(window.hpSyncBloques){try{await window.hpSyncBloques();}catch(e){}}
 if(window.hpSyncCalcs){try{await window.hpSyncCalcs();}catch(e){}}
 if(window.hpSyncInfos){try{await window.hpSyncInfos();}catch(e){}}
 if(window.hpSyncEnsayos){try{await window.hpSyncEnsayos();}catch(e){}}
+if(window.hpSyncCentros){try{await window.hpSyncCentros();}catch(e){}}
 
 let contactsUpdated=null;
 if(Array.isArray(data.contacts)){
@@ -13316,7 +13364,7 @@ const before=_hpSig();
 // TODAS las colecciones editables: guías/apartados, secciones, orden, checklist, quimio,
 // lab, recetas, páginas, algoritmos, calculadoras, infos, plantillas, bloques, DIRECTORIO,
 // AVISO legal, colaboradores y estado de verificación. Si falta alguna aquí, sus cambios no llegarían en vivo.
-const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncEnsayos','hpSyncPlantillas','hpSyncBloques','hpSyncDirectorio','hpSyncAviso','hpSyncColaboradores','hpSyncVerificados'];
+const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncEnsayos','hpSyncPlantillas','hpSyncBloques','hpSyncDirectorio','hpSyncAviso','hpSyncColaboradores','hpSyncVerificados','hpSyncCentros'];
 for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
 const changed=(_hpSig()!==before);
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
@@ -14595,6 +14643,19 @@ window.hpSyncEnsayos = async function(){
     return true;
   }catch(e){ return false; }
 };
+// Centros / hospitales (los gestiona la administradora).
+window.hpSaveCentro = async function(id, data){ await setDoc(doc(fs, 'centros', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true }); };
+window.hpDeleteCentro = async function(id){ await deleteDoc(doc(fs, 'centros', id)); };
+window.hpSyncCentros = async function(){
+  try{
+    const snap = await getDocs(collection(fs, 'centros'));
+    const map = {}; snap.forEach(d => { map[d.id] = d.data()||{}; });
+    if(window.hpApplyCentros) window.hpApplyCentros(map);
+    return true;
+  }catch(e){ return false; }
+};
+// Asigna a un usuario su centro (lo escribe en su ficha de cuenta; solo admin).
+window.hpSetUserCentro = async function(uid, centro){ await setDoc(doc(fs, 'cuentas', uid), { centro: centro||'hunsc' }, { merge:true }); };
 
 
 // ── Directorio: contactos personalizados del hospital. Solo admin escribe; lo leen todos.
