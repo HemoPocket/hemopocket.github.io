@@ -5000,12 +5000,12 @@ window.hpApplyAlgos=function(map){ try{ ls.s('algos', map||{}); }catch(e){} };
 function algosForSection(sec){ const m=hpAlgos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(a){return a&&a.seccion===sec;}); }
 function renderAlgosBlock(sec){
   const canEd=hpEditUISec(sec);
-  const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';});
-  if(!canEd && !pub.length) return '';
+  const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';}); const pubV=pub.filter(hpVisible);
+  if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧩 Algoritmos interactivos</span><span class="ar">▶</span></div><div class="coll-c">';
-  (canEd?list:pub).forEach(function(a){
+  (canEd?list:pubV).forEach(function(a){
     const draft=a.estado!=='publicado';
-    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(a.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+'</span>';
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(a.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpVisEtiqueta(a):'')+'</span>';
     h+='<button class="btn btn-out btn-sm" onclick="algoOpen(\''+a.id+'\')">Abrir</button>';
     if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="algoEditOpen(\''+a.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="algoEliminar(\''+a.id+'\')">×</button>'; }
     h+='</div>';
@@ -5080,6 +5080,7 @@ VIEWS.algoedit=()=>{
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
+  h+=hpVisControlHtml(d.vis,'algoSetVis');
   h+=_edActions({cancel:'algoCancelar()',preview:'algoVistaPrevia()',check:'algoComprobar()',save:'algoGuardar()',publish:'algoPublicar()'});
   h+='</div>'; return h;
 };
@@ -5101,6 +5102,7 @@ function _algoEditNode(d,nid,nodeIds){
   h+='</div></div>'; return h;
 }
 function algoSetField(f,v){ if(_algoDraft) _algoDraft[f]=v; }
+function algoSetVis(arr){ if(_algoDraft) _algoDraft.vis=arr; }
 function algoMover(v){ if(_algoDraft){ _algoDraft.seccion=v; go('algoedit'); } }
 function algoAddNode(tipo){ const id='n_'+Date.now(); _algoDraft.nodos[id]={id:id,tipo:tipo,texto:'',opciones:[],cuerpo:''}; if(!_algoDraft.inicio)_algoDraft.inicio=id; go('algoedit'); }
 function algoMoverNodo(nid,dir){ const keys=Object.keys(_algoDraft.nodos); const i=keys.indexOf(nid); const j=i+dir; if(i<0||j<0||j>=keys.length)return; keys.splice(j,0,keys.splice(i,1)[0]); const o={}; keys.forEach(function(k){o[k]=_algoDraft.nodos[k];}); _algoDraft.nodos=o; go('algoedit'); }
@@ -5213,12 +5215,12 @@ window.hpApplyCalcs=function(map){ try{ ls.s('calcs', map||{}); }catch(e){} };
 function calcsForSection(sec){ const m=hpCalcs(); return Object.keys(m).map(function(k){return m[k];}).filter(function(c){return c&&c.seccion===sec;}); }
 function renderCalcsBlock(sec){
   const canEd=hpEditUISec(sec);
-  const list=calcsForSection(sec); const pub=list.filter(function(c){return c.estado==='publicado';});
-  if(!canEd && !pub.length) return '';
+  const list=calcsForSection(sec); const pub=list.filter(function(c){return c.estado==='publicado';}); const pubV=pub.filter(hpVisible);
+  if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧮 Calculadoras propias</span><span class="ar">▶</span></div><div class="coll-c">';
-  (canEd?list:pub).forEach(function(c){
+  (canEd?list:pubV).forEach(function(c){
     const draft=c.estado!=='publicado';
-    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(c.titulo||'(sin título)')+(c.tipo==='formula'?' <span style="color:var(--mut);font-size:11px">ƒ</span>':'')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+'</span>';
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(c.titulo||'(sin título)')+(c.tipo==='formula'?' <span style="color:var(--mut);font-size:11px">ƒ</span>':'')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpVisEtiqueta(c):'')+'</span>';
     h+='<button class="btn btn-out btn-sm" onclick="calcOpen(\''+c.id+'\')">Abrir</button>';
     if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="calcEditOpen(\''+c.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="calcEliminar(\''+c.id+'\')">×</button>'; }
     h+='</div>';
@@ -5365,6 +5367,7 @@ VIEWS.calcedit=()=>{
   }
   (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri,(d.resultados||[]).length); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
+  h+=hpVisControlHtml(d.vis,'calcSetVis');
   h+=_edActions({cancel:'calcCancelar()',preview:'calcVistaPrevia()',check:'calcComprobar()',save:'calcGuardar()',publish:'calcPublicar()'});
   h+='</div>'; return h;
 };
@@ -5398,6 +5401,7 @@ function _calcEditResultado(r,ri,total){
   return '<div style="display:flex;gap:4px;margin-top:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12px">de</span><input type="number" style="width:60px" value="'+(r.min!=null?(+r.min):'')+'" onchange="calcResField('+ri+',\'min\',this.value)"><span style="font-size:12px">a</span><input type="number" style="width:60px" value="'+(r.max!=null?(+r.max):'')+'" onchange="calcResField('+ri+',\'max\',this.value)"><input style="flex:1;min-width:120px" value="'+_hpEsc(r.etiqueta||'')+'" onchange="calcResField('+ri+',\'etiqueta\',this.value)" placeholder="Categoría (ej: Riesgo bajo)"><button class="btn btn-out btn-sm" onclick="calcMoverResultado('+ri+',-1)"'+(ri===0?' disabled':'')+'>↑</button><button class="btn btn-out btn-sm" onclick="calcMoverResultado('+ri+',1)"'+(ri===total-1?' disabled':'')+'>↓</button><button class="btn btn-out btn-sm" onclick="calcDelResultado('+ri+')">×</button><textarea style="width:100%;margin-top:4px" onchange="calcResField('+ri+',\'detalle\',this.value)" placeholder="Detalle / recomendación (opcional)">'+_hpEsc(r.detalle||'')+'</textarea></div>';
 }
 function calcSetMeta(f,v){ if(!_calcDraft)return; if(f==='decimales')_calcDraft[f]=(+v||0); else _calcDraft[f]=v; if(f==='seccion') go('calcedit'); }
+function calcSetVis(arr){ if(_calcDraft) _calcDraft.vis=arr; }
 function calcAddCampo(kind){ if(!_calcDraft.campos)_calcDraft.campos=[]; const id='c_'+Date.now()+'_'+Math.floor(Math.random()*1000); const campo={id:id,etiqueta:'',tipo:kind};
   if(_calcDraft.tipo==='formula'){ campo.clave='v'+(_calcDraft.campos.length+1); if(kind==='select')campo.opciones=[{etiqueta:'',valor:0}]; if(kind==='number')campo.unidad=''; }
   else { if(kind==='check')campo.puntos=1; else campo.opciones=[{etiqueta:'',puntos:0}]; }
@@ -5460,12 +5464,12 @@ window.hpApplyInfos=function(map){ try{ ls.s('infos', map||{}); }catch(e){} };
 function infosForSection(sec){ const m=hpInfos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x&&x.seccion===sec;}); }
 function renderInfosBlock(sec){
   const canEd=hpEditUISec(sec);
-  const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';});
-  if(!canEd && !pub.length) return '';
+  const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';}); const pubV=pub.filter(hpVisible);
+  if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Información y notas</span><span class="ar">▶</span></div><div class="coll-c">';
-  (canEd?list:pub).forEach(function(x){
+  (canEd?list:pubV).forEach(function(x){
     const draft=x.estado!=='publicado';
-    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(x.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+'</span>';
+    h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--bd)"><span style="flex:1;min-width:120px">'+_hpEsc(x.titulo||'(sin título)')+(draft?' <span style="color:#b8860b;font-size:11px">(borrador)</span>':'')+(canEd?hpVisEtiqueta(x):'')+'</span>';
     h+='<button class="btn btn-out btn-sm" onclick="infoOpen(\''+x.id+'\')">Abrir</button>';
     if(canEd){ h+='<button class="btn btn-out btn-sm" onclick="infoEditOpen(\''+x.id+'\')">Editar</button>'; h+='<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="infoEliminar(\''+x.id+'\')">×</button>'; }
     h+='</div>';
@@ -5495,10 +5499,12 @@ VIEWS.infoedit=()=>{
   h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="infoSetField(\'seccion\',this.value)">'+_infoSecOptions(d.seccion)+'</select></div>';
   h+='<div class="fld"><label class="lbl">Contenido</label><textarea style="min-height:220px" onchange="infoSetField(\'cuerpo\',this.value)" placeholder="Escribe aquí la información...">'+_hpEsc(d.cuerpo||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
+  h+=hpVisControlHtml(d.vis,'infoSetVis');
   h+=_edActions({cancel:'infoCancelar()',preview:'infoVistaPrevia()',save:'infoGuardar()',publish:'infoPublicar()'});
   h+='</div>'; return h;
 };
 function infoSetField(f,v){ if(!_infoDraft)return; _infoDraft[f]=v; if(f==='seccion') go('infoedit'); }
+function infoSetVis(arr){ if(_infoDraft) _infoDraft.vis=arr; }
 function infoVistaPrevia(){ _infoState=Object.assign({},JSON.parse(JSON.stringify(_infoDraft)),{preview:true}); go('info'); }
 function infoCancelar(){ const s=_infoDraft&&_infoDraft.seccion; _infoDraft=null; if(s) go('g_'+s); else go('home'); }
 async function infoGuardar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
@@ -5994,6 +6000,33 @@ window.hpApplyCentros=function(map){ try{ var m=map||{}; if(!m.hunsc) m.hunsc={n
 // Centro del usuario actual (Fase 1: se usará en la Fase 2 para el filtrado). Por defecto HUNSC.
 function hpUserCentro(){ try{ return window.__hpCentro || 'hunsc'; }catch(e){ return 'hunsc'; } }
 function hpCentroNombre(id){ var m=hpCentros(); return (m[id]&&m[id].nombre)||id||''; }
+// ¿Puede el usuario actual VER este contenido? (separación funcional, Fase 2a)
+// Sin 'vis', o vacío, o con 'todos' = público. Los administradores ven todo (lo gestionan).
+function hpVisible(item){
+  try{
+    if(window.HemoCloud && HemoCloud.isAdmin && HemoCloud.isAdmin()) return true;
+    var v = item && item.vis;
+    if(!Array.isArray(v) || v.length===0 || v.indexOf('todos')!==-1) return true;
+    return v.indexOf(hpUserCentro())!==-1;
+  }catch(e){ return true; }
+}
+// Etiqueta corta para mostrar a quién está restringido un contenido (para editores/admin).
+function hpVisEtiqueta(item){
+  var v=item&&item.vis; if(!Array.isArray(v)||!v.length||v.indexOf('todos')!==-1) return '';
+  return '<span class="ed-chip" style="background:#8a5a00">Solo: '+v.map(function(id){return _hpEsc(hpCentroNombre(id));}).join(', ')+'</span>';
+}
+// Control reutilizable «¿Quién puede verlo?» para los editores. Si no se marca ningún centro = público.
+// cbName = nombre de una función global que recibe el nuevo array de centros y lo guarda en el borrador.
+function hpVisControlHtml(vis, cbName){
+  var v = Array.isArray(vis)?vis.filter(function(x){return x!=='todos';}):[];
+  var ids = _hpCentrosOrden();
+  var h = '<div class="fld"><label class="lbl">¿Quién puede verlo?</label>';
+  h += '<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 5px">Si no marcas ninguno, lo ven <strong>todos</strong>. Marca hospitales para mostrarlo <strong>solo</strong> a ellos.</div>';
+  ids.forEach(function(id){ h += '<label style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin-bottom:2px"><input type="checkbox" data-vis="'+cbName+'" value="'+_hpEsc(id)+'" '+(v.indexOf(id)!==-1?'checked':'')+' onchange="'+cbName+'(_hpVisRead(\''+cbName+'\'))"> '+_hpEsc(hpCentroNombre(id))+'</label>'; });
+  h += '</div>';
+  return h;
+}
+function _hpVisRead(cbName){ try{ return Array.from(document.querySelectorAll('input[data-vis="'+cbName+'"]:checked')).map(function(x){return x.value;}); }catch(e){ return []; } }
 function _ensReclLabel(r){ return r==='reclutando'?'🟢 Reclutando':r==='proximamente'?'🟡 Próximamente':r==='cerrado'?'⛔ Cerrado':''; }
 function _ensCriterios(t){ const L=String(t||'').split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean); if(!L.length) return ''; return '<ul style="padding-left:20px;margin:6px 0;line-height:1.6">'+L.map(function(x){return '<li>'+_hpEsc(x)+'</li>';}).join('')+'</ul>'; }
 function renderEnsayoCard(e, canEd){
@@ -6004,6 +6037,7 @@ function renderEnsayoCard(e, canEd){
   if(e.fase) h+='<span class="ed-chip" style="background:#1d4ed8">'+_hpEsc(e.fase)+'</span>';
   if(recl) h+='<span class="ed-chip" style="background:'+(e.reclut==='reclutando'?'#1d8a4e':e.reclut==='proximamente'?'#b8860b':'#888')+'">'+recl+'</span>';
   if(draft) h+='<span class="ed-chip" style="background:#b8860b">Borrador</span>';
+  if(canEd) h+=hpVisEtiqueta(e);
   h+='</div>';
   if(e.promotor) h+='<div style="font-size:12px;color:var(--mut);margin-top:2px">Promotor / PI: <strong>'+_hpEsc(e.promotor)+'</strong></div>';
   if(e.resumen) h+='<p style="margin:8px 0;line-height:1.6">'+_hpEsc(e.resumen).replace(/\n/g,'<br>')+'</p>';
@@ -6019,7 +6053,7 @@ function renderEnsayoCard(e, canEd){
 function ensayosView(){
   const canEd=hpEditUISec('ensayos');
   const all=Object.keys(hpEnsayos()).map(function(k){return hpEnsayos()[k];}).filter(Boolean);
-  const list=(canEd?all:all.filter(function(e){return e.estado==='publicado';})).slice();
+  const list=(canEd?all:all.filter(function(e){return e.estado==='publicado' && hpVisible(e);})).slice();
   const rank={reclutando:0,proximamente:1,cerrado:2};
   list.sort(function(a,b){ const ra=rank[a.reclut]!=null?rank[a.reclut]:3, rb=rank[b.reclut]!=null?rank[b.reclut]:3; if(ra!==rb) return ra-rb; return String(a.titulo||'').localeCompare(String(b.titulo||'')); });
   let h='<div class="card"><h2>🧪 Ensayos clínicos y estudios</h2>';
@@ -6034,6 +6068,7 @@ function _ensPuede(){ return !!(window.HemoCloud&&window.HemoCloud.canEdit&&wind
 function ensayoNuevo(){ if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft={id:'ens_'+Date.now(), titulo:'', fase:'', promotor:'', reclut:'reclutando', resumen:'', inclusion:'', exclusion:'', contacto:'', enlace:'', estado:'borrador'}; go('ensayoedit'); }
 function ensayoEditOpen(id){ const e=hpEnsayos()[id]; if(!e){ toast('No encontrado'); return; } if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft=JSON.parse(JSON.stringify(e)); go('ensayoedit'); }
 function ensayoSetField(f,v){ if(_ensayoDraft) _ensayoDraft[f]=v; }
+function ensayoSetVis(arr){ if(_ensayoDraft) _ensayoDraft.vis=arr; }
 VIEWS.ensayoedit=()=>{
   const d=_ensayoDraft; if(!d) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">Nada que editar.</div></div>';
   if(!_ensPuede()) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">No tienes permiso para editar ensayos.</div></div>';
@@ -6048,6 +6083,7 @@ VIEWS.ensayoedit=()=>{
   h+='<div class="fld"><label class="lbl">Criterios de EXCLUSIÓN (uno por línea)</label><textarea style="min-height:110px" onchange="ensayoSetField(\'exclusion\',this.value)" placeholder="Afectación del SNC&#10;Insuficiencia orgánica…">'+_hpEsc(d.exclusion||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Contacto (opcional)</label><input value="'+_hpEsc(d.contacto||'')+'" onchange="ensayoSetField(\'contacto\',this.value)" placeholder="Persona / extensión / email"></div>';
   h+='<div class="fld"><label class="lbl">Enlace (opcional)</label><input value="'+_hpEsc(d.enlace||'')+'" onchange="ensayoSetField(\'enlace\',this.value)" placeholder="https://…"></div>';
+  h+=hpVisControlHtml(d.vis,'ensayoSetVis');
   h+='<div class="ed-actions"><button class="btn btn-out btn-sm" onclick="ensayoCancelar()">✖ Cancelar</button><button class="btn btn-out btn-sm" onclick="ensayoGuardar()">💾 Guardar borrador</button><button class="btn btn-g btn-sm" onclick="ensayoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
@@ -7290,7 +7326,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 298;
+const HP_BUILD = 299;
 const APP_BUILD = '2026.06.30 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14288,6 +14324,8 @@ function revealAndEnter(user){
   if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Entrar'; }
   loadCloud(user.uid);
   window.__hpUid = user.uid;
+  // Carga el CENTRO/hospital del usuario (para mostrar solo lo que le corresponde). Por defecto HUNSC.
+  (async () => { try { const s = await getDoc(doc(fs,'cuentas',user.uid)); window.__hpCentro = (s.exists() && s.data().centro) ? s.data().centro : 'hunsc'; if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); } catch(e){ window.__hpCentro='hunsc'; } })();
   HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
   if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
