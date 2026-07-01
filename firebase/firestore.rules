@@ -45,6 +45,13 @@ service cloud.firestore {
       return request.auth != null
         && exists(/databases/$(database)/documents/cuentas/$(request.auth.uid));
     }
+    // Hospital/centro del usuario (para el aislamiento por hospital). Sin ficha o sin centro = casa.
+    function userCentro() {
+      return (hasAccount() && 'centro' in accountData()) ? accountData().centro : 'hunsc';
+    }
+    function isPrincipal() {
+      return request.auth != null && request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1';
+    }
     // ¿Está autorizado el usuario a LEER el contenido?
     //  - admin/editor (rol asignado en consola), o
     //  - cuenta aprobada por el administrador, o
@@ -245,8 +252,15 @@ service cloud.firestore {
 
     // ── Ensayos clínicos / estudios (sección 'ensayos') ──
     // Los lee cualquier usuario autorizado; los gestionan admin y editores de 'ensayos'.
+    // Ensayos clínicos: PRIVADOS de cada hospital. Solo la admin principal los lee todos; cada
+    // usuario solo lee los ensayos cuyo 'vis' incluye SU hospital (aunque falsee la consulta, la
+    // regla usa el centro real de su cuenta). Los ensayos sin 'vis' (heredados) solo la principal
+    // los lee hasta que se migran. Escribe quien pueda editar la sección 'ensayos'.
     match /ensayos/{id} {
-      allow read:  if isApproved();
+      allow read:  if isApproved() && (
+                     isPrincipal()
+                     || ( resource.data.vis is list && resource.data.vis.hasAny([userCentro()]) )
+                   );
       allow write: if canEdit('ensayos');
     }
 
