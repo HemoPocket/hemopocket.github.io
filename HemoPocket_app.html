@@ -1198,7 +1198,7 @@ function getAll(){return MENU.flatMap(s=>s.items)}
 
 function renderMenu(filter=''){
 const f=filter.toLowerCase().trim();
-const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id) && !(id.indexOf('g_')===0 && !hpSecVisibleUser(id.slice(2)));}).slice(0,4);
+const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id) && !(id.indexOf('g_')===0 && !hpSecVisibleUser(id.slice(2))) && (id.indexOf('g_')===0 || hpItemVisibleUser(id));}).slice(0,4);
 let h='';
 if(favs.length){
 h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px">Acceso Rápido</div>';
@@ -1210,9 +1210,10 @@ const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.
 const isEditorUI=!!(window.HemoCloud&&window.HemoCloud.isEditor&&window.HemoCloud.isEditor());
 const _admHide=it=>(it.admin&&!isAdminUI&&!(it.edOk&&isEditorUI));
 const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&(hpSecHidden(it.id.slice(2))||!hpSecVisibleUser(it.id.slice(2))));
-const realItems=sec.items.filter(it=>!it.sub && !_admHide(it) && !isGuideHidden(it) && !hpItemHidden(it.id) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
+const itemVisible=it=>it.sub || (it.id&&it.id.indexOf('g_')===0) || hpItemVisibleUser(it.id);
+const realItems=sec.items.filter(it=>!it.sub && !_admHide(it) && !isGuideHidden(it) && !hpItemHidden(it.id) && itemVisible(it) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
 if(!realItems.length)return;
-const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidden(it.id));
+const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidden(it.id) && itemVisible(it));
 const open=f||sec._o||sec.o;
 // Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
 let _hdr=sec.h; const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=_t.toUpperCase();}
@@ -1264,6 +1265,8 @@ function go(id, params) {
     try{ if(window._hpPendingReload && !/edit$/.test(id)){ window.location.reload(); return; } }catch(e){}
     if (id === 'chat') { closeSb(); openChat(); return; }
     if (id === 'libroazul') { closeSb(); openPDFurl('guias/LibroAzul_QT.pdf','Pautas de QT SEHH'); return; }
+    // Ítem del menú restringido a otros hospitales: no accesible por enlace directo.
+    try{ if(id && id.indexOf('g_')!==0 && getAll().some(x=>x.id===id) && !hpItemVisibleUser(id)){ if(typeof toast==='function')toast('No disponible para tu hospital'); id='home'; } }catch(e){}
     S.view = id;
     if(id!=='home'&&id!=='viewer'&&getAll().some(x=>x.id===id)){
         S.recent=[id].concat((S.recent||[]).filter(x=>x!==id)).slice(0,6);
@@ -1484,8 +1487,9 @@ function hpAbrirNovedad(i){ var it=_hpNovedades&&_hpNovedades[i]; if(!it||typeof
 function _hpNovedadesBanner(){ if(!_hpNovedades||!_hpNovedades.length) return ''; var n=_hpNovedades.length; var lis=_hpNovedades.slice(0,8).map(function(it,i){ return '<button class="btn btn-out btn-sm" style="text-align:left;justify-content:flex-start" onclick="hpAbrirNovedad('+i+')">'+_hpEsc(it.tipo)+': <strong>'+_hpEsc(it.titulo)+'</strong></button>'; }).join(''); var extra=n>8?('<div style="font-size:12px;color:var(--mut);margin-top:4px">… y '+(n-8)+' más</div>'):''; return '<div class="alert b" style="margin:0 0 14px;text-align:left"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><strong>🆕 Novedades ('+n+')</strong><span style="flex:1"></span><button class="btn btn-out btn-sm" onclick="hpNovedadesVistas()">Marcar como vistas</button></div><div style="display:flex;flex-direction:column;gap:5px;align-items:stretch">'+lis+'</div>'+extra+'</div>'; }
 function homeView() {
     const byId=id=>getAll().find(x=>x.id===id);
-    const favs=(S.favs||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id);});
-    const rec=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id);}).slice(0,6);
+    const _visOk=it=>(it.id.indexOf('g_')===0? hpSecVisibleUser(it.id.slice(2)) : hpItemVisibleUser(it.id));
+    const favs=(S.favs||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id) && _visOk(it);});
+    const rec=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id) && _visOk(it);}).slice(0,6);
     const tile=(it,ic)=>{const fav=(S.favs||[]).includes(it.id);return `<div class="home-tile" role="button" tabindex="0" onclick="go('${it.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('${it.id}')}">${ic?'<span class="ht-ic">'+ic+'</span>':''}<span class="ht-nm">${it.name}</span><button class="ht-fav ${fav?'on':''}" onclick="event.stopPropagation();homeFav('${it.id}')" aria-label="${fav?'Quitar de favoritos':'Añadir a favoritos'}" title="${fav?'Quitar de favoritos':'Añadir a favoritos'}">${fav?'★':'☆'}</button></div>`;};
     let secs='';
     if(favs.length) secs+=`<div class="home-sec"><div class="home-sec-h">★ Favoritos</div><div class="home-tiles">${favs.map(it=>tile(it,'')).join('')}</div></div>`;
@@ -4754,6 +4758,20 @@ async function hpMoverAjuste(id,dir){
 }
 function hpItemHidden(id){ const o=hpItemMap()[id]; return !!(o&&o.oculta); }
 function hpItemName(id,def){ const o=hpItemMap()[id]; return (o&&o.nombre)||def; }
+// ── Visibilidad por hospital de un ÍTEM del menú (calculadoras, asistentes, etc.). Sin 'vis' = todos. ──
+function hpItemVis(id){ const o=hpItemMap()[id]; return (o&&Array.isArray(o.vis))?o.vis:[]; }
+function hpItemVisibleUser(id){ try{ if(window.HemoCloud && HemoCloud.isAdmin && HemoCloud.isAdmin()) return true; var v=hpItemVis(id); if(!v.length || v.indexOf('todos')!==-1) return true; return v.indexOf(hpUserCentro())!==-1; }catch(e){ return true; } }
+async function hpSetItemVis(id, arr){ const m=hpItemMap(); m[id]=Object.assign({},m[id],{vis:arr}); try{ls.s('itemOverrides',m);}catch(e){} if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||''); if(window.hpSaveItem){ try{ await window.hpSaveItem(id,{vis:arr}); toast(arr.length?'✓ Visibilidad actualizada · para todos':'✓ Visible para todos'); }catch(e){ toast('Guardado solo en este equipo'); } } }
+function hpItemVisEtiqueta(id){ var v=hpItemVis(id); if(!Array.isArray(v)||!v.length||v.indexOf('todos')!==-1) return ''; return ' <span class="ed-chip" style="background:#8a5a00">Solo: '+v.map(function(c){return _hpEsc(hpCentroNombre(c));}).join(', ')+'</span>'; }
+function hpItemVisControlHtml(id){
+  try{ if(_hpCentrosOrden().length<2) return ''; }catch(e){ return ''; }
+  var v=hpItemVis(id).filter(function(x){return x!=='todos';});
+  var ids=_hpCentrosOrden(); var tok='itmv_'+id;
+  var h='<div style="flex-basis:100%;margin-top:4px;padding:7px 9px;border:1px solid var(--bd);border-radius:7px;background:var(--bg,#f7f8fa)"><div style="font-size:11.5px;font-weight:600;margin-bottom:2px">👁️ ¿Qué hospitales ven este ítem?</div>';
+  h+='<div style="font-size:11px;color:var(--mut);margin-bottom:4px">Sin marcar ninguno = lo ven <strong>todos</strong>.</div>';
+  ids.forEach(function(cid){ h+='<label style="display:flex;gap:6px;align-items:center;font-size:12px;margin-bottom:2px"><input type="checkbox" data-vis="'+tok+'" value="'+_hpEsc(cid)+'" '+(v.indexOf(cid)!==-1?'checked':'')+' onchange="hpSetItemVis(\''+id+'\',_hpVisRead(\''+tok+'\'))"> '+_hpEsc(hpCentroNombre(cid))+'</label>'; });
+  h+='</div>'; return h;
+}
 // ── Orden personalizado de los apartados de AJUSTES (reordenables por admin, efectivo para todos) ──
 function _hpAjustesBase(){ for(var i=0;i<MENU0.length;i++){ if((MENU0[i].h||'')==='AJUSTES') return MENU0[i].items; } return []; }
 function _hpAjustesDefIdx(id){ return _hpAjustesBase().findIndex(function(it){return it.id===id;}); }
@@ -4924,7 +4942,7 @@ function _hpContenidoTema(sec, full){
       body+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+sid+'\')">'+(oc?'Mostrar':'Ocultar')+'</button>';
     } else {
       const oc=hpItemHidden(it.id); n++;
-      body+='<span style="flex:1;min-width:130px">'+_hpEsc(hpItemName(it.id,it.name))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+'</span>';
+      body+='<span style="flex:1;min-width:130px">'+_hpEsc(hpItemName(it.id,it.name))+(oc?' <span style="color:var(--mut);font-size:11px">(oculta)</span>':'')+(full?hpItemVisEtiqueta(it.id):'')+'</span>';
       body+=mv(it.id);
       if(full){
         body+='<button class="btn btn-out btn-sm" onclick="hpRenombrarItem(\''+it.id+'\')">Renombrar</button>';
@@ -4932,6 +4950,7 @@ function _hpContenidoTema(sec, full){
         body+='<select style="font-size:12px;padding:4px 6px;border:1px solid var(--bd);border-radius:6px;background:var(--card,#fff);color:var(--txt,#222);max-width:170px" onchange="hpMoverItemSeccion(\''+it.id+'\',this.value)" title="Mover a otra sección">'+_hpSecOptions(sec.h)+'</select>';
       }
       body+='<select style="font-size:12px;padding:4px 6px;border:1px solid var(--bd);border-radius:6px;background:var(--card,#fff);color:var(--txt,#222);max-width:170px" onchange="hpAsignarSub(\''+it.id+'\',this.value)" title="Subsección dentro de esta sección">'+_hpSubOptions(sec.h,it.id)+'</select>';
+      if(full) body+=hpItemVisControlHtml(it.id);
     }
     body+='</div>';
   });
@@ -7550,7 +7569,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 307;
+const HP_BUILD = 308;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
