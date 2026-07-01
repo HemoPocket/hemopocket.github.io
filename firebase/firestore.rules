@@ -202,7 +202,7 @@ service cloud.firestore {
       allow read:   if isApproved();
       // 'orden' sigue siendo solo-admin; 'redaccion' y 'recetas' (asistentes) los pueden editar
       // también los editores del área 'asistentes'.
-      allow write:  if isAdmin() || ((id == 'redaccion' || id == 'recetas') && (canEdit('asist_red') || canEdit('asistentes')));
+      allow write:  if isAdmin() || (( id.matches('redaccion.*') || id.matches('recetas.*') ) && (canEdit('asist_red') || canEdit('asistentes')));
     }
 
     // ── Check list de ingreso (estructura editable) ──
