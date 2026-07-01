@@ -7550,7 +7550,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 306;
+const HP_BUILD = 307;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13884,11 +13884,11 @@ if(document.readyState!=='loading')init();
       (document.body || document.documentElement).appendChild(o);
     }catch(e){}
   }
-  // Aplica la nueva versión automáticamente, sin botón (mostrando el aviso visible)
+  // Aplica la nueva versión automáticamente y EN SILENCIO: sin overlay ni botón. La app sigue
+  // usable; cuando el nuevo service worker tome el control (controllerchange) se recarga una vez.
   window.hpApplyUpdate = function(worker){
     if(!worker || _hpUpdating) return;
     _hpUpdating = true;
-    hpShowUpdating();
     worker.postMessage('skipWaiting');
   };
   window.hpSWReady = function(reg){
@@ -13946,20 +13946,16 @@ if(document.readyState!=='loading')init();
       if(netBuild <= HP_BUILD){ try{ sessionStorage.removeItem('hp_fr'); }catch(e){} return; }
       if(sessionStorage.getItem('hp_fr') === String(netBuild)) return; // ya intentado en esta sesión: evita bucles
       try{ sessionStorage.setItem('hp_fr', String(netBuild)); }catch(e){}
-      hpShowUpdating();
-      // Vía ligera y no destructiva: que el SW recoja la versión nueva y tome el control.
+      // Actualización SILENCIOSA en segundo plano: sin overlay ni aviso. La app sigue usable con
+      // la versión en caché; el SW recoge la versión nueva y, al tomar el control, recarga una vez.
+      // Si la red va lenta o bloqueada, no pasa nada: se sigue usando lo ya guardado (sin nag).
       try{
         var reg = await navigator.serviceWorker.getRegistration();
         if(reg){ reg.update().catch(function(){}); if(reg.waiting) reg.waiting.postMessage('skipWaiting'); }
       }catch(e){}
-      // Si en 20 s no se completó (red lenta), convertimos el overlay en botón manual de recarga.
-      // El SW sigue corriendo en segundo plano y recargará solo al terminar (controllerchange).
-      setTimeout(function(){
-        if(_hpReloaded) return;
-        try{ sessionStorage.removeItem('hp_fr'); }catch(e){}
-        var o = document.getElementById('hp-updating');
-        if(o){ o.innerHTML='<span style="font-size:13px;color:#fff">Nueva versión disponible · <button onclick="location.reload()" style="background:rgba(255,255,255,.25);border:none;color:#fff;padding:3px 10px;border-radius:5px;font-size:13px;cursor:pointer;font-weight:600">Recargar</button></span>'; }
-      }, 20000);
+      // Si en 60 s no se completó (red lenta/bloqueada), se libera el candado para reintentar más
+      // tarde. No se muestra ningún botón ni pantalla: la app sigue funcionando con normalidad.
+      setTimeout(function(){ if(!_hpReloaded){ try{ sessionStorage.removeItem('hp_fr'); }catch(e){} } }, 60000);
     }catch(e){}
   }
   var _hpVGlast = 0;
