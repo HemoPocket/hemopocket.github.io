@@ -7736,7 +7736,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 327;
+const HP_BUILD = 328;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13837,6 +13837,9 @@ const before=_hpSig();
 // AVISO legal, colaboradores y estado de verificación. Si falta alguna aquí, sus cambios no llegarían en vivo.
 const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncEnsayos','hpSyncPlantillas','hpSyncBloques','hpSyncDirectorio','hpSyncAviso','hpSyncColaboradores','hpSyncVerificados','hpSyncCentros'];
 for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
+// Guías PDF: también en vivo. Es incremental (solo baja los PDF nuevos, no re-descarga lo ya
+// cacheado y borra los que ya no correspondan), así que aparecen/desaparecen solas sin recargar.
+try{ if(window.syncCloudGuides) await window.syncCloudGuides(true); }catch(e){}
 const changed=(_hpSig()!==before);
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
 // Si algo cambió DE VERDAD y no estás en medio de una edición, re-pinta la vista actual para
