@@ -7686,7 +7686,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 319;
+const HP_BUILD = 320;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14352,7 +14352,7 @@ document.addEventListener('DOMContentLoaded', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -15093,14 +15093,37 @@ window.hpSyncInfos = async function(){
 // Ensayos clínicos / estudios (mismo patrón que infos; cola offline vía hpQSet).
 window.hpSaveEnsayo = async function(x){ await hpQSet('ensayo:'+x.id, 'ensayos', x.id, x); };
 window.hpDeleteEnsayo = async function(id){ await deleteDoc(doc(fs, 'ensayos', id)); };
+// Los ensayos son PRIVADOS de cada hospital. Refuerzo de servidor: cada cliente solo DESCARGA
+// los ensayos de su hospital (consulta filtrada), y las reglas lo imponen. La admin principal
+// (super-admin) los descarga todos. Así otro hospital no puede ni bajar de la base de datos los
+// ensayos ajenos, no solo no verlos en pantalla.
 window.hpSyncEnsayos = async function(){
   try{
-    const snap = await getDocs(collection(fs, 'ensayos'));
+    const esPrin = !!(window.hpIsPrincipal && window.hpIsPrincipal());
+    const centro = (window.__hpCentro) || 'hunsc';
+    let snap;
+    if(esPrin) snap = await getDocs(collection(fs, 'ensayos'));
+    else snap = await getDocs(query(collection(fs, 'ensayos'), where('vis','array-contains', centro)));
     const map = {}; snap.forEach(d => { map[d.id] = Object.assign({ id:d.id }, d.data()); });
     if(window.hpApplyEnsayos) window.hpApplyEnsayos(map);
+    if(esPrin){ try{ await _hpMigrarEnsayos(map); }catch(e){} }
     return true;
   }catch(e){ return false; }
 };
+// Migración única (solo la principal): asegura que TODO ensayo tenga 'vis' con su hospital, para
+// que el filtrado por hospital no deje fuera ninguno. Idempotente; solo toca los que lo necesitan.
+async function _hpMigrarEnsayos(map){
+  try{ if(sessionStorage.getItem('hp_ensMig')==='1') return; }catch(e){}
+  const pend=[];
+  Object.keys(map||{}).forEach(function(id){
+    const e=map[id]; const v=e&&e.vis;
+    const ok=Array.isArray(v)&&v.length>0&&v.indexOf('todos')===-1;
+    if(!ok){ const c=(e&&e.ambito&&e.ambito!=='global')?e.ambito:'hunsc'; pend.push({id:id,vis:[c],ambito:c}); }
+  });
+  for(const p of pend){ try{ await setDoc(doc(fs,'ensayos',p.id), { vis:p.vis, ambito:p.ambito }, { merge:true }); if(map[p.id]){ map[p.id].vis=p.vis; map[p.id].ambito=p.ambito; } }catch(e){} }
+  if(pend.length && window.hpApplyEnsayos) window.hpApplyEnsayos(map);
+  try{ sessionStorage.setItem('hp_ensMig','1'); }catch(e){}
+}
 // Centros / hospitales (los gestiona la administradora).
 window.hpSaveCentro = async function(id, data){ await setDoc(doc(fs, 'centros', id), Object.assign({ actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }, data||{}), { merge:true }); };
 window.hpDeleteCentro = async function(id){ await deleteDoc(doc(fs, 'centros', id)); };
