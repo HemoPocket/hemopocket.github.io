@@ -83,6 +83,8 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .menu-cat.open + .menu-items{max-height:1500px}
 .menu-item{padding:7px 10px 7px 22px;cursor:pointer;border-radius:var(--rs);font-size:12.5px;color:var(--mut);display:flex;justify-content:space-between;align-items:center;gap:6px;position:relative;transition:background .15s,color .15s}
 .menu-sub{padding:6px 10px 3px 14px;font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;letter-spacing:.4px;opacity:.8}
+.menu-grp{padding:9px 10px 3px;font-size:10px;text-transform:uppercase;color:var(--mut);font-weight:700;letter-spacing:.7px;opacity:.7}
+.menu-grp:first-child{padding-top:2px}
 .menu-sub + .menu-item, .menu-sub ~ .menu-item.in-sub{padding-left:30px}
 .menu-item:hover,.menu-item.active{background:var(--hov);color:var(--txt)}
 .menu-item.active{font-weight:600;background:var(--sel)}
@@ -1187,10 +1189,10 @@ const MENU=[
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
 {id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true},
 {id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true},
-{id:'centros',name:'Hospitales / Centros',kw:'hospitales centros organizaciones multihospital acceso visibilidad permisos administrador hunsc',admin:true},
+{id:'centros',name:'Hospitales / Centros',kw:'hospitales centros organizaciones multihospital acceso visibilidad permisos administrador hunsc',admin:true,principal:true},
 {id:'cambios',name:'Registro de cambios',kw:'registro cambios auditoria historial quien edito publico elimino aprobo log actividad administrador trazabilidad',admin:true},
 {id:'propuestas',name:'Propuestas de compartir',kw:'propuestas compartir global hospital ofrecer proponer aprobar principal contenido',admin:true,principal:true},
-{id:'vismap',name:'Mapa de visibilidad',kw:'mapa visibilidad quien ve que contenido hospital restringido admin acceso panorama resumen',admin:true}
+{id:'vismap',name:'Mapa de visibilidad',kw:'mapa visibilidad quien ve que contenido hospital restringido admin acceso panorama resumen',admin:true,principal:true}
 ]}
 ];
 const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
@@ -1223,7 +1225,7 @@ h+='</div>';
 _hpMenuCats().forEach(({sec,si})=>{
 const isAdminUI=!!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin());
 const isEditorUI=!!(window.HemoCloud&&window.HemoCloud.isEditor&&window.HemoCloud.isEditor());
-const _admHide=it=>(it.admin&&!isAdminUI&&!(it.edOk&&isEditorUI));
+const _admHide=it=>((it.admin&&!isAdminUI&&!(it.edOk&&isEditorUI)) || (it.principal && (typeof HP_PRINCIPAL_UID==='undefined'||window.__hpUid!==HP_PRINCIPAL_UID)));
 const isGuideHidden=it=>!!(it.id&&it.id.indexOf('g_')===0&&(hpSecHidden(it.id.slice(2))||!hpSecVisibleUser(it.id.slice(2))));
 const itemVisible=it=>it.sub || (it.id&&it.id.indexOf('g_')===0) || hpItemVisibleUser(it.id);
 const realItems=sec.items.filter(it=>!it.sub && !_admHide(it) && !isGuideHidden(it) && !hpItemHidden(it.id) && itemVisible(it) && (!f||it.name.toLowerCase().includes(f)||it.kw.includes(f)));
@@ -1233,10 +1235,12 @@ const open=f?true:_hpSecOpenIs('h:'+(sec.h||''), sec.o);
 // Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
 let _hdr=hpNiceHeader(sec.h); const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=hpNiceHeader(_t);}
 h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}${(!open&&(sec.h==='AJUSTES')&&(((window._hpRepNew||0)+(window._hpSolNew||0)+(window._hpRevNew||0))>0))?`<span class="tag-new" style="background:#c41e3a" title="solicitudes, reportes y revisión pendientes">${(window._hpRepNew||0)+(window._hpSolNew||0)+(window._hpRevNew||0)}</span>`:''}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
-let inSub=false;
+let inSub=false; let _ajLastGroup=-1;
 visible.forEach(it=>{
 if(_admHide(it))return;
 if(it.sub){inSub=true;h+=`<div class="menu-sub">${it.name}</div>`;return}
+// Ajustes: encabezado de grupo (General / Administración / Solo tú) para que no se vea tan cargado.
+if(sec.h==='AJUSTES' && !f && isAdminUI){ const _g=_hpAjGroup(it.id); if(_g!==_ajLastGroup){ _ajLastGroup=_g; h+=`<div class="menu-grp">${_HP_AJ_GROUP_LABEL[_g]||''}</div>`; } }
 const isFav=S.favs.includes(it.id);
 const isNew=it.new && isRecentlyNew(it.new);
 const repBadge=(it.id==='reportes'&&window._hpRepNew)?`<span class="tag-new" style="background:#c41e3a" title="reportes sin resolver">${window._hpRepNew}</span>`:'';
@@ -4799,8 +4803,13 @@ function hpItemVisControlHtml(id){
 // ── Orden personalizado de los apartados de AJUSTES (reordenables por admin, efectivo para todos) ──
 function _hpAjustesBase(){ for(var i=0;i<MENU0.length;i++){ if((MENU0[i].h||'')==='AJUSTES') return MENU0[i].items; } return []; }
 function _hpAjustesDefIdx(id){ return _hpAjustesBase().findIndex(function(it){return it.id===id;}); }
+// Grupos del menú de Ajustes (para agruparlo visualmente y que no se vea tan cargado).
+// 0 = General (todos) · 1 = Administración (admins) · 2 = Solo la admin principal.
+const _HP_AJ_GROUP={sync:0,acerca:0,reportes:1,solicitudes:1,gsecciones:1,revision:1,cambios:1,centros:2,vismap:2,propuestas:2};
+const _HP_AJ_GROUP_LABEL=['General','Administración','Solo tú (admin principal)'];
+function _hpAjGroup(id){ return (id in _HP_AJ_GROUP)?_HP_AJ_GROUP[id]:1; }
 function _hpItemOrden(id){ const o=hpItemMap()[id]; return (o&&typeof o.orden==='number')?o.orden:null; }
-function _hpAjustesCmp(a,b){ const oa=_hpItemOrden(a.id),ob=_hpItemOrden(b.id); const ia=(oa==null?_hpAjustesDefIdx(a.id):oa), ib=(ob==null?_hpAjustesDefIdx(b.id):ob); return (ia-ib)||(_hpAjustesDefIdx(a.id)-_hpAjustesDefIdx(b.id)); }
+function _hpAjustesCmp(a,b){ const ga=_hpAjGroup(a.id),gb=_hpAjGroup(b.id); if(ga!==gb) return ga-gb; const oa=_hpItemOrden(a.id),ob=_hpItemOrden(b.id); const ia=(oa==null?_hpAjustesDefIdx(a.id):oa), ib=(ob==null?_hpAjustesDefIdx(b.id):ob); return (ia-ib)||(_hpAjustesDefIdx(a.id)-_hpAjustesDefIdx(b.id)); }
 function _hpAjustesOrdered(){ return _hpAjustesBase().slice().sort(_hpAjustesCmp); }
 // Distribuye los ítems REALES de una sección en su orden (personalizado vía override 'orden' si lo
 // hay; si no, el orden natural: sueltos primero y luego cada subsección). Inserta la cabecera
@@ -7637,7 +7646,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 314;
+const HP_BUILD = 315;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
