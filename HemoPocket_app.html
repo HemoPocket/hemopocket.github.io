@@ -1188,7 +1188,8 @@ const MENU=[
 {id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true},
 {id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true},
 {id:'centros',name:'Hospitales / Centros',kw:'hospitales centros organizaciones multihospital acceso visibilidad permisos administrador hunsc',admin:true},
-{id:'cambios',name:'Registro de cambios',kw:'registro cambios auditoria historial quien edito publico elimino aprobo log actividad administrador trazabilidad',admin:true}
+{id:'cambios',name:'Registro de cambios',kw:'registro cambios auditoria historial quien edito publico elimino aprobo log actividad administrador trazabilidad',admin:true},
+{id:'propuestas',name:'Propuestas de compartir',kw:'propuestas compartir global hospital ofrecer proponer aprobar principal contenido',admin:true,principal:true}
 ]}
 ];
 const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
@@ -1295,7 +1296,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
 // Fechas de "última actualización" para apartados sin campo new:/upd: en el MENU.
 const HP_UPD_DATES={
 'qtc':'2026-04-01','crcl':'2026-04-01','obw':'2026-04-01','bsa':'2026-04-01','cb':'2026-04-01','qt':'2026-04-01',
@@ -1319,7 +1320,7 @@ const HP_UPD_DATES={
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
 // original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
 // paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
@@ -5107,6 +5108,7 @@ VIEWS.algoedit=()=>{
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
   h+=hpAmbitoControlHtml(d.ambito,'algoSetAmbito');
   h+=hpVisControlHtml(d.vis,'algoSetVis');
+  h+=hpCompartirBtn(d,'algoritmo');
   h+=_edActions({cancel:'algoCancelar()',preview:'algoVistaPrevia()',check:'algoComprobar()',save:'algoGuardar()',publish:'algoPublicar()'});
   h+='</div>'; return h;
 };
@@ -5397,6 +5399,7 @@ VIEWS.calcedit=()=>{
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
   h+=hpAmbitoControlHtml(d.ambito,'calcSetAmbito');
   h+=hpVisControlHtml(d.vis,'calcSetVis');
+  h+=hpCompartirBtn(d,'calculadora');
   h+=_edActions({cancel:'calcCancelar()',preview:'calcVistaPrevia()',check:'calcComprobar()',save:'calcGuardar()',publish:'calcPublicar()'});
   h+='</div>'; return h;
 };
@@ -5532,6 +5535,7 @@ VIEWS.infoedit=()=>{
   h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
   h+=hpAmbitoControlHtml(d.ambito,'infoSetAmbito');
   h+=hpVisControlHtml(d.vis,'infoSetVis');
+  h+=hpCompartirBtn(d,'información');
   h+=_edActions({cancel:'infoCancelar()',preview:'infoVistaPrevia()',save:'infoGuardar()',publish:'infoPublicar()'});
   h+='</div>'; return h;
 };
@@ -5721,6 +5725,40 @@ h+='<div style="font-size:11.5px;color:var(--mut);margin-top:2px">'+_hpEsc(c.nom
 });
 box.innerHTML=h;
 };
+VIEWS.propuestas=()=>{
+if(!hpIsPrincipal()) return '<div class="card"><h2>Propuestas de compartir</h2><div class="alert y">Solo la administradora principal gestiona las propuestas de compartir.</div></div>';
+let h='<div class="card"><h2>🔁 Propuestas de compartir</h2><p class="intro">Contenido que los hospitales proponen hacer <strong>global</strong>. Al aprobar, pasa a ámbito Global y visible para todos.</p>';
+h+='<div style="display:flex;justify-content:flex-end"><button class="btn btn-out btn-sm" onclick="hpRenderPropuestas()">↻ Actualizar</button></div></div>';
+h+='<div id="prop_list" class="card">Cargando…</div>';
+return h;
+};
+VIEWS.propuestas_post=()=>{ if(window.hpRenderPropuestas) window.hpRenderPropuestas(); };
+window.hpRenderPropuestas=async function(){
+const box=document.getElementById('prop_list'); if(!box) return;
+if(!window.hpListPropuestas){ box.innerHTML='<div class="alert y">Conéctate a Internet para ver las propuestas.</div>'; return; }
+box.innerHTML='Cargando…';
+let list; try{ list=await window.hpListPropuestas(); }catch(e){ box.innerHTML='<div class="alert y">No se pudieron cargar. '+(e.message||'')+'</div>'; return; }
+const pend=list.filter(p=>p.estado==='pendiente');
+let h='<h3>Pendientes ('+pend.length+')</h3>';
+if(!pend.length) h+='<div class="team-empty">No hay propuestas pendientes.</div>';
+pend.forEach(function(p){
+let f=''; try{ if(p.ts&&p.ts.seconds) f=new Date(p.ts.seconds*1000).toLocaleString('es-ES'); }catch(e){}
+h+='<div class="team-card" style="margin-bottom:8px"><div style="font-size:13px"><strong>'+_hpEsc(p.titulo||'(sin título)')+'</strong> · '+_hpEsc(p.itemTipo||'')+'</div>';
+h+='<div style="font-size:11.5px;color:var(--mut);margin:2px 0 8px">Propone: '+_hpEsc(p.nombre||'—')+' · 🏥 '+_hpEsc(hpCentroNombre(p.deCentro||''))+(f?' · '+f:'')+'</div>';
+h+='<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" onclick="hpAprobarPropuesta(\''+p.id+'\',\''+p.itemTipo+'\',\''+p.itemId+'\')">✅ Aprobar (hacer global)</button><button class="btn btn-out btn-sm" onclick="hpRechazarPropuesta(\''+p.id+'\')">Rechazar</button></div></div>';
+});
+const otras=list.filter(p=>p.estado!=='pendiente');
+if(otras.length){ h+='<h3 style="margin-top:16px">Resueltas ('+otras.length+')</h3>'; otras.slice(0,30).forEach(function(p){ h+='<div style="font-size:12px;color:var(--mut);padding:3px 0">'+(p.estado==='aprobada'?'✅':'✕')+' '+_hpEsc(p.titulo||'')+' · '+_hpEsc(p.itemTipo||'')+'</div>'; }); }
+box.innerHTML=h;
+};
+window.hpAprobarPropuesta=async function(id,tipo,itemId){
+try{ const ok=await hpAplicarCompartir(tipo,itemId);
+  if(!ok){ toast('El contenido ya no existe'); if(window.hpResolverPropuesta) await window.hpResolverPropuesta(id,'rechazada'); }
+  else { if(window.hpResolverPropuesta) await window.hpResolverPropuesta(id,'aprobada'); hpAudit('aprobar compartir',tipo,'',{ambito:'global'}); toast('✅ Ahora es global · visible para todos'); }
+  if(window.hpRenderPropuestas) window.hpRenderPropuestas();
+}catch(e){ toast('Error: '+(e.message||'')); }
+};
+window.hpRechazarPropuesta=async function(id){ try{ if(window.hpResolverPropuesta) await window.hpResolverPropuesta(id,'rechazada'); if(window.hpRenderPropuestas) window.hpRenderPropuestas(); toast('Propuesta rechazada'); }catch(e){} };
 
 const HP_PRINCIPAL_UID='oHgd0fQBUfQV1NxGKbFHkHNZSWz1'; // admin principal intocable (busnegomt@gmail.com)
 function solCard(c,withActions,roleInfo,colabInfo){
@@ -6083,6 +6121,34 @@ function hpIsPrincipal(){ try{ return typeof HP_PRINCIPAL_UID!=='undefined' && w
 function hpItemAmbito(item){ var a=item&&item.ambito; return (a&&a!=='global')?a:'global'; }
 // Apunte en el registro de cambios (auditoría). Best-effort, nunca bloquea la acción.
 function hpAudit(accion,tipo,titulo,extra){ try{ if(window.hpLogCambio) window.hpLogCambio(Object.assign({accion:accion,tipo:tipo,titulo:(titulo||'').toString().slice(0,140)},extra||{})); }catch(e){} }
+// ── Compartir opt-in: un hospital propone hacer GLOBAL su contenido; la principal lo aprueba. ──
+function _hpTipoStore(tipo){
+  if(tipo==='algoritmo') return {get:hpAlgos, ls:'algos', save:window.hpSaveAlgo};
+  if(tipo==='calculadora') return {get:_calcsStored, ls:'calcs', save:window.hpSaveCalc};
+  if(tipo==='información') return {get:hpInfos, ls:'infos', save:window.hpSaveInfo};
+  if(tipo==='ensayo') return {get:hpEnsayos, ls:'ensayos', save:window.hpSaveEnsayo};
+  return null;
+}
+function hpCompartirBtn(d, tipo){
+  try{ if(hpIsPrincipal()) return ''; if(!d || hpItemAmbito(d)==='global') return ''; if(!hpCanEditAmbito(d, d.seccion||null)) return ''; }catch(e){ return ''; }
+  return '<div class="fld"><button type="button" class="btn btn-out btn-sm" onclick="hpProponerCompartirUI(\''+tipo+'\',\''+d.id+'\')">🔁 Proponer compartir con todos los hospitales</button><div style="font-size:11px;color:var(--mut,#666);margin-top:3px">Envía una propuesta a la administradora principal para hacerlo <strong>global</strong> (visible y usable por todos).</div></div>';
+}
+async function hpProponerCompartirUI(tipo,id){
+  var st=_hpTipoStore(tipo); if(!st) return;
+  var item=(st.get()||{})[id];
+  if(!item){ toast('Guarda primero el contenido y vuelve a intentarlo'); return; }
+  if(!confirm('¿Enviar a la administradora principal la propuesta de compartir «'+(item.titulo||'')+'» con todos los hospitales?')) return;
+  try{ if(window.hpProponerCompartir){ await window.hpProponerCompartir({itemTipo:tipo,itemId:id,titulo:(item.titulo||'').toString().slice(0,140)}); hpAudit('proponer compartir',tipo,item.titulo,{ambito:hpItemAmbito(item)}); toast('✓ Propuesta enviada a la administradora principal'); } }
+  catch(e){ toast('No se pudo enviar la propuesta'); }
+}
+async function hpAplicarCompartir(tipo,id){
+  var st=_hpTipoStore(tipo); if(!st) return false;
+  var m=st.get(); var item=m[id]; if(!item) return false;
+  item.ambito='global'; item.vis=[]; m[id]=item;
+  try{ ls.s(st.ls, m); }catch(e){}
+  if(st.save){ try{ await st.save(item); }catch(e){} }
+  return true;
+}
 // ¿Puede el usuario actual EDITAR este contenido, según su ámbito y la sección?
 //  - Principal: todo.  - Global: equipo de la casa (HUNSC) con permiso de la sección.
 //  - Hospital X: admin/editor de X con permiso de la sección.
@@ -6211,6 +6277,7 @@ VIEWS.ensayoedit=()=>{
   h+='<div class="fld"><label class="lbl">Enlace (opcional)</label><input value="'+_hpEsc(d.enlace||'')+'" onchange="ensayoSetField(\'enlace\',this.value)" placeholder="https://…"></div>';
   h+=hpAmbitoControlHtml(d.ambito,'ensayoSetAmbito');
   h+=hpVisControlHtml(d.vis,'ensayoSetVis');
+  h+=hpCompartirBtn(d,'ensayo');
   h+='<div class="ed-actions"><button class="btn btn-out btn-sm" onclick="ensayoCancelar()">✖ Cancelar</button><button class="btn btn-out btn-sm" onclick="ensayoGuardar()">💾 Guardar borrador</button><button class="btn btn-g btn-sm" onclick="ensayoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
@@ -7483,7 +7550,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 305;
+const HP_BUILD = 306;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14651,6 +14718,24 @@ window.hpLogCambio = async function(entry){
     }, entry||{});
     await addDoc(collection(fs, 'cambios'), data);
   }catch(e){ /* la auditoría nunca debe romper la acción */ }
+};
+// ── PROPUESTAS DE COMPARTIR (un hospital ofrece su contenido para hacerlo global) ──
+window.hpProponerCompartir = async function(entry){
+  const nombre = (auth.currentUser && auth.currentUser.displayName) || (auth.currentUser && auth.currentUser.email) || '';
+  const data = Object.assign({
+    uid: curUid || (auth.currentUser && auth.currentUser.uid) || null,
+    nombre, deCentro: (window.__hpCentro || null), estado: 'pendiente', ts: serverTimestamp()
+  }, entry||{});
+  await addDoc(collection(fs, 'propuestas'), data);
+};
+window.hpListPropuestas = async function(){
+  const snap = await getDocs(collection(fs, 'propuestas'));
+  const out = []; snap.forEach(d => out.push(Object.assign({ id:d.id }, d.data())));
+  out.sort((a,b)=>{ const ta=(a.ts&&a.ts.seconds)||0, tb=(b.ts&&b.ts.seconds)||0; return tb-ta; });
+  return out;
+};
+window.hpResolverPropuesta = async function(id, estado){
+  await updateDoc(doc(fs, 'propuestas', id), { estado, resueltaPor: curUid||null, fechaResolucion: serverTimestamp() });
 };
 // Lee los últimos cambios (solo administradora; las reglas lo refuerzan). Más recientes primero.
 window.hpListCambios = async function(max){
