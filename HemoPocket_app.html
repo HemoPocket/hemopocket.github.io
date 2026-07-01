@@ -5168,7 +5168,7 @@ function algoReset(){ const st=_algoState; if(st){ st.current=st.algo.inicio; st
 function algoOpen(id){ const a=hpAlgos()[id]; if(!a){toast('Algoritmo no encontrado');return;} _algoState={algo:JSON.parse(JSON.stringify(a)),current:a.inicio,history:[]}; go('algo'); }
 // ── Editor por formulario ──
 let _algoDraft=null;
-function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{},ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; go('algoedit'); }
+function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{},ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; go('algoedit'); }
 function algoEditOpen(id){ const a=hpAlgos()[id]; if(!a){toast('No encontrado');return;} if(!hpCanEditAmbito(a,a.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _algoDraft=JSON.parse(JSON.stringify(a)); if(!_algoDraft.nodos)_algoDraft.nodos={}; go('algoedit'); }
 function _algoNodeLabel(n){ if(!n)return '(paso)'; const t=(n.texto||'').replace(/\s+/g,' ').trim(); return (t?t.slice(0,32):(n.tipo==='resultado'?'(resultado)':'(pregunta)')); }
 // ── Aspecto COMÚN de los mini-editores (calculadora / algoritmo / información) ──
@@ -5206,8 +5206,7 @@ VIEWS.algoedit=()=>{
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
-  h+=hpAmbitoControlHtml(d.ambito,'algoSetAmbito');
-  h+=hpVisControlHtml(d.vis,'algoSetVis');
+  h+=hpScopeControlHtml(d,'algoSetScope');
   h+=hpCompartirBtn(d,'algoritmo');
   h+=_edActions({cancel:'algoCancelar()',preview:'algoVistaPrevia()',check:'algoComprobar()',save:'algoGuardar()',publish:'algoPublicar()'});
   h+='</div>'; return h;
@@ -5466,7 +5465,7 @@ VIEWS.calc=()=>{
 function calcOpen(id){ const c=hpCalcs()[id]; if(!c){toast('Calculadora no encontrada');return;} _calcState={calc:JSON.parse(JSON.stringify(c)),vals:{}}; go('calc'); }
 // ── Editor por formulario ──
 let _calcDraft=null;
-function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[],ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
+function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[],ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
 function calcEditOpen(id){ const c=hpCalcs()[id]; if(!c){toast('No encontrada');return;} if(!hpCanEditAmbito(c,c.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _calcDraft=JSON.parse(JSON.stringify(c)); if(!_calcDraft.tipo)_calcDraft.tipo='score'; if(!_calcDraft.campos)_calcDraft.campos=[]; if(!_calcDraft.resultados)_calcDraft.resultados=[]; go('calcedit'); }
 function _calcSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
 VIEWS.calcedit=()=>{
@@ -5497,8 +5496,7 @@ VIEWS.calcedit=()=>{
   }
   (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri,(d.resultados||[]).length); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
-  h+=hpAmbitoControlHtml(d.ambito,'calcSetAmbito');
-  h+=hpVisControlHtml(d.vis,'calcSetVis');
+  h+=hpScopeControlHtml(d,'calcSetScope');
   h+=hpCompartirBtn(d,'calculadora');
   h+=_edActions({cancel:'calcCancelar()',preview:'calcVistaPrevia()',check:'calcComprobar()',save:'calcGuardar()',publish:'calcPublicar()'});
   h+='</div>'; return h;
@@ -5621,7 +5619,7 @@ VIEWS.info=()=>{
 };
 function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); go('info'); }
 let _infoDraft=null;
-function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador',ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; go('infoedit'); }
+function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador',ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; go('infoedit'); }
 function infoEditOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} if(!hpCanEditAmbito(x,x.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _infoDraft=JSON.parse(JSON.stringify(x)); go('infoedit'); }
 function _infoSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
 VIEWS.infoedit=()=>{
@@ -5633,8 +5631,7 @@ VIEWS.infoedit=()=>{
   h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="infoSetField(\'seccion\',this.value)">'+_infoSecOptions(d.seccion)+'</select></div>';
   h+='<div class="fld"><label class="lbl">Contenido</label><textarea style="min-height:220px" onchange="infoSetField(\'cuerpo\',this.value)" placeholder="Escribe aquí la información...">'+_hpEsc(d.cuerpo||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
-  h+=hpAmbitoControlHtml(d.ambito,'infoSetAmbito');
-  h+=hpVisControlHtml(d.vis,'infoSetVis');
+  h+=hpScopeControlHtml(d,'infoSetScope');
   h+=hpCompartirBtn(d,'información');
   h+=_edActions({cancel:'infoCancelar()',preview:'infoVistaPrevia()',save:'infoGuardar()',publish:'infoPublicar()'});
   h+='</div>'; return h;
@@ -6288,7 +6285,7 @@ async function hpProponerCompartirUI(tipo,id){
 async function hpAplicarCompartir(tipo,id){
   var st=_hpTipoStore(tipo); if(!st) return false;
   var m=st.get(); var item=m[id]; if(!item) return false;
-  item.ambito='global'; item.vis=[]; m[id]=item;
+  item.ambito='global'; item.vis=['todos']; m[id]=item;   // 'todos' explícito: global visible para TODOS (no vacío, que en el contenido privado = solo la casa)
   try{ ls.s(st.ls, m); }catch(e){}
   if(st.save){ try{ await st.save(item); }catch(e){} }
   return true;
@@ -6317,6 +6314,10 @@ function hpAmbitoEtiqueta(item){
 function hpAmbitoNuevo(){ try{ if(hpIsPrincipal()) return 'global'; var c=hpUserCentro(); return (c===hpCasaCentro())?'global':c; }catch(e){ return 'global'; } }
 // Visibilidad inicial de un contenido nuevo: privado a su hospital salvo que lo cree la casa/principal.
 function hpVisNueva(){ try{ if(hpIsPrincipal()) return []; var c=hpUserCentro(); return (c===hpCasaCentro())?[]:[c]; }catch(e){ return []; } }
+// Visibilidad inicial COHERENTE para contenido de sección (algoritmos/calculadoras/infos), donde
+// «Global» debe verse en TODOS los hospitales: si el ámbito por defecto es global, se marca 'todos'
+// explícito (vacío significaría «solo la casa» en el contenido privado, contradiciendo la etiqueta).
+function hpVisNuevaContenido(){ try{ var a=hpAmbitoNuevo(); return (a==='global')?['todos']:[a]; }catch(e){ return ['todos']; } }
 // Control «Ámbito por hospital» — SOLO la admin principal lo ve. cbName recibe el nuevo ámbito.
 function hpAmbitoControlHtml(ambito, cbName){
   if(!hpIsPrincipal()) return '';
@@ -6330,6 +6331,37 @@ function hpAmbitoControlHtml(ambito, cbName){
   h+='</select></div>';
   return h;
 }
+// Control ÚNICO de alcance: una sola elección fija a la vez la PROPIEDAD (quién edita) y la
+// VISIBILIDAD (quién lo ve), de modo que NUNCA puedan contradecirse. Sustituye al par
+// «Ámbito» + «¿Quién puede verlo?», que confundía porque usaba el mismo vocabulario para dos ejes.
+//   • Global  → ambito='global', vis=['todos']  → base común, la ve y edita todo el mundo.
+//   • Hospital → ambito=ID,      vis=[ID]        → privada de ese hospital (solo él la ve y edita).
+// Solo la admin PRINCIPAL reparte; un editor de hospital ve un aviso fijo (su contenido es suyo).
+function hpScopeControlHtml(item, cbName){
+  var ids=_hpCentrosOrden();
+  var amb=(item&&item.ambito)||'';
+  var vis=Array.isArray(item&&item.vis)?item.vis:[];
+  var esGlobal=(amb===''||amb==='global') && (vis.length===0 || vis.indexOf('todos')!==-1);
+  var cur=esGlobal?'global':((amb&&amb!=='global')?amb:((vis[0]&&vis[0]!=='todos')?vis[0]:hpCasaCentro()));
+  if(!hpIsPrincipal()){
+    var mi=hpUserCentro();
+    return '<div class="fld"><label class="lbl">¿Para quién es?</label><div style="padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg,#f7f8fa);font-size:13px">🏥 <strong>'+_hpEsc(hpCentroNombre(mi))+'</strong> · <span style="color:var(--mut)">privado de tu hospital: solo tu hospital lo ve y lo edita</span></div></div>';
+  }
+  var h='<div class="fld"><label class="lbl">¿Para quién es este contenido?</label>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 6px">Una sola opción decide a la vez <strong>quién lo ve</strong> y <strong>quién lo edita</strong>, para que no haya contradicción.</div>';
+  h+='<select onchange="'+cbName+'(this.value)" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card,#fff);color:var(--txt,#222)">';
+  h+='<option value="global"'+(cur==='global'?' selected':'')+'>🌐 Global · base común, la ven todos los hospitales</option>';
+  ids.forEach(function(id){ h+='<option value="'+_hpEsc(id)+'"'+(cur===id?' selected':'')+'>🏥 '+_hpEsc(hpCentroNombre(id))+' · privado de este hospital</option>'; });
+  h+='</select>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin-top:5px">'+(cur==='global'?'🌐 <strong>Global:</strong> lo ven y usan todos los hospitales; lo mantienes tú y el equipo de la casa.':'🏥 <strong>Privado:</strong> solo ese hospital lo ve y lo edita. Ni otros hospitales ni sus administradores lo ven.')+'</div>';
+  h+='</div>';
+  return h;
+}
+// Aplica la elección del control único a un borrador (fija ámbito y vis de forma coherente).
+function _hpScopeApply(d, v){ if(!d) return; if(v==='global'){ d.ambito='global'; d.vis=['todos']; } else { d.ambito=v; d.vis=[v]; } }
+function algoSetScope(v){ if(_algoDraft){ _hpScopeApply(_algoDraft, v); go('algoedit'); } }
+function calcSetScope(v){ if(_calcDraft){ _hpScopeApply(_calcDraft, v); go('calcedit'); } }
+function infoSetScope(v){ if(_infoDraft){ _hpScopeApply(_infoDraft, v); go('infoedit'); } }
 // ¿Puede el usuario actual VER este contenido? (separación funcional, Fase 2a)
 // Sin 'vis', o vacío, o con 'todos' = público. Los administradores ven todo (lo gestionan).
 function hpVisible(item){
@@ -7736,7 +7768,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 328;
+const HP_BUILD = 329;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
