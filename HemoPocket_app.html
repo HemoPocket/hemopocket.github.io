@@ -6340,7 +6340,7 @@ function renderEnsayoCard(e, canEd){
   if(e.fase) h+='<span class="ed-chip" style="background:#1d4ed8">'+_hpEsc(e.fase)+'</span>';
   if(recl) h+='<span class="ed-chip" style="background:'+(e.reclut==='reclutando'?'#1d8a4e':e.reclut==='proximamente'?'#b8860b':'#888')+'">'+recl+'</span>';
   if(draft) h+='<span class="ed-chip" style="background:#b8860b">Borrador</span>';
-  if(canEd) h+=hpAmbitoEtiqueta(e)+hpVisEtiqueta(e);
+  if(canEd){ var _ec=(e.ambito&&e.ambito!=='global')?e.ambito:((Array.isArray(e.vis)&&e.vis[0]&&e.vis[0]!=='todos')?e.vis[0]:hpCasaCentro()); h+=' <span class="ed-chip" style="background:#1d6a4e">🏥 '+_hpEsc(hpCentroNombre(_ec))+'</span>'; }
   h+='</div>';
   if(e.promotor) h+='<div style="font-size:12px;color:var(--mut);margin-top:2px">Promotor / PI: <strong>'+_hpEsc(e.promotor)+'</strong></div>';
   if(e.resumen) h+='<p style="margin:8px 0;line-height:1.6">'+_hpEsc(e.resumen).replace(/\n/g,'<br>')+'</p>';
@@ -6356,7 +6356,7 @@ function renderEnsayoCard(e, canEd){
 function ensayosView(){
   const canEd=hpEditUISec('ensayos');
   const all=Object.keys(hpEnsayos()).map(function(k){return hpEnsayos()[k];}).filter(Boolean);
-  const list=(canEd?all.filter(function(e){return (e.estado==='publicado'&&hpVisible(e))||hpCanEditAmbito(e,null);}):all.filter(function(e){return e.estado==='publicado' && hpVisible(e);})).slice();
+  const list=(canEd?all.filter(function(e){return (e.estado==='publicado'&&hpEnsayoVisible(e))||hpCanEditAmbito(e,null);}):all.filter(function(e){return e.estado==='publicado' && hpEnsayoVisible(e);})).slice();
   const rank={reclutando:0,proximamente:1,cerrado:2};
   list.sort(function(a,b){ const ra=rank[a.reclut]!=null?rank[a.reclut]:3, rb=rank[b.reclut]!=null?rank[b.reclut]:3; if(ra!==rb) return ra-rb; return String(a.titulo||'').localeCompare(String(b.titulo||'')); });
   let h='<div class="card"><h2>🧪 Ensayos clínicos y estudios</h2>';
@@ -6368,11 +6368,37 @@ function ensayosView(){
   return h;
 }
 function _ensPuede(){ return !!(window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit('ensayos')); }
-function ensayoNuevo(){ if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft={id:'ens_'+Date.now(), titulo:'', fase:'', promotor:'', reclut:'reclutando', resumen:'', inclusion:'', exclusion:'', contacto:'', enlace:'', estado:'borrador', ambito:hpAmbitoNuevo(), vis:hpVisNueva()}; go('ensayoedit'); }
-function ensayoEditOpen(id){ const e=hpEnsayos()[id]; if(!e){ toast('No encontrado'); return; } if(!_ensPuede()){ toast('Sin permiso'); return; } if(!hpCanEditAmbito(e,null)){ toast('Este ensayo pertenece a otro hospital; no puedes editarlo'); return; } _ensayoDraft=JSON.parse(JSON.stringify(e)); go('ensayoedit'); }
+function ensayoNuevo(){ if(!_ensPuede()){ toast('Sin permiso'); return; } _ensayoDraft={id:'ens_'+Date.now(), titulo:'', fase:'', promotor:'', reclut:'reclutando', resumen:'', inclusion:'', exclusion:'', contacto:'', enlace:'', estado:'borrador', ambito:hpUserCentro(), vis:[hpUserCentro()]}; go('ensayoedit'); }
+function ensayoEditOpen(id){ const e=hpEnsayos()[id]; if(!e){ toast('No encontrado'); return; } if(!_ensPuede()){ toast('Sin permiso'); return; } if(!hpCanEditAmbito(e,null)){ toast('Este ensayo pertenece a otro hospital; no puedes editarlo'); return; } _ensayoDraft=JSON.parse(JSON.stringify(e)); var _c=(_ensayoDraft.ambito&&_ensayoDraft.ambito!=='global')?_ensayoDraft.ambito:((Array.isArray(_ensayoDraft.vis)&&_ensayoDraft.vis[0]&&_ensayoDraft.vis[0]!=='todos')?_ensayoDraft.vis[0]:hpUserCentro()); _ensayoDraft.ambito=_c; _ensayoDraft.vis=[_c]; go('ensayoedit'); }
 function ensayoSetField(f,v){ if(_ensayoDraft) _ensayoDraft[f]=v; }
 function ensayoSetVis(arr){ if(_ensayoDraft){ _ensayoDraft.vis=arr; go('ensayoedit'); } }
 function ensayoSetAmbito(a){ if(_ensayoDraft){ _ensayoDraft.ambito=a; go('ensayoedit'); } }
+// Ensayos clínicos = SIEMPRE privados de su hospital. Nunca globales ni públicos, ni siquiera
+// para otros administradores: solo la admin PRINCIPAL (super-admin) los ve todos. Privacidad estricta.
+function hpEnsayoVisible(e){
+  try{
+    if(hpIsPrincipal()) return true;
+    var v=e&&e.vis, mi=hpUserCentro();
+    if(Array.isArray(v)&&v.length&&v.indexOf('todos')===-1) return v.indexOf(mi)!==-1;
+    return mi===hpCasaCentro(); // ensayo antiguo sin hospital asignado: solo la casa; nunca público
+  }catch(_e){ return false; }
+}
+// El hospital al que pertenece un ensayo fija a la vez su propiedad (ámbito) y su visibilidad.
+function ensayoSetHospital(c){ if(_ensayoDraft){ _ensayoDraft.ambito=c; _ensayoDraft.vis=[c]; go('ensayoedit'); } }
+function ensayoScopeControlHtml(d){
+  var mi=hpUserCentro();
+  var cur=(d.ambito && d.ambito!=='global')?d.ambito:(Array.isArray(d.vis)&&d.vis[0]&&d.vis[0]!=='todos'?d.vis[0]:mi);
+  if(!hpIsPrincipal()){
+    return '<div class="fld"><label class="lbl">Hospital de este ensayo</label><div style="padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg,#f7f8fa);font-size:13px">🏥 <strong>'+_hpEsc(hpCentroNombre(mi))+'</strong> · <span style="color:var(--mut)">privado: solo lo ve este hospital</span></div></div>';
+  }
+  var ids=_hpCentrosOrden();
+  var h='<div class="fld"><label class="lbl">Hospital al que pertenece este ensayo</label>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 5px">Los ensayos son <strong>privados</strong>: solo los ve el hospital al que pertenecen (y tú como principal).</div>';
+  h+='<select onchange="ensayoSetHospital(this.value)" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card,#fff);color:var(--txt,#222)">';
+  ids.forEach(function(id){ h+='<option value="'+_hpEsc(id)+'"'+(cur===id?' selected':'')+'>🏥 '+_hpEsc(hpCentroNombre(id))+'</option>'; });
+  h+='</select></div>';
+  return h;
+}
 VIEWS.ensayoedit=()=>{
   const d=_ensayoDraft; if(!d) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">Nada que editar.</div></div>';
   if(!_ensPuede()) return '<div class="card"><h2>Editar ensayo</h2><div class="alert y">No tienes permiso para editar ensayos.</div></div>';
@@ -6387,9 +6413,7 @@ VIEWS.ensayoedit=()=>{
   h+='<div class="fld"><label class="lbl">Criterios de EXCLUSIÓN (uno por línea)</label><textarea style="min-height:110px" onchange="ensayoSetField(\'exclusion\',this.value)" placeholder="Afectación del SNC&#10;Insuficiencia orgánica…">'+_hpEsc(d.exclusion||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Contacto (opcional)</label><input value="'+_hpEsc(d.contacto||'')+'" onchange="ensayoSetField(\'contacto\',this.value)" placeholder="Persona / extensión / email"></div>';
   h+='<div class="fld"><label class="lbl">Enlace (opcional)</label><input value="'+_hpEsc(d.enlace||'')+'" onchange="ensayoSetField(\'enlace\',this.value)" placeholder="https://…"></div>';
-  h+=hpAmbitoControlHtml(d.ambito,'ensayoSetAmbito');
-  h+=hpVisControlHtml(d.vis,'ensayoSetVis');
-  h+=hpCompartirBtn(d,'ensayo');
+  h+=ensayoScopeControlHtml(d);
   h+='<div class="ed-actions"><button class="btn btn-out btn-sm" onclick="ensayoCancelar()">✖ Cancelar</button><button class="btn btn-out btn-sm" onclick="ensayoGuardar()">💾 Guardar borrador</button><button class="btn btn-g btn-sm" onclick="ensayoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
 };
@@ -7662,7 +7686,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 317;
+const HP_BUILD = 318;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
