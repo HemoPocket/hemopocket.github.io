@@ -259,6 +259,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Registro de cambios / auditoría ──
+    // Lo escribe cualquier usuario autorizado al hacer una acción (publicar, eliminar, aprobar…);
+    // solo los administradores lo leen. Es INMUTABLE: no se puede modificar ni borrar.
+    match /cambios/{id} {
+      allow read:   if isAdmin();
+      allow create: if isApproved();
+      allow update, delete: if false;
+    }
+
     // ── Páginas editadas (override del contenido de vistas existentes) ──
     // Lo lee cualquier usuario autorizado. Lo edita quien puede editar la sección a la que pertenece
     // la página (campo 'seccion'); si la página no tiene sección (vistas generales), solo un admin.
