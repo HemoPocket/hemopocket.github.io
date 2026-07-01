@@ -304,8 +304,14 @@ service cloud.firestore {
 
     // ── Directorio: contactos personalizados del hospital (listín telefónico) ──
     // Editable por administradores y por cualquier editor; efectivo para todos los usuarios autorizados.
+    // Listín telefónico PRIVADO por hospital: cada usuario solo lee los contactos de SU hospital
+    // (el de su cuenta); solo la principal los lee todos. Los heredados sin 'centro' solo la
+    // principal los lee hasta que se migran. Lo edita cualquier editor.
     match /directorio/{id} {
-      allow read:   if isApproved();
+      allow read:   if isApproved() && (
+                      isPrincipal()
+                      || ( 'centro' in resource.data && resource.data.centro == userCentro() )
+                    );
       allow write:  if isEditor();
     }
 
