@@ -6362,6 +6362,7 @@ function renderEnsayoCard(e, canEd){
   if(exc) h+='<div class="alert r" style="margin-top:8px"><strong>⛔ Criterios de exclusión</strong>'+exc+'</div>';
   if(e.contacto) h+='<div style="font-size:12.5px;margin-top:8px">📞 <strong>Contacto:</strong> '+_hpEsc(e.contacto)+'</div>';
   if(e.enlace) h+='<div style="font-size:12.5px;margin-top:4px">🔗 <a href="'+_hpEsc(e.enlace)+'" target="_blank" rel="noopener">'+_hpEsc(e.enlace)+'</a></div>';
+  if(e.observaciones) h+='<div class="alert b" style="margin-top:8px"><strong>📝 Observaciones</strong><div style="margin-top:4px;line-height:1.55">'+_hpEsc(e.observaciones).replace(/\n/g,'<br>')+'</div></div>';
   if(canEd && hpCanEditAmbito(e,null)){ h+='<div class="btns" style="margin-top:10px"><button class="btn btn-out btn-sm" onclick="ensayoEditOpen(\''+e.id+'\')">✏️ Editar</button><button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="ensayoEliminar(\''+e.id+'\')">🗑 Eliminar</button></div>'; }
   h+='</div>';
   return h;
@@ -6426,6 +6427,7 @@ VIEWS.ensayoedit=()=>{
   h+='<div class="fld"><label class="lbl">Criterios de EXCLUSIÓN (uno por línea)</label><textarea style="min-height:110px" onchange="ensayoSetField(\'exclusion\',this.value)" placeholder="Afectación del SNC&#10;Insuficiencia orgánica…">'+_hpEsc(d.exclusion||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Contacto (opcional)</label><input value="'+_hpEsc(d.contacto||'')+'" onchange="ensayoSetField(\'contacto\',this.value)" placeholder="Persona / extensión / email"></div>';
   h+='<div class="fld"><label class="lbl">Enlace (opcional)</label><input value="'+_hpEsc(d.enlace||'')+'" onchange="ensayoSetField(\'enlace\',this.value)" placeholder="https://…"></div>';
+  h+='<div class="fld"><label class="lbl">Observaciones (opcional)</label><textarea style="min-height:80px" onchange="ensayoSetField(\'observaciones\',this.value)" placeholder="Información adicional: notas del equipo, particularidades, aclaraciones…">'+_hpEsc(d.observaciones||'')+'</textarea></div>';
   h+=ensayoScopeControlHtml(d);
   h+='<div class="ed-actions"><button class="btn btn-out btn-sm" onclick="ensayoCancelar()">✖ Cancelar</button><button class="btn btn-out btn-sm" onclick="ensayoGuardar()">💾 Guardar borrador</button><button class="btn btn-g btn-sm" onclick="ensayoPublicar()">✅ Publicar</button></div>';
   h+='</div>'; return h;
@@ -7702,7 +7704,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 324;
+const HP_BUILD = 325;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12839,8 +12841,8 @@ function lcDelCat(i){ if(!_lcDraft)return; var k=_lcDraft.catOrder[i]; if(CAT_OR
 function lcFmtField(k,v){ if(!_lcDraft)return; if(!_lcDraft.fmt)_lcDraft.fmt={}; _lcDraft.fmt[k]=v; go('lcedit'); }
 function lcFmtPreview(fmt){ fmt=fmt||{}; const sepMap={coma:', ',medio:' · ',puntocoma:'; ',linea:'\n'}; const sep=sepMap[fmt.sep]||', '; const dd=(fmt.date!==false)?' (18-06-26)':''; const items=['Hb 13,2 g/dl','VCM 87 fl','Plaquetas 83 x10E9/L']; return 'Hemograma'+dd+((sep==='\n')?':\n'+items.join('\n'):': '+items.join(sep)); }
 function lcEditCancelar(){ _lcDraft=null; go('labconv'); }
-async function lcEditGuardar(){ const d=_lcDraft; if(!d)return; const o={ syn:d.syn||{}, hidden:d.hidden||{}, custom:(d.custom||[]).filter(function(p){return p&&(p.a+'').trim();}).map(function(p){var q=Object.assign({},p);delete q._open;return q;}), catLabel:d.catLabel||{}, catOrder:d.catOrder||[] }; try{ls.s('lcOverride',o);}catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc(o); toast('✓ Asistente actualizado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _lcDraft=null; go('labconv'); }
-async function lcEditReset(){ if(!confirm('¿Restablecer el diccionario y la plantilla de fábrica? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_lcOverride'); }catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc({}); }catch(e){} } _lcDraft={ syn:{}, hidden:{}, fmt:{sep:'coma',date:true}, custom:[], catLabel:Object.assign({},CAT_LABEL), catOrder:CAT_ORDER.slice() }; toast('✓ Restablecido de fábrica'); go('lcedit'); }
+async function lcEditGuardar(){ const d=_lcDraft; if(!d)return; const o={ syn:d.syn||{}, hidden:d.hidden||{}, custom:(d.custom||[]).filter(function(p){return p&&(p.a+'').trim();}).map(function(p){var q=Object.assign({},p);delete q._open;return q;}), catLabel:d.catLabel||{}, catOrder:d.catOrder||[] }; try{ls.s('lcOverride',o);}catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc(o); toast('✓ Asistente actualizado · para tu hospital'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará al reconectar'); } } else toast('✓ Guardado'); _lcDraft=null; go('labconv'); }
+async function lcEditReset(){ if(!confirm('¿Restablecer el diccionario y la plantilla de fábrica de TU hospital? Se perderán los cambios de tu hospital.'))return; try{ localStorage.removeItem('hc_lcOverride'); }catch(e){} if(window.hpSaveLc){ try{ await window.hpSaveLc({}); }catch(e){} } _lcDraft={ syn:{}, hidden:{}, fmt:{sep:'coma',date:true}, custom:[], catLabel:Object.assign({},CAT_LABEL), catOrder:CAT_ORDER.slice() }; toast('✓ Restablecido de fábrica'); go('lcedit'); }
 // Exponer los manejadores del editor al ámbito GLOBAL: los onclick/onchange en línea del HTML se
 // ejecutan en 'window', pero estas funciones viven dentro de este módulo (IIFE). Sin esto, el botón
 // "Editar diccionario y plantilla" y todos los controles del editor daban "función no definida".
@@ -13248,8 +13250,8 @@ function rxField(list,i,f,v){ if(!_rxDraft||!_rxDraft[list]||!_rxDraft[list][i])
 function rxAdd(list){ if(!_rxDraft)return; if(!_rxDraft[list])_rxDraft[list]=[]; _rxDraft[list].push({from:'',to:''}); go('rxedit'); }
 function rxDel(list,i){ if(!_rxDraft||!_rxDraft[list])return; _rxDraft[list].splice(i,1); go('rxedit'); }
 function rxEditCancelar(){ _rxDraft=null; go('labconv'); }
-async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ ejemplos:clean(d.ejemplos), rename:clean(d.rename), abbr:clean(d.abbr), pauta:clean(d.pauta) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
-async function rxEditReset(){ if(!confirm('¿Restablecer el diccionario de recetas? Se perderán los cambios para todos.'))return; try{ localStorage.removeItem('hc_rxOverride'); }catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx({}); }catch(e){} } _rxDraft={rename:[],abbr:[]}; toast('✓ Restablecido'); go('rxedit'); }
+async function rxEditGuardar(){ const d=_rxDraft; if(!d)return; const clean=function(a){return (a||[]).filter(function(p){return p&&(''+p.from).trim()&&(''+p.to).trim();}).map(function(p){return {from:(''+p.from).trim(),to:(''+p.to).trim()};});}; const o={ ejemplos:clean(d.ejemplos), rename:clean(d.rename), abbr:clean(d.abbr), pauta:clean(d.pauta) }; try{ls.s('rxOverride',o);}catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx(o); toast('✓ Diccionario de recetas actualizado · para tu hospital'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará al reconectar'); } } else toast('✓ Guardado'); _rxDraft=null; go('labconv'); }
+async function rxEditReset(){ if(!confirm('¿Restablecer el diccionario de recetas de TU hospital? Se perderán los cambios de tu hospital.'))return; try{ localStorage.removeItem('hc_rxOverride'); }catch(e){} if(window.hpSaveRx){ try{ await window.hpSaveRx({}); }catch(e){} } _rxDraft={rename:[],abbr:[]}; toast('✓ Restablecido'); go('rxedit'); }
 
 // ── Blindaje del asistente de redacción: verificación de integridad numérica ──
 // Garantiza que el asistente SOLO reordena/reformatea: ningún número del
