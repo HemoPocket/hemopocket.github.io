@@ -259,6 +259,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Propuestas de "compartir" (un hospital ofrece su contenido al global) ──
+    // Las crea cualquier editor/admin de hospital; solo los administradores las leen y resuelven.
+    match /propuestas/{id} {
+      allow read:   if isAdmin();
+      allow create: if isApproved();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // ── Registro de cambios / auditoría ──
     // Lo escribe cualquier usuario autorizado al hacer una acción (publicar, eliminar, aprobar…);
     // solo los administradores lo leen. Es INMUTABLE: no se puede modificar ni borrar.
