@@ -7686,7 +7686,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 320;
+const HP_BUILD = 321;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9381,6 +9381,9 @@ function chatDays(days){if(!days)return '';if(!Array.isArray(days))return ' · d
 function chatBuildBase(){
   const docs=[];
   try{getAll().forEach(it=>{
+    // Privacidad por hospital: Eri no indexa (ni encuentra) lo que este usuario no puede ver.
+    if(it.id && it.id.indexOf('g_')===0){ if(!hpSecVisibleUser(it.id.slice(2))) return; }
+    else if(!hpItemVisibleUser(it.id)) return;
     let body=it.name+' '+(it.kw||'');let refs=[];
     if(!CHAT_SKIP_RENDER.has(it.id)){try{const html=VIEWS[it.id]?VIEWS[it.id]():'';if(typeof html==='string'){const tmp=document.createElement('div');tmp.innerHTML=html;body+=' '+(tmp.textContent||'').replace(/\s+/g,' ');tmp.querySelectorAll('.ref').forEach(r=>{const t=(r.textContent||'').replace(/\s+/g,' ').trim();if(t)refs.push(t);});}}catch(e){}}
     docs.push({type:'tool',id:it.id,title:it.name,body:chatNorm(body),kwn:chatNorm(it.name+' '+(it.kw||'')),refs:refs});
@@ -9389,7 +9392,8 @@ function chatBuildBase(){
   // Guías/protocolos por NOMBRE (desde la estructura): así son localizables aunque el PDF no esté descargado.
   // Si luego se descarga, chatIndexGuides añade el doc 'pdf' (con texto completo) y chatIndexAll descarta este stub.
   try{Object.keys(GUIDES_TITLES).forEach(sec=>{if(!hpSecVisibleUser(sec))return;const secName=GUIDES_TITLES[sec]||'';(getSubtypes(sec)||[]).forEach(st=>{const vm=(st.vis&&typeof st.vis==='object')?st.vis:{};(st.pdfs||[]).forEach(p=>{if(!p||!p.url||!p.name)return;if(!hpVisible({vis:vm[p.url]}))return;const ttl=secName+' · '+p.name;docs.push({type:'guide',id:sec,url:p.url,name:p.name,title:ttl,body:chatNorm(ttl+' '+(st.name||''))});});});});}catch(e){}
-  try{HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{docs.push({type:'phone',section:sn,title:(e[0]||'').replace(/\n/g,' '),loc:e[1],phone:e[2],ext:e[3],body:chatNorm(sn+' '+e[0]+' '+(e[1]||'')+' '+(e[3]||'')),kwn:chatNorm((e[0]||'')+' '+sn)});});});}catch(e){}
+  // Listín oficial (HUNSC): solo se indexa para la casa; otros hospitales no lo buscan en Eri.
+  try{ if(hpUserCentro()===hpCasaCentro()) HOSP_DIR.forEach(sec=>{const sn=sec[0];(sec[1]||[]).forEach(e=>{docs.push({type:'phone',section:sn,title:(e[0]||'').replace(/\n/g,' '),loc:e[1],phone:e[2],ext:e[3],body:chatNorm(sn+' '+e[0]+' '+(e[1]||'')+' '+(e[3]||'')),kwn:chatNorm((e[0]||'')+' '+sn)});});});}catch(e){}
   return docs;
 }
 // convierte el código interno de la guía (p.ej. "leuc_ag_lma_int") en un nombre legible
@@ -9402,6 +9406,19 @@ function chatGuideCat(cat){
   let subName='';try{const st=(getSubtypes(sec)||[]).find(s=>s.id===subId);if(st)subName=st.name;}catch(e){}
   return subName?secName+' · '+subName:secName;
 }
+// ¿Puede este usuario (su hospital) ver el PDF con esta clave idb? Respeta sección + vis por PDF.
+function _chatPdfVisible(key){
+  try{
+    const cat=String(key).split('|')[0]; const ident=String(key).split('|').slice(1).join('|');
+    const sec=Object.keys(GUIDES_TITLES).filter(s=>cat===s||cat.indexOf(s+'_')===0).sort((a,b)=>b.length-a.length)[0];
+    if(!sec) return true;
+    if(!hpSecVisibleUser(sec)) return false;
+    const subId=cat.slice(sec.length+1);
+    const st=(getSubtypes(sec)||[]).find(s=>s.id===subId)||{};
+    const vm=(st.vis&&typeof st.vis==='object')?st.vis:{};
+    return hpVisible({vis:vm[ident]});
+  }catch(e){ return true; }
+}
 async function chatIndexGuides(onProgress){
   let ok=false;try{ok=await ensurePDFJSLoaded();}catch(e){ok=false;}
   if(!ok||!window.pdfjsLib)return;
@@ -9410,6 +9427,7 @@ async function chatIndexGuides(onProgress){
   const pdfKeys=keys.filter(k=>typeof k==='string'&&k.includes('|')&&!k.startsWith('chattext|')&&!have.has(k));
   for(let i=0;i<pdfKeys.length;i++){
     const key=pdfKeys[i],ck='chattext|'+key;let txt=null,regName=null;
+    if(!_chatPdfVisible(key)){ if(onProgress)onProgress(i+1,pdfKeys.length); continue; }
     try{const c=await idb.get(ck);if(c&&c.text){txt=c.text;regName=c.name||null;}}catch(e){}
     if(txt===null){
       try{const data=await idb.get(key);
@@ -9432,7 +9450,9 @@ function chatIndexAll(){
   // Descarta los stubs de guía cuyo PDF ya está indexado con texto completo (evita duplicados)
   const pdfUrls=new Set((_chatPdfDocs||[]).map(d=>{const k=d.key||'';const i=k.indexOf('|');return i>=0?k.slice(i+1):'';}).filter(Boolean));
   const base=(_chatBase||[]).filter(d=>!(d.type==='guide'&&pdfUrls.has(d.url)));
-  return base.concat(_chatPdfDocs);
+  // Filtro de privacidad por hospital también sobre los PDFs ya indexados en memoria.
+  const pdfs=(_chatPdfDocs||[]).filter(d=>_chatPdfVisible(d.key));
+  return base.concat(pdfs);
 }
 const CHAT_STOP=new Set(['de','la','el','los','las','en','y','a','del','un','una','que','como','donde','cual','cuales','para','por','con','sobre','me','mi','es','al','lo','su','se','o','tiene','cuanto','cuanta','hay','del','este','esta','algo','cosa','cosas','algun','alguna','alguno','algunos','algunas','esto','eso','otro','otra','otros','otras','vez','veces','nuevo','nueva','nuevos','nuevas','nuevamente',
   // negaciones, conjunciones, pronombres y conectores (no deben anclar la búsqueda)
@@ -15145,9 +15165,30 @@ window.hpDelContactoCloud = async function(id){ await deleteDoc(doc(fs, 'directo
 // ── Aviso Legal (texto): lo escribe SOLO la admin principal; lo leen todos.
 window.hpSaveAviso = async function(html){ await setDoc(doc(fs, 'textos', 'avisolegal'), { html: html||'', actualizadoPor: curUid||null, fechaActualizacion: serverTimestamp() }); };
 window.hpSyncAviso = async function(){ try{ const s = await getDoc(doc(fs, 'textos', 'avisolegal')); if(s.exists() && window.hpApplyAviso) window.hpApplyAviso((s.data()||{}).html||''); return true; }catch(e){ return false; } };
+// Listín PRIVADO por hospital (refuerzo de servidor). Cada cliente solo descarga los contactos de
+// su hospital; la admin principal los descarga todos. Migración única: pone centro='hunsc' a los
+// contactos heredados sin centro (eran del HUNSC).
 window.hpSyncDirectorio = async function(){
-  try{ const snap = await getDocs(collection(fs, 'directorio')); const map = {}; snap.forEach(d => { map[d.id] = d.data(); }); if(window.hpApplyDirectorio) window.hpApplyDirectorio(map); return true; }catch(e){ return false; }
+  try{
+    const esPrin = !!(window.hpIsPrincipal && window.hpIsPrincipal());
+    const centro = (window.__hpCentro) || 'hunsc';
+    let snap;
+    if(esPrin) snap = await getDocs(collection(fs, 'directorio'));
+    else snap = await getDocs(query(collection(fs, 'directorio'), where('centro','==', centro)));
+    const map = {}; snap.forEach(d => { map[d.id] = d.data(); });
+    if(window.hpApplyDirectorio) window.hpApplyDirectorio(map);
+    if(esPrin){ try{ await _hpMigrarDirectorio(map); }catch(e){} }
+    return true;
+  }catch(e){ return false; }
 };
+async function _hpMigrarDirectorio(map){
+  try{ if(sessionStorage.getItem('hp_dirMig')==='1') return; }catch(e){}
+  const pend=[];
+  Object.keys(map||{}).forEach(function(id){ const c=map[id]&&map[id].centro; if(!c) pend.push(id); });
+  for(const id of pend){ try{ await setDoc(doc(fs,'directorio',id), { centro:'hunsc' }, { merge:true }); if(map[id]) map[id].centro='hunsc'; }catch(e){} }
+  if(pend.length && window.hpApplyDirectorio) window.hpApplyDirectorio(map);
+  try{ sessionStorage.setItem('hp_dirMig','1'); }catch(e){}
+}
 window.hpSyncAlgos = async function(){
   try{
     const snap = await getDocs(collection(fs, 'algoritmos'));
