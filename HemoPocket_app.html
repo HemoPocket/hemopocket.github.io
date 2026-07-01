@@ -7702,7 +7702,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 322;
+const HP_BUILD = 323;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -15028,23 +15028,28 @@ window.hpBorrarSeccion = async function(id){ await deleteDoc(doc(fs, 'secciones'
 window.hpSaveCatOrden = async function(m){ await hpQSet('catorden', 'menuconfig', 'orden', { orden: m||{} }); };
 
 // ── Check list de ingreso (estructura). Lo edita un admin; lo leen todos. ──
-window.hpSaveChecklist = async function(arr){ await hpQSet('checklist', 'checklists', 'ingreso', { sections: arr||[] }); };
+window.hpSaveChecklist = async function(arr){ const id=_hpCfgId('ingreso'); await hpQSet('checklist:'+id, 'checklists', id, { sections: arr||[] }); };
 window.hpDeleteChecklist = async function(){ await deleteDoc(doc(fs, 'checklists', 'ingreso')); };
 // ── Esquemas de QT propios. Los edita un admin; los leen todos. ──
-window.hpSaveQt = async function(map){ await hpQSet('qt', 'qtschemes', 'custom', { schemes: map||{} }); };
-window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschemes', 'custom')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQt) window.hpApplyQt(d.schemes||{}); } return true; }catch(e){ return false; } };
-window.hpSaveQtGroups = async function(c){ await hpQSet('qtg', 'menuconfig', 'qtgroups', { data: c||{} }); };
-window.hpSyncQtGroups = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'qtgroups')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyQtGroups) window.hpApplyQtGroups(d.data||{}); } return true; }catch(e){ return false; } };
+// Esquemas de QT: propios de cada hospital (sus protocolos). La casa conserva el doc histórico.
+window.hpSaveQt = async function(map){ const id=_hpCfgId('custom'); await hpQSet('qt:'+id, 'qtschemes', id, { schemes: map||{} }); };
+window.hpSyncQt = async function(){ try{ const s = await getDoc(doc(fs, 'qtschemes', _hpCfgId('custom'))); if(window.hpApplyQt) window.hpApplyQt((s.exists()&&(s.data()||{}).schemes)||{}); return true; }catch(e){ return false; } };
+window.hpSaveQtGroups = async function(c){ const id=_hpCfgId('qtgroups'); await hpQSet('qtg:'+id, 'menuconfig', id, { data: c||{} }); };
+window.hpSyncQtGroups = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', _hpCfgId('qtgroups'))); if(window.hpApplyQtGroups) window.hpApplyQtGroups((s.exists()&&(s.data()||{}).data)||{}); return true; }catch(e){ return false; } };
 
 // ── Diccionario/plantilla del asistente de redacción. Los edita un admin; los leen todos. ──
 window.hpSaveVerificados = async function(m){ await hpQSet('verificados', 'menuconfig', 'verificados', { data: m||{} }); };
 window.hpSyncVerificados = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'verificados')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyVerificados) window.hpApplyVerificados(d.data||{}); } return true; }catch(e){ return false; } };
-window.hpSaveLc = async function(o){ await hpQSet('lc', 'menuconfig', 'redaccion', { data: o||{} }); };
-window.hpSyncLc = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'redaccion')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyLc) window.hpApplyLc(d.data||{}); } return true; }catch(e){ return false; } };
+// Asistentes de redacción/recetas: configuración PROPIA de cada hospital (su diccionario según sus
+// entradas). La casa (HUNSC) conserva el doc histórico; los demás hospitales tienen el suyo, que
+// parte de la base común (built-in) y añaden lo suyo. Así misma salida estándar, configurable.
+function _hpCfgId(base){ var c=(window.__hpCentro)||'hunsc'; return (c==='hunsc')?base:(base+'_'+c); }
+window.hpSaveLc = async function(o){ const id=_hpCfgId('redaccion'); await hpQSet('lc:'+id, 'menuconfig', id, { data: o||{} }); };
+window.hpSyncLc = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', _hpCfgId('redaccion'))); if(window.hpApplyLc) window.hpApplyLc((s.exists()&&(s.data()||{}).data)||{}); return true; }catch(e){ return false; } };
 
-// ── Diccionario del asistente de recetas. Lo editan admin/editores del área "Asistentes"; lo leen todos. ──
-window.hpSaveRx = async function(o){ await hpQSet('rx', 'menuconfig', 'recetas', { data: o||{} }); };
-window.hpSyncRx = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', 'recetas')); if(s.exists()){ const d=s.data()||{}; if(window.hpApplyRx) window.hpApplyRx(d.data||{}); } return true; }catch(e){ return false; } };
+// ── Diccionario del asistente de recetas. Propio de cada hospital (como el de redacción). ──
+window.hpSaveRx = async function(o){ const id=_hpCfgId('recetas'); await hpQSet('rx:'+id, 'menuconfig', id, { data: o||{} }); };
+window.hpSyncRx = async function(){ try{ const s = await getDoc(doc(fs, 'menuconfig', _hpCfgId('recetas'))); if(window.hpApplyRx) window.hpApplyRx((s.exists()&&(s.data()||{}).data)||{}); return true; }catch(e){ return false; } };
 
 // ── Páginas editadas (override de contenido). Las edita quien edita esa sección (o admin). ──
 window.hpSavePage = async function(id, data){ await hpQSet('page:'+id, 'paginas', id, data||{}); };
@@ -15055,7 +15060,7 @@ window.hpSyncPages = async function(){ try{ const snap = await getDocs(collectio
 
 window.hpSyncChecklist = async function(){
   try{
-    const s = await getDoc(doc(fs, 'checklists', 'ingreso'));
+    const s = await getDoc(doc(fs, 'checklists', _hpCfgId('ingreso')));
     if(s.exists()){ const d=s.data()||{}; if(Array.isArray(d.sections) && window.hpApplyChecklist) window.hpApplyChecklist(d.sections); }
     else { try{ localStorage.removeItem('hc_clOverride'); }catch(e){} if(typeof clRenderBody==='function' && document.getElementById('cl_body')) clRenderBody(); }
     return true;
