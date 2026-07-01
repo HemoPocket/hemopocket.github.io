@@ -400,7 +400,7 @@ body{font-size:13px}
 .home-btn{background:var(--c2);color:#fff;border:none;border-radius:var(--rs);padding:8px 14px;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:500;transition:.15s}
 .home-btn:hover{filter:brightness(1.1)}
 .btn-er{background:var(--er)}
-.menu-cat{font-weight:600;text-transform:uppercase;letter-spacing:.3px;font-size:12.5px}
+.menu-cat{font-weight:600;letter-spacing:.1px;font-size:13px}
 .st-edit{display:flex;gap:6px;align-items:center;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:6px;background:var(--bg2)}
 .st-edit input{flex:1;border:1px solid var(--bd);padding:7px 10px;border-radius:var(--rs);background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px;min-width:0}
 .st-edit button{background:var(--er);color:#fff;border:none;border-radius:var(--rs);padding:7px 11px;cursor:pointer;flex-shrink:0;font-family:inherit;font-size:14px;font-weight:600}
@@ -1197,6 +1197,20 @@ const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
 
 function getAll(){return MENU.flatMap(s=>s.items)}
 
+// Cabecera de sección en «Tipo frase» (en vez de TODO EN MAYÚSCULAS), conservando acrónimos.
+// Solo transforma las que están íntegramente en mayúsculas; respeta las que ya llevan minúsculas.
+const _HP_HDR_ACRON={QT:1,SEHH:1,PETHEMA:1,GELTAMO:1,SEHOP:1,LLC:1,LLA:1,LMA:1,SMD:1,NMP:1,LMMC:1,LMC:1,MM:1,SNC:1,CAR:1,PBM:1,ROTEM:1,ECMO:1,CID:1,MAT:1,PTT:1,SHU:1,VCS:1,LPA:1,HPN:1,'QT/':1};
+function hpNiceHeader(s){
+  s=String(s||'');
+  if(/[a-zñáéíóú]/.test(s)) return s; // ya tiene minúsculas: respétala tal cual
+  return s.split(/\s+/).map(function(w,i){
+    var bare=w.replace(/[()·.]/g,'');
+    if(_HP_HDR_ACRON[bare]) return w;
+    var lw=w.toLowerCase();
+    if(i>0 && /^(y|e|o|u|de|del|la|el|los|las|en|con|para|a|por|y\/o)$/.test(lw)) return lw;
+    return lw.charAt(0).toUpperCase()+lw.slice(1);
+  }).join(' ');
+}
 function renderMenu(filter=''){
 const f=filter.toLowerCase().trim();
 const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id) && !(id.indexOf('g_')===0 && !hpSecVisibleUser(id.slice(2))) && (id.indexOf('g_')===0 || hpItemVisibleUser(id));}).slice(0,4);
@@ -1217,7 +1231,7 @@ if(!realItems.length)return;
 const visible=f?realItems:sec.items.filter(it=>!isGuideHidden(it) && !hpItemHidden(it.id) && itemVisible(it));
 const open=f?true:_hpSecOpenIs('h:'+(sec.h||''), sec.o);
 // Cabecera: si la sección de guías de esta categoría se renombró, usar el nombre nuevo.
-let _hdr=sec.h; const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=_t.toUpperCase();}
+let _hdr=hpNiceHeader(sec.h); const _gi=sec.items.find(it=>it.id&&it.id.indexOf('g_')===0); if(_gi){const _sid=_gi.id.slice(2);const _t=hpSecTitle(_sid); if(_t&&_t!==GUIDES_TITLES[_sid])_hdr=hpNiceHeader(_t);}
 h+=`<div class="menu-section"><div class="menu-cat ${open?'open':''}" onclick="toggleSec(${si})"><span>${_hdr}${(!open&&(sec.h==='AJUSTES')&&(((window._hpRepNew||0)+(window._hpSolNew||0)+(window._hpRevNew||0))>0))?`<span class="tag-new" style="background:#c41e3a" title="solicitudes, reportes y revisión pendientes">${(window._hpRepNew||0)+(window._hpSolNew||0)+(window._hpRevNew||0)}</span>`:''}</span><span class="ar">▶</span></div><div class="menu-items"${open?' style="max-height:1500px"':''}>`;
 let inSub=false;
 visible.forEach(it=>{
@@ -7623,7 +7637,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 313;
+const HP_BUILD = 314;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
