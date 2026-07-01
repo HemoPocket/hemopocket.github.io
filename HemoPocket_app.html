@@ -5093,8 +5093,8 @@ window.hpApplyAlgos=function(map){ try{ ls.s('algos', map||{}); }catch(e){} };
 function algosForSection(sec){ const m=hpAlgos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(a){return a&&a.seccion===sec;}); }
 function renderAlgosBlock(sec){
   const canEd=hpEditUISec(sec);
-  const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';}); const pubV=pub.filter(hpVisible);
-  const shown=canEd?list.filter(function(a){return (a.estado==='publicado'&&hpVisible(a))||hpCanEditAmbito(a,sec);}):pubV;
+  const list=algosForSection(sec); const pub=list.filter(function(a){return a.estado==='publicado';}); const pubV=pub.filter(hpVisiblePriv);
+  const shown=canEd?list.filter(function(a){return (a.estado==='publicado'&&hpVisiblePriv(a))||hpCanEditAmbito(a,sec);}):pubV;
   if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>🧩 Algoritmos interactivos</span><span class="ar">▶</span></div><div class="coll-c">';
   shown.forEach(function(a){
@@ -5565,8 +5565,8 @@ window.hpApplyInfos=function(map){ try{ ls.s('infos', map||{}); }catch(e){} };
 function infosForSection(sec){ const m=hpInfos(); return Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x&&x.seccion===sec;}); }
 function renderInfosBlock(sec){
   const canEd=hpEditUISec(sec);
-  const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';}); const pubV=pub.filter(hpVisible);
-  const shown=canEd?list.filter(function(x){return (x.estado==='publicado'&&hpVisible(x))||hpCanEditAmbito(x,sec);}):pubV;
+  const list=infosForSection(sec); const pub=list.filter(function(x){return x.estado==='publicado';}); const pubV=pub.filter(hpVisiblePriv);
+  const shown=canEd?list.filter(function(x){return (x.estado==='publicado'&&hpVisiblePriv(x))||hpCanEditAmbito(x,sec);}):pubV;
   if(!canEd && !pubV.length) return '';
   let h='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Información y notas</span><span class="ar">▶</span></div><div class="coll-c">';
   shown.forEach(function(x){
@@ -6308,6 +6308,19 @@ function hpVisible(item){
     return v.indexOf(hpUserCentro())!==-1;
   }catch(e){ return true; }
 }
+// Igual que hpVisible pero PRIVADO POR DEFECTO: sin 'vis' = solo la casa (HUNSC). Se usa en el
+// contenido que debe ser privado de cada hospital salvo que se libere expresamente a «todos»
+// (protocolos/PDFs, algoritmos, fichas de info). Solo la principal lo ve todo; ni los admin de
+// otros hospitales ven lo ajeno. Las CALCULADORAS/scores siguen usando hpVisible (compartidas).
+function hpVisiblePriv(item){
+  try{
+    if(hpIsPrincipal()) return true;
+    var v=item&&item.vis, mi=hpUserCentro();
+    if(Array.isArray(v)&&v.indexOf('todos')!==-1) return true;         // liberado a todos (nacional)
+    if(Array.isArray(v)&&v.length>0) return v.indexOf(mi)!==-1;        // restringido a hospitales
+    return mi===hpCasaCentro();                                        // sin marcar = privado de la casa
+  }catch(e){ return true; }
+}
 // Etiqueta corta para mostrar a quién está restringido un contenido (para editores/admin).
 function hpVisEtiqueta(item){
   var v=item&&item.vis; if(!Array.isArray(v)||!v.length||v.indexOf('todos')!==-1) return '';
@@ -6562,7 +6575,7 @@ const names=(st.names&&typeof st.names==='object')?st.names:{};
 const visMap=(st.vis&&typeof st.vis==='object')?st.vis:{};
 const canManagePdf=hpEditUISec(section);
 let visibleKeys=matching.filter(key=>hidden.indexOf(_guideIdent(key))===-1);
-if(!canManagePdf) visibleKeys=visibleKeys.filter(key=>hpVisible({vis:visMap[_guideIdent(key)]}));
+if(!canManagePdf) visibleKeys=visibleKeys.filter(key=>hpVisiblePriv({vis:visMap[_guideIdent(key)]}));
 if(!visibleKeys.length){
 el.innerHTML='<div style="color:var(--mut);font-size:12px;padding:6px 0">Sin PDFs en este apartado.</div>';
 return;
@@ -6678,8 +6691,11 @@ if(!window.HemoCloud||!navigator.onLine||!window.__hpUid)return;
 let guides;
 try{guides=await HemoCloud.listGuides()}catch(e){console.warn('[hp] cloud guides',e.message);return}
 const desired=new Map();
+const _esPrin=!!(window.hpIsPrincipal&&window.hpIsPrincipal());
 for(const g of guides){
 if(!g.section||!g.subtype||!g.path||!g.name)continue;
+// Privacidad por hospital: un hospital NO descarga (ni cachea) los PDFs que no le corresponden.
+if(!_esPrin){ let _vis; try{ const _st=(getSubtypes(g.section)||[]).find(s=>s.id===g.subtype)||{}; const _vm=(_st.vis&&typeof _st.vis==='object')?_st.vis:{}; _vis=_vm['cloud:'+g.path]; }catch(e){} if(!hpSecVisibleUser(g.section)||!hpVisiblePriv({vis:_vis})) continue; }
 desired.set(`${g.section}_${g.subtype}|cloud:${g.path}`,g);
 }
 let existing=[];
@@ -7686,7 +7702,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 321;
+const HP_BUILD = 322;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9416,7 +9432,7 @@ function _chatPdfVisible(key){
     const subId=cat.slice(sec.length+1);
     const st=(getSubtypes(sec)||[]).find(s=>s.id===subId)||{};
     const vm=(st.vis&&typeof st.vis==='object')?st.vis:{};
-    return hpVisible({vis:vm[ident]});
+    return hpVisiblePriv({vis:vm[ident]});
   }catch(e){ return true; }
 }
 async function chatIndexGuides(onProgress){
