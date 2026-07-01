@@ -7702,7 +7702,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 323;
+const HP_BUILD = 324;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14722,7 +14722,7 @@ function revealAndEnter(user){
   loadCloud(user.uid);
   window.__hpUid = user.uid;
   // Carga el CENTRO/hospital del usuario (para mostrar solo lo que le corresponde). Por defecto HUNSC.
-  (async () => { try { const s = await getDoc(doc(fs,'cuentas',user.uid)); window.__hpCentro = (s.exists() && s.data().centro) ? s.data().centro : 'hunsc'; if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); if(window.hpUpdateBrand) window.hpUpdateBrand(); } catch(e){ window.__hpCentro='hunsc'; if(window.hpUpdateBrand) window.hpUpdateBrand(); } })();
+  (async () => { try { const s = await getDoc(doc(fs,'cuentas',user.uid)); window.__hpCentro = (s.exists() && s.data().centro) ? s.data().centro : 'hunsc'; if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); if(window.hpUpdateBrand) window.hpUpdateBrand(); try{ if(navigator.onLine) setDoc(doc(fs,'usuarios',user.uid), { centro: window.__hpCentro }, { merge:true }); }catch(e){} } catch(e){ window.__hpCentro='hunsc'; if(window.hpUpdateBrand) window.hpUpdateBrand(); } })();
   HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
   if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
@@ -14826,10 +14826,24 @@ window.hpRegister = async function(){
 };
 
 // Gestión de cuentas (solo administrador; protegido también por las reglas de Firestore).
+// Cuentas PRIVADAS por hospital: un admin de hospital solo lee las cuentas de SU hospital; solo la
+// principal las lee todas. Migración única (principal): centro='hunsc' a las cuentas heredadas.
 window.hpListCuentas = async function(){
-  const snap = await getDocs(collection(fs, 'cuentas'));
-  const out = []; snap.forEach(d => out.push({ uid: d.id, ...d.data() })); return out;
+  const esPrin = !!(window.hpIsPrincipal && window.hpIsPrincipal());
+  const centro = (window.__hpCentro)||'hunsc';
+  let snap;
+  if(esPrin) snap = await getDocs(collection(fs, 'cuentas'));
+  else snap = await getDocs(query(collection(fs, 'cuentas'), where('centro','==', centro)));
+  const out = []; snap.forEach(d => out.push({ uid: d.id, ...d.data() }));
+  if(esPrin){ try{ await _hpMigrarCentroDocs('cuentas', out.map(c=>({id:c.uid,centro:c.centro}))); }catch(e){} }
+  return out;
 };
+// Marca centro='hunsc' (la casa) en los documentos heredados sin centro de una colección. Una vez.
+async function _hpMigrarCentroDocs(col, items){
+  try{ if(sessionStorage.getItem('hp_'+col+'Mig')==='1') return; }catch(e){}
+  for(const it of (items||[])){ if(it && it.id && !it.centro){ try{ await setDoc(doc(fs, col, it.id), { centro:'hunsc' }, { merge:true }); }catch(e){} } }
+  try{ sessionStorage.setItem('hp_'+col+'Mig','1'); }catch(e){}
+}
 window.hpAprobarCuenta = async function(uid){
   await updateDoc(doc(fs, 'cuentas', uid), { estado: 'aprobada', revisadaPor: curUid || null, fechaRevision: serverTimestamp() });
 };
@@ -14922,8 +14936,13 @@ window.hpListCambios = async function(max){
 // Lee 'usuarios' (todo el que ha iniciado sesión, incl. los creados a mano en consola).
 // Solo la administradora. Devuelve uid -> { email, nombre, ultimoAcceso }.
 window.hpListUsuarios = async function(){
-  const snap = await getDocs(collection(fs, 'usuarios'));
-  const out = {}; snap.forEach(d => { out[d.id] = Object.assign({ uid:d.id }, d.data()); }); return out;
+  const esPrin = !!(window.hpIsPrincipal && window.hpIsPrincipal());
+  const centro = (window.__hpCentro)||'hunsc';
+  let snap;
+  if(esPrin) snap = await getDocs(collection(fs, 'usuarios'));
+  else snap = await getDocs(query(collection(fs, 'usuarios'), where('centro','==', centro)));
+  const out = {}; snap.forEach(d => { out[d.id] = Object.assign({ uid:d.id }, d.data()); });
+  return out;
 };
 // Sincroniza los colaboradores acreditados (editores) y los cachea localmente para el Aviso
 // Legal y los bloques de sección. La lee cualquier usuario autorizado (reglas: isApproved).

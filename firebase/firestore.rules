@@ -104,7 +104,13 @@ service cloud.firestore {
                     && request.auth.uid == uid
                     && request.resource.data.estado == 'pendiente'
                     && request.resource.data.aceptaTerminos == true;
-      allow read:   if request.auth != null && (request.auth.uid == uid || isAdmin());
+      // Privacidad por hospital: cada uno lee SU ficha; la principal, todas; un admin de hospital
+      // SOLO las cuentas de su propio hospital (el de su cuenta).
+      allow read:   if request.auth != null && (
+                       request.auth.uid == uid
+                       || isPrincipal()
+                       || ( isAdmin() && ('centro' in resource.data) && resource.data.centro == userCentro() )
+                    );
       // El propietario puede registrar SU aceptación de términos (una sola vez por usuario,
       // válida en cualquier equipo) SIN tocar su estado de aprobación ni otros campos: así un
       // usuario pendiente no puede "auto-aprobarse". Cualquier otro cambio, solo el admin.
@@ -134,7 +140,8 @@ service cloud.firestore {
     // Sirve para que la administradora vea y gestione TODOS los usuarios desde la app, incluidos
     // los creados a mano en la consola (que no tienen ficha en 'cuentas'). Solo el admin los lee.
     match /usuarios/{uid} {
-      allow read:   if isAdmin();
+      // La principal lee todos; un admin de hospital solo los usuarios de su propio hospital.
+      allow read:   if isPrincipal() || ( isAdmin() && ('centro' in resource.data) && resource.data.centro == userCentro() );
       allow write:  if request.auth != null && request.auth.uid == uid;
     }
 
