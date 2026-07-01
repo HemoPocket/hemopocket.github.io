@@ -1189,7 +1189,8 @@ const MENU=[
 {id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true},
 {id:'centros',name:'Hospitales / Centros',kw:'hospitales centros organizaciones multihospital acceso visibilidad permisos administrador hunsc',admin:true},
 {id:'cambios',name:'Registro de cambios',kw:'registro cambios auditoria historial quien edito publico elimino aprobo log actividad administrador trazabilidad',admin:true},
-{id:'propuestas',name:'Propuestas de compartir',kw:'propuestas compartir global hospital ofrecer proponer aprobar principal contenido',admin:true,principal:true}
+{id:'propuestas',name:'Propuestas de compartir',kw:'propuestas compartir global hospital ofrecer proponer aprobar principal contenido',admin:true,principal:true},
+{id:'vismap',name:'Mapa de visibilidad',kw:'mapa visibilidad quien ve que contenido hospital restringido admin acceso panorama resumen',admin:true}
 ]}
 ];
 const MENU0=MENU.map(function(s){return {h:s.h,o:s.o,items:s.items.slice()};});
@@ -1299,7 +1300,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
 // Fechas de "última actualización" para apartados sin campo new:/upd: en el MENU.
 const HP_UPD_DATES={
 'qtc':'2026-04-01','crcl':'2026-04-01','obw':'2026-04-01','bsa':'2026-04-01','cb':'2026-04-01','qt':'2026-04-01',
@@ -1323,7 +1324,7 @@ const HP_UPD_DATES={
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
 // original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
 // paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
@@ -5778,7 +5779,51 @@ try{ const ok=await hpAplicarCompartir(tipo,itemId);
 }catch(e){ toast('Error: '+(e.message||'')); }
 };
 window.hpRechazarPropuesta=async function(id){ try{ if(window.hpResolverPropuesta) await window.hpResolverPropuesta(id,'rechazada'); if(window.hpRenderPropuestas) window.hpRenderPropuestas(); toast('Propuesta rechazada'); }catch(e){} };
-
+// ── MAPA DE VISIBILIDAD (admin): qué hospital ve qué contenido ──
+function _hpVisRestr(v){ return Array.isArray(v)&&v.length>0&&v.indexOf('todos')===-1; }
+function _hpVisInventory(){
+  var out=[];
+  try{ var im=hpItemMap(); Object.keys(im).forEach(function(id){ if(_hpVisRestr(im[id]&&im[id].vis)){ var nm=(getAll().find(function(x){return x.id===id;})||{}).name||id; out.push({tipo:'Ítems de menú',titulo:hpItemName(id,nm),vis:im[id].vis}); } }); }catch(e){}
+  try{ var sm=hpSecMap(); Object.keys(sm).forEach(function(id){ if(_hpVisRestr(sm[id]&&sm[id].vis)) out.push({tipo:'Secciones',titulo:hpSecTitle(id),vis:sm[id].vis}); }); }catch(e){}
+  try{ var A=hpAlgos(); Object.keys(A).forEach(function(id){ var a=A[id]; if(a&&_hpVisRestr(a.vis)) out.push({tipo:'Algoritmos',titulo:a.titulo||id,vis:a.vis,ambito:hpItemAmbito(a)}); }); }catch(e){}
+  try{ var C=_calcsStored(); Object.keys(C).forEach(function(id){ var c=C[id]; if(c&&_hpVisRestr(c.vis)) out.push({tipo:'Calculadoras propias',titulo:c.titulo||id,vis:c.vis,ambito:hpItemAmbito(c)}); }); }catch(e){}
+  try{ var I=hpInfos(); Object.keys(I).forEach(function(id){ var x=I[id]; if(x&&_hpVisRestr(x.vis)) out.push({tipo:'Información',titulo:x.titulo||id,vis:x.vis,ambito:hpItemAmbito(x)}); }); }catch(e){}
+  try{ var E=hpEnsayos(); Object.keys(E).forEach(function(id){ var e=E[id]; if(e&&_hpVisRestr(e.vis)) out.push({tipo:'Ensayos',titulo:e.titulo||id,vis:e.vis,ambito:hpItemAmbito(e)}); }); }catch(e){}
+  try{ var secs=Object.keys(GUIDES_TITLES); try{ if(typeof hpNewSectionsOrdered==='function') hpNewSectionsOrdered().forEach(function(s){ if(secs.indexOf(s.id)<0) secs.push(s.id); }); }catch(e2){}
+    secs.forEach(function(sec){ (getSubtypes(sec)||[]).forEach(function(st){ var vm=(st.vis&&typeof st.vis==='object')?st.vis:{}; Object.keys(vm).forEach(function(ident){ if(_hpVisRestr(vm[ident])){ var nm=(st.names&&st.names[ident])||ident; out.push({tipo:'PDFs / guías',titulo:nm+' · '+hpSecTitle(sec),vis:vm[ident]}); } }); }); }); }catch(e){}
+  return out;
+}
+function _hpVisRow(e){
+  var chips=e.vis.map(function(c){return '<span class="ed-chip" style="background:#8a5a00">'+_hpEsc(hpCentroNombre(c))+'</span>';}).join(' ');
+  var amb=(e.ambito&&e.ambito!=='global')?' <span class="ed-chip" style="background:#1d6a4e">🏥 '+_hpEsc(hpCentroNombre(e.ambito))+'</span>':'';
+  return '<div class="team-card" style="margin-bottom:5px"><div style="font-size:13px"><strong>'+_hpEsc(e.titulo)+'</strong>'+amb+'</div><div style="font-size:11.5px;color:var(--mut);margin-top:2px">Solo: '+chips+'</div></div>';
+}
+window.hpRenderVisMap=function(){
+  var box=document.getElementById('vismap_list'); if(!box) return;
+  var inv=_hpVisInventory(); var sel=window.__hpVisMapCentro||''; var h='';
+  if(sel){
+    var ve=inv.filter(function(e){return e.vis.indexOf(sel)!==-1;});
+    var nove=inv.filter(function(e){return e.vis.indexOf(sel)===-1;});
+    h+='<div class="alert b" style="margin-bottom:10px">Todo lo <strong>público</strong> (sin restricción) lo ve <strong>'+_hpEsc(hpCentroNombre(sel))+'</strong>. Abajo, solo lo <strong>restringido</strong>.</div>';
+    h+='<h3>✅ Restringido que SÍ ve ('+ve.length+')</h3>'+(ve.length?ve.map(_hpVisRow).join(''):'<div class="team-empty">Nada exclusivo asignado a este hospital.</div>');
+    h+='<h3 style="margin-top:14px">🚫 Restringido que NO ve ('+nove.length+')</h3>'+(nove.length?nove.map(_hpVisRow).join(''):'<div class="team-empty">No hay contenido oculto para este hospital.</div>');
+  } else {
+    h+='<div class="alert b" style="margin-bottom:10px">Aquí aparece todo el contenido con <strong>visibilidad restringida</strong> a hospitales concretos. Lo que no aparece, lo ven <strong>todos</strong>. Elige un hospital arriba para ver qué ve y qué no.</div>';
+    if(!inv.length) h+='<div class="team-empty">No hay contenido restringido: todo es visible para todos.</div>';
+    else{ var byTipo={}; inv.forEach(function(e){ (byTipo[e.tipo]=byTipo[e.tipo]||[]).push(e); }); Object.keys(byTipo).forEach(function(t){ h+='<h3 style="margin-top:12px">'+_hpEsc(t)+' ('+byTipo[t].length+')</h3>'+byTipo[t].map(_hpVisRow).join(''); }); }
+  }
+  box.innerHTML=h;
+};
+VIEWS.vismap=()=>{
+  if(!_hpAdminUI()) return '<div class="card"><h2>Mapa de visibilidad</h2><div class="alert y">Solo disponible para administradores.</div></div>';
+  var sel=window.__hpVisMapCentro||'';
+  var opts='<option value="">— Todo el contenido restringido —</option>'+_hpCentrosOrden().map(function(id){return '<option value="'+id+'"'+(sel===id?' selected':'')+'>'+_hpEsc(hpCentroNombre(id))+'</option>';}).join('');
+  var h='<div class="card"><h2>🗺️ Mapa de visibilidad</h2><p class="intro">Qué hospital ve qué contenido. Lo que no aparezca aquí es <strong>público</strong> (lo ven todos los hospitales).</p>';
+  h+='<div class="fld"><label class="lbl">Ver como hospital</label><select onchange="window.__hpVisMapCentro=this.value; if(window.hpRenderVisMap) hpRenderVisMap();" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card,#fff);color:var(--txt,#222)">'+opts+'</select></div></div>';
+  h+='<div id="vismap_list" class="card">Cargando…</div>';
+  return h;
+};
+VIEWS.vismap_post=()=>{ if(window.hpRenderVisMap) window.hpRenderVisMap(); };
 const HP_PRINCIPAL_UID='oHgd0fQBUfQV1NxGKbFHkHNZSWz1'; // admin principal intocable (busnegomt@gmail.com)
 function solCard(c,withActions,roleInfo,colabInfo){
 const nom=((c.nombre||'')+' '+(c.apellido||'')).trim();
@@ -7569,7 +7614,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 308;
+const HP_BUILD = 309;
 const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
