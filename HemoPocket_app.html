@@ -804,32 +804,26 @@ window.hpApplyPlantillas=function(map){ try{ ls.s('reportTpls', map||{}); }catch
 // y se guarda para todos (colección 'bloques'), SIN romper la interactividad. Cada bloque lleva su
 // ✏️; sin override muestra el texto original del código. Reutilizable por cualquier algoritmo. ──
 function hpBloques(){ try{ return ls.g('bloques')||{}; }catch(e){ return {}; } }
-// Ediciones locales de recuadros aún NO confirmadas en el servidor. Se guardan en localStorage
-// (sobreviven a recargas y a otra sesión) para que NINGUNA sincronización revierta lo editado
-// aunque la escritura al servidor haya fallado. Cada clave se libera sola cuando el servidor ya
-// refleja ese valor. Además se REINTENTA guardar en el servidor en cada sincronización.
+// Ediciones/borrados de recuadros cuya escritura al servidor AÚN NO se ha confirmado (offline o
+// fallo puntual). Se guardan en localStorage para que NINGUNA sincronización revierta lo editado
+// mientras la escritura no haya llegado. IMPORTANTE: aquí SOLO entran ediciones REALES pendientes
+// de confirmar; en cuanto el servidor confirma la escritura, la clave se LIBERA (ya no es pendiente).
+// Así nunca se «resucita» un valor viejo que ya estaba en el servidor pisando una edición más nueva.
 function _hpBloquePendGet(){ try{ return JSON.parse(localStorage.getItem('hpBloquePend')||'{}')||{}; }catch(e){ return {}; } }
 function _hpBloquePendSet(p){ try{ localStorage.setItem('hpBloquePend', JSON.stringify(p||{})); }catch(e){} }
-// Migración ÚNICA y AUTOMÁTICA: adopta como PENDIENTES las ediciones locales de recuadros que ya
-// existían antes de este blindaje (hechas en versiones anteriores). Así se reenvían solas al
-// servidor y no se pierden NUNCA, sin que nadie tenga que reeditarlas a mano. Se ejecuta ANTES de
-// aplicar los datos del servidor, para capturarlas antes de que una sincronización pudiera borrarlas.
-// Las que el servidor ya tenga se liberan solas en la sincronización siguiente (la escritura es idempotente).
-function _hpBloqueMigrarLocal(){
-  try{
-    if(localStorage.getItem('hpBloquePendMig')==='1') return;
-    var loc = hpBloques(); var pend = _hpBloquePendGet(); var changed=false;
-    Object.keys(loc).forEach(function(k){
-      var v = loc[k];
-      if(v!=null && String(v).trim()!=='' && !(k in pend)){ pend[k]=v; changed=true; }
-    });
-    if(changed) _hpBloquePendSet(pend);
-    localStorage.setItem('hpBloquePendMig','1');
-  }catch(e){}
+// Libera una clave pendiente SOLO si sigue teniendo el valor que se confirmó (para no borrar una
+// edición aún más reciente hecha entretanto). expected: el texto guardado, o null para un borrado.
+function _hpBloquePendClear(key, expected){
+  try{ var p=_hpBloquePendGet(); if(key in p && p[key]===expected){ delete p[key]; _hpBloquePendSet(p); } }catch(e){}
 }
+// Limpieza ÚNICA: una migración demasiado agresiva (builds 327–330) pudo marcar como «pendientes»
+// valores que en realidad YA estaban en el servidor, capaces de resucitar textos viejos y pisar una
+// edición más nueva (el «se revierte al texto antiguo»). Si ese flag está, se vacía la lista de
+// pendientes una sola vez: el servidor es la fuente de verdad y las ediciones reales se vuelven a
+// marcar solas al guardarlas. Sin el flag (instalaciones nuevas) no hace nada.
+try{ if(localStorage.getItem('hpBloquePendMig')){ localStorage.removeItem('hpBloquePend'); localStorage.removeItem('hpBloquePendMig'); } }catch(e){}
 window.hpApplyBloques=function(map){
   try{
-    _hpBloqueMigrarLocal();   // captura ediciones locales previas como pendientes ANTES de aplicar el servidor
     var m = map||{}; var pend = _hpBloquePendGet(); var changed=false;
     Object.keys(pend).forEach(function(k){
       var pv = pend[k];
@@ -840,14 +834,14 @@ window.hpApplyBloques=function(map){
     ls.s('bloques', m);
   }catch(e){}
 };
-// Reintenta enviar al servidor las ediciones/borrados de recuadros aún pendientes. Idempotente.
+// Reintenta enviar al servidor las ediciones/borrados de recuadros aún pendientes; al CONFIRMARSE
+// cada escritura, libera esa clave (deja de ser pendiente). Idempotente.
 window.hpRepushBloques=function(){
   try{
-    _hpBloqueMigrarLocal();
     var pend=_hpBloquePendGet();
     Object.keys(pend).forEach(function(k){
-      if(pend[k]===null){ if(window.hpDeleteBloque) window.hpDeleteBloque(k).catch(function(){}); }
-      else { if(window.hpSaveBloque) window.hpSaveBloque(k, pend[k]).catch(function(){}); }
+      if(pend[k]===null){ if(window.hpDeleteBloque) window.hpDeleteBloque(k).then(function(){ _hpBloquePendClear(k, null); }).catch(function(){}); }
+      else { var val=pend[k]; if(window.hpSaveBloque) window.hpSaveBloque(k, val).then(function(){ _hpBloquePendClear(k, val); }).catch(function(){}); }
     });
   }catch(e){}
 };
@@ -964,7 +958,7 @@ async function ebSave(key){
   try{ var _p=_hpBloquePendGet(); _p[key]=html; _hpBloquePendSet(_p); }catch(e){}
   try{ document.querySelectorAll('[data-eb="'+key+'"] .eb-c').forEach(function(c){ c.innerHTML=html; }); }catch(e){}
   ebClose();
-  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
+  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); _hpBloquePendClear(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Guardado');
 }
 async function ebRestore(key){
@@ -972,7 +966,7 @@ async function ebRestore(key){
   var m=hpBloques(); delete m[key]; try{ ls.s('bloques',m); }catch(e){}
   try{ var _p=_hpBloquePendGet(); _p[key]=null; _hpBloquePendSet(_p); }catch(e){}
   ebClose();
-  if(window.hpDeleteBloque){ try{ await window.hpDeleteBloque(key); }catch(e){} }
+  if(window.hpDeleteBloque){ try{ await window.hpDeleteBloque(key); _hpBloquePendClear(key, null); }catch(e){} }
   toast('✓ Original restaurado'); try{ if(S&&S.view) go(S.view); }catch(e){}
 }
 function _hpFillTpl(tpl, resultText, vars){
@@ -7817,7 +7811,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 330;
+const HP_BUILD = 331;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
