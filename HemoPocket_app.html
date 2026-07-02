@@ -7811,7 +7811,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 331;
+const HP_BUILD = 332;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14382,10 +14382,18 @@ function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
   s=s.replace(/<\/?font[^>]*>/gi,'');
   s=s.replace(/style\s*=\s*("[^"]*"|'[^']*')/gi,function(m,val){
     var q=val.charAt(0), inner=val.slice(1,-1);
+    // Quita tipografía suelta (tamaños/fuentes que descuadran) …
     inner=inner.replace(/(?:^|;)\s*(?:font-size|font-family|font|line-height)\s*:[^;]*/gi,'');
+    // … y TODO lo que saca un texto de su flujo y lo SOLAPA con otro (posición absoluta/fija,
+    // desplazamientos, transform, float, z-index, márgenes negativos): son artefactos que el
+    // editor del móvil (Safari/Chrome) o un pegado introducen y que provocan textos superpuestos.
+    inner=inner.replace(/(?:^|;)\s*(?:position|top|left|right|bottom|transform|float|clear|z-index)\s*:[^;]*/gi,'');
+    inner=inner.replace(/(?:^|;)\s*margin(?:-(?:top|right|bottom|left))?\s*:\s*-[^;]*/gi,'');
     inner=inner.replace(/^;+/,'').replace(/;+$/,'').replace(/;{2,}/g,';').trim();
     return inner ? ('style='+q+inner+q) : '';
   });
+  // Etiquetas que fuerzan superposición aunque no lleven style (raras en un editor, pero por si acaso).
+  s=s.replace(/<\/?(?:marquee)\b[^>]*>/gi,'');
   return s;
 }
 function _avisoRenderCuerpo(){ const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); cu.innerHTML=(ov&&ov.trim())?_hpSanHtml(ov):_AVISO_DEFAULT; }
