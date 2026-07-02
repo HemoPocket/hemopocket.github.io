@@ -6362,6 +6362,55 @@ function _hpScopeApply(d, v){ if(!d) return; if(v==='global'){ d.ambito='global'
 function algoSetScope(v){ if(_algoDraft){ _hpScopeApply(_algoDraft, v); go('algoedit'); } }
 function calcSetScope(v){ if(_calcDraft){ _hpScopeApply(_calcDraft, v); go('calcedit'); } }
 function infoSetScope(v){ if(_infoDraft){ _hpScopeApply(_infoDraft, v); go('infoedit'); } }
+// ── Migración ÚNICA del alcance del contenido ya guardado (build 329) ─────────────────────────
+// Normaliza ámbito+vis de algoritmos, calculadoras e infos a un estado COHERENTE, SIN cambiar la
+// audiencia actual: quien lo veía lo sigue viendo IGUAL. Solo corrige el desajuste histórico entre
+// la etiqueta y la visibilidad real (p. ej. «ámbito global» pero visible solo para HUNSC, o «Global»
+// con vis vacío que en el contenido privado significa «solo la casa»). Calcula la audiencia efectiva
+// con la MISMA semántica que usa la app (público por defecto para calculadoras; privado por defecto
+// para algoritmos/infos) y la reescribe de forma unívoca. La ejecuta SOLO la admin principal (única
+// con acceso de escritura a todo el contenido) y UNA sola vez.
+window._hpMigrarAlcanceContenido = async function(){
+  try{
+    if(!hpIsPrincipal()) return;
+    if(localStorage.getItem('hpAlcanceMig')==='1') return;
+    var casa=hpCasaCentro();
+    // Audiencia real de un ítem: 'all' (todos los hospitales) o lista de hospitales concretos.
+    function audiencia(vis, priv){
+      var v=Array.isArray(vis)?vis:[];
+      if(v.indexOf('todos')!==-1) return 'all';           // liberado a todos
+      if(v.length) return v.slice();                      // restringido a hospitales concretos
+      return priv ? [casa] : 'all';                       // vacío: privado=solo la casa; público=todos
+    }
+    // Estado coherente equivalente a esa audiencia.
+    function norm(aud){
+      if(aud==='all') return {ambito:'global', vis:['todos']};
+      if(aud.length===1) return {ambito:aud[0], vis:[aud[0]]};
+      return {ambito:aud[0], vis:aud};                     // varios hospitales (caso raro): se conservan
+    }
+    var tipos=[{store:_hpTipoStore('algoritmo'),  priv:true},
+               {store:_hpTipoStore('calculadora'), priv:false},
+               {store:_hpTipoStore('información'), priv:true}];
+    var totalFix=0;
+    for(var t=0;t<tipos.length;t++){
+      var st=tipos[t].store, priv=tipos[t].priv;
+      var m=st.get()||{}; var changed=false; var ids=Object.keys(m);
+      for(var i=0;i<ids.length;i++){
+        var it=m[ids[i]]; if(!it||typeof it!=='object') continue;
+        var n=norm(audiencia(it.vis, priv));
+        var curAmb=(it.ambito&&it.ambito!=='global')?it.ambito:'global';
+        var curVis=(Array.isArray(it.vis)?it.vis.slice():[]).sort();
+        var nVis=n.vis.slice().sort();
+        if(curAmb===n.ambito && JSON.stringify(curVis)===JSON.stringify(nVis)) continue; // ya coherente
+        it.ambito=n.ambito; it.vis=n.vis; m[ids[i]]=it; changed=true; totalFix++;
+        if(st.save){ try{ await st.save(it); }catch(e){} }
+      }
+      if(changed){ try{ ls.s(st.ls, m); }catch(e){} }
+    }
+    try{ localStorage.setItem('hpAlcanceMig','1'); }catch(e){}
+    if(totalFix>0 && typeof toast==='function') toast('✓ Alcance normalizado en '+totalFix+' contenido(s)');
+  }catch(e){}
+};
 // ¿Puede el usuario actual VER este contenido? (separación funcional, Fase 2a)
 // Sin 'vis', o vacío, o con 'todos' = público. Los administradores ven todo (lo gestionan).
 function hpVisible(item){
@@ -7768,8 +7817,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 329;
-const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
+const HP_BUILD = 330;
+const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -13872,6 +13921,9 @@ for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
 // Guías PDF: también en vivo. Es incremental (solo baja los PDF nuevos, no re-descarga lo ya
 // cacheado y borra los que ya no correspondan), así que aparecen/desaparecen solas sin recargar.
 try{ if(window.syncCloudGuides) await window.syncCloudGuides(true); }catch(e){}
+// Normaliza (una sola vez, solo la principal) el alcance del contenido ya guardado a un estado
+// coherente, sin cambiar la audiencia. Va tras la sincronización para operar sobre datos frescos.
+try{ if(window._hpMigrarAlcanceContenido) await window._hpMigrarAlcanceContenido(); }catch(e){}
 const changed=(_hpSig()!==before);
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
 // Si algo cambió DE VERDAD y no estás en medio de una edición, re-pinta la vista actual para
