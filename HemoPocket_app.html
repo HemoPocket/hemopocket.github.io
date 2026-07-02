@@ -1412,12 +1412,26 @@ function hpCanEditQt(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin
 function hpCanEditDir(){ return !!(window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()); }
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
+// ¿Es INTERACTIVA la vista? (calculadora/score con formulario, algoritmo con recuadros EB o con
+// botones que ejecutan funciones, o vista con post-render). Se detecta AUTOMÁTICAMENTE a partir de
+// su HTML en vivo, para que NINGUNA —ni las de ahora ni las que se añadan en el futuro— pueda
+// congelarse con una «página editada». Los toggles de contenido (onclick="this…") NO cuentan.
+function _hpViewInteractivo(base, id){
+  try{
+    if(id && VIEWS[id+'_post']) return true;                                   // post-render (rellena en vivo)
+    var s=String(base||'');
+    if(/<input|<select|<textarea/i.test(s)) return true;                       // formulario (calculadoras/scores)
+    if(/data-eb=/.test(s)) return true;                                        // recuadros editables dinámicos
+    if(/onclick\s*=\s*"\s*[a-zA-Z_$][\w$]*\s*\(/.test(s)) return true;          // botón que llama a una función (pasos)
+    return false;
+  }catch(e){ return false; }
+}
 function hpPageWrap(id, base){
-  // Vistas INTERACTIVAS (algoritmos con pasos, calculadoras): NUNCA se sustituyen por una «página
-  // editada». Un pantallazo estático congelaría un texto mientras los botones siguen ejecutando el
-  // algoritmo en vivo → aparecerían DOS textos distintos (uno al entrar y otro al pulsar). Para
-  // editar sus textos están los recuadros en línea (EB), no el override de página completo.
-  if(!hpPageEditable(id)) return {html:base, skipPost:false};
+  // Vistas INTERACTIVAS (algoritmos con pasos, calculadoras, scores): NUNCA se sustituyen por una
+  // «página editada». Un pantallazo estático congelaría un texto mientras los botones/inputs siguen
+  // ejecutando la lógica en vivo → aparecerían DOS textos distintos (uno al entrar y otro al pulsar).
+  // Para editar sus textos están los recuadros en línea (EB), no el override de página completo.
+  if(!hpPageEditable(id) || _hpViewInteractivo(base, id)) return {html:base, skipPost:false};
   // El contenido editado se muestra siempre; los botones de editar solo en MODO EDICIÓN.
   const ov=hpPages()[id]; const canEd=hpCanEditPage(id) && hpEditing();
   if(ov && ov.html && ov.estado==='publicado'){
@@ -1440,6 +1454,9 @@ function hpEditPage(id){
   if(!hpCanEditPage(id)){ toast('No tienes permiso para editar esta página'); return; }
   const ov=hpPages()[id]; let html;
   if(ov && ov.html) html=ov.html; else { const v=VIEWS[id]; try{ html=v?v():''; }catch(e){ html=''; } }
+  // Blindaje: si es una vista interactiva (calculadora/algoritmo), no se puede sustituir por una
+  // página estática (rompería la interactividad y duplicaría textos). Sus textos se editan con EB.
+  if(_hpViewInteractivo(html, id)){ toast('Esta herramienta es interactiva: edita sus textos tocándolos (recuadros), no la página entera'); return; }
   _pageDraft={ id:id, seccion:hpPageSection(id), html:html }; go('pageedit');
 }
 function _pageCmd(cmd,val){ try{ var a=document.getElementById('page-edit-area'); if(a){ a.focus(); document.execCommand(cmd,false,val||null); } }catch(e){} }
@@ -1541,7 +1558,13 @@ window._hpLimpiarPaginasInteractivas = async function(){
     if(localStorage.getItem('hpPageIntMig')==='1') return;
     var m=hpPages(); var ids=Object.keys(m||{}); var changed=false;
     var esAdmin=!!(window.HemoCloud&&HemoCloud.isAdmin&&HemoCloud.isAdmin());
-    for(var i=0;i<ids.length;i++){ var id=ids[i]; if(!hpPageEditable(id)){ delete m[id]; changed=true; if(esAdmin&&window.hpDeletePage){ try{ await window.hpDeletePage(id); }catch(e){} } } }
+    for(var i=0;i<ids.length;i++){
+      var id=ids[i];
+      // Borra el override si la vista NO admite página (utilidad/algoritmo listado) o si es
+      // INTERACTIVA por su contenido (calculadora/score/algoritmo detectado automáticamente).
+      var interactiva=false; try{ var v=VIEWS[id]; interactiva=v?_hpViewInteractivo(v(), id):false; }catch(e){}
+      if(!hpPageEditable(id) || interactiva){ delete m[id]; changed=true; if(esAdmin&&window.hpDeletePage){ try{ await window.hpDeletePage(id); }catch(e){} } }
+    }
     if(changed){ try{ ls.s('pageOv', m); }catch(e){} }
     try{ localStorage.setItem('hpPageIntMig','1'); }catch(e){}
   }catch(e){}
@@ -7836,7 +7859,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 333;
+const HP_BUILD = 334;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
