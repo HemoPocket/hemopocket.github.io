@@ -804,12 +804,24 @@ window.hpApplyPlantillas=function(map){ try{ ls.s('reportTpls', map||{}); }catch
 // y se guarda para todos (colección 'bloques'), SIN romper la interactividad. Cada bloque lleva su
 // ✏️; sin override muestra el texto original del código. Reutilizable por cualquier algoritmo. ──
 function hpBloques(){ try{ return ls.g('bloques')||{}; }catch(e){ return {}; } }
-// Ediciones locales de recuadros aún NO confirmadas en el servidor. Se guardan en localStorage
-// (sobreviven a recargas y a otra sesión) para que NINGUNA sincronización revierta lo editado
-// aunque la escritura al servidor haya fallado. Cada clave se libera sola cuando el servidor ya
-// refleja ese valor. Además se REINTENTA guardar en el servidor en cada sincronización.
+// Ediciones/borrados de recuadros cuya escritura al servidor AÚN NO se ha confirmado (offline o
+// fallo puntual). Se guardan en localStorage para que NINGUNA sincronización revierta lo editado
+// mientras la escritura no haya llegado. IMPORTANTE: aquí SOLO entran ediciones REALES pendientes
+// de confirmar; en cuanto el servidor confirma la escritura, la clave se LIBERA (ya no es pendiente).
+// Así nunca se «resucita» un valor viejo que ya estaba en el servidor pisando una edición más nueva.
 function _hpBloquePendGet(){ try{ return JSON.parse(localStorage.getItem('hpBloquePend')||'{}')||{}; }catch(e){ return {}; } }
 function _hpBloquePendSet(p){ try{ localStorage.setItem('hpBloquePend', JSON.stringify(p||{})); }catch(e){} }
+// Libera una clave pendiente SOLO si sigue teniendo el valor que se confirmó (para no borrar una
+// edición aún más reciente hecha entretanto). expected: el texto guardado, o null para un borrado.
+function _hpBloquePendClear(key, expected){
+  try{ var p=_hpBloquePendGet(); if(key in p && p[key]===expected){ delete p[key]; _hpBloquePendSet(p); } }catch(e){}
+}
+// Limpieza ÚNICA: una migración demasiado agresiva (builds 327–330) pudo marcar como «pendientes»
+// valores que en realidad YA estaban en el servidor, capaces de resucitar textos viejos y pisar una
+// edición más nueva (el «se revierte al texto antiguo»). Si ese flag está, se vacía la lista de
+// pendientes una sola vez: el servidor es la fuente de verdad y las ediciones reales se vuelven a
+// marcar solas al guardarlas. Sin el flag (instalaciones nuevas) no hace nada.
+try{ if(localStorage.getItem('hpBloquePendMig')){ localStorage.removeItem('hpBloquePend'); localStorage.removeItem('hpBloquePendMig'); } }catch(e){}
 window.hpApplyBloques=function(map){
   try{
     var m = map||{}; var pend = _hpBloquePendGet(); var changed=false;
@@ -822,13 +834,14 @@ window.hpApplyBloques=function(map){
     ls.s('bloques', m);
   }catch(e){}
 };
-// Reintenta enviar al servidor las ediciones/borrados de recuadros aún pendientes. Idempotente.
+// Reintenta enviar al servidor las ediciones/borrados de recuadros aún pendientes; al CONFIRMARSE
+// cada escritura, libera esa clave (deja de ser pendiente). Idempotente.
 window.hpRepushBloques=function(){
   try{
     var pend=_hpBloquePendGet();
     Object.keys(pend).forEach(function(k){
-      if(pend[k]===null){ if(window.hpDeleteBloque) window.hpDeleteBloque(k).catch(function(){}); }
-      else { if(window.hpSaveBloque) window.hpSaveBloque(k, pend[k]).catch(function(){}); }
+      if(pend[k]===null){ if(window.hpDeleteBloque) window.hpDeleteBloque(k).then(function(){ _hpBloquePendClear(k, null); }).catch(function(){}); }
+      else { var val=pend[k]; if(window.hpSaveBloque) window.hpSaveBloque(k, val).then(function(){ _hpBloquePendClear(k, val); }).catch(function(){}); }
     });
   }catch(e){}
 };
@@ -945,7 +958,7 @@ async function ebSave(key){
   try{ var _p=_hpBloquePendGet(); _p[key]=html; _hpBloquePendSet(_p); }catch(e){}
   try{ document.querySelectorAll('[data-eb="'+key+'"] .eb-c').forEach(function(c){ c.innerHTML=html; }); }catch(e){}
   ebClose();
-  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
+  if(window.hpSaveBloque){ try{ await window.hpSaveBloque(key, html); _hpBloquePendClear(key, html); toast('✓ Guardado · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Guardado');
 }
 async function ebRestore(key){
@@ -953,7 +966,7 @@ async function ebRestore(key){
   var m=hpBloques(); delete m[key]; try{ ls.s('bloques',m); }catch(e){}
   try{ var _p=_hpBloquePendGet(); _p[key]=null; _hpBloquePendSet(_p); }catch(e){}
   ebClose();
-  if(window.hpDeleteBloque){ try{ await window.hpDeleteBloque(key); }catch(e){} }
+  if(window.hpDeleteBloque){ try{ await window.hpDeleteBloque(key); _hpBloquePendClear(key, null); }catch(e){} }
   toast('✓ Original restaurado'); try{ if(S&&S.view) go(S.view); }catch(e){}
 }
 function _hpFillTpl(tpl, resultText, vars){
@@ -1380,7 +1393,13 @@ const HP_UPD_DATES={
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
 // original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
 // paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
+// A esta lista NO se le puede aplicar una «página editada» (override estático de la vista completa).
+// Incluye utilidades y, MUY IMPORTANTE, los ALGORITMOS INTERACTIVOS (con pasos/botones que pintan
+// resultados en vivo): un pantallazo estático los congelaría y aparecerían DOS textos distintos —
+// uno al entrar y otro al pulsar. Sus textos se editan con los recuadros en línea (EB), no con el
+// override de página. Algoritmos interactivos: nf, disc_abo, panag, coag_alt, reversion, bridging,
+// hemof_urg, atb, rotem.
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist','nf','disc_abo','panag','coag_alt','reversion','bridging','hemof_urg','atb','rotem']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
@@ -1393,7 +1412,26 @@ function hpCanEditQt(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin
 function hpCanEditDir(){ return !!(window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()); }
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
+// ¿Es INTERACTIVA la vista? (calculadora/score con formulario, algoritmo con recuadros EB o con
+// botones que ejecutan funciones, o vista con post-render). Se detecta AUTOMÁTICAMENTE a partir de
+// su HTML en vivo, para que NINGUNA —ni las de ahora ni las que se añadan en el futuro— pueda
+// congelarse con una «página editada». Los toggles de contenido (onclick="this…") NO cuentan.
+function _hpViewInteractivo(base, id){
+  try{
+    if(id && VIEWS[id+'_post']) return true;                                   // post-render (rellena en vivo)
+    var s=String(base||'');
+    if(/<input|<select|<textarea/i.test(s)) return true;                       // formulario (calculadoras/scores)
+    if(/data-eb=/.test(s)) return true;                                        // recuadros editables dinámicos
+    if(/onclick\s*=\s*"\s*[a-zA-Z_$][\w$]*\s*\(/.test(s)) return true;          // botón que llama a una función (pasos)
+    return false;
+  }catch(e){ return false; }
+}
 function hpPageWrap(id, base){
+  // Vistas INTERACTIVAS (algoritmos con pasos, calculadoras, scores): NUNCA se sustituyen por una
+  // «página editada». Un pantallazo estático congelaría un texto mientras los botones/inputs siguen
+  // ejecutando la lógica en vivo → aparecerían DOS textos distintos (uno al entrar y otro al pulsar).
+  // Para editar sus textos están los recuadros en línea (EB), no el override de página completo.
+  if(!hpPageEditable(id) || _hpViewInteractivo(base, id)) return {html:base, skipPost:false};
   // El contenido editado se muestra siempre; los botones de editar solo en MODO EDICIÓN.
   const ov=hpPages()[id]; const canEd=hpCanEditPage(id) && hpEditing();
   if(ov && ov.html && ov.estado==='publicado'){
@@ -1416,6 +1454,9 @@ function hpEditPage(id){
   if(!hpCanEditPage(id)){ toast('No tienes permiso para editar esta página'); return; }
   const ov=hpPages()[id]; let html;
   if(ov && ov.html) html=ov.html; else { const v=VIEWS[id]; try{ html=v?v():''; }catch(e){ html=''; } }
+  // Blindaje: si es una vista interactiva (calculadora/algoritmo), no se puede sustituir por una
+  // página estática (rompería la interactividad y duplicaría textos). Sus textos se editan con EB.
+  if(_hpViewInteractivo(html, id)){ toast('Esta herramienta es interactiva: edita sus textos tocándolos (recuadros), no la página entera'); return; }
   _pageDraft={ id:id, seccion:hpPageSection(id), html:html }; go('pageedit');
 }
 function _pageCmd(cmd,val){ try{ var a=document.getElementById('page-edit-area'); if(a){ a.focus(); document.execCommand(cmd,false,val||null); } }catch(e){} }
@@ -1508,6 +1549,26 @@ VIEWS.pageedit=()=>{
 function pageCancelar(){ const id=_pageDraft&&_pageDraft.id; _pageDraft=null; if(id) go(id); else go('home'); }
 async function pageGuardar(){ const d=_pageDraft; if(!d) return; const a=document.getElementById('page-edit-area'); if(!a) return; try{Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(e){e.classList.remove('pg-cur');});}catch(e){} const html=_hpSanHtml(a.innerHTML); const data={html:html, seccion:d.seccion||null, estado:'publicado'}; const m=hpPages(); m[d.id]=data; try{ls.s('pageOv',m);}catch(e){} if(window.hpSavePage){ try{ await window.hpSavePage(d.id, data); toast('✓ Página actualizada · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _pageDraft=null; go(d.id); }
 async function hpRestaurarPage(id){ if(!confirm('¿Restaurar el contenido original de esta página? Se perderá la edición para todos.'))return; const m=hpPages(); delete m[id]; try{ls.s('pageOv',m);}catch(e){} if(window.hpDeletePage){ try{ await window.hpDeletePage(id); toast('✓ Original restaurado'); }catch(e){ toast('Restaurado solo en este equipo'); } } _pageDraft=null; go(id); }
+// Limpieza ÚNICA: borra «páginas editadas» (overrides estáticos) que hubieran quedado guardadas
+// sobre vistas que NO admiten override (algoritmos interactivos, utilidades). Ya no se aplican
+// —hpPageWrap las ignora—, pero además se eliminan para dejarlo del todo limpio. El borrado en el
+// servidor solo lo hace un administrador; el resto las quita al menos de su propio equipo.
+window._hpLimpiarPaginasInteractivas = async function(){
+  try{
+    if(localStorage.getItem('hpPageIntMig')==='1') return;
+    var m=hpPages(); var ids=Object.keys(m||{}); var changed=false;
+    var esAdmin=!!(window.HemoCloud&&HemoCloud.isAdmin&&HemoCloud.isAdmin());
+    for(var i=0;i<ids.length;i++){
+      var id=ids[i];
+      // Borra el override si la vista NO admite página (utilidad/algoritmo listado) o si es
+      // INTERACTIVA por su contenido (calculadora/score/algoritmo detectado automáticamente).
+      var interactiva=false; try{ var v=VIEWS[id]; interactiva=v?_hpViewInteractivo(v(), id):false; }catch(e){}
+      if(!hpPageEditable(id) || interactiva){ delete m[id]; changed=true; if(esAdmin&&window.hpDeletePage){ try{ await window.hpDeletePage(id); }catch(e){} } }
+    }
+    if(changed){ try{ ls.s('pageOv', m); }catch(e){} }
+    try{ localStorage.setItem('hpPageIntMig','1'); }catch(e){}
+  }catch(e){}
+};
 
 function hpVerificados(){ try{ return ls.g('verificados')||{}; }catch(e){ return {}; } }
 window.hpApplyVerificados=function(map){ try{ ls.s('verificados', map||{}); }catch(e){} };
@@ -5149,7 +5210,7 @@ function algoReset(){ const st=_algoState; if(st){ st.current=st.algo.inicio; st
 function algoOpen(id){ const a=hpAlgos()[id]; if(!a){toast('Algoritmo no encontrado');return;} _algoState={algo:JSON.parse(JSON.stringify(a)),current:a.inicio,history:[]}; go('algo'); }
 // ── Editor por formulario ──
 let _algoDraft=null;
-function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{},ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; go('algoedit'); }
+function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{},ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; go('algoedit'); }
 function algoEditOpen(id){ const a=hpAlgos()[id]; if(!a){toast('No encontrado');return;} if(!hpCanEditAmbito(a,a.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _algoDraft=JSON.parse(JSON.stringify(a)); if(!_algoDraft.nodos)_algoDraft.nodos={}; go('algoedit'); }
 function _algoNodeLabel(n){ if(!n)return '(paso)'; const t=(n.texto||'').replace(/\s+/g,' ').trim(); return (t?t.slice(0,32):(n.tipo==='resultado'?'(resultado)':'(pregunta)')); }
 // ── Aspecto COMÚN de los mini-editores (calculadora / algoritmo / información) ──
@@ -5187,8 +5248,7 @@ VIEWS.algoedit=()=>{
   if(!nodeIds.length) h+='<div class="alert b">Sin pasos. Añade una pregunta o un resultado abajo.</div>';
   nodeIds.forEach(function(nid){ h+=_algoEditNode(d,nid,nodeIds); });
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="algoAddNode(\'pregunta\')">➕ Pregunta</button><button class="btn btn-out btn-sm" onclick="algoAddNode(\'resultado\')">➕ Resultado</button></div>';
-  h+=hpAmbitoControlHtml(d.ambito,'algoSetAmbito');
-  h+=hpVisControlHtml(d.vis,'algoSetVis');
+  h+=hpScopeControlHtml(d,'algoSetScope');
   h+=hpCompartirBtn(d,'algoritmo');
   h+=_edActions({cancel:'algoCancelar()',preview:'algoVistaPrevia()',check:'algoComprobar()',save:'algoGuardar()',publish:'algoPublicar()'});
   h+='</div>'; return h;
@@ -5447,7 +5507,7 @@ VIEWS.calc=()=>{
 function calcOpen(id){ const c=hpCalcs()[id]; if(!c){toast('Calculadora no encontrada');return;} _calcState={calc:JSON.parse(JSON.stringify(c)),vals:{}}; go('calc'); }
 // ── Editor por formulario ──
 let _calcDraft=null;
-function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[],ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
+function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[],ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
 function calcEditOpen(id){ const c=hpCalcs()[id]; if(!c){toast('No encontrada');return;} if(!hpCanEditAmbito(c,c.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _calcDraft=JSON.parse(JSON.stringify(c)); if(!_calcDraft.tipo)_calcDraft.tipo='score'; if(!_calcDraft.campos)_calcDraft.campos=[]; if(!_calcDraft.resultados)_calcDraft.resultados=[]; go('calcedit'); }
 function _calcSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
 VIEWS.calcedit=()=>{
@@ -5478,8 +5538,7 @@ VIEWS.calcedit=()=>{
   }
   (d.resultados||[]).forEach(function(r,ri){ h+=_calcEditResultado(r,ri,(d.resultados||[]).length); });
   h+='<button class="btn btn-out btn-sm" style="margin-top:6px" onclick="calcAddResultado()">➕ '+(esF?'Categoría de interpretación':'Categoría de resultado')+'</button>';
-  h+=hpAmbitoControlHtml(d.ambito,'calcSetAmbito');
-  h+=hpVisControlHtml(d.vis,'calcSetVis');
+  h+=hpScopeControlHtml(d,'calcSetScope');
   h+=hpCompartirBtn(d,'calculadora');
   h+=_edActions({cancel:'calcCancelar()',preview:'calcVistaPrevia()',check:'calcComprobar()',save:'calcGuardar()',publish:'calcPublicar()'});
   h+='</div>'; return h;
@@ -5602,7 +5661,7 @@ VIEWS.info=()=>{
 };
 function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); go('info'); }
 let _infoDraft=null;
-function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador',ambito:hpAmbitoNuevo(),vis:hpVisNueva()}; go('infoedit'); }
+function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador',ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; go('infoedit'); }
 function infoEditOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} if(!hpCanEditAmbito(x,x.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _infoDraft=JSON.parse(JSON.stringify(x)); go('infoedit'); }
 function _infoSecOptions(sel){ return hpAllSections().filter(function(s){return window.HemoCloud&&window.HemoCloud.canEdit&&window.HemoCloud.canEdit(s.id);}).map(function(s){return '<option value="'+s.id+'"'+(sel===s.id?' selected':'')+'>'+_hpEsc(s.titulo)+'</option>';}).join(''); }
 VIEWS.infoedit=()=>{
@@ -5614,8 +5673,7 @@ VIEWS.infoedit=()=>{
   h+='<div class="fld"><label class="lbl">Sección (puedes moverla)</label><select onchange="infoSetField(\'seccion\',this.value)">'+_infoSecOptions(d.seccion)+'</select></div>';
   h+='<div class="fld"><label class="lbl">Contenido</label><textarea style="min-height:220px" onchange="infoSetField(\'cuerpo\',this.value)" placeholder="Escribe aquí la información...">'+_hpEsc(d.cuerpo||'')+'</textarea></div>';
   h+='<div class="fld"><label class="lbl">Fuente / referencia (opcional)</label><input value="'+_hpEsc(d.fuente||'')+'" onchange="infoSetField(\'fuente\',this.value)" placeholder="Guía, protocolo..."></div>';
-  h+=hpAmbitoControlHtml(d.ambito,'infoSetAmbito');
-  h+=hpVisControlHtml(d.vis,'infoSetVis');
+  h+=hpScopeControlHtml(d,'infoSetScope');
   h+=hpCompartirBtn(d,'información');
   h+=_edActions({cancel:'infoCancelar()',preview:'infoVistaPrevia()',save:'infoGuardar()',publish:'infoPublicar()'});
   h+='</div>'; return h;
@@ -6269,7 +6327,7 @@ async function hpProponerCompartirUI(tipo,id){
 async function hpAplicarCompartir(tipo,id){
   var st=_hpTipoStore(tipo); if(!st) return false;
   var m=st.get(); var item=m[id]; if(!item) return false;
-  item.ambito='global'; item.vis=[]; m[id]=item;
+  item.ambito='global'; item.vis=['todos']; m[id]=item;   // 'todos' explícito: global visible para TODOS (no vacío, que en el contenido privado = solo la casa)
   try{ ls.s(st.ls, m); }catch(e){}
   if(st.save){ try{ await st.save(item); }catch(e){} }
   return true;
@@ -6298,6 +6356,10 @@ function hpAmbitoEtiqueta(item){
 function hpAmbitoNuevo(){ try{ if(hpIsPrincipal()) return 'global'; var c=hpUserCentro(); return (c===hpCasaCentro())?'global':c; }catch(e){ return 'global'; } }
 // Visibilidad inicial de un contenido nuevo: privado a su hospital salvo que lo cree la casa/principal.
 function hpVisNueva(){ try{ if(hpIsPrincipal()) return []; var c=hpUserCentro(); return (c===hpCasaCentro())?[]:[c]; }catch(e){ return []; } }
+// Visibilidad inicial COHERENTE para contenido de sección (algoritmos/calculadoras/infos), donde
+// «Global» debe verse en TODOS los hospitales: si el ámbito por defecto es global, se marca 'todos'
+// explícito (vacío significaría «solo la casa» en el contenido privado, contradiciendo la etiqueta).
+function hpVisNuevaContenido(){ try{ var a=hpAmbitoNuevo(); return (a==='global')?['todos']:[a]; }catch(e){ return ['todos']; } }
 // Control «Ámbito por hospital» — SOLO la admin principal lo ve. cbName recibe el nuevo ámbito.
 function hpAmbitoControlHtml(ambito, cbName){
   if(!hpIsPrincipal()) return '';
@@ -6311,6 +6373,86 @@ function hpAmbitoControlHtml(ambito, cbName){
   h+='</select></div>';
   return h;
 }
+// Control ÚNICO de alcance: una sola elección fija a la vez la PROPIEDAD (quién edita) y la
+// VISIBILIDAD (quién lo ve), de modo que NUNCA puedan contradecirse. Sustituye al par
+// «Ámbito» + «¿Quién puede verlo?», que confundía porque usaba el mismo vocabulario para dos ejes.
+//   • Global  → ambito='global', vis=['todos']  → base común, la ve y edita todo el mundo.
+//   • Hospital → ambito=ID,      vis=[ID]        → privada de ese hospital (solo él la ve y edita).
+// Solo la admin PRINCIPAL reparte; un editor de hospital ve un aviso fijo (su contenido es suyo).
+function hpScopeControlHtml(item, cbName){
+  var ids=_hpCentrosOrden();
+  var amb=(item&&item.ambito)||'';
+  var vis=Array.isArray(item&&item.vis)?item.vis:[];
+  var esGlobal=(amb===''||amb==='global') && (vis.length===0 || vis.indexOf('todos')!==-1);
+  var cur=esGlobal?'global':((amb&&amb!=='global')?amb:((vis[0]&&vis[0]!=='todos')?vis[0]:hpCasaCentro()));
+  if(!hpIsPrincipal()){
+    var mi=hpUserCentro();
+    return '<div class="fld"><label class="lbl">¿Para quién es?</label><div style="padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg,#f7f8fa);font-size:13px">🏥 <strong>'+_hpEsc(hpCentroNombre(mi))+'</strong> · <span style="color:var(--mut)">privado de tu hospital: solo tu hospital lo ve y lo edita</span></div></div>';
+  }
+  var h='<div class="fld"><label class="lbl">¿Para quién es este contenido?</label>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin:-2px 0 6px">Una sola opción decide a la vez <strong>quién lo ve</strong> y <strong>quién lo edita</strong>, para que no haya contradicción.</div>';
+  h+='<select onchange="'+cbName+'(this.value)" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--card,#fff);color:var(--txt,#222)">';
+  h+='<option value="global"'+(cur==='global'?' selected':'')+'>🌐 Global · base común, la ven todos los hospitales</option>';
+  ids.forEach(function(id){ h+='<option value="'+_hpEsc(id)+'"'+(cur===id?' selected':'')+'>🏥 '+_hpEsc(hpCentroNombre(id))+' · privado de este hospital</option>'; });
+  h+='</select>';
+  h+='<div style="font-size:11.5px;color:var(--mut,#666);margin-top:5px">'+(cur==='global'?'🌐 <strong>Global:</strong> lo ven y usan todos los hospitales; lo mantienes tú y el equipo de la casa.':'🏥 <strong>Privado:</strong> solo ese hospital lo ve y lo edita. Ni otros hospitales ni sus administradores lo ven.')+'</div>';
+  h+='</div>';
+  return h;
+}
+// Aplica la elección del control único a un borrador (fija ámbito y vis de forma coherente).
+function _hpScopeApply(d, v){ if(!d) return; if(v==='global'){ d.ambito='global'; d.vis=['todos']; } else { d.ambito=v; d.vis=[v]; } }
+function algoSetScope(v){ if(_algoDraft){ _hpScopeApply(_algoDraft, v); go('algoedit'); } }
+function calcSetScope(v){ if(_calcDraft){ _hpScopeApply(_calcDraft, v); go('calcedit'); } }
+function infoSetScope(v){ if(_infoDraft){ _hpScopeApply(_infoDraft, v); go('infoedit'); } }
+// ── Migración ÚNICA del alcance del contenido ya guardado (build 329) ─────────────────────────
+// Normaliza ámbito+vis de algoritmos, calculadoras e infos a un estado COHERENTE, SIN cambiar la
+// audiencia actual: quien lo veía lo sigue viendo IGUAL. Solo corrige el desajuste histórico entre
+// la etiqueta y la visibilidad real (p. ej. «ámbito global» pero visible solo para HUNSC, o «Global»
+// con vis vacío que en el contenido privado significa «solo la casa»). Calcula la audiencia efectiva
+// con la MISMA semántica que usa la app (público por defecto para calculadoras; privado por defecto
+// para algoritmos/infos) y la reescribe de forma unívoca. La ejecuta SOLO la admin principal (única
+// con acceso de escritura a todo el contenido) y UNA sola vez.
+window._hpMigrarAlcanceContenido = async function(){
+  try{
+    if(!hpIsPrincipal()) return;
+    if(localStorage.getItem('hpAlcanceMig')==='1') return;
+    var casa=hpCasaCentro();
+    // Audiencia real de un ítem: 'all' (todos los hospitales) o lista de hospitales concretos.
+    function audiencia(vis, priv){
+      var v=Array.isArray(vis)?vis:[];
+      if(v.indexOf('todos')!==-1) return 'all';           // liberado a todos
+      if(v.length) return v.slice();                      // restringido a hospitales concretos
+      return priv ? [casa] : 'all';                       // vacío: privado=solo la casa; público=todos
+    }
+    // Estado coherente equivalente a esa audiencia.
+    function norm(aud){
+      if(aud==='all') return {ambito:'global', vis:['todos']};
+      if(aud.length===1) return {ambito:aud[0], vis:[aud[0]]};
+      return {ambito:aud[0], vis:aud};                     // varios hospitales (caso raro): se conservan
+    }
+    var tipos=[{store:_hpTipoStore('algoritmo'),  priv:true},
+               {store:_hpTipoStore('calculadora'), priv:false},
+               {store:_hpTipoStore('información'), priv:true}];
+    var totalFix=0;
+    for(var t=0;t<tipos.length;t++){
+      var st=tipos[t].store, priv=tipos[t].priv;
+      var m=st.get()||{}; var changed=false; var ids=Object.keys(m);
+      for(var i=0;i<ids.length;i++){
+        var it=m[ids[i]]; if(!it||typeof it!=='object') continue;
+        var n=norm(audiencia(it.vis, priv));
+        var curAmb=(it.ambito&&it.ambito!=='global')?it.ambito:'global';
+        var curVis=(Array.isArray(it.vis)?it.vis.slice():[]).sort();
+        var nVis=n.vis.slice().sort();
+        if(curAmb===n.ambito && JSON.stringify(curVis)===JSON.stringify(nVis)) continue; // ya coherente
+        it.ambito=n.ambito; it.vis=n.vis; m[ids[i]]=it; changed=true; totalFix++;
+        if(st.save){ try{ await st.save(it); }catch(e){} }
+      }
+      if(changed){ try{ ls.s(st.ls, m); }catch(e){} }
+    }
+    try{ localStorage.setItem('hpAlcanceMig','1'); }catch(e){}
+    if(totalFix>0 && typeof toast==='function') toast('✓ Alcance normalizado en '+totalFix+' contenido(s)');
+  }catch(e){}
+};
 // ¿Puede el usuario actual VER este contenido? (separación funcional, Fase 2a)
 // Sin 'vis', o vacío, o con 'todos' = público. Los administradores ven todo (lo gestionan).
 function hpVisible(item){
@@ -7717,8 +7859,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 326;
-const APP_BUILD = '2026.07.01 (build ' + HP_BUILD + ')';
+const HP_BUILD = 334;
+const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -13818,6 +13960,13 @@ const before=_hpSig();
 // AVISO legal, colaboradores y estado de verificación. Si falta alguna aquí, sus cambios no llegarían en vivo.
 const fns=['hpSyncSubtipos','hpSyncSecciones','hpSyncCatOrden','hpSyncChecklist','hpSyncQt','hpSyncQtGroups','hpSyncLc','hpSyncRx','hpSyncPages','hpSyncAlgos','hpSyncItems','hpSyncCalcs','hpSyncInfos','hpSyncEnsayos','hpSyncPlantillas','hpSyncBloques','hpSyncDirectorio','hpSyncAviso','hpSyncColaboradores','hpSyncVerificados','hpSyncCentros'];
 for(const fn of fns){ if(window[fn]){ try{ await window[fn](); }catch(e){} } }
+// Guías PDF: también en vivo. Es incremental (solo baja los PDF nuevos, no re-descarga lo ya
+// cacheado y borra los que ya no correspondan), así que aparecen/desaparecen solas sin recargar.
+try{ if(window.syncCloudGuides) await window.syncCloudGuides(true); }catch(e){}
+// Normaliza (una sola vez, solo la principal) el alcance del contenido ya guardado a un estado
+// coherente, sin cambiar la audiencia. Va tras la sincronización para operar sobre datos frescos.
+try{ if(window._hpMigrarAlcanceContenido) await window._hpMigrarAlcanceContenido(); }catch(e){}
+try{ if(window._hpLimpiarPaginasInteractivas) await window._hpLimpiarPaginasInteractivas(); }catch(e){}
 const changed=(_hpSig()!==before);
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
 // Si algo cambió DE VERDAD y no estás en medio de una edición, re-pinta la vista actual para
@@ -14282,10 +14431,18 @@ function _hpSanHtml(html){ if(!html) return ''; let s=String(html);
   s=s.replace(/<\/?font[^>]*>/gi,'');
   s=s.replace(/style\s*=\s*("[^"]*"|'[^']*')/gi,function(m,val){
     var q=val.charAt(0), inner=val.slice(1,-1);
+    // Quita tipografía suelta (tamaños/fuentes que descuadran) …
     inner=inner.replace(/(?:^|;)\s*(?:font-size|font-family|font|line-height)\s*:[^;]*/gi,'');
+    // … y TODO lo que saca un texto de su flujo y lo SOLAPA con otro (posición absoluta/fija,
+    // desplazamientos, transform, float, z-index, márgenes negativos): son artefactos que el
+    // editor del móvil (Safari/Chrome) o un pegado introducen y que provocan textos superpuestos.
+    inner=inner.replace(/(?:^|;)\s*(?:position|top|left|right|bottom|transform|float|clear|z-index)\s*:[^;]*/gi,'');
+    inner=inner.replace(/(?:^|;)\s*margin(?:-(?:top|right|bottom|left))?\s*:\s*-[^;]*/gi,'');
     inner=inner.replace(/^;+/,'').replace(/;+$/,'').replace(/;{2,}/g,';').trim();
     return inner ? ('style='+q+inner+q) : '';
   });
+  // Etiquetas que fuerzan superposición aunque no lleven style (raras en un editor, pero por si acaso).
+  s=s.replace(/<\/?(?:marquee)\b[^>]*>/gi,'');
   return s;
 }
 function _avisoRenderCuerpo(){ const cu=document.getElementById('aviso-cuerpo'); if(!cu) return; if(!_AVISO_DEFAULT)_AVISO_DEFAULT=cu.innerHTML; const ov=hpAvisoOverride(); cu.innerHTML=(ov&&ov.trim())?_hpSanHtml(ov):_AVISO_DEFAULT; }
