@@ -1393,7 +1393,13 @@ const HP_UPD_DATES={
 // Se gestiona por sección (editor de esa sección o admin) y se sincroniza. Reversible (restaurar
 // original). Se excluyen vistas funcionales (calculadoras, asistentes con su propio editor, guías,
 // paneles de admin). Para contenido informativo/algoritmos funciona; lo interactivo se avisa.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist']);
+// A esta lista NO se le puede aplicar una «página editada» (override estático de la vista completa).
+// Incluye utilidades y, MUY IMPORTANTE, los ALGORITMOS INTERACTIVOS (con pasos/botones que pintan
+// resultados en vivo): un pantallazo estático los congelaría y aparecerían DOS textos distintos —
+// uno al entrar y otro al pulsar. Sus textos se editan con los recuadros en línea (EB), no con el
+// override de página. Algoritmos interactivos: nf, disc_abo, panag, coag_alt, reversion, bridging,
+// hemof_urg, atb, rotem.
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist','nf','disc_abo','panag','coag_alt','reversion','bridging','hemof_urg','atb','rotem']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
@@ -1407,6 +1413,11 @@ function hpCanEditDir(){ return !!(window.HemoCloud && window.HemoCloud.isEditor
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
 function hpPageWrap(id, base){
+  // Vistas INTERACTIVAS (algoritmos con pasos, calculadoras): NUNCA se sustituyen por una «página
+  // editada». Un pantallazo estático congelaría un texto mientras los botones siguen ejecutando el
+  // algoritmo en vivo → aparecerían DOS textos distintos (uno al entrar y otro al pulsar). Para
+  // editar sus textos están los recuadros en línea (EB), no el override de página completo.
+  if(!hpPageEditable(id)) return {html:base, skipPost:false};
   // El contenido editado se muestra siempre; los botones de editar solo en MODO EDICIÓN.
   const ov=hpPages()[id]; const canEd=hpCanEditPage(id) && hpEditing();
   if(ov && ov.html && ov.estado==='publicado'){
@@ -1521,6 +1532,20 @@ VIEWS.pageedit=()=>{
 function pageCancelar(){ const id=_pageDraft&&_pageDraft.id; _pageDraft=null; if(id) go(id); else go('home'); }
 async function pageGuardar(){ const d=_pageDraft; if(!d) return; const a=document.getElementById('page-edit-area'); if(!a) return; try{Array.prototype.forEach.call(a.querySelectorAll('.pg-cur'),function(e){e.classList.remove('pg-cur');});}catch(e){} const html=_hpSanHtml(a.innerHTML); const data={html:html, seccion:d.seccion||null, estado:'publicado'}; const m=hpPages(); m[d.id]=data; try{ls.s('pageOv',m);}catch(e){} if(window.hpSavePage){ try{ await window.hpSavePage(d.id, data); toast('✓ Página actualizada · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } } else toast('✓ Guardado'); _pageDraft=null; go(d.id); }
 async function hpRestaurarPage(id){ if(!confirm('¿Restaurar el contenido original de esta página? Se perderá la edición para todos.'))return; const m=hpPages(); delete m[id]; try{ls.s('pageOv',m);}catch(e){} if(window.hpDeletePage){ try{ await window.hpDeletePage(id); toast('✓ Original restaurado'); }catch(e){ toast('Restaurado solo en este equipo'); } } _pageDraft=null; go(id); }
+// Limpieza ÚNICA: borra «páginas editadas» (overrides estáticos) que hubieran quedado guardadas
+// sobre vistas que NO admiten override (algoritmos interactivos, utilidades). Ya no se aplican
+// —hpPageWrap las ignora—, pero además se eliminan para dejarlo del todo limpio. El borrado en el
+// servidor solo lo hace un administrador; el resto las quita al menos de su propio equipo.
+window._hpLimpiarPaginasInteractivas = async function(){
+  try{
+    if(localStorage.getItem('hpPageIntMig')==='1') return;
+    var m=hpPages(); var ids=Object.keys(m||{}); var changed=false;
+    var esAdmin=!!(window.HemoCloud&&HemoCloud.isAdmin&&HemoCloud.isAdmin());
+    for(var i=0;i<ids.length;i++){ var id=ids[i]; if(!hpPageEditable(id)){ delete m[id]; changed=true; if(esAdmin&&window.hpDeletePage){ try{ await window.hpDeletePage(id); }catch(e){} } } }
+    if(changed){ try{ ls.s('pageOv', m); }catch(e){} }
+    try{ localStorage.setItem('hpPageIntMig','1'); }catch(e){}
+  }catch(e){}
+};
 
 function hpVerificados(){ try{ return ls.g('verificados')||{}; }catch(e){ return {}; } }
 window.hpApplyVerificados=function(map){ try{ ls.s('verificados', map||{}); }catch(e){} };
@@ -7811,7 +7836,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 332;
+const HP_BUILD = 333;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13918,6 +13943,7 @@ try{ if(window.syncCloudGuides) await window.syncCloudGuides(true); }catch(e){}
 // Normaliza (una sola vez, solo la principal) el alcance del contenido ya guardado a un estado
 // coherente, sin cambiar la audiencia. Va tras la sincronización para operar sobre datos frescos.
 try{ if(window._hpMigrarAlcanceContenido) await window._hpMigrarAlcanceContenido(); }catch(e){}
+try{ if(window._hpLimpiarPaginasInteractivas) await window._hpLimpiarPaginasInteractivas(); }catch(e){}
 const changed=(_hpSig()!==before);
 try{ if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); }catch(e){}
 // Si algo cambió DE VERDAD y no estás en medio de una edición, re-pinta la vista actual para
