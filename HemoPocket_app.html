@@ -6858,19 +6858,20 @@ desired.set(`${g.section}_${g.subtype}|cloud:${g.path}`,g);
 let existing=[];
 try{existing=(await idb.keys()).filter(k=>typeof k==='string'&&k.indexOf('|cloud:')!==-1)}catch(e){}
 const existingSet=new Set(existing);
-let added=0,removed=0;
+let added=0,removed=0,failed=[];
 for(const [key,g] of desired){
 if(existingSet.has(key))continue;
 try{
 const url=await HemoCloud.downloadURL(g.path);
 const r=await fetch(url);
-if(!r.ok)continue;
+if(!r.ok){console.warn('[hp] guía no disponible ('+r.status+'):', g.path);failed.push(g.name);continue;}
 const blob=await r.blob();
-if(blob.size<200)continue;
+if(blob.size<200){console.warn('[hp] guía vacía:', g.path);failed.push(g.name);continue;}
 await idb.set(key,{name:g.name,size:blob.size,blob,cloud:true,docId:g.id,path:g.path});
 added++;
-}catch(e){/* siguiente */}
+}catch(e){console.warn('[hp] error descargando guía:',g.path,e.message);failed.push(g.name);}
 }
+if(failed.length&&typeof toast==='function')toast('⚠️ '+failed.length+' guía(s) no se pudo(n) descargar aún: '+failed.join(', ')+'  — Vuelve a sincronizar en unos minutos');
 const desiredSet=new Set(desired.keys());
 for(const key of existing){if(!desiredSet.has(key)){try{await idb.del(key);removed++}catch(e){}}}
 if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
@@ -7875,7 +7876,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 337;
+const HP_BUILD = 338;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
