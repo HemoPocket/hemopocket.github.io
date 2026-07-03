@@ -7875,7 +7875,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 336;
+const HP_BUILD = 337;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12837,7 +12837,14 @@ function hpClean(s){return s.replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,
 function hpResult(orig,idx){return hpClean(hpLine(orig,idx)).replace(/^[:=\-\s]+/,'').trim();}
 function hpAfterDate(orig,fromIdx,maxScan){const win=orig.slice(fromIdx,fromIdx+(maxScan||300));const dm=win.match(/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\s+\d{1,2}:\d{2}(?::\d{2})?/)||win.match(/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}/);if(!dm)return '';let after=win.slice(dm.index+dm[0].length);const nl=after.search(/[\n\r]/);if(nl>=0)after=after.slice(0,nl);return hpClean(after).replace(/^[:=\-\s]+/,'').trim();}
 function hpValUnit(orig,folded,rs,re,labelRe){const region=folded.slice(rs,re);const mm=region.match(labelRe);if(!mm)return '';const abs=rs+mm.index+mm[0].length;const s=hpLine(orig,abs).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/[↑↓▲▼]/g,' ').replace(/\([^)]*\)/g,p=>/[a-z]/i.test(p)?' ':p).replace(/\s+/g,' ').trim();const vm=s.match(/([<>]?\s*\d+(?:[.,]\d+)?)\s*([A-Za-zµ%][A-Za-zµ%\/]*)?/);if(!vm)return '';return (vm[1].replace(/\s+/g,'')+(vm[2]?' '+vm[2]:'')).trim();}
-function parseCoombs(orig,folded,rs,re){const region=folded.slice(rs,re);const comps=[{a:'IgG',p:/tadm[\s\-]*igg/},{a:'IgM',p:/tadm[\s\-]*igm/},{a:'C3',p:/tadm[\s\-]*c3/},{a:'C4',p:/tadm[\s\-]*c4/}];const parts=[];comps.forEach(c=>{const mm=region.match(c.p);if(!mm)return;const r=hpResult(orig,rs+mm.index+mm[0].length).toLowerCase();if(r)parts.push(c.a+' '+r);});let iga='';const im=region.match(/\biga\b/);if(im){const r2=hpResult(orig,rs+im.index+im[0].length).toLowerCase();if(r2)iga='IgA '+r2;}if(!parts.length&&!iga){const cm=region.match(/coombs directo|antiglobulina directa/);if(cm){const rc=hpResult(orig,rs+cm.index+cm[0].length).toLowerCase();if(rc)return rc;}return '';}let out=parts.join(', ');if(iga)out+='. '+iga;return out;}
+function parseCoombs(orig,folded,rs,re){const region=folded.slice(rs,re);
+// Resultado global de la fila "TEST DE COOMBS DIRECTO" (p.ej. POSITIVO/NEGATIVO)
+let globalRes='';const cdM=region.match(/test de coombs directo/);if(cdM){const gr=hpResult(orig,rs+cdM.index+cdM[0].length).toLowerCase();if(/positiv|negativ/.test(gr))globalRes=gr;}
+// Componentes TADM monoespecíficos
+const comps=[{a:'IgG',p:/tadm[\s\-]*igg/},{a:'IgM',p:/tadm[\s\-]*igm/},{a:'C3',p:/tadm[\s\-]*c3/},{a:'C4',p:/tadm[\s\-]*c4/}];const parts=[];comps.forEach(c=>{const mm=region.match(c.p);if(!mm)return;let r=hpResult(orig,rs+mm.index+mm[0].length).toLowerCase();if(r)parts.push(c.a+' '+r);});let iga='';const im=region.match(/\biga\b/);if(im){const r2=hpResult(orig,rs+im.index+im[0].length).toLowerCase();if(r2)iga='IgA '+r2;}
+if(!parts.length&&!iga){if(globalRes)return globalRes;const cm=region.match(/coombs directo|antiglobulina directa/);if(cm){const rc=hpResult(orig,rs+cm.index+cm[0].length).toLowerCase();if(rc)return rc;}return '';}
+let detail=parts.join(', ');if(iga)detail+=(detail?', ':'')+iga;
+return globalRes?globalRes+' ('+detail+')':detail;}
 const AUTOINM_BLOCK=[{a:'Ac. Antinucleares (ANAs)'},{a:'Ac. Anticardiolipina'},{a:'Ac. B2 glicoproteina'},{a:'Anticoagulante lúpico'}];
 // Panel ampliado de autoinmunidad: cada anticuerpo con su patrón (folded). Orden = específico→genérico.
 const AUTOINM_AB=[
