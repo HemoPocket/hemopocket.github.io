@@ -6876,6 +6876,22 @@ for(const key of existing){if(!desiredSet.has(key)){try{await idb.del(key);remov
 if((added||removed)){const v=S.view;if(v&&v.indexOf('g_')===0)go(v);}
 };
 
+// Listener en tiempo real de la colección 'guias': dispara syncCloudGuides al detectar cambios.
+let _hpGuidesUnsub=null;
+window.hpStartGuidesListener=function(){
+  if(_hpGuidesUnsub||!window.__hpUid)return;
+  let _first=true;
+  try{
+    _hpGuidesUnsub=onSnapshot(collection(fs,'guias'),snap=>{
+      if(_first){_first=false;return;}
+      if(snap.docChanges().length&&window.syncCloudGuides&&navigator.onLine)syncCloudGuides(true);
+    },()=>{_hpGuidesUnsub=null;});
+  }catch(e){}
+};
+window.hpStopGuidesListener=function(){
+  if(_hpGuidesUnsub){try{_hpGuidesUnsub();}catch(e){}  _hpGuidesUnsub=null;}
+};
+
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
 window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpUpdateRevBadge)window.hpUpdateRevBadge();if(window.hpLoadPushState)window.hpLoadPushState();if(window.hpUpdateBrand)window.hpUpdateBrand();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
@@ -7859,7 +7875,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 335;
+const HP_BUILD = 336;
 const APP_BUILD = '2026.07.02 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14560,7 +14576,7 @@ document.addEventListener('DOMContentLoaded', function() {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 import { getMessaging, getToken, isSupported, deleteToken } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -14908,6 +14924,7 @@ function revealAndEnter(user){
   (async () => { try { const s = await getDoc(doc(fs,'cuentas',user.uid)); window.__hpCentro = (s.exists() && s.data().centro) ? s.data().centro : 'hunsc'; if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||''); if(window.hpUpdateBrand) window.hpUpdateBrand(); try{ if(navigator.onLine) setDoc(doc(fs,'usuarios',user.uid), { centro: window.__hpCentro }, { merge:true }); }catch(e){} } catch(e){ window.__hpCentro='hunsc'; if(window.hpUpdateBrand) window.hpUpdateBrand(); } })();
   HemoCloud.loadRole(user.uid).then(() => { if (window.hpOnRoleLoaded) window.hpOnRoleLoaded(); });
   if (window.syncCloudGuides) setTimeout(() => window.syncCloudGuides(true), 800);
+  if (window.hpStartGuidesListener) setTimeout(() => window.hpStartGuidesListener(), 1200);
   if (window.hpSyncColaboradores) setTimeout(() => window.hpSyncColaboradores(), 900);
   if (window.hpSyncDirectorio) setTimeout(() => window.hpSyncDirectorio(), 1100);
   if (window.hpSyncAviso) setTimeout(() => window.hpSyncAviso(), 1150);
@@ -15476,6 +15493,7 @@ onAuthStateChanged(auth, user => {
     curUid = null;
     window.__hpUid = null;
     HemoCloud.role = null;
+    if (window.hpStopGuidesListener) window.hpStopGuidesListener();
     pending = {};
     hidePending();
     const everLogged = !!(window.hpEverValidated && window.hpEverValidated());
