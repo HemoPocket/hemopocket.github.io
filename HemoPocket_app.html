@@ -1413,7 +1413,7 @@ function hpCanEditPage(id){ if(!hpPageEditable(id)) return false; const sec=hpPa
 function hpCanEditRed(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&(window.HemoCloud.canEdit('asist_red')||window.HemoCloud.canEdit('asistentes'))))); }
 function hpCanEditQt(){ return !!(window.HemoCloud && ((window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()) || (window.HemoCloud.canEdit&&(window.HemoCloud.canEdit('asist_qt')||window.HemoCloud.canEdit('asistentes'))))); }
 // Listín telefónico: editable por administradores y por cualquier editor (de cualquier sección).
-function hpCanEditDir(){ return !!(window.HemoCloud && window.HemoCloud.isEditor && window.HemoCloud.isEditor()); }
+function hpCanEditDir(){ return !!(window.__hpUid); }
 function hpPages(){ try{ return ls.g('pageOv')||{}; }catch(e){ return {}; } }
 window.hpApplyPages=function(map){ try{ ls.s('pageOv', map||{}); }catch(e){} };
 // ¿Es INTERACTIVA la vista? (calculadora/score con formulario, algoritmo con recuadros EB o con
@@ -7880,7 +7880,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 341;
+const HP_BUILD = 342;
 const APP_BUILD = '2026.07.04 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10650,7 +10650,7 @@ copy(v);
 
 
 VIEWS.phone=()=>{
-const _adm=hpCanEditDir()&&hpEditing();
+const _adm=hpCanEditDir();
 return `<div class="card">
 <h2>Listín Telefónico</h2>
 <p class="intro">Directorio de extensiones de <strong>${_hpEsc(hpCentroNombre(hpUserCentro()))}</strong>, agrupado por servicio. Cada hospital tiene su propio listín. Usa el buscador para filtrar por servicio, ubicación o extensión.</p>
@@ -10670,7 +10670,7 @@ const el=$('ph_list'); if(!el) return;
 const _openSvcs=new Set();
 el.querySelectorAll('.coll[data-svc]').forEach(c=>{if(c.classList.contains('open'))_openSvcs.add(c.dataset.svc);});
 const _EDIR=hpEffectiveDir();
-const _esAdm=hpCanEditDir()&&hpEditing();
+const _esAdm=hpCanEditDir();
 let groups=0, rows=0, totalRows=0, html='';
 for(const [svc,items0] of _EDIR){
   // Las entradas eliminadas (tombstone) desaparecen para TODOS, también para los editores
