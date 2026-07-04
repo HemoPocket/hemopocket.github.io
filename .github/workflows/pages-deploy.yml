@@ -1,0 +1,62 @@
+name: Deploy GitHub Pages (con reintentos)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Solo un despliegue a la vez; el nuevo cancela el anterior en cola pero no el activo.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy (intento 1)
+        id: try1
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+
+      - name: Pausa antes de reintentar
+        if: steps.try1.outcome == 'failure'
+        run: sleep 25
+
+      - name: Deploy (intento 2)
+        id: try2
+        if: steps.try1.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+
+      - name: Pausa antes de reintentar
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        run: sleep 40
+
+      - name: Deploy (intento 3)
+        id: try3
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+
+      - name: Resultado final
+        if: steps.try1.outcome == 'failure' && steps.try2.outcome == 'failure' && steps.try3.outcome == 'failure'
+        run: echo "::error::Deploy fallido tras 3 intentos (GitHub Pages infrastructure)" && exit 1
