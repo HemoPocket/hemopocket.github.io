@@ -7876,7 +7876,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 339;
+const HP_BUILD = 340;
 const APP_BUILD = '2026.07.04 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10729,6 +10729,22 @@ function hpDirChkChange(){
 }
 async function hpDelSection(btn){
   const svc=btn.dataset.svc; if(!svc) return;
+  // Si hay checkboxes marcados dentro de esta sección, borrar solo los seleccionados
+  const selInSec=Array.from(btn.closest('.coll').querySelectorAll('.dir-chk:checked'));
+  if(selInSec.length>0){
+    const ids=selInSec.map(c=>c.dataset.id).filter(Boolean);
+    if(!confirm('¿Eliminar '+ids.length+' entrada'+(ids.length===1?'':'s')+' seleccionada'+(ids.length===1?'':'s')+' de "'+svc+'"?\nEsta acción no se puede deshacer.')) return;
+    const m=hpDirAdd(); const saves=[],dels=[];
+    for(const id of ids){
+      if(id.startsWith('og_')){ m[id]={__del:true}; if(window.hpSaveContacto) saves.push(window.hpSaveContacto(id,{__del:true}).catch(()=>{})); }
+      else { delete m[id]; if(window.hpDelContactoCloud) dels.push(window.hpDelContactoCloud(id).catch(()=>{})); }
+    }
+    try{ls.s('dirAdd',m);}catch(e){}
+    renderDir();
+    try{ await Promise.all([...saves,...dels]); toast('✓ '+ids.length+' entrada'+(ids.length===1?'':'s')+' eliminada'+(ids.length===1?'':'s')+' para todos'); }
+    catch(e){ toast('Eliminado en este equipo'); }
+    return;
+  }
   if(!confirm('¿Eliminar el apartado "'+svc+'" completo?\nTodos sus contactos desaparecerán para todos los usuarios.')) return;
   const dir=hpEffectiveDir();
   const sec=dir.find(([s])=>s===svc); if(!sec) return;
@@ -10884,6 +10900,8 @@ async function hpEditContacto(id){
   else toast('✓ Actualizado');
 }
 async function hpDelContacto(id){
+  // Si hay checkboxes marcados, el usuario quiere borrar los seleccionados (no solo este)
+  if(document.querySelectorAll('#ph_list .dir-chk:checked').length>0){ return hpDelSelected(); }
   if(!confirm('¿Eliminar esta entrada del listín para todos? Esta acción no se puede deshacer.'))return;
   const esOficial=String(id).indexOf('og_')===0;
   const m=hpDirAdd();
