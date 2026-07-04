@@ -245,8 +245,12 @@ body.hp-editing #hp-edit-banner{display:flex;align-items:center;gap:10px;backgro
 .eb-edit{cursor:pointer;outline:1px dashed var(--c2,#1d4ed8);outline-offset:3px;border-radius:6px}
 .eb-edit:hover{background:rgba(29,78,216,.06)}
 .eb-edit::after{content:'✏️ tocar para editar';display:inline-block;margin-top:6px;font-size:10.5px;color:var(--c2,#1d4ed8);font-weight:600}
-#hp-edit-tb{align-items:center;gap:4px;border:1px solid var(--bd);background:var(--card);color:var(--c2,#1d4ed8);border-radius:16px;padding:5px 12px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
-#hp-edit-tb.on{background:#1d8a4e;color:#fff;border-color:#1d8a4e}
+#hp-edit-tb{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--bd);border-radius:50%;color:var(--mut);cursor:pointer;transition:.18s;padding:0;font-family:inherit;flex-shrink:0}
+#hp-edit-tb:hover{border-color:var(--c2);color:var(--c2);box-shadow:var(--shd)}
+#hp-edit-tb svg{width:18px;height:18px;display:block}
+#hp-edit-tb.on{color:#1d8a4e;border-color:#1d8a4e}
+[data-t="dark"] #hp-edit-tb.on{color:#4ade80;border-color:#4ade80}
+[data-t="dark"] #hp-edit-tb:hover{color:var(--c2l);border-color:var(--c2l)}
 .ed-chip{font-size:11px;color:#fff;border-radius:10px;padding:2px 8px;font-weight:600;line-height:1.4}
 .ed-actions{position:sticky;bottom:0;display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;padding:10px 0 6px;background:var(--card,#fff);border-top:1px solid var(--bd);z-index:5}
 #pg-grip:active{cursor:grabbing}
@@ -873,7 +877,7 @@ function hpEditFab(){
   try{ document.body.classList.toggle('hp-editing', on); }catch(e){}
   b.className=on?'on':'';
   b.title=on?'Estás editando · toca para salir':'Activar modo edición';
-  b.textContent=on?'✓ Editando':'✏️ Editar';
+  b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
 }
 // ── «➕ Añadir» unificado por sección: un único punto para crear calculadora / algoritmo /
 // información / subir guía, en lugar de botones dispersos. ──
@@ -7876,7 +7880,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 340;
+const HP_BUILD = 341;
 const APP_BUILD = '2026.07.04 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
