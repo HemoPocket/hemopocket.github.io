@@ -1053,8 +1053,9 @@ async function hpTplRestore(){
 function upPt(k,v){S.p[k]=v;ls.s('patient',S.p)}
 function toggleTheme(){S.theme=S.theme==='light'?'dark':'light';document.documentElement.dataset.t=S.theme;ls.s('theme',S.theme)}
 function mostrarInicio(){go('home')}
-function openSb(){$('sb').classList.add('open');$('sb_bg').classList.add('show')}
-function closeSb(){$('sb').classList.remove('open');$('sb_bg').classList.remove('show')}
+var _sbTimer=null;
+function openSb(){$('sb').classList.add('open');$('sb_bg').classList.add('show');clearTimeout(_sbTimer);_sbTimer=setTimeout(closeSb,5*60*1000);}
+function closeSb(){$('sb').classList.remove('open');$('sb_bg').classList.remove('show');clearTimeout(_sbTimer);_sbTimer=null;}
 function isRecentlyNew(d){
 if(!d)return false;
 const seen=ls.g('lastSeen')||0;
@@ -7880,7 +7881,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 342;
+const HP_BUILD = 343;
 const APP_BUILD = '2026.07.04 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
