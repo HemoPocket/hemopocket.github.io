@@ -187,6 +187,7 @@ body.view-home .app-footer{padding-bottom:18px}
 .btn-g{background:var(--ok)}
 .btn-out{background:transparent;color:var(--c2);border:1px solid var(--c2)}
 [data-t="dark"] .btn-out{color:var(--c2l);border-color:var(--c2l)}
+.btn-out.on{background:#1d8a4e;color:#fff;border-color:#1d8a4e}
 .btn-sm{padding:6px 11px;font-size:12px}
 .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .res{margin-top:14px;padding:16px 18px;border-radius:var(--r);border:1px solid var(--bd);border-left:4px solid var(--c2);background:rgba(2,132,199,.06)}
@@ -7881,7 +7882,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 343;
+const HP_BUILD = 344;
 const APP_BUILD = '2026.07.04 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10650,12 +10651,22 @@ copy(v);
 }
 
 
+var _hpDirEditing=false;
+function hpToggleDirEdit(){
+  _hpDirEditing=!_hpDirEditing;
+  var b=document.getElementById('hp_dir_edit_btn');
+  if(b){b.textContent=_hpDirEditing?'✓ Salir de edición':'✏️ Editar';b.classList.toggle('on',_hpDirEditing);}
+  var a=document.getElementById('hp_dir_add_btn');
+  if(a) a.style.display=_hpDirEditing?'':'none';
+  renderDir();
+}
 VIEWS.phone=()=>{
-const _adm=hpCanEditDir();
+_hpDirEditing=false;
+const _canEdit=hpCanEditDir();
 return `<div class="card">
 <h2>Listín Telefónico</h2>
 <p class="intro">Directorio de extensiones de <strong>${_hpEsc(hpCentroNombre(hpUserCentro()))}</strong>, agrupado por servicio. Cada hospital tiene su propio listín. Usa el buscador para filtrar por servicio, ubicación o extensión.</p>
-${_adm?'<button class="btn btn-out btn-sm" style="margin-bottom:10px" onclick="hpAddContacto()">➕ Añadir contacto</button>':''}
+${_canEdit?'<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><button id="hp_dir_edit_btn" class="btn btn-out btn-sm" onclick="hpToggleDirEdit()">✏️ Editar</button><button id="hp_dir_add_btn" class="btn btn-out btn-sm" style="display:none" onclick="hpAddContacto()">➕ Añadir contacto</button></div>':''}
 <div class="search-wrap"><input type="text" class="search" id="ph_q" placeholder="Buscar servicio, descripción, planta o extensión..." oninput="renderDir()"></div>
 <div id="ph_meta" style="font-size:12px;color:var(--mut);margin:-4px 0 10px"></div>
 <div id="ph_list"></div>
@@ -10671,7 +10682,7 @@ const el=$('ph_list'); if(!el) return;
 const _openSvcs=new Set();
 el.querySelectorAll('.coll[data-svc]').forEach(c=>{if(c.classList.contains('open'))_openSvcs.add(c.dataset.svc);});
 const _EDIR=hpEffectiveDir();
-const _esAdm=hpCanEditDir();
+const _esAdm=hpCanEditDir()&&_hpDirEditing;
 let groups=0, rows=0, totalRows=0, html='';
 for(const [svc,items0] of _EDIR){
   // Las entradas eliminadas (tombstone) desaparecen para TODOS, también para los editores
@@ -10687,7 +10698,7 @@ for(const [svc,items0] of _EDIR){
   // Abrir si: hay búsqueda activa, o el apartado estaba abierto antes de redibujar
   const open = (q || _openSvcs.has(svc)) ? ' open' : '';
   // Botón para borrar el apartado completo (solo modo edición)
-  const svcDelBtn = _esAdm ? `<button class="dir-ext-btn" style="color:#c41e3a;margin-left:6px;padding:2px 7px;font-size:15px;line-height:1.2" onclick="event.stopPropagation();hpDelSection(this)" data-svc="${_hpEsc(svc)}" title="Eliminar apartado completo">\u{1F5D1}</button>` : '';
+  const svcDelBtn = _esAdm ? `<button class="dir-ext-btn" style="color:#c41e3a;margin-left:6px;padding:2px 7px;font-size:15px;line-height:1.2" onclick="event.stopPropagation();hpDelSection(this)" data-svc="${_hpEsc(svc)}" title="Eliminar apartado completo">×</button>` : '';
   let inner='<div class="dir-rows">';
   for(const [d,l,t,s,cid,fl] of matched){
     const flags=fl||{};
