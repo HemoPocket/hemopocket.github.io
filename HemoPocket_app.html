@@ -7099,9 +7099,16 @@ const r=await fetch(params.url);
 if(!r.ok)throw new Error('HTTP '+r.status);
 data={blob:await r.blob(),name:params.name||'PDF'};
 }catch(e){
+// El SW puede no estar controlando la página aún (ej: acaba de actualizarse).
+// Intentamos leer directamente del caché del navegador antes de mostrar error.
+let _cr=null;
+try{if('caches' in self)_cr=await caches.match(params.url);}catch(e2){}
+if(_cr&&_cr.ok){data={blob:await _cr.blob(),name:params.name||'PDF'};}
+else{
 $('vw_title').textContent='No disponible';
 $('vw_pages').innerHTML=`<div class="viewer-error">No se pudo abrir el PDF.<br><small>${e.message}. Si estás sin conexión y no se había abierto nunca, conéctate una vez para guardarlo en el dispositivo.</small></div>`;
 return;
+}
 }
 }else{
 try{data=await idb.get(params.key)}catch(e){
@@ -7882,8 +7889,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 344;
-const APP_BUILD = '2026.07.04 (build ' + HP_BUILD + ')';
+const HP_BUILD = 345;
+const APP_BUILD = '2026.07.08 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
