@@ -7882,7 +7882,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 345;
+const HP_BUILD = 346;
 const APP_BUILD = '2026.07.08 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10726,8 +10726,9 @@ for(const [svc,items0] of _EDIR){
   groups++; rows+=matched.length;
   // Abrir si: hay búsqueda activa, o el apartado estaba abierto antes de redibujar
   const open = (q || _openSvcs.has(svc)) ? ' open' : '';
-  // Botón para borrar el apartado completo (solo modo edición)
-  const svcDelBtn = _esAdm ? `<button class="dir-ext-btn" style="color:#c41e3a;margin-left:6px;padding:2px 7px;font-size:15px;line-height:1.2" onclick="event.stopPropagation();hpDelSection(this)" data-svc="${_hpEsc(svc)}" title="Eliminar apartado completo">×</button>` : '';
+  // Botones de sección (solo modo edición): renombrar el apartado y borrarlo completo.
+  const svcRenBtn = _esAdm ? `<button class="dir-ext-btn" style="margin-left:6px;padding:2px 7px;font-size:13px;line-height:1.2" onclick="event.stopPropagation();hpRenameSection(this)" data-svc="${_hpEsc(svc)}" title="Renombrar apartado">✏️</button>` : '';
+  const svcDelBtn = _esAdm ? `<button class="dir-ext-btn" style="color:#c41e3a;margin-left:4px;padding:2px 7px;font-size:15px;line-height:1.2" onclick="event.stopPropagation();hpDelSection(this)" data-svc="${_hpEsc(svc)}" title="Eliminar apartado completo">×</button>` : '';
   let inner='<div class="dir-rows">';
   for(const [d,l,t,s,cid,fl] of matched){
     const flags=fl||{};
@@ -10751,7 +10752,7 @@ for(const [svc,items0] of _EDIR){
   inner+='</div>';
   html+=`<div class="coll${open}" data-svc="${_hpEsc(svc)}">
     <div class="coll-h" onclick="this.parentElement.classList.toggle('open')">
-      <span>${_hpEsc(_hpTitle(svc))} <span class="dir-count">${matched.length}</span>${svcDelBtn}</span><span class="ar">▶</span>
+      <span>${_hpEsc(_hpTitle(svc))} <span class="dir-count">${matched.length}</span>${svcRenBtn}${svcDelBtn}</span><span class="ar">▶</span>
     </div>
     <div class="coll-c">${inner}</div>
   </div>`;
@@ -10768,6 +10769,29 @@ function hpDirChkChange(){
   const n=document.querySelectorAll('#ph_list .dir-chk:checked').length;
   bar.style.display=n?'flex':'none';
   const c=$('ph_sel_count'); if(c) c.textContent=n+' seleccionad'+(n===1?'o':'os');
+}
+// Renombrar un apartado completo: reescribe el 'servicio' de todos sus contactos (oficiales y
+// añadidos) al nuevo nombre, de modo que se reagrupan bajo él. Efectivo para todos.
+async function hpRenameSection(btn){
+  const svc=btn.dataset.svc; if(!svc) return;
+  let nn=prompt('Nuevo nombre del apartado:', svc); if(nn==null) return; nn=(''+nn).trim();
+  if(!nn || nn===svc) return;
+  const dir=hpEffectiveDir();
+  const sec=dir.find(function(x){return x[0]===svc;}); if(!sec) return;
+  const rows=sec[1].filter(function(it){return !(it[5]&&it[5].del);});
+  const m=hpDirAdd(); const saves=[];
+  for(const row of rows){
+    const d=row[0], l=row[1], t=row[2], s=row[3], cid=row[4];
+    if(!cid) continue;
+    const _pc=(m[cid]&&m[cid].centro)||(String(cid).indexOf('og_')===0?hpCasaCentro():hpUserCentro());
+    const data={nombre:(d==='—'?'':d), servicio:nn, ext:s||'', tel:t||'', loc:l||'', centro:_pc};
+    m[cid]=data;
+    if(window.hpSaveContacto) saves.push(window.hpSaveContacto(cid,data).catch(function(){}));
+  }
+  try{ls.s('dirAdd',m);}catch(e){}
+  renderDir();
+  try{ await Promise.all(saves); toast('✓ Apartado renombrado para todos'); }
+  catch(e){ toast('Renombrado en este equipo'); }
 }
 async function hpDelSection(btn){
   const svc=btn.dataset.svc; if(!svc) return;
@@ -14082,6 +14106,9 @@ function _hpSafeRerender(){
     if(document.getElementById('eb-modal')||document.getElementById('add-modal')||document.getElementById('hp-tpl-modal')||document.getElementById('page-edit-area')||document.getElementById('eb-edit-area')) return false;
     var ae=document.activeElement; if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable)) return false;
     var v=(typeof S!=='undefined'&&S&&S.view)||''; if(/edit$/.test(String(v))) return false;
+    // No re-pintar el listín mientras se edita (modo edición activo): resetearía el modo y
+    // cerraría todos los apartados abiertos. Se refresca solo al salir de edición.
+    if(v==='phone' && typeof _hpDirEditing!=='undefined' && _hpDirEditing) return false;
     return true;
   }catch(e){ return false; }
 }
