@@ -7241,8 +7241,34 @@ function vwSetZoom(z){
   }
   const lbl=$('vw_zlabel');if(lbl)lbl.textContent=Math.round(_vwZoom*100)+'%';
 }
-function vwZoom(dir){vwSetZoom(_vwZoom+dir*0.25);}
-function vwZoomReset(){vwSetZoom(1);}
+// Cambia el zoom SIN saltar de página. Ancla la página que está en el centro del visor y la
+// fracción vertical dentro de ella; tras reescalar, vuelve exactamente a ese punto. Es
+// independiente de los huecos fijos entre páginas (que no escalan con el zoom), a diferencia
+// de una compensación por proporción simple. Antes, el zoom por botones no ajustaba el scroll y
+// la vista saltaba a otra página.
+function vwZoomAround(newZoom){
+  const c=window._vwContainer||$('vw_pages');
+  if(!c){vwSetZoom(newZoom);return;}
+  const r=c.getBoundingClientRect();
+  const midY=r.top+r.height/2;
+  // Ancla vertical: página en el centro + fracción dentro de ella.
+  let anchor=null,frac=0;
+  const pages=c.querySelectorAll('.viewer-page-placeholder');
+  pages.forEach(p=>{const pr=p.getBoundingClientRect();if(anchor===null&&pr.bottom>=midY){anchor=p;frac=Math.min(1,Math.max(0,(midY-pr.top)/(pr.height||1)));}});
+  // Ancla horizontal: centro proporcional al ancho del contenido.
+  const prevW=c.scrollWidth||1, hx=c.scrollLeft+r.width/2;
+  vwSetZoom(newZoom);
+  if(anchor){
+    const r2=c.getBoundingClientRect(), pr2=anchor.getBoundingClientRect();
+    const pageTop=pr2.top-r2.top+c.scrollTop;
+    c.scrollTop=Math.max(0, pageTop+frac*(pr2.height||1)-r2.height/2);
+  }
+  const nw=c.scrollWidth||1;
+  c.scrollLeft=Math.max(0, hx*(nw/prevW)-r.width/2);
+  vwUpdateCurrentPage();
+}
+function vwZoom(dir){vwZoomAround(_vwZoom+dir*0.25);}
+function vwZoomReset(){vwZoomAround(1);}
 // Navegación a página concreta (como Adobe)
 function vwGoToPage(n){
   const c=window._vwContainer;if(!c)return;
@@ -7882,7 +7908,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 347;
+const HP_BUILD = 348;
 const APP_BUILD = '2026.07.08 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
