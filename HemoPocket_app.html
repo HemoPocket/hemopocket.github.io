@@ -450,9 +450,12 @@ body{font-size:13px}
 .verify-note svg{flex:0 0 auto;opacity:.9}
 .cl-subhead{margin:16px 4px 2px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
 /* === Auth overlay === */
-#hp-auth-overlay{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+/* overflow-y:auto + margen automático en la tarjeta: se centra cuando cabe y, cuando el formulario
+   de registro es más alto que la pantalla (iPhone), permite hacer SCROLL hasta el botón de crear
+   cuenta en vez de recortar el contenido. align-items:center recortaba el borde superior en iOS. */
+#hp-auth-overlay{position:fixed;inset:0;z-index:20000;display:flex;justify-content:center;padding:20px;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
 #hp-auth-overlay.hidden{display:none}
-.hp-login-card{background:var(--card);border-radius:var(--r);padding:32px 28px;width:100%;max-width:360px;box-shadow:var(--shd2);text-align:center}
+.hp-login-card{background:var(--card);border-radius:var(--r);padding:32px 28px;width:100%;max-width:360px;box-shadow:var(--shd2);text-align:center;margin:auto 0}
 .hp-login-title{font-size:22px;font-weight:700;color:var(--c2);margin:0 0 3px}
 [data-t="dark"] .hp-login-title{color:var(--c2l)}
 .hp-login-sub{font-size:12px;color:var(--mut);margin:0 0 24px}
@@ -7908,8 +7911,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 348;
-const APP_BUILD = '2026.07.08 (build ' + HP_BUILD + ')';
+const HP_BUILD = 349;
+const APP_BUILD = '2026.07.09 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
