@@ -1378,7 +1378,7 @@ const VIEWS={};
 // Para retirar la nota de un apartado cuando esté validado, añade aquí su id.
 const HP_VERIFIED=new Set(['bsa','cacorr','labconv','cnsipi','ripi','ecog','g8','disc_abo','aaii','panag','trans_ch','trans_pq','trans_pfc','pre_op','g_inf','g_uh','g_th','g_bs','g_cart','g_cito','g_leuc_ag','g_mieloide','g_mm','g_lf','g_llc','g_ped']);
 // Vistas de utilidad (no son contenido clínico) → nunca llevan la nota.
-const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit']);
+const HP_NO_BANNER=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','lcprof','rxedit','pageedit']);
 // Fechas de "última actualización" para apartados sin campo new:/upd: en el MENU.
 const HP_UPD_DATES={
 'qtc':'2026-04-01','crcl':'2026-04-01','obw':'2026-04-01','bsa':'2026-04-01','cb':'2026-04-01','qt':'2026-04-01',
@@ -1408,7 +1408,7 @@ const HP_UPD_DATES={
 // uno al entrar y otro al pulsar. Sus textos se editan con los recuadros en línea (EB), no con el
 // override de página. Algoritmos interactivos: nf, disc_abo, panag, coag_alt, reversion, bridging,
 // hemof_urg, atb, rotem.
-const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','rxedit','pageedit','qt','labconv','checklist','nf','disc_abo','panag','coag_alt','reversion','bridging','hemof_urg','atb','rotem']);
+const HP_NOPAGE=new Set(['home','equipo','sync','phone','viewer','acerca','solicitudes','reportes','gsecciones','cambios','propuestas','vismap','calc','calcedit','algo','algoedit','info','infoedit','checklistedit','qtedit','qtgroups','lcedit','lcprof','rxedit','pageedit','qt','labconv','checklist','nf','disc_abo','panag','coag_alt','reversion','bridging','hemof_urg','atb','rotem']);
 function hpPageEditable(id){ return !!id && !HP_NOPAGE.has(id) && id.indexOf('g_')!==0; }
 let _hpPageSec=null;
 function _hpPageSecMap(){ if(_hpPageSec) return _hpPageSec; const m={}; try{ MENU.forEach(function(sec){ const gi=sec.items.find(function(it){return it.id&&it.id.indexOf('g_')===0;}); const sid=gi?gi.id.slice(2):null; sec.items.forEach(function(it){ if(it.id) m[it.id]=sid; }); }); }catch(e){} _hpPageSec=m; return m; }
@@ -7911,7 +7911,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 350;
+const HP_BUILD = 351;
 const APP_BUILD = '2026.07.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13137,13 +13137,26 @@ function _lcMigrate(ov){
 function lcFmt(){ try{ const loc=ls.g('lcFmt'); if(loc) return Object.assign({sep:'coma',date:true},loc); return Object.assign({sep:'coma',date:true},(lcOverride().fmt)||{}); }catch(e){ return {sep:'coma',date:true}; } }
 window.hpLcFmtGet=function(){ return lcFmt(); };
 window.hpLcFmtSet=function(k,v){ try{ const f=ls.g('lcFmt')||{}; f[k]=v; ls.s('lcFmt',f); }catch(e){} };
+// ── Perfiles de campos del asistente de redacción (PROPIOS de cada usuario, en su dispositivo) ──
+// Cada perfil define qué parámetros aparecen (p. ej. «Citopenias» con hemograma completo, «General»
+// más básico). vis = { 'Hb':true, 'Hto':false, … } sobre la config del hospital. No se comparte.
+function lcProfiles(){ try{ const o=ls.g('lcProfiles'); return (o&&typeof o==='object'&&Array.isArray(o.list))?o:{active:'',list:[]}; }catch(e){ return {active:'',list:[]}; } }
+function lcProfilesSet(o){ try{ ls.s('lcProfiles', o||{active:'',list:[]}); }catch(e){} }
+function lcActiveProfile(){ const o=lcProfiles(); if(!o.active) return null; return (o.list||[]).filter(function(p){return p&&p.id===o.active;})[0]||null; }
+function lcSetActiveProfile(id){ const o=lcProfiles(); o.active=id||''; if(id&&!(o.list||[]).some(function(p){return p&&p.id===id;})) o.active=''; lcProfilesSet(o); }
+// Visibilidad EFECTIVA de un parámetro según la config del hospital (sin perfil): usada como base.
+function _lcBaseVisible(a){ const hidden=(lcOverride().hidden)||{}; if(a in hidden) return !hidden[a]; const e=DICT.filter(function(x){return x.a===a;})[0]; return e?!e.defHidden:true; }
 function _lcSyn(s){ try{ return foldText(s).trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }catch(e){ return (''+s).toLowerCase().trim(); } }
 function _lcSynLoose(s){ try{ return foldText(s).trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/[-\s]+/g,'[\\s\\-]*'); }catch(e){ return ''; } }
 function _lcA(s){ return (''+s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function lcDict(){
   const ov=lcOverride(); const syn=ov.syn||{}; const hidden=ov.hidden||{}; const out=[];
-  DICT.forEach(function(e){ if((e.a in hidden)?hidden[e.a]:!!e.defHidden) return; const cp=Object.assign({},e); if(syn[e.a]&&syn[e.a].length){ const extra=syn[e.a].map(_lcSyn).filter(Boolean); if(extra.length) cp.pats=e.pats.concat(extra); } out.push(cp); });
-  (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(p.a+'').trim()){ if(hidden[p.a]) return; const pats=[_lcSynLoose(p.a)].concat((p.pats||[]).map(_lcSyn)).filter(Boolean); if(pats.length) out.push({a:p.a,u:p.u||'',c:p.c||'bioquimica',k:(p.k==='sero'?'sero':'num'),pats:pats}); } });
+  // Perfil activo del usuario: su visibilidad manda sobre la config del hospital (permite mostrar
+  // parámetros ocultos por defecto —p. ej. hemograma completo en citopenias— u ocultar otros).
+  const prof=lcActiveProfile(); const pv=(prof&&prof.vis)||null;
+  const _show=function(a,defHidden){ if(pv&&(a in pv)) return !!pv[a]; return (a in hidden)?!hidden[a]:!defHidden; };
+  DICT.forEach(function(e){ if(!_show(e.a,!!e.defHidden)) return; const cp=Object.assign({},e); if(syn[e.a]&&syn[e.a].length){ const extra=syn[e.a].map(_lcSyn).filter(Boolean); if(extra.length) cp.pats=e.pats.concat(extra); } out.push(cp); });
+  (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(p.a+'').trim()){ if(!_show(p.a,false)) return; const pats=[_lcSynLoose(p.a)].concat((p.pats||[]).map(_lcSyn)).filter(Boolean); if(pats.length) out.push({a:p.a,u:p.u||'',c:p.c||'bioquimica',k:(p.k==='sero'?'sero':'num'),pats:pats}); } });
   return out;
 }
 function lcCatLabel(){ return Object.assign({}, CAT_LABEL, (lcOverride().catLabel||{})); }
@@ -13217,6 +13230,69 @@ window.lcEditOpen=lcEditOpen; window.lcSynField=lcSynField; window.lcToggleHide=
 window.lcDelCustom=lcDelCustom; window.lcAddCustom=lcAddCustom; window.lcCatLabelField=lcCatLabelField; window.lcCustomToggle=lcCustomToggle;
 window.lcMoveCat=lcMoveCat; window.lcAddCat=lcAddCat; window.lcDelCat=lcDelCat; window.lcFmtField=lcFmtField; window.lcEditCancelar=lcEditCancelar; window.lcEditReset=lcEditReset;
 window.lcEditGuardar=lcEditGuardar;
+
+// ── PERFILES de campos del asistente (por usuario). Definidos DENTRO de la IIFE para poder usar
+// lcProfiles/lcOverride/DICT/lcCatOrder/_lcBaseVisible; los manejadores se exponen a window abajo. ──
+let _lcProfDraft=null;
+function _lcId(){ return 'p'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
+function lcProfileOptions(){
+  const o=lcProfiles(); let s='<option value="">— Todos (config. del hospital) —</option>';
+  (o.list||[]).forEach(function(p){ if(p&&p.id) s+='<option value="'+_hpEsc(p.id)+'"'+(o.active===p.id?' selected':'')+'>'+_hpEsc(p.name||'(sin nombre)')+'</option>'; });
+  return s;
+}
+function lcSetProfile(id){ lcSetActiveProfile(id); try{ if($('lc_in')&&$('lc_in').value.trim()) window.runAssistant(); }catch(e){} }
+VIEWS.lcprof=function(){
+  if(_lcProfDraft) return _lcProfEditor();
+  const o=lcProfiles();
+  let h='<div class="card"><h2>👤 Perfiles de campos</h2>';
+  h+='<p class="intro">Crea perfiles para distintos tipos de consulta y elige qué parámetros aparecen en cada uno (p. ej. «Citopenias» con hemograma completo, «General» más básico). Son <strong>tuyos</strong> y solo en <strong>este dispositivo</strong>; no afectan a otros usuarios.</p>';
+  if(!(o.list||[]).length){ h+='<div class="alert b" style="font-size:13px">Aún no tienes perfiles. Crea el primero para empezar.</div>'; }
+  else { (o.list||[]).forEach(function(p){ if(!p||!p.id) return;
+    h+='<div class="team-card" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'
+      +'<span style="flex:1;min-width:120px;font-weight:600">'+_hpEsc(p.name||'(sin nombre)')+(o.active===p.id?' <span style="font-size:11px;color:var(--c2)">· activo</span>':'')+'</span>'
+      +'<button class="btn btn-out btn-sm" onclick="lcProfEdit(\''+p.id+'\')">✏️ Campos</button>'
+      +'<button class="btn btn-out btn-sm" onclick="lcProfRename(\''+p.id+'\')">Renombrar</button>'
+      +'<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcProfDelete(\''+p.id+'\')">🗑</button>'
+      +'</div>';
+  }); }
+  h+='<button class="btn btn-out btn-sm" onclick="lcProfNew()" style="margin-top:4px">➕ Crear perfil</button>';
+  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-g" onclick="go(\'labconv\')">✓ Hecho</button></div>';
+  h+='</div>'; return h;
+};
+function _lcProfEditor(){
+  const d=_lcProfDraft;
+  let h='<div class="card"><h2>👤 Perfil · '+_hpEsc(d.name||'')+'</h2>';
+  h+='<p class="intro">Marca los parámetros que quieres que aparezcan con este perfil; sin marcar = no se muestra. El asistente solo vuelca lo que pegues: esto decide qué campos salen.</p>';
+  const ov=lcOverride();
+  const byCat={}; DICT.forEach(function(e){ (byCat[e.c]=byCat[e.c]||[]).push({a:e.a,u:e.u,defHidden:!!e.defHidden}); });
+  (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(''+p.a).trim()){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push({a:p.a,u:p.u||''}); } });
+  const _isOn=function(a){ return (a in d.vis)?!!d.vis[a]:_lcBaseVisible(a); };
+  const lbl=lcCatLabel();
+  lcCatOrder().forEach(function(c){ const list=byCat[c]||[]; if(!list.length) return;
+    const onN=list.filter(function(e){return _isOn(e.a);}).length;
+    h+='<details style="margin-bottom:6px;border:1px solid var(--bd);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer;font-weight:600">'+_hpEsc(lbl[c]||c)+' <span style="font-size:11px;color:var(--mut);font-weight:400">('+onN+'/'+list.length+')</span></summary><div style="margin-top:6px">';
+    h+='<label style="display:block;font-size:11px;color:var(--mut);margin-bottom:6px;cursor:pointer"><input type="checkbox"'+(onN===list.length?' checked':'')+' onchange="lcProfSection(\''+_lcA(c)+'\',this.checked)"> marcar / desmarcar toda la sección</label>';
+    list.forEach(function(e){ h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:3px;cursor:pointer"><input type="checkbox"'+(_isOn(e.a)?' checked':'')+' onchange="lcProfToggle(\''+_lcA(e.a)+'\',this.checked)"><span>'+_hpEsc(e.a)+(e.u?' <span style="color:var(--mut);font-size:11px">'+_hpEsc(e.u)+'</span>':'')+'</span></label>'; });
+    h+='</div></details>';
+  });
+  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-out" onclick="lcProfCancel()">✖ Cancelar</button><button class="btn btn-g" onclick="lcProfSave()">💾 Guardar perfil</button></div>';
+  h+='</div>'; return h;
+}
+function lcProfNew(){
+  let n=prompt('Nombre del perfil (p. ej. «Citopenias», «General»):'); if(n==null)return; n=(''+n).trim(); if(!n)return;
+  const vis={}; DICT.forEach(function(e){ vis[e.a]=_lcBaseVisible(e.a); }); (lcOverride().custom||[]).forEach(function(p){ if(p&&p.a) vis[p.a]=_lcBaseVisible(p.a); });
+  _lcProfDraft={id:_lcId(), name:n, vis:vis}; go('lcprof');
+}
+function lcProfEdit(id){ const p=(lcProfiles().list||[]).filter(function(x){return x&&x.id===id;})[0]; if(!p){toast('Perfil no encontrado');return;} _lcProfDraft={id:p.id,name:p.name,vis:Object.assign({},p.vis||{})}; go('lcprof'); }
+function lcProfToggle(a,on){ if(_lcProfDraft) _lcProfDraft.vis[a]=!!on; }
+function lcProfSection(c,on){ if(!_lcProfDraft)return; const ov=lcOverride(); DICT.forEach(function(e){ if(e.c===c) _lcProfDraft.vis[e.a]=!!on; }); (ov.custom||[]).forEach(function(p){ if(p&&(p.c||'bioquimica')===c) _lcProfDraft.vis[p.a]=!!on; }); go('lcprof'); }
+function lcProfSave(){ const d=_lcProfDraft; if(!d)return; const o=lcProfiles(); let i=-1; (o.list||[]).forEach(function(x,ix){ if(x&&x.id===d.id) i=ix; }); const rec={id:d.id,name:d.name,vis:d.vis}; if(i>=0)o.list[i]=rec; else{ o.list=o.list||[]; o.list.push(rec); } o.active=d.id; lcProfilesSet(o); _lcProfDraft=null; toast('✓ Perfil guardado y activado'); go('labconv'); }
+function lcProfCancel(){ _lcProfDraft=null; go('lcprof'); }
+function lcProfRename(id){ const o=lcProfiles(); const p=(o.list||[]).filter(function(x){return x&&x.id===id;})[0]; if(!p)return; let n=prompt('Nuevo nombre del perfil:', p.name||''); if(n==null)return; n=(''+n).trim(); if(!n)return; p.name=n; lcProfilesSet(o); go('lcprof'); }
+function lcProfDelete(id){ if(!confirm('¿Eliminar este perfil?'))return; const o=lcProfiles(); o.list=(o.list||[]).filter(function(x){return x&&x.id!==id;}); if(o.active===id)o.active=''; lcProfilesSet(o); toast('✓ Perfil eliminado'); go('lcprof'); }
+window.lcProfileOptions=lcProfileOptions; window.lcSetProfile=lcSetProfile; window.lcProfNew=lcProfNew; window.lcProfEdit=lcProfEdit;
+window.lcProfToggle=lcProfToggle; window.lcProfSection=lcProfSection; window.lcProfSave=lcProfSave; window.lcProfCancel=lcProfCancel;
+window.lcProfRename=lcProfRename; window.lcProfDelete=lcProfDelete;
 
 })();
 
@@ -13523,6 +13599,7 @@ function setLCmode(m){LC_MODE=m;
   $('lc_out').value='';
   ph.value='';
   try{ var _el=$('lc_edit_lab'), _er=$('lc_edit_rx'); if(_el)_el.style.display=(m==='rx')?'none':''; if(_er)_er.style.display=(m==='rx')?'':'none'; }catch(e){}
+  try{ var _pb=$('lc_profbar'); if(_pb)_pb.style.display=(m==='rx')?'none':'flex'; var _pn=_pb&&_pb.nextElementSibling; if(_pn)_pn.style.display=(m==='rx')?'none':''; }catch(e){}
 }
 
 const LC_HELP_LAB=`<ul style="padding-left:18px;line-height:1.7;font-size:12.5px">
@@ -13549,6 +13626,13 @@ return `<div class="card">
 <button class="lc-tab active" data-m="lab" onclick="setLCmode('lab')">🧾 Analíticas</button>
 <button class="lc-tab" data-m="rx" onclick="setLCmode('rx')">💊 Recetas</button>
 </div>
+
+<div id="lc_profbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 2px">
+<span style="font-size:13px;color:var(--mut);white-space:nowrap">👤 Perfil de campos</span>
+<select id="lc_prof" onchange="lcSetProfile(this.value)" style="flex:1;min-width:150px;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--txt);font-size:13px;font-family:inherit">${lcProfileOptions()}</select>
+<button class="btn btn-out btn-sm" onclick="go('lcprof')" title="Crear y gestionar perfiles">⚙️ Perfiles</button>
+</div>
+<div style="font-size:11px;color:var(--mut);margin:0 0 6px">Elige qué parámetros aparecen (p. ej. «Citopenias» con hemograma completo). Es tu preferencia, solo en tu dispositivo.</div>
 
 <div class="fld"><label class="lbl">Pega aquí el texto</label>
 <textarea id="lc_in" style="min-height:160px" placeholder="Ej: Hemoglobina 8,9 g/dL (12-16)&#10;Leucocitos 12.500/uL&#10;Neutrofilos 75% / 9.400/uL&#10;Plaquetas 45.000/uL&#10;Actividad de protrombina 65%&#10;Glucemia 110 mg/dl ..."></textarea></div>
