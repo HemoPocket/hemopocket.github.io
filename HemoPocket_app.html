@@ -1273,7 +1273,7 @@ const f=filter.toLowerCase().trim();
 const favs=S.favs.filter(function(id){var it=getAll().find(function(x){return x.id===id;});return it && _hpItemAllowed(it) && !hpItemOculto(id) && !(id.indexOf('g_')===0 && !hpSecVisibleUser(id.slice(2))) && (id.indexOf('g_')===0 || hpItemVisibleUser(id));}).slice(0,4);
 let h='';
 if(favs.length){
-h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px">Acceso Rápido</div>';
+h+='<div class="menu-section"><div style="font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;padding:8px 6px 4px;letter-spacing:.5px">★ Tus favoritos</div>';
 favs.forEach(id=>{const it=getAll().find(x=>x.id===id);if(it)h+=`<div class="menu-item ${S.view===id?'active':''}" onclick="goM('${id}')"><span>${it.name}</span></div>`});
 h+='</div>';
 }
@@ -1326,7 +1326,7 @@ function toggleSec(i){ hpToggleSecKey('h:'+(MENU[i].h||''), MENU[i].o); }
 // Navegación desde el menú. El panel se cierra en móvil (para leer el contenido); la SECCIÓN abierta
 // se recuerda, así que al reabrir el menú sigue desplegada.
 function goM(id){ go(id); }
-function toggleFav(id){const i=S.favs.indexOf(id);if(i>=0)S.favs.splice(i,1);else if(S.favs.length<4)S.favs.push(id);else{toast('Máx 4 favoritos. Quita uno primero.');return}ls.s('favs',S.favs);renderMenu($('search').value)}
+function toggleFav(id){const i=S.favs.indexOf(id);if(i>=0){S.favs.splice(i,1);toast('Quitado de tus favoritos');}else if(S.favs.length<4){S.favs.push(id);toast('★ Guardado en tus favoritos');}else{toast('Máx. 4 favoritos. Quita uno primero.');return}ls.s('favs',S.favs);renderMenu($('search').value)}
 function homeFav(id){toggleFav(id);if(S.view==='home')$('content').innerHTML=homeView();}
 function filterMenu(v){renderMenu(v)}
 
@@ -1623,12 +1623,16 @@ function homeView() {
     const rec=(S.recent||[]).map(byId).filter(Boolean).filter(function(it){return _hpItemAllowed(it) && !hpItemOculto(it.id) && _visOk(it);}).slice(0,6);
     const tile=(it,ic)=>{const fav=(S.favs||[]).includes(it.id);return `<div class="home-tile" role="button" tabindex="0" onclick="go('${it.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('${it.id}')}">${ic?'<span class="ht-ic">'+ic+'</span>':''}<span class="ht-nm">${it.name}</span><button class="ht-fav ${fav?'on':''}" onclick="event.stopPropagation();homeFav('${it.id}')" aria-label="${fav?'Quitar de favoritos':'Añadir a favoritos'}" title="${fav?'Quitar de favoritos':'Añadir a favoritos'}">${fav?'★':'☆'}</button></div>`;};
     let secs='';
-    if(favs.length) secs+=`<div class="home-sec"><div class="home-sec-h">★ Favoritos</div><div class="home-tiles">${favs.map(it=>tile(it,'')).join('')}</div></div>`;
+    if(favs.length) secs+=`<div class="home-sec"><div class="home-sec-h">★ Tus favoritos</div><div class="home-tiles">${favs.map(it=>tile(it,'')).join('')}</div></div>`;
     if(rec.length) secs+=`<div class="home-sec"><div class="home-sec-h">Recientes</div><div class="home-tiles">${rec.map(it=>tile(it,'')).join('')}</div></div>`;
-    if(!favs.length && !rec.length){
-        const sug=['ipssm','crcl','nf','eln','opioides','cacorr'].map(byId).filter(Boolean);
-        if(sug.length) secs+=`<div class="home-sec"><div class="home-sec-h">Para empezar</div><div class="home-tiles">${sug.map(it=>tile(it,'›')).join('')}</div></div>`;
-        secs+=`<p class="home-hint">Marca cualquier apartado con <b>★</b> en el menú para fijarlo aquí como favorito.</p>`;
+    if(!favs.length){
+        // Mientras no haya NINGÚN favorito, guiar al usuario (aunque ya tenga "recientes"): si no,
+        // quien ya ha usado la app nunca descubría la ★. La pista desaparece al marcar el primero.
+        if(!rec.length){
+            const sug=['ipssm','crcl','nf','eln','opioides','cacorr'].map(byId).filter(Boolean);
+            if(sug.length) secs+=`<div class="home-sec"><div class="home-sec-h">Para empezar</div><div class="home-tiles">${sug.map(it=>tile(it,'›')).join('')}</div></div>`;
+        }
+        secs+=`<p class="home-hint">Toca la <b>★</b> de cualquier apartado para guardarlo en <b>tus favoritos</b>. Son personales: se guardan en tu cuenta y te acompañan en cualquier dispositivo.</p>`;
     }
     return `
     <div class="home-screen">
@@ -7915,7 +7919,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 352;
+const HP_BUILD = 353;
 const APP_BUILD = '2026.07.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
