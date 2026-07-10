@@ -7919,7 +7919,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 354;
+const HP_BUILD = 355;
 const APP_BUILD = '2026.07.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13248,11 +13248,20 @@ function lcProfileOptions(){
   (o.list||[]).forEach(function(p){ if(p&&p.id) s+='<option value="'+_hpEsc(p.id)+'"'+(o.active===p.id?' selected':'')+'>'+_hpEsc(p.name||'(sin nombre)')+'</option>'; });
   return s;
 }
-// Pista bajo la barra de perfiles: invita a crear el primero y aclara que son propios y por cuenta.
+// Contenido de la barra de perfiles. Compacta: etiqueta + desplegable + «Crear perfil»; el
+// engranaje (editar/borrar) solo aparece cuando ya hay algún perfil, para no recargar.
+function lcProfBarInner(){
+  const has=(lcProfiles().list||[]).length>0;
+  return '<span style="font-size:13px;color:var(--mut);white-space:nowrap">👤 Perfil de analítica</span>'
+    +'<select id="lc_prof" onchange="lcSetProfile(this.value)" style="flex:1;min-width:130px;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--txt);font-size:13px;font-family:inherit">'+lcProfileOptions()+'</select>'
+    +'<button class="btn btn-out btn-sm" onclick="lcProfNew()" title="Crear un perfil nuevo">➕ Crear perfil</button>'
+    +(has?'<button class="btn btn-out btn-sm" onclick="go(\'lcprof\')" title="Editar o borrar mis perfiles">⚙️</button>':'');
+}
+// Pista breve: SOLO cuando aún no hay perfiles (onboarding). Con perfiles ya creados no se muestra,
+// para no recargar la pantalla.
 function lcProfHint(){
-  const n=(lcProfiles().list||[]).length;
-  if(!n) return 'Crea <b>tus propios perfiles</b> para cada tipo de consulta (p. ej. «Citopenias» con el hemograma completo) y elige qué campos aparecen. Cada persona tiene los suyos: se guardan en <b>tu cuenta</b> y te acompañan en cualquier dispositivo.';
-  return 'Elige un perfil según el tipo de consulta, o crea uno nuevo con <b>➕ Nuevo</b>. Tus perfiles son personales y se guardan en <b>tu cuenta</b>.';
+  if((lcProfiles().list||[]).length) return '';
+  return 'Guarda tus <b>perfiles de analítica favoritos</b> (p. ej. «Citopenias» con el hemograma completo) para elegir qué campos aparecen al transcribir. Se guardan en <b>tu cuenta</b>.';
 }
 function lcSetProfile(id){ lcSetActiveProfile(id); try{ if($('lc_in')&&$('lc_in').value.trim()) window.runAssistant(); }catch(e){} }
 VIEWS.lcprof=function(){
@@ -13304,7 +13313,7 @@ function lcProfSave(){ const d=_lcProfDraft; if(!d)return; const o=lcProfiles();
 function lcProfCancel(){ _lcProfDraft=null; go('lcprof'); }
 function lcProfRename(id){ const o=lcProfiles(); const p=(o.list||[]).filter(function(x){return x&&x.id===id;})[0]; if(!p)return; let n=prompt('Nuevo nombre del perfil:', p.name||''); if(n==null)return; n=(''+n).trim(); if(!n)return; p.name=n; lcProfilesSet(o); go('lcprof'); }
 function lcProfDelete(id){ if(!confirm('¿Eliminar este perfil?'))return; const o=lcProfiles(); o.list=(o.list||[]).filter(function(x){return x&&x.id!==id;}); if(o.active===id)o.active=''; lcProfilesSet(o); toast('✓ Perfil eliminado'); go('lcprof'); }
-window.lcProfileOptions=lcProfileOptions; window.lcProfHint=lcProfHint; window.lcSetProfile=lcSetProfile; window.lcProfNew=lcProfNew; window.lcProfEdit=lcProfEdit;
+window.lcProfileOptions=lcProfileOptions; window.lcProfHint=lcProfHint; window.lcProfBarInner=lcProfBarInner; window.lcSetProfile=lcSetProfile; window.lcProfNew=lcProfNew; window.lcProfEdit=lcProfEdit;
 window.lcProfToggle=lcProfToggle; window.lcProfSection=lcProfSection; window.lcProfSave=lcProfSave; window.lcProfCancel=lcProfCancel;
 window.lcProfRename=lcProfRename; window.lcProfDelete=lcProfDelete;
 
@@ -13641,13 +13650,8 @@ return `<div class="card">
 <button class="lc-tab" data-m="rx" onclick="setLCmode('rx')">💊 Recetas</button>
 </div>
 
-<div id="lc_profbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 2px">
-<span style="font-size:13px;color:var(--mut);white-space:nowrap">👤 Mis perfiles de campos</span>
-<select id="lc_prof" onchange="lcSetProfile(this.value)" style="flex:1;min-width:140px;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--txt);font-size:13px;font-family:inherit">${lcProfileOptions()}</select>
-<button class="btn btn-out btn-sm" onclick="lcProfNew()" title="Crear un perfil nuevo">➕ Nuevo</button>
-<button class="btn btn-out btn-sm" onclick="go('lcprof')" title="Gestionar mis perfiles">⚙️</button>
-</div>
-<div style="font-size:11px;color:var(--mut);margin:0 0 6px">${lcProfHint()}</div>
+<div id="lc_profbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:8px 0 2px">${lcProfBarInner()}</div>
+<div id="lc_profhint" style="font-size:11px;color:var(--mut);margin:2px 0 6px">${lcProfHint()}</div>
 
 <div class="fld"><label class="lbl">Pega aquí el texto</label>
 <textarea id="lc_in" style="min-height:160px" placeholder="Ej: Hemoglobina 8,9 g/dL (12-16)&#10;Leucocitos 12.500/uL&#10;Neutrofilos 75% / 9.400/uL&#10;Plaquetas 45.000/uL&#10;Actividad de protrombina 65%&#10;Glucemia 110 mg/dl ..."></textarea></div>
