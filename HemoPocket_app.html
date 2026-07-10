@@ -7911,8 +7911,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 349;
-const APP_BUILD = '2026.07.09 (build ' + HP_BUILD + ')';
+const HP_BUILD = 350;
+const APP_BUILD = '2026.07.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -10729,6 +10729,12 @@ function _hpTitle(str){
     if(/^\s*$/.test(w)) return w;
     var core=w.toUpperCase().replace(/[^0-9A-ZÁÉÍÓÚÜÑ]/g,'');
     if(core && _HP_DIR_ACR.has(core)){ first=false; return w.toUpperCase(); }
+    // Números romanos (II, III, IV, VI, IX, XII…): se dejan en MAYÚSCULA.
+    if(core.length>=2 && /^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(core)){ first=false; return w.toUpperCase(); }
+    // Siglas: con puntos (T.T.S, U.C.I., S.A.R.) o sin vocales (PFR, NCR, CGD…). En español no hay
+    // palabras sin vocales, así que un token TODO-CONSONANTES en mayúsculas es una sigla.
+    var _lett=core.replace(/[0-9]/g,'');
+    if(/^([A-Za-zÁÉÍÓÚÜÑ]\.){2,}[A-Za-zÁÉÍÓÚÜÑ]?$/.test(w.trim()) || (_lett.length>=2 && !/[AEIOUÁÉÍÓÚÜ]/.test(_lett))){ first=false; return w.toUpperCase(); }
     var low=w.toLowerCase();
     if(!first && _HP_DIR_LOW.has(low)) return low;
     first=false;
