@@ -770,7 +770,7 @@ body{font-size:13px}
 // === STATE & STORAGE ===
 const S={p:{age:'',sex:'',weight:'',height:'',creatinine:''},theme:'light',view:'home',favs:[],contacts:[],pdfs:{}};
 // Claves que se sincronizan con la cuenta del usuario (Firestore)
-const HP_SYNC_KEYS={favs:1,recent:1};
+const HP_SYNC_KEYS={favs:1,recent:1,lcProfiles:1};
 let _hpCloudSuppress=false;
 const ls={g:k=>{try{return JSON.parse(localStorage.getItem('hc_'+k))}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem('hc_'+k,JSON.stringify(v))}catch(e){}if(!_hpCloudSuppress&&HP_SYNC_KEYS[k]&&window.__hpCloudWrite){try{window.__hpCloudWrite(k,v)}catch(e){}}}};
 // Aplica los datos del usuario descargados desde Firestore (favoritos, recientes)
@@ -780,12 +780,16 @@ window.hpApplyCloudData=function(d){
   try{
     if(Array.isArray(d.favs)){S.favs=d.favs.slice(0,4);ls.s('favs',S.favs);}
     if(Array.isArray(d.recent)){S.recent=d.recent.slice(0,6);ls.s('recent',S.recent);}
+    // Perfiles de campos del asistente de redacción: se guardan POR USUARIO (misma cuenta en
+    // cualquier dispositivo). La nube es la fuente de verdad al iniciar sesión.
+    if(d.lcProfiles&&typeof d.lcProfiles==='object'&&Array.isArray(d.lcProfiles.list)){ls.s('lcProfiles',d.lcProfiles);}
   }finally{_hpCloudSuppress=false;}
   try{renderMenu($('search')?$('search').value:'');}catch(e){}
   try{if(S.view==='home')$('content').innerHTML=homeView();}catch(e){}
+  try{if(S.view==='labconv'||S.view==='lcprof')go(S.view);}catch(e){}
 };
 // Recopila los datos locales actuales para subirlos a una cuenta nueva
-window.hpCollectLocal=function(){return{favs:S.favs||[],recent:S.recent||[]};};
+window.hpCollectLocal=function(){var _p;try{_p=ls.g('lcProfiles');}catch(e){}return{favs:S.favs||[],recent:S.recent||[],lcProfiles:(_p&&Array.isArray(_p.list))?_p:{active:'',list:[]}};};
 // Diálogo de confirmación propio (sin el "...dice" del navegador)
 window.hpConfirm=function(msg,onYes){
   const ov=$('hp-confirm');
@@ -7911,7 +7915,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 351;
+const HP_BUILD = 352;
 const APP_BUILD = '2026.07.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
