@@ -7914,7 +7914,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 356;
+const HP_BUILD = 357;
 const APP_BUILD = '2026.07.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13247,10 +13247,10 @@ function lcProfileOptions(){
 // engranaje (editar/borrar) solo aparece cuando ya hay algún perfil, para no recargar.
 function lcProfBarInner(){
   const has=(lcProfiles().list||[]).length>0;
-  return '<span style="font-size:13px;color:var(--mut);white-space:nowrap">👤 Perfil de analítica</span>'
+  return '<span style="font-size:13px;color:var(--mut);white-space:nowrap">Perfil de analítica</span>'
     +'<select id="lc_prof" onchange="lcSetProfile(this.value)" style="flex:1;min-width:130px;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--txt);font-size:13px;font-family:inherit">'+lcProfileOptions()+'</select>'
-    +'<button class="btn btn-out btn-sm" onclick="lcProfNew()" title="Crear un perfil nuevo">➕ Crear perfil</button>'
-    +(has?'<button class="btn btn-out btn-sm" onclick="go(\'lcprof\')" title="Editar o borrar mis perfiles">⚙️</button>':'');
+    +'<button class="btn btn-out btn-sm" onclick="lcProfNew()" title="Crear un perfil nuevo">+ Crear perfil</button>'
+    +(has?'<button class="btn btn-out btn-sm" onclick="go(\'lcprof\')" title="Editar o borrar mis perfiles">Editar</button>':'');
 }
 // Pista breve: SOLO cuando aún no hay perfiles (onboarding). Con perfiles ya creados no se muestra,
 // para no recargar la pantalla.
@@ -13262,25 +13262,26 @@ function lcSetProfile(id){ lcSetActiveProfile(id); try{ if($('lc_in')&&$('lc_in'
 VIEWS.lcprof=function(){
   if(_lcProfDraft) return _lcProfEditor();
   const o=lcProfiles();
-  let h='<div class="card"><h2>👤 Perfiles de campos</h2>';
-  h+='<p class="intro">Crea perfiles para distintos tipos de consulta y elige qué parámetros aparecen en cada uno (p. ej. «Citopenias» con hemograma completo, «General» más básico). Son <strong>tuyos</strong>: se guardan en <strong>tu cuenta</strong> y te acompañan en cualquier dispositivo; no afectan a otros usuarios.</p>';
-  if(!(o.list||[]).length){ h+='<div class="alert b" style="font-size:13px">Aún no tienes perfiles. Crea el primero para empezar.</div>'; }
+  let h='<div class="card"><h2>Perfiles de campos</h2>';
+  h+='<p class="intro">Elige qué parámetros aparecen según el tipo de consulta. Son tuyos y se guardan en tu cuenta.</p>';
+  if(!(o.list||[]).length){ h+='<p style="font-size:13px;color:var(--mut)">Aún no tienes perfiles.</p>'; }
   else { (o.list||[]).forEach(function(p){ if(!p||!p.id) return;
-    h+='<div class="team-card" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">'
-      +'<span style="flex:1;min-width:120px;font-weight:600">'+_hpEsc(p.name||'(sin nombre)')+(o.active===p.id?' <span style="font-size:11px;color:var(--c2)">· activo</span>':'')+'</span>'
-      +'<button class="btn btn-out btn-sm" onclick="lcProfEdit(\''+p.id+'\')">✏️ Campos</button>'
+    h+='<div class="team-card" style="display:block;margin-bottom:8px">'
+      +'<div style="font-weight:600;margin-bottom:7px">'+_hpEsc(p.name||'(sin nombre)')+(o.active===p.id?' <span style="font-size:11px;font-weight:400;color:var(--c2)">activo</span>':'')+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<button class="btn btn-out btn-sm" onclick="lcProfEdit(\''+p.id+'\')">Campos</button>'
       +'<button class="btn btn-out btn-sm" onclick="lcProfRename(\''+p.id+'\')">Renombrar</button>'
-      +'<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcProfDelete(\''+p.id+'\')">🗑</button>'
-      +'</div>';
+      +'<button class="btn btn-out btn-sm" style="color:#c41e3a" onclick="lcProfDelete(\''+p.id+'\')">Eliminar</button>'
+      +'</div></div>';
   }); }
-  h+='<button class="btn btn-out btn-sm" onclick="lcProfNew()" style="margin-top:4px">➕ Crear perfil</button>';
-  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-g" onclick="go(\'labconv\')">✓ Hecho</button></div>';
+  h+='<button class="btn btn-out btn-sm" onclick="lcProfNew()" style="margin-top:4px">+ Crear perfil</button>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-g" onclick="go(\'labconv\')">Hecho</button></div>';
   h+='</div>'; return h;
 };
 function _lcProfEditor(){
   const d=_lcProfDraft;
-  let h='<div class="card"><h2>👤 Perfil · '+_hpEsc(d.name||'')+'</h2>';
-  h+='<p class="intro">Marca los parámetros que quieres que aparezcan con este perfil; sin marcar = no se muestra. El asistente solo vuelca lo que pegues: esto decide qué campos salen.</p>';
+  let h='<div class="card"><h2>Perfil · '+_hpEsc(d.name||'')+'</h2>';
+  h+='<p class="intro">Marca los parámetros que aparecen con este perfil (sin marcar = no se muestra).</p>';
   const ov=lcOverride();
   const byCat={}; DICT.forEach(function(e){ (byCat[e.c]=byCat[e.c]||[]).push({a:e.a,u:e.u,defHidden:!!e.defHidden}); });
   (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(''+p.a).trim()){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push({a:p.a,u:p.u||''}); } });
@@ -13293,7 +13294,7 @@ function _lcProfEditor(){
     list.forEach(function(e){ h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:3px;cursor:pointer"><input type="checkbox"'+(_isOn(e.a)?' checked':'')+' onchange="lcProfToggle(\''+_lcA(e.a)+'\',this.checked)"><span>'+_hpEsc(e.a)+(e.u?' <span style="color:var(--mut);font-size:11px">'+_hpEsc(e.u)+'</span>':'')+'</span></label>'; });
     h+='</div></details>';
   });
-  h+='<hr style="margin:12px 0"><div class="btns"><button class="btn btn-out" onclick="lcProfCancel()">✖ Cancelar</button><button class="btn btn-g" onclick="lcProfSave()">💾 Guardar perfil</button></div>';
+  h+='<hr style="margin:14px 0"><div class="btns"><button class="btn btn-out" onclick="lcProfCancel()">Cancelar</button><button class="btn btn-g" onclick="lcProfSave()">Guardar perfil</button></div>';
   h+='</div>'; return h;
 }
 function lcProfNew(){
