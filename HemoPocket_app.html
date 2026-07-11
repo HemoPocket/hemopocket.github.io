@@ -7914,7 +7914,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 359;
+const HP_BUILD = 360;
 const APP_BUILD = '2026.07.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13060,11 +13060,11 @@ const AUTOINM_AB=[
 {l:'Ac. anti-ENAs',rx:/\benas?\b|anti\s*-?\s*ena\b/}
 ];
 function _autoinmVal(line){var p=(''+line).replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g,' ').replace(/\([^)]*\)/g,' ');var m=p.match(/([<>]?\s*\d+(?:[.,]\d+)?)\s*(ui\.?\s*\/\s*m?l|u\s*\/\s*m?l|kui\s*\/\s*l|mg\/dl|g\/l|%)?/i);if(!m)return '';var v=m[1].replace(/\s+/g,'');var u=m[2]?m[2].replace(/\s+/g,'').replace(/ui\.?\/m?l/i,'UI/mL').replace(/u\/m?l/i,'U/mL').replace(/kui\/l/i,'kUI/L'):'';return v+(u?' '+u:'');}
-function parseAutoinm(orig,folded,rs,re){const region=folded.slice(rs,re);const lines=[];const _hid=(typeof lcOverride==='function'&&lcOverride().hidden)||{};const anaM=region.match(/antinucleares/);if(anaM&&!_hid['Ac. Antinucleares (ANAs)']){let res=hpAfterDate(orig,rs+anaM.index,320);if(!res){var _ap=rs+anaM.index+anaM[0].length;var _ae2=lineEndIdx(orig,_ap);var _at=hpClean(orig.slice(_ap,_ae2)).replace(/^[\s:=\-]*\(?\s*an[ao]s?\s*\)?[\s:=\-]*/i,'').replace(/^[\s:=\-]+/,'').trim();if(_at&&/[a-z0-9]/i.test(_at))res=_at;}if(res){res=res.replace(/\.\s*$/,'').replace(/\binferior a\b/gi,'<').replace(/\bsuperior a\b/gi,'>').replace(/\.\s+/g,', ').replace(/\bt[íi]tulo\b/gi,'título').replace(/\s+/g,' ').trim();lines.push('Ac. Antinucleares (ANAs): '+res);}}const aclG=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igg/),aclM=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igm/);if((aclG||aclM)&&!_hid['Ac. Anticardiolipina']){const b=[];if(aclG)b.push('IgG '+aclG);if(aclM)b.push('IgM '+aclM);lines.push('Ac. Anticardiolipina '+b.join(', '));}const b2G=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igg/),b2M=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igm/);if((b2G||b2M)&&!_hid['Ac. B2 glicoproteina']){const b2=[];if(b2G)b2.push('IgG '+b2G);if(b2M)b2.push('IgM '+b2M);lines.push('Ac. B2 glicoproteina '+b2.join(', '));}const alM=region.match(/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(alM&&!_hid['Anticoagulante lúpico']){let r=seroResult(orig,rs+alM.index+alM[0].length);if(!r){const v=hpValUnit(orig,folded,rs,re,/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(v)r=v;}if(r)lines.push('Anticoagulante lúpico: '+r);}
+function parseAutoinm(orig,folded,rs,re){const region=folded.slice(rs,re);const lines=[];const _hid=(typeof lcOverride==='function'&&lcOverride().hidden)||{};const _prof=(typeof lcActiveProfile==='function')?lcActiveProfile():null;const _pvis=(_prof&&_prof.vis)||null;const _vis=function(a){ if(_pvis&&(a in _pvis)) return !!_pvis[a]; return !_hid[a]; };const anaM=region.match(/antinucleares/);if(anaM&&_vis('Ac. Antinucleares (ANAs)')){let res=hpAfterDate(orig,rs+anaM.index,320);if(!res){var _ap=rs+anaM.index+anaM[0].length;var _ae2=lineEndIdx(orig,_ap);var _at=hpClean(orig.slice(_ap,_ae2)).replace(/^[\s:=\-]*\(?\s*an[ao]s?\s*\)?[\s:=\-]*/i,'').replace(/^[\s:=\-]+/,'').trim();if(_at&&/[a-z0-9]/i.test(_at))res=_at;}if(res){res=res.replace(/\.\s*$/,'').replace(/\binferior a\b/gi,'<').replace(/\bsuperior a\b/gi,'>').replace(/\.\s+/g,', ').replace(/\bt[íi]tulo\b/gi,'título').replace(/\s+/g,' ').trim();lines.push('Ac. Antinucleares (ANAs): '+res);}}const aclG=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igg/),aclM=hpValUnit(orig,folded,rs,re,/anticardiolipina\s+igm/);if((aclG||aclM)&&_vis('Ac. Anticardiolipina')){const b=[];if(aclG)b.push('IgG '+aclG);if(aclM)b.push('IgM '+aclM);lines.push('Ac. Anticardiolipina '+b.join(', '));}const b2G=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igg/),b2M=hpValUnit(orig,folded,rs,re,/glicoprote[ií]na.{0,14}igm/);if((b2G||b2M)&&_vis('Ac. B2 glicoproteina')){const b2=[];if(b2G)b2.push('IgG '+b2G);if(b2M)b2.push('IgM '+b2M);lines.push('Ac. B2 glicoproteina '+b2.join(', '));}const alM=region.match(/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(alM&&_vis('Anticoagulante lúpico')){let r=seroResult(orig,rs+alM.index+alM[0].length);if(!r){const v=hpValUnit(orig,folded,rs,re,/anticoagulante\s+l[uú]pico|\bl[uú]pico\b/);if(v)r=v;}if(r)lines.push('Anticoagulante lúpico: '+r);}
 // Panel ampliado: anticuerpos con valor+unidad / positivo-negativo / "en proceso".
 const _consumed={};
 AUTOINM_AB.forEach(function(ab){
-  if(_hid[ab.l])return;
+  if(!_vis(ab.l)||!_vis('Ac. Antinucleares (ANAs)'))return;
   var g=new RegExp(ab.rx.source,'g'),mm;
   while((mm=g.exec(region))!==null){
     var lsRel=region.lastIndexOf('\n',mm.index)+1;
@@ -13285,6 +13285,9 @@ function _lcProfEditor(){
   const ov=lcOverride();
   const byCat={}; DICT.forEach(function(e){ (byCat[e.c]=byCat[e.c]||[]).push({a:e.a,u:e.u,defHidden:!!e.defHidden}); });
   (ov.custom||[]).forEach(function(p){ if(p&&p.a&&(''+p.a).trim()){ (byCat[p.c||'bioquimica']=byCat[p.c||'bioquimica']||[]).push({a:p.a,u:p.u||''}); } });
+  // Anticuerpos de autoinmunidad (los detecta parseAutoinm, no el diccionario): se listan igual
+  // para poder mostrarlos/ocultarlos por perfil.
+  (typeof AUTOINM_BLOCK!=='undefined'?AUTOINM_BLOCK:[]).forEach(function(p){ (byCat['autoinmunidad']=byCat['autoinmunidad']||[]).push({a:p.a,u:''}); });
   const _isOn=function(a){ return (a in d.vis)?!!d.vis[a]:_lcBaseVisible(a); };
   const lbl=lcCatLabel();
   lcCatOrder().forEach(function(c){ const list=byCat[c]||[]; if(!list.length) return;
@@ -13304,7 +13307,7 @@ function lcProfNew(){
 }
 function lcProfEdit(id){ const p=(lcProfiles().list||[]).filter(function(x){return x&&x.id===id;})[0]; if(!p){toast('Perfil no encontrado');return;} _lcProfDraft={id:p.id,name:p.name,vis:Object.assign({},p.vis||{})}; go('lcprof'); }
 function lcProfToggle(a,on){ if(_lcProfDraft) _lcProfDraft.vis[a]=!!on; }
-function lcProfSection(c,on){ if(!_lcProfDraft)return; const ov=lcOverride(); DICT.forEach(function(e){ if(e.c===c) _lcProfDraft.vis[e.a]=!!on; }); (ov.custom||[]).forEach(function(p){ if(p&&(p.c||'bioquimica')===c) _lcProfDraft.vis[p.a]=!!on; }); go('lcprof'); }
+function lcProfSection(c,on){ if(!_lcProfDraft)return; const ov=lcOverride(); DICT.forEach(function(e){ if(e.c===c) _lcProfDraft.vis[e.a]=!!on; }); (ov.custom||[]).forEach(function(p){ if(p&&(p.c||'bioquimica')===c) _lcProfDraft.vis[p.a]=!!on; }); if(c==='autoinmunidad'&&typeof AUTOINM_BLOCK!=='undefined') AUTOINM_BLOCK.forEach(function(p){ _lcProfDraft.vis[p.a]=!!on; }); go('lcprof'); }
 function lcProfSave(){ const d=_lcProfDraft; if(!d)return; const o=lcProfiles(); let i=-1; (o.list||[]).forEach(function(x,ix){ if(x&&x.id===d.id) i=ix; }); const rec={id:d.id,name:d.name,vis:d.vis}; if(i>=0)o.list[i]=rec; else{ o.list=o.list||[]; o.list.push(rec); } o.active=d.id; lcProfilesSet(o); _lcProfDraft=null; toast('✓ Perfil guardado y activado'); go('labconv'); }
 function lcProfCancel(){ _lcProfDraft=null; go('lcprof'); }
 function lcProfRename(id){ const o=lcProfiles(); const p=(o.list||[]).filter(function(x){return x&&x.id===id;})[0]; if(!p)return; let n=prompt('Nuevo nombre del perfil:', p.name||''); if(n==null)return; n=(''+n).trim(); if(!n)return; p.name=n; lcProfilesSet(o); go('lcprof'); }
