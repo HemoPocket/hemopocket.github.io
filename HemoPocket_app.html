@@ -1092,7 +1092,7 @@ el.title=`${state}\nEstado: ${online?'Online':'Offline'}${lastUpd?'\nÚltima sin
 const MENU=[
 {h:'ASISTENTE',o:1,items:[
 {id:'qt',name:'Asistente de quimioterapia',kw:'quimioterapia qt esquema rchop chop bendamustina rituximab ciclofosfamida vincristina doxorubicina prednisona calendario dias fechas ciclo'},
-{id:'labconv',name:'Asistente de redacción',kw:'transcriptor convertidor analitica analiticas laboratorio hemograma bioquimica proteinograma serologia microbiologia formato informe evolutivo limpiar unidades pegar ordenar',new:'2026-05-29'}
+{id:'labconv',name:'Asistente de redacción',kw:'transcriptor convertidor analitica analiticas laboratorio hemograma bioquimica proteinograma serologia microbiologia formato informe evolutivo limpiar unidades pegar ordenar',new:'2026-05-29',upd:'2026-07-11'}
 ]},
 {h:'CALCULADORAS',items:[
 {id:'opioides',name:'Conversión de opioides',kw:'opioides conversion morfina oxicodona fentanilo tramadol tapentadol metadona hidromorfona buprenorfina mme equivalente rotacion',new:'2026-05-13'},
@@ -7914,7 +7914,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 361;
+const HP_BUILD = 362;
 const APP_BUILD = '2026.07.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
