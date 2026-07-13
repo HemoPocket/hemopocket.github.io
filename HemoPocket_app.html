@@ -781,15 +781,18 @@ window.hpApplyCloudData=function(d){
     if(Array.isArray(d.favs)){S.favs=d.favs.slice(0,4);ls.s('favs',S.favs);}
     if(Array.isArray(d.recent)){S.recent=d.recent.slice(0,6);ls.s('recent',S.recent);}
     // Perfiles de campos del asistente de redacción: se guardan POR USUARIO (misma cuenta en
-    // cualquier dispositivo). La nube es la fuente de verdad al iniciar sesión.
-    if(d.lcProfiles&&typeof d.lcProfiles==='object'&&Array.isArray(d.lcProfiles.list)){ls.s('lcProfiles',d.lcProfiles);}
+    // cualquier dispositivo). Se almacenan como TEXTO JSON en la nube porque los nombres de
+    // parámetro (p. ej. «cociente κ/λ», «Ac. Antinucleares») contienen «/» o «.», que Firebase
+    // no admite como claves. La nube es la fuente de verdad al iniciar sesión.
+    var _lp=d.lcProfiles; if(typeof _lp==='string'){ try{ _lp=JSON.parse(_lp); }catch(e){ _lp=null; } }
+    if(_lp&&typeof _lp==='object'&&Array.isArray(_lp.list)){ls.s('lcProfiles',_lp);}
   }finally{_hpCloudSuppress=false;}
   try{renderMenu($('search')?$('search').value:'');}catch(e){}
   try{if(S.view==='home')$('content').innerHTML=homeView();}catch(e){}
   try{if(S.view==='labconv'||S.view==='lcprof')go(S.view);}catch(e){}
 };
 // Recopila los datos locales actuales para subirlos a una cuenta nueva
-window.hpCollectLocal=function(){var _p;try{_p=ls.g('lcProfiles');}catch(e){}return{favs:S.favs||[],recent:S.recent||[],lcProfiles:(_p&&Array.isArray(_p.list))?_p:{active:'',list:[]}};};
+window.hpCollectLocal=function(){var _p;try{_p=ls.g('lcProfiles');}catch(e){}return{favs:S.favs||[],recent:S.recent||[],lcProfiles:JSON.stringify((_p&&Array.isArray(_p.list))?_p:{active:'',list:[]})};};
 // Diálogo de confirmación propio (sin el "...dice" del navegador)
 window.hpConfirm=function(msg,onYes){
   const ov=$('hp-confirm');
@@ -6006,7 +6009,9 @@ function hpRoleSelector(uid, roleInfo, credName, credRole){
   if(roleInfo&&roleInfo.role==='admin'&&!soyPrincipal) return '<div style="margin-top:10px;padding:9px 10px;border:1px solid var(--bd,#e2e2e2);border-radius:8px;background:var(--bg,#f7f8fa);font-size:12px;color:var(--mut,#666)">Administrador: solo la <strong>admin principal</strong> puede cambiar este perfil.</div>';
   const cur=(roleInfo&&roleInfo.role)||'usuario';
   const isEd=roleInfo&&roleInfo.role==='editor';
-  const allKeys=Object.keys(GUIDES_TITLES);
+  // Los asistentes (asist_red / asist_qt) NO son secciones de guías PDF: se gestionan aparte
+  // en el bloque "Editar asistentes", así que se excluyen de la rejilla de secciones.
+  const allKeys=Object.keys(GUIDES_TITLES).filter(function(k){return k!=='asist_red'&&k!=='asist_qt';});
   // Editor existente: sus secciones. Nuevo editor: NINGUNA por defecto (la admin elige cuáles).
   const secs=isEd&&Array.isArray(roleInfo.sections)?roleInfo.sections:[];
   const allOn=allKeys.length>0&&allKeys.every(function(k){return secs.indexOf(k)!==-1;});
@@ -6039,7 +6044,7 @@ function hpRoleSelector(uid, roleInfo, credName, credRole){
 }
 function hpSecChecks(uid, checked){
   checked=checked||[];
-  return Object.keys(GUIDES_TITLES).map(function(sid){return '<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" value="'+sid+'" onchange="hpSecSync(\''+uid+'\')"'+(checked.indexOf(sid)!==-1?' checked':'')+'> '+hpSecTitle(sid)+'</label>';}).join('');
+  return Object.keys(GUIDES_TITLES).filter(function(sid){return sid!=='asist_red'&&sid!=='asist_qt';}).map(function(sid){return '<label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" value="'+sid+'" onchange="hpSecSync(\''+uid+'\')"'+(checked.indexOf(sid)!==-1?' checked':'')+'> '+hpSecTitle(sid)+'</label>';}).join('');
 }
 function hpReadSecs(uid){
   const box=document.getElementById('secs_'+uid); if(!box) return [];
@@ -7914,8 +7919,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 362;
-const APP_BUILD = '2026.07.11 (build ' + HP_BUILD + ')';
+const HP_BUILD = 363;
+const APP_BUILD = '2026.07.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -15145,6 +15150,7 @@ function flushCloud() {
   if (!curUid || !Object.keys(pending).length) return;
   const data = { ...pending };
   pending = {};
+  if (data.lcProfiles && typeof data.lcProfiles === 'object') data.lcProfiles = JSON.stringify(data.lcProfiles);
   update(ref(db, 'users/' + curUid), data).catch(e => console.warn('[hp] cloud write', e.message));
 }
 function loadCloud(uid) {
