@@ -7889,8 +7889,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 345;
-const APP_BUILD = '2026.07.08 (build ' + HP_BUILD + ')';
+const HP_BUILD = 346;
+const APP_BUILD = '2026.07.15 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -12839,7 +12839,7 @@ const DICT=[
 {a:'LDH',u:'U/l',c:'bioquimica',k:'num',pats:['lactato deshidrogenasa','lactico deshidrogenasa','\\bldh\\b']},
 {a:'CK',u:'U/l',c:'bioquimica',k:'num',pats:['creatin ?kinasa','creatin ?cinasa','creatina quinasa','creatina kinasa','creatina cinasa','creatinfosfo[kq]uinasa','\\bcpk\\b','\\bck\\b']},
 {a:'Osmolalidad',u:'mOsm/kg',c:'bioquimica',k:'num',pats:['osmolalidad calculada','osmolaridad calculada','osmolalidad','osmolaridad']},
-{a:'CMV',u:'',c:'viral',k:'mol',pats:['cmv[^\\n\\r]{0,22}?(?:pcr|carga\\s*viral|dna|adn|cuantitativ\\w*)','(?:carga\\s*viral|pcr|dna|adn|cuantitativ\\w*)[^\\n\\r]{0,18}?\\bcmv\\b','cmv\\b(?=[^\\n\\r]{0,15}(?:ui\\s*\\/\\s*ml|copias))','citomegalovirus[^\\n\\r]{0,22}?(?:pcr|carga|dna|adn|cuantitativ\\w*)']},
+{a:'CMV',u:'',c:'viral',k:'mol',pats:['cmv(?![^\\n\\r]{0,18}\\big[gm]\\b)[^\\n\\r]{0,22}?(?:pcr|carga\\s*viral|dna|adn|cuantitativ\\w*)','(?:carga\\s*viral|pcr|dna|adn|cuantitativ\\w*)[^\\n\\r]{0,18}?\\bcmv\\b(?![^\\n\\r]{0,12}\\big[gm]\\b)','cmv\\b(?![^\\n\\r]{0,12}\\big[gm]\\b)(?=[^\\n\\r]{0,15}(?:ui\\s*\\/\\s*ml|copias))','citomegalovirus(?![^\\n\\r]{0,18}\\big[gm]\\b)[^\\n\\r]{0,22}?(?:pcr|carga|dna|adn|cuantitativ\\w*)']},
 {a:'VEB',u:'',c:'viral',k:'mol',pats:['(?:veb|ebv)[^\\n\\r]{0,22}?(?:pcr|carga\\s*viral|dna|adn|cuantitativ\\w*)','(?:carga\\s*viral|pcr|dna|adn|cuantitativ\\w*)[^\\n\\r]{0,18}?(?:veb|ebv)\\b','(?:veb|ebv)\\b(?=[^\\n\\r]{0,15}(?:ui\\s*\\/\\s*ml|copias))','epstein[^\\n\\r]{0,28}?(?:pcr|carga|dna|adn|cuantitativ\\w*)']},
 {a:'BK',u:'',c:'viral',k:'mol',pats:['\\bbk\\b[^\\n\\r]{0,22}?(?:pcr|carga\\s*viral|dna|adn|cuantitativ\\w*|virus|orina|plasma)','(?:carga\\s*viral|pcr|dna|adn)[^\\n\\r]{0,18}?\\bbk\\b','\\bbk\\b(?=[^\\n\\r]{0,15}(?:ui\\s*\\/\\s*ml|copias))','poliomavirus[^\\n\\r]{0,18}?bk']},
 {a:'PCR',u:'mg/l',c:'bioquimica',k:'num',keepUnit:1,pats:['proteina c reactiva','\\bpcr\\b']},
