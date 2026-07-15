@@ -40,7 +40,8 @@ async function enviarEmail(subject, html) {
 }
 
 // ── Push (FCM) a TODOS los administradores (rol 'admin' + la principal) ──
-// Best-effort: cualquier fallo se registra pero no interrumpe la función.
+// Devuelve el número de envíos aceptados por FCM (0 si no hay tokens o falla).
+// El email se usa solo como fallback cuando este valor es 0.
 async function pushAAdmins(title, body, url) {
   try {
     const db = admin.firestore();
@@ -64,15 +65,17 @@ async function pushAAdmins(title, body, url) {
       } catch (e) {}
     }
     const uniq = Array.from(new Set(tokens));
-    if (!uniq.length) { logger.info('Push a admins: sin tokens registrados'); return; }
+    if (!uniq.length) { logger.info('Push a admins: sin tokens registrados'); return 0; }
     const res = await admin.messaging().sendEachForMulticast({
       tokens: uniq,
       notification: { title, body },
       webpush: { fcmOptions: { link: url || '/' }, notification: { icon: '/icono-192.png' } },
     });
     logger.info('Push a admins enviado', { ok: res.successCount, fail: res.failureCount });
+    return res.successCount;
   } catch (e) {
     logger.error('Error enviando push a admins', e);
+    return 0;
   }
 }
 
@@ -84,7 +87,14 @@ exports.avisoNuevaCuenta = onDocumentCreated(
     if (!d) return;
 
     const nombre = `${d.nombre || ''} ${d.apellido || ''}`.trim() || '(sin nombre)';
-    try { await pushAAdmins('Nueva solicitud de acceso', `${nombre} solicita acceso a HemoPocket.`, '/'); } catch (e) {}
+    let pushOk = 0;
+    try { pushOk = await pushAAdmins('Nueva solicitud de acceso', `${nombre} solicita acceso a HemoPocket.`, '/'); } catch (e) {}
+
+    // Email solo como fallback: si el push llegó a al menos un dispositivo no duplicamos el aviso.
+    if (pushOk > 0) {
+      logger.info('Push enviado; se omite el email para no duplicar el aviso.', { uid: event.params.uid });
+      return;
+    }
 
     let fecha = '';
     try { fecha = d.fechaAceptacion && d.fechaAceptacion.toDate ? d.fechaAceptacion.toDate().toLocaleString('es-ES') : ''; } catch (e) {}
@@ -118,7 +128,13 @@ exports.avisoNuevoReporte = onDocumentCreated(
     if (!d) return;
     if ((d.tipo || 'usuario') !== 'usuario') return;   // no avisar de 'auto' ni 'eri_miss'
 
-    try { await pushAAdmins('Nuevo reporte de error', (d.texto || '').toString().slice(0, 140), '/'); } catch (e) {}
+    let pushOk2 = 0;
+    try { pushOk2 = await pushAAdmins('Nuevo reporte de error', (d.texto || '').toString().slice(0, 140), '/'); } catch (e) {}
+
+    if (pushOk2 > 0) {
+      logger.info('Push enviado; se omite el email para no duplicar el aviso.', { id: event.params.id });
+      return;
+    }
 
     let fecha = '';
     try { fecha = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString('es-ES') : ''; } catch (e) {}
