@@ -166,6 +166,7 @@ body.view-home .app-footer{padding-bottom:18px}
 .card p{margin-bottom:8px}
 .card p.intro{color:var(--mut);font-size:13px}
 .lbl{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--txt)}
+.hct-def{display:block;font-weight:400;font-size:11.5px;line-height:1.35;color:var(--mut);margin-top:2px}
 .fld{margin-bottom:13px}
 .fld input:not([type=radio]):not([type=checkbox]),.fld select,.fld textarea{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--inp);color:var(--txt);font-size:14px;outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s}
 .chk-card>input{width:auto!important;padding:0!important;margin-top:3px;flex-shrink:0;flex-grow:0}
@@ -4018,30 +4019,30 @@ function copyCB(){ copyShortRes('cb_res','Criterios'); }
 
 VIEWS.hctci=()=>pointCalc({
 id:'hctci',title:'HCT-CI (Sorror)',
-intro:'Índice de comorbilidad para trasplante de progenitores hematopoyéticos.',
+intro:'Índice de comorbilidad específico del trasplante de progenitores hematopoyéticos. Marca cada comorbilidad presente; el peso (puntos) figura a la derecha de cada opción.',
 items:[
-{q:'Arritmia (FA, flutter, BAV, taquiarritmia ventricular)',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Cardiaca (EAC, ICC, IAM, FEVI ≤50%)',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'EII (Crohn / colitis ulcerosa)',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Diabetes en tratamiento',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'ACV / AIT',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Trastorno psiquiátrico que requiere tto',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Hepática leve (BR &gt;ULN-1.5×, AST/ALT &gt;ULN-2.5×)',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Obesidad (IMC &gt;35)',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Infección que requiere tto antimicrobiano más allá del día 0',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Reumatológica (LES, AR, polimiositis, poliangeítis)',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Enf. ulcerosa péptica activa',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Renal moderada/severa (Cr &gt;2 mg/dL, diálisis o trasplante)',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Pulmonar moderada (DLCO/FEV1 66-80% o disnea moderada)',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Neoplasia previa (excl. ca cutáneo no melanoma)',type:'check',opts:[{l:'Sí',p:3}]},
-{q:'Hepática moderada/severa (cirrosis, BR &gt;1.5× ULN, AST/ALT &gt;2.5× ULN)',type:'check',opts:[{l:'Sí',p:3}]},
-{q:'Pulmonar severa (DLCO/FEV1 ≤65% o disnea de reposo / O₂)',type:'check',opts:[{l:'Sí',p:3}]},
-{q:'Valvulopatía (excepto prolapso mitral asintomático)',type:'check',opts:[{l:'Sí',p:3}]}
+{q:'Arritmia <small class="hct-def">FA o flutter, enfermedad del seno o arritmias ventriculares</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Cardiaca <small class="hct-def">Enf. coronaria (estenosis de ≥1 vaso que precisa tratamiento médico, stent o bypass), insuficiencia cardíaca congestiva, infarto de miocardio o FEVI ≤50%</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enfermedad inflamatoria intestinal <small class="hct-def">Enfermedad de Crohn o colitis ulcerosa</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Diabetes <small class="hct-def">Que requiere insulina o hipoglucemiantes orales (no solo dieta)</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Enf. cerebrovascular <small class="hct-def">Accidente isquémico transitorio (AIT) o ictus (ACV)</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Trastorno psiquiátrico <small class="hct-def">Depresión o ansiedad que requiere consulta o tratamiento psiquiátrico</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Hepática leve <small class="hct-def">Hepatitis crónica, bilirrubina &gt; LSN hasta 1,5× LSN, o AST/ALT &gt; LSN hasta 2,5× LSN</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Obesidad <small class="hct-def">IMC &gt; 35 kg/m² (en pacientes &gt; 18 años)</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Infección <small class="hct-def">Que requiere continuar tratamiento antimicrobiano después del día 0</small>',type:'check',opts:[{l:'Sí',p:1}]},
+{q:'Reumatológica <small class="hct-def">LES, AR, polimiositis, enfermedad mixta del tejido conectivo o polimialgia reumática</small>',type:'check',opts:[{l:'Sí',p:2}]},
+{q:'Úlcera péptica <small class="hct-def">Que ha requerido tratamiento</small>',type:'check',opts:[{l:'Sí',p:2}]},
+{q:'Renal moderada/severa <small class="hct-def">Creatinina sérica &gt; 2 mg/dL, en diálisis o trasplante renal previo</small>',type:'check',opts:[{l:'Sí',p:2}]},
+{q:'Pulmonar moderada <small class="hct-def">DLCO y/o FEV1 66–80%, o disnea con actividad ligera</small>',type:'check',opts:[{l:'Sí',p:2}]},
+{q:'Tumor sólido previo <small class="hct-def">Tratado en cualquier momento de la historia del paciente, excepto cáncer cutáneo no melanoma</small>',type:'check',opts:[{l:'Sí',p:3}]},
+{q:'Valvulopatía <small class="hct-def">Excepto prolapso mitral asintomático</small>',type:'check',opts:[{l:'Sí',p:3}]},
+{q:'Pulmonar severa <small class="hct-def">DLCO y/o FEV1 ≤65%, o disnea en reposo o que requiere oxígeno</small>',type:'check',opts:[{l:'Sí',p:3}]},
+{q:'Hepática moderada/severa <small class="hct-def">Cirrosis hepática, bilirrubina &gt; 1,5× LSN, o AST/ALT &gt; 2,5× LSN</small>',type:'check',opts:[{l:'Sí',p:3}]}
 ],
 ranges:[
-{min:0,max:0,cls:'lo',label:'Riesgo bajo',info:'<div class="res-s">MNRT a 2 años ~14% · SG a 2 años ~71%</div>'},
-{min:1,max:2,cls:'md',label:'Riesgo intermedio',info:'<div class="res-s">MNRT a 2 años ~21% · SG a 2 años ~60%</div>'},
-{min:3,max:30,cls:'hi',label:'Riesgo alto',info:'<div class="res-s">MNRT a 2 años ~41% · SG a 2 años ~34%</div>'}
+{min:0,max:0,cls:'lo',label:'Riesgo bajo',info:'<div class="res-s">Puntuación 0. Mortalidad no debida a recaída (MNR) a 2 años ~14% · supervivencia global a 2 años ~71%.</div>'},
+{min:1,max:2,cls:'md',label:'Riesgo intermedio',info:'<div class="res-s">Puntuación 1–2. MNR a 2 años ~21% · supervivencia global a 2 años ~60%.</div>'},
+{min:3,max:30,cls:'hi',label:'Riesgo alto',info:'<div class="res-s">Puntuación ≥3. MNR a 2 años ~41% · supervivencia global a 2 años ~34%.</div>'}
 ],
 ref:'Sorror ML, et al. Hematopoietic cell transplantation (HCT)-specific comorbidity index. Blood. 2005;106(8):2912-2919.'
 });
@@ -7919,8 +7920,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 363;
-const APP_BUILD = '2026.07.13 (build ' + HP_BUILD + ')';
+const HP_BUILD = 364;
+const APP_BUILD = '2026.07.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
