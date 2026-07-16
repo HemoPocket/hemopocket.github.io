@@ -1744,7 +1744,7 @@ const o=it.opts[0];
 h+=`<label class="chk-card" onclick="setTimeout(()=>this.classList.toggle('checked',this.querySelector('input').checked),0)"><input type="checkbox" data-q="${i}" data-p="${o.p}" onchange="pcCalc('${id}')"><span>${o.l} <small>(+${o.p})</small></span></label>`;
 }else{
 it.opts.forEach((o,j)=>{
-h+=`<label class="chk-card"><input type="radio" name="${id}_${i}" value="${o.p}" data-l="${o.l.replace(/"/g,'&quot;')}" onchange="pcCalc('${id}')"><span>${o.l} <small>(${o.p>=0?'+':''}${o.p})</small></span></label>`;
+h+=`<label class="chk-card"><input type="radio" name="${id}_${i}" value="${o.p}" data-l="${o.l.replace(/"/g,'&quot;')}" onchange="pcCalc('${id}')"><span>${o.l}${o.p!==0?` <small>(${o.p>0?'+':''}${o.p})</small>`:''}</span></label>`;
 });
 }
 h+='</div>';
@@ -4019,25 +4019,23 @@ function copyCB(){ copyShortRes('cb_res','Criterios'); }
 
 VIEWS.hctci=()=>pointCalc({
 id:'hctci',title:'HCT-CI (Sorror)',
-intro:'Índice de comorbilidad específico del trasplante de progenitores hematopoyéticos. Marca cada comorbilidad presente; el peso (puntos) figura a la derecha de cada opción.',
+intro:'Índice de comorbilidad específico del trasplante de progenitores hematopoyéticos. Marca <strong>No</strong> o <strong>Sí</strong> en cada comorbilidad (en <strong>pulmonar</strong> y <strong>hepática</strong> elige el grado); el peso en puntos figura a la derecha.',
 items:[
-{q:'Arritmia <small class="hct-def">FA o flutter, enfermedad del seno o arritmias ventriculares</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Cardiaca <small class="hct-def">Enf. coronaria (estenosis de ≥1 vaso que precisa tratamiento médico, stent o bypass), insuficiencia cardíaca congestiva, infarto de miocardio o FEVI ≤50%</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Enfermedad inflamatoria intestinal <small class="hct-def">Enfermedad de Crohn o colitis ulcerosa</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Diabetes <small class="hct-def">Que requiere insulina o hipoglucemiantes orales (no solo dieta)</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Enf. cerebrovascular <small class="hct-def">Accidente isquémico transitorio (AIT) o ictus (ACV)</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Trastorno psiquiátrico <small class="hct-def">Depresión o ansiedad que requiere consulta o tratamiento psiquiátrico</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Hepática leve <small class="hct-def">Hepatitis crónica, bilirrubina &gt; LSN hasta 1,5× LSN, o AST/ALT &gt; LSN hasta 2,5× LSN</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Obesidad <small class="hct-def">IMC &gt; 35 kg/m² (en pacientes &gt; 18 años)</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Infección <small class="hct-def">Que requiere continuar tratamiento antimicrobiano después del día 0</small>',type:'check',opts:[{l:'Sí',p:1}]},
-{q:'Reumatológica <small class="hct-def">LES, AR, polimiositis, enfermedad mixta del tejido conectivo o polimialgia reumática</small>',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Úlcera péptica <small class="hct-def">Que ha requerido tratamiento</small>',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Renal moderada/severa <small class="hct-def">Creatinina sérica &gt; 2 mg/dL, en diálisis o trasplante renal previo</small>',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Pulmonar moderada <small class="hct-def">DLCO y/o FEV1 66–80%, o disnea con actividad ligera</small>',type:'check',opts:[{l:'Sí',p:2}]},
-{q:'Tumor sólido previo <small class="hct-def">Tratado en cualquier momento de la historia del paciente, excepto cáncer cutáneo no melanoma</small>',type:'check',opts:[{l:'Sí',p:3}]},
-{q:'Valvulopatía <small class="hct-def">Excepto prolapso mitral asintomático</small>',type:'check',opts:[{l:'Sí',p:3}]},
-{q:'Pulmonar severa <small class="hct-def">DLCO y/o FEV1 ≤65%, o disnea en reposo o que requiere oxígeno</small>',type:'check',opts:[{l:'Sí',p:3}]},
-{q:'Hepática moderada/severa <small class="hct-def">Cirrosis hepática, bilirrubina &gt; 1,5× LSN, o AST/ALT &gt; 2,5× LSN</small>',type:'check',opts:[{l:'Sí',p:3}]}
+{q:'Arritmia <small class="hct-def">FA o flutter, enfermedad del seno o arritmias ventriculares</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Cardiaca <small class="hct-def">Enf. coronaria (estenosis de ≥1 vaso que precisa tratamiento médico, stent o bypass), insuficiencia cardíaca congestiva, infarto de miocardio o FEVI ≤50%</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Enfermedad inflamatoria intestinal <small class="hct-def">Enfermedad de Crohn o colitis ulcerosa</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Diabetes <small class="hct-def">Que requiere insulina o hipoglucemiantes orales (no solo dieta)</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Enf. cerebrovascular <small class="hct-def">Accidente isquémico transitorio (AIT) o ictus (ACV)</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Trastorno psiquiátrico <small class="hct-def">Depresión o ansiedad que requiere consulta o tratamiento psiquiátrico</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Hepática <small class="hct-def">Elige el grado de afectación hepática.</small>',opts:[{l:'Ninguna',p:0},{l:'Leve — hepatitis crónica, bilirrubina &gt; LSN hasta 1,5× LSN, o AST/ALT &gt; LSN hasta 2,5× LSN',p:1},{l:'Moderada/severa — cirrosis, bilirrubina &gt; 1,5× LSN, o AST/ALT &gt; 2,5× LSN',p:3}]},
+{q:'Obesidad <small class="hct-def">IMC &gt; 35 kg/m² (en pacientes &gt; 18 años)</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Infección <small class="hct-def">Que requiere continuar tratamiento antimicrobiano después del día 0</small>',opts:[{l:'No',p:0},{l:'Sí',p:1}]},
+{q:'Reumatológica <small class="hct-def">LES, AR, polimiositis, enfermedad mixta del tejido conectivo o polimialgia reumática</small>',opts:[{l:'No',p:0},{l:'Sí',p:2}]},
+{q:'Úlcera péptica <small class="hct-def">Que ha requerido tratamiento</small>',opts:[{l:'No',p:0},{l:'Sí',p:2}]},
+{q:'Renal moderada/severa <small class="hct-def">Creatinina sérica &gt; 2 mg/dL, en diálisis o trasplante renal previo</small>',opts:[{l:'No',p:0},{l:'Sí',p:2}]},
+{q:'Pulmonar <small class="hct-def">Elige el grado de afectación pulmonar (DLCO y/o FEV1, o disnea).</small>',opts:[{l:'Ninguna',p:0},{l:'Moderada — DLCO y/o FEV1 66–80%, o disnea con actividad ligera',p:2},{l:'Severa — DLCO y/o FEV1 ≤65%, o disnea en reposo o que requiere oxígeno',p:3}]},
+{q:'Tumor sólido previo <small class="hct-def">Tratado en cualquier momento de la historia del paciente, excepto cáncer cutáneo no melanoma</small>',opts:[{l:'No',p:0},{l:'Sí',p:3}]},
+{q:'Valvulopatía <small class="hct-def">Excepto prolapso mitral asintomático</small>',opts:[{l:'No',p:0},{l:'Sí',p:3}]}
 ],
 ranges:[
 {min:0,max:0,cls:'lo',label:'Riesgo bajo',info:'<div class="res-s">Puntuación 0. Mortalidad no debida a recaída (MNR) a 2 años ~14% · supervivencia global a 2 años ~71%.</div>'},
@@ -7920,7 +7918,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 364;
+const HP_BUILD = 365;
 const APP_BUILD = '2026.07.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
