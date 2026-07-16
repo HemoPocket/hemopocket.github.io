@@ -7889,8 +7889,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 346;
-const APP_BUILD = '2026.07.15 (build ' + HP_BUILD + ')';
+const HP_BUILD = 347;
+const APP_BUILD = '2026.07.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -10631,8 +10631,6 @@ if(scheme.conditioning){
   _pmList.push('– Netupitant/palonosetrón 300/0,5 mg VO (dosis única), el 1.er día del acondicionamiento.');
   _pmList.push('– Dexametasona 12 mg IV/VO (dosis única) el 1.er día; después 8 mg/día el 2.º y 3.er día desde el inicio del acondicionamiento.');
   _pmList.push('– Ondansetrón (antagonista 5-HT3) 8 mg IV/8 h fijo el 2.º y 3.er día desde el inicio del acondicionamiento; después si precisa.');
-}else if(!scheme.noAntiemetic){
-  _pmList.push('Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.');
 }
 if(drugsList.some(d=>/rituximab/i.test(d.name)))
   _pmList.push('Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg + metilprednisolona (o el corticoide del esquema el día correspondiente), 30 min antes de iniciar la infusión.');
