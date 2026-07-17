@@ -1174,6 +1174,7 @@ const MENU=[
 {id:'crs',name:'CRS (ASTCT)',kw:'crs sindrome liberacion citoquinas car t car-t cart celulas car biespecificos terapia celular tocilizumab'},
 {id:'icans',name:'ICE / ICANS',kw:'ice icans neurotoxicidad car t car-t cart celulas car terapia celular biespecificos'},
 {id:'taspe',name:'TASPE',kw:'taspe trasplante autologo progenitores hematopoyeticos auto-tph autosct movilizacion plerixafor acondicionamiento bea m mel200 cd34 prendimiento'},
+{id:'evohsos',name:'EVOH/SOS (riesgo, dx, gravedad)',kw:'evoh sos vod veno oclusiva venooclusiva enfermedad venooclusiva sinusoidal obstruction syndrome defibrotida defibrotide riesgo diagnostico gravedad severidad ebmt 2023 mohty hepatica bilirrubina ascitis hepatomegalia sofa dmo disfuncion multiorganica trasplante tph busulfan',new:'2026-07-17'},
 {id:'g_cart',name:'Guías clínicas',kw:'guias clinicas terapia celular cart biespecificos protocolo pdf'}
 ]},
 {h:'CITOPENIAS',items:[
@@ -4044,6 +4045,198 @@ ranges:[
 ],
 ref:'Sorror ML, et al. Hematopoietic cell transplantation (HCT)-specific comorbidity index. Blood. 2005;106(8):2912-2919.'
 });
+
+// ── EVOH/SOS (EBMT 2023): riesgo, diagnóstico y gravedad ──────────────────────
+// Enfermedad venooclusiva hepática / síndrome de obstrucción sinusoidal tras TPH.
+// El riesgo es CUALITATIVO (no existe score numérico validado en adultos): checklist
+// de factores; el diagnóstico y la gravedad siguen la clasificación refinada EBMT 2023.
+const EVO_RISK_NM=[
+{id:'2tph',l:'Segundo TPH',vhi:1},
+{id:'avanz',l:'Enfermedad avanzada (>2 RC o en recaída/refractaria)'},
+{id:'idp',l:'Diagnóstico de inmunodeficiencia primaria'},
+{id:'genet',l:'Factores genéticos (GSTM1, C282Y, MTHFR 677CC/1298CC)'},
+{id:'edad',l:'Paciente de edad avanzada',hi:1},
+{id:'got',l:'Transaminasas elevadas en suero'},
+{id:'karn',l:'Karnofsky <90%'},
+{id:'metab',l:'Síndrome metabólico'},
+{id:'noret',l:'Mujer que recibe noretisterona',hi:1},
+{id:'goino',l:'Uso previo de gemtuzumab ozogamicina (GO) o inotuzumab ozogamicina (INO)',vhi:1},
+{id:'hepatox',l:'Fármacos hepatotóxicos'},
+{id:'ferro',l:'Sobrecarga férrica (ferritina >1000 ng/mL)'},
+{id:'bili',l:'Bilirrubina sérica >1,5 mg/dL o transaminasas >2,5× LSN (basal)',hi:1,vhi:1},
+{id:'hepprev',l:'Enfermedad hepática preexistente (fibrosis, cirrosis, hepatitis viral activa)',vhi:1},
+{id:'rt',l:'Radiación abdominal o hepática'}
+];
+const EVO_RISK_MOD=[
+{g:'Acondicionamiento',items:[
+{id:'mac',l:'Régimen de alta dosis (mieloablativo)'},
+{id:'bu',l:'Busulfán oral o busulfán a altas dosis'},
+{id:'treo',l:'Treosulfán a altas dosis'},
+{id:'tbi',l:'Régimen basado en irradiación corporal total (TBI) de alta dosis'}
+]},
+{g:'Donante',items:[
+{id:'unrel',l:'Donante no emparentado'},
+{id:'hla',l:'Donante con disparidad HLA'}
+]},
+{g:'Profilaxis de EICR',items:[
+{id:'sir',l:'Sirolimus + metotrexato + tacrolimus'},
+{id:'mtxcsa',l:'Metotrexato + ciclosporina o tacrolimus'},
+{id:'not',l:'TPH sin depleción de células T'}
+]},
+{g:'Nutrición',items:[
+{id:'npt',l:'Uso de nutrición parenteral'}
+]}
+];
+// Parámetros de gravedad (EBMT 2023) — p = categoría (1 leve · 2 moderada · 3 grave · 4 muy grave).
+const EVO_SEV=[
+{id:'tiempo',q:'Tiempo desde los primeros síntomas clínicos',opts:[{l:'No valorable',p:0},{l:'>7 días',p:1},{l:'5–7 días',p:2},{l:'≤4 días',p:3}]},
+{id:'bilir',q:'Bilirrubina (mg/dL)',opts:[{l:'<2 (sin criterio)',p:0},{l:'≥2 y <3',p:1},{l:'≥3 y <5',p:2},{l:'≥5 y <8',p:3},{l:'≥8',p:4}]},
+{id:'trans',q:'Transaminasas (× normal)',opts:[{l:'No valorable',p:0},{l:'≤2×',p:1},{l:'>2 y ≤5×',p:2},{l:'>5 y ≤8×',p:3},{l:'>8×',p:4}]},
+{id:'peso',q:'Aumento de peso',opts:[{l:'<5% (sin criterio)',p:0},{l:'≥5%',p:3},{l:'≥10%',p:4}]},
+{id:'renal',q:'Función renal (creatininemia)',opts:[{l:'Basal al trasplante',p:1},{l:'<1,5× basal',p:2},{l:'≥1,5 y <2× basal',p:3},{l:'≥2× basal (o DMO)',p:4}]}
+];
+// SOFA (Tabla 4) para definir DMO (disfunción multiorgánica).
+const EVO_SOFA=[
+{id:'resp',q:'Respiración (PaO₂/FiO₂, mmHg)',opts:[{l:'Normal',p:0},{l:'<400',p:1},{l:'<300',p:2},{l:'<200 con soporte respiratorio',p:3},{l:'<100 con soporte respiratorio',p:4}]},
+{id:'coag',q:'Coagulación (plaquetas ×10³/mm³)',opts:[{l:'Normal',p:0},{l:'<150',p:1},{l:'<100',p:2},{l:'<50',p:3},{l:'<20',p:4}]},
+{id:'hig',q:'Hígado (bilirrubina, mg/dL)',opts:[{l:'Normal',p:0},{l:'1,2–1,9',p:1},{l:'2,0–5,9',p:2},{l:'6,0–11,9',p:3},{l:'>12,0',p:4}]},
+{id:'card',q:'Cardiovascular (hipotensión)',opts:[{l:'Normal',p:0},{l:'PAM <70 mmHg',p:1},{l:'Dopamina <5 o dobutamina',p:2},{l:'Dopamina >5 o adrenalina ≤0,1 o noradrenalina ≤0,1',p:3},{l:'Dopamina >15 o adrenalina >0,1 o noradrenalina >0,1',p:4}]},
+{id:'snc',q:'SNC (escala de Glasgow)',opts:[{l:'15 (normal)',p:0},{l:'13–14',p:1},{l:'10–12',p:2},{l:'6–9',p:3},{l:'<6',p:4}]},
+{id:'ren',q:'Renal (creatinina mg/dL o diuresis)',opts:[{l:'Normal',p:0},{l:'1,2–1,9',p:1},{l:'2,0–3,4',p:2},{l:'3,5–5,0 o <500 mL/día',p:3},{l:'>5,0 o <200 mL/día',p:4}]}
+];
+function _evoRiskChk(f){
+return '<label class="chk-card"><input type="checkbox" data-l="'+f.l.replace(/"/g,'&quot;')+'"'+(f.hi?' data-hi="1"':'')+(f.vhi?' data-vhi="1"':'')+' onchange="evoRiskCalc()"><span>'+(f.hi?'<strong>'+f.l+'</strong> <small>(mayor riesgo relativo)</small>':f.l)+'</span></label>';
+}
+function evoRiskHtml(){
+let h='<div class="fld"><label class="lbl">Factores NO modificables</label>'+EVO_RISK_NM.map(_evoRiskChk).join('')+'</div>';
+h+='<div class="fld"><label class="lbl">Factores modificables <small>(valorar medidas de prevención)</small></label>';
+EVO_RISK_MOD.forEach(function(grp){ h+='<div style="font-size:12px;font-weight:600;color:var(--c2);margin:6px 0 3px">'+grp.g+'</div>'+grp.items.map(_evoRiskChk).join(''); });
+h+='</div>';
+h+='<div id="evo_r_res" class="res" style="display:none"></div>';
+h+='<div class="btns"><button class="btn btn-out btn-sm" onclick="copyShortRes(\'evo_r_res\',\'EVOH/SOS · riesgo\')">Copiar</button></div>';
+return h;
+}
+function evoRiskCalc(){
+const boxes=Array.from(document.querySelectorAll('#evo_s1 input[type=checkbox]:checked'));
+const n=boxes.length;
+const vhi=boxes.some(function(b){return b.dataset.vhi==='1';});
+const hiList=boxes.filter(function(b){return b.dataset.hi==='1';}).map(function(b){return b.dataset.l;});
+let cat,cls,extra;
+if(n===0){cat='Riesgo estándar';cls='lo';extra='Sin factores marcados. Profilaxis específica de EVOH/SOS no indicada de rutina; vigilancia clínica habitual.';}
+else if(vhi){cat='Riesgo muy alto';cls='hi';extra='Considerar profilaxis (p. ej. defibrotida) y monitorización estrecha: peso diario, bilirrubina y transaminasas, ecografía Doppler. Optimizar factores modificables.';}
+else{cat='Riesgo alto';cls='md';extra='Valorar profilaxis según protocolo y monitorización estrecha. Optimizar o evitar los factores modificables presentes.';}
+const el=$('evo_r_res');el.style.display='block';el.className='res '+cls;
+let h='<div class="res-h"><span class="score">'+n+(n===1?' factor':' factores')+'</span><span>'+cat+'</span></div>';
+if(hiList.length)h+='<div class="res-txt">Factores de mayor riesgo relativo presentes: <b>'+hiList.join('; ')+'</b>.</div>';
+h+='<div class="res-s">'+extra+'</div>';
+h+='<div class="res-s" style="margin-top:6px;font-size:11px;color:var(--mut)">Estimación orientativa: no existe un score numérico validado de riesgo de EVOH/SOS en adultos; la decisión de profilaxis es clínica e individualizada.</div>';
+el.innerHTML=h;
+}
+function _evoDxChk(id,l){return '<label class="chk-card"><input type="checkbox" id="evo_dx_'+id+'" onchange="evoDxCalc()"><span>'+l+'</span></label>';}
+function evoDxHtml(){
+let h='<div class="fld"><label class="lbl">Momento de aparición</label>';
+h+='<label class="chk-card"><input type="radio" name="evo_time" value="cl" onchange="evoDxCalc()" checked><span>Clásica — ≤21 días tras el TPH</span></label>';
+h+='<label class="chk-card"><input type="radio" name="evo_time" value="ta" onchange="evoDxCalc()"><span>Tardía — &gt;21 días tras el TPH</span></label></div>';
+h+='<div class="fld"><label class="lbl">Criterios clínicos</label>';
+h+=_evoDxChk('bili','Bilirrubina ≥2 mg/dL');
+h+=_evoDxChk('hep','Hepatomegalia dolorosa');
+h+=_evoDxChk('peso','Aumento de peso &gt;5%');
+h+=_evoDxChk('asc','Ascitis');
+h+=_evoDxChk('eco','Ecografía y/o elastografía sugestiva de EVOH/SOS');
+h+='</div>';
+h+='<div class="fld"><label class="lbl">Criterios de EVOH/SOS probado</label>';
+h+=_evoDxChk('hist','Evidencia histológica de EVOH/SOS');
+h+=_evoDxChk('hemo','Evidencia hemodinámica (HVPG ≥10 mmHg)');
+h+='</div>';
+h+='<div id="evo_dx_res" class="res" style="display:none"></div>';
+h+='<div class="btns"><button class="btn btn-out btn-sm" onclick="copyShortRes(\'evo_dx_res\',\'EVOH/SOS\')">Copiar</button></div>';
+return h;
+}
+function evoDxCalc(){
+const g=function(id){const e=document.getElementById('evo_dx_'+id);return e&&e.checked;};
+const bili=g('bili'),hep=g('hep'),peso=g('peso'),asc=g('asc'),eco=g('eco'),hist=g('hist'),hemo=g('hemo');
+const proven=hist||hemo;
+const clinCount=[hep,peso,asc].filter(Boolean).length;
+const clinical=bili&&clinCount>=2;
+const probCount=[bili,hep,peso,asc,eco].filter(Boolean).length;
+const probable=probCount>=2;
+const t=document.querySelector('input[name="evo_time"]:checked');
+const timeLbl=(t&&t.value==='ta')?'tardía (&gt;21 días)':'clásica (≤21 días)';
+let cat,cls,note;
+if(proven){cat='EVOH/SOS probado';cls='hi';note='Cumple criterio de EVOH/SOS probado (evidencia histológica o hemodinámica).';}
+else if(clinical){cat='EVOH/SOS clínico';cls='md';note='Bilirrubina ≥2 mg/dL más ≥2 criterios clínicos.';}
+else if(probable){cat='EVOH/SOS probable';cls='md';note='≥2 criterios presentes. Reevaluar de forma seriada; considerar categoría clínica/probada.';}
+else{cat='No cumple criterios';cls='lo';note='Aún no se cumplen 2 criterios. Reevaluar de forma seriada (peso, bilirrubina, exploración, ecografía).';}
+const el=$('evo_dx_res');el.style.display='block';el.className='res '+cls;
+el.innerHTML='<div class="res-h"><span class="score">'+cat+'</span><span>'+timeLbl+'</span></div><div class="res-s">'+note+'</div>';
+}
+function _evoRadios(prefix,arr,cb){
+return arr.map(function(p){
+let h='<div class="fld"><label class="lbl">'+p.q+'</label>';
+h+=p.opts.map(function(o){return '<label class="chk-card"><input type="radio" name="'+prefix+'_'+p.id+'" value="'+o.p+'" onchange="'+cb+'()"><span>'+o.l+'</span></label>';}).join('');
+return h+'</div>';
+}).join('');
+}
+function evoSevHtml(){
+let h=_evoRadios('evo_sev',EVO_SEV,'evoSevCalc');
+h+='<div class="fld"><label class="chk-card"><input type="checkbox" id="evo_sev_cin" onchange="evoSevCalc()"><span>Cinética de la bilirrubina: se duplica en 48 h <small>(criterio de grave)</small></span></label></div>';
+h+='<div class="fld"><label class="chk-card"><input type="checkbox" id="evo_sev_rf" onchange="evoSevCalc()"><span>≥2 factores de riesgo de EVOH/SOS presentes <small>(sube una categoría)</small></span></label></div>';
+h+='<div style="font-size:12.5px;font-weight:600;color:var(--c2);margin:12px 0 4px">Disfunción multiorgánica (DMO) — SOFA</div>';
+h+='<p style="font-size:11.5px;color:var(--mut);margin:0 0 6px">DMO = ≥2 órganos con SOFA ≥2 (o aumento ≥2 sobre una disfunción previa). La DMO clasifica siempre como <strong>muy grave</strong>.</p>';
+h+=_evoRadios('evo_sofa',EVO_SOFA,'evoSevCalc');
+h+='<div id="evo_sev_res" class="res" style="display:none"></div>';
+h+='<div class="btns"><button class="btn btn-out btn-sm" onclick="copyShortRes(\'evo_sev_res\',\'EVOH/SOS · gravedad\')">Copiar</button></div>';
+return h;
+}
+function evoSevCalc(){
+const levels=[];
+EVO_SEV.forEach(function(p){const r=document.querySelector('input[name="evo_sev_'+p.id+'"]:checked');if(r&&+r.value>=1)levels.push(+r.value);});
+const cin=document.getElementById('evo_sev_cin');if(cin&&cin.checked)levels.push(3);
+let sofaTotal=0,organsGe2=0,anySofa=false;
+EVO_SOFA.forEach(function(o){const r=document.querySelector('input[name="evo_sofa_'+o.id+'"]:checked');if(r){anySofa=true;const v=+r.value;sofaTotal+=v;if(v>=2)organsGe2++;}});
+const dmo=organsGe2>=2;
+const rf2=document.getElementById('evo_sev_rf');const bumpRf=rf2&&rf2.checked;
+const el=$('evo_sev_res');
+if(!levels.length&&!anySofa){el.style.display='none';return;}
+let grade=0;
+for(let c=4;c>=1;c--){if(levels.filter(function(v){return v>=c;}).length>=2){grade=c;break;}}
+let single=false;
+if(grade===0&&levels.length){grade=Math.max.apply(null,levels);single=true;}
+let bumped=false;
+if(bumpRf&&grade>=1&&grade<3){grade+=1;bumped=true;}
+if(dmo)grade=4;
+const LBL=['—','Leve','Moderada','Grave','Muy grave'];
+const CLS=['lo','lo','md','hi','hi'];
+const cat=LBL[grade]||'—';
+el.style.display='block';el.className='res '+(CLS[grade]||'');
+let sub=[];
+if(anySofa)sub.push('SOFA '+sofaTotal+(dmo?' · DMO presente ('+organsGe2+' órganos ≥2)':' · sin DMO'));
+let h='<div class="res-h"><span class="score">'+cat+'</span>'+(sub.length?'<span>'+sub.join(' · ')+'</span>':'')+'</div>';
+const notes=[];
+if(dmo)notes.push('DMO presente → clasificado como <strong>muy grave</strong>.');
+if(bumped)notes.push('Categoría aumentada un nivel por ≥2 factores de riesgo.');
+if(single)notes.push('Solo 1 criterio marcado: la clasificación EBMT requiere ≥2 criterios en la misma categoría; resultado provisional.');
+if(grade>=1&&!dmo)notes.push('Clasificado en la categoría más grave en la que se cumplen ≥2 criterios.');
+if(notes.length)h+='<div class="res-s">'+notes.join(' ')+'</div>';
+el.innerHTML=h;
+}
+function evoTab(n){
+[1,2,3].forEach(function(i){const s=document.getElementById('evo_s'+i);if(s)s.style.display=(i===n)?'':'none';});
+document.querySelectorAll('.evo-tab').forEach(function(b){b.className='btn btn-sm evo-tab'+((+b.dataset.t===n)?'':' btn-out');});
+}
+VIEWS.evohsos=()=>`<div class="card">
+<h2>EVOH/SOS — riesgo, diagnóstico y gravedad</h2>
+<p class="intro">Enfermedad venooclusiva hepática / síndrome de obstrucción sinusoidal (EVOH/SOS) tras el TPH. Clasificación refinada de la <strong>EBMT 2023</strong>. Tres módulos independientes.</p>
+<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+<button type="button" class="btn btn-sm evo-tab" data-t="1" onclick="evoTab(1)">1 · Riesgo</button>
+<button type="button" class="btn btn-out btn-sm evo-tab" data-t="2" onclick="evoTab(2)">2 · Diagnóstico</button>
+<button type="button" class="btn btn-out btn-sm evo-tab" data-t="3" onclick="evoTab(3)">3 · Gravedad</button>
+</div>
+<div id="evo_s1"><p style="font-size:12px;color:var(--mut);margin:0 0 8px">Marca los factores de riesgo presentes antes del TPH. Salida cualitativa (no hay score validado).</p>${evoRiskHtml()}</div>
+<div id="evo_s2" style="display:none"><p style="font-size:12px;color:var(--mut);margin:0 0 8px">Criterios diagnósticos EBMT 2023 (probable / clínico / probado).</p>${evoDxHtml()}</div>
+<div id="evo_s3" style="display:none"><p style="font-size:12px;color:var(--mut);margin:0 0 8px">Clasificación de gravedad EBMT 2023. Selecciona los criterios cumplidos.</p>${evoSevHtml()}</div>
+<div class="ref">Mohty M, et al. Diagnosis and severity criteria for sinusoidal obstruction syndrome/veno-occlusive disease in adult patients: a refined classification from the EBMT. Bone Marrow Transplant. 2023;58(7):749-754. · Factores de riesgo y profilaxis: Mohty M, et al. Bone Marrow Transplant. 2020;55:485-495. · SOFA: Vincent JL, et al. Intensive Care Med. 1996;22:707-710.</div>
+</div>`;
 
 VIEWS.ecog=()=>`<div class="card">
 <h2>ECOG / Performance Status</h2>
@@ -7918,8 +8111,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 365;
-const APP_BUILD = '2026.07.16 (build ' + HP_BUILD + ')';
+const HP_BUILD = 366;
+const APP_BUILD = '2026.07.17 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -10299,6 +10492,8 @@ const CHAT_FAQ=[
    a:'La <strong>ICANS</strong> es la neurotoxicidad asociada a terapia celular; se evalúa con el <strong>score ICE</strong> y se gradúa por ASTCT. El manejo se basa en corticoides según el grado (el tocilizumab no atraviesa bien la BHE).'},
   {v:'taspe',t:'TASPE (autotrasplante)',rx:/taspe|trasplante autologo|auto ?tph|movilizacion.*progenitores|plerixafor/,
    a:'Consulta el proceso del <strong>autotrasplante (TASPE)</strong>: movilización (± plerixafor), objetivo de CD34, acondicionamiento (p. ej. BEAM, Mel200) y prendimiento.'},
+  {v:'evohsos',t:'EVOH/SOS (enf. venooclusiva)',rx:/evoh|\bsos\b|\bvod\b|veno ?oclusiva|venooclusiva|obstruccion sinusoidal|defibrotida|defibrotide/,
+   a:'La <strong>EVOH/SOS</strong> (enfermedad venooclusiva hepática / síndrome de obstrucción sinusoidal) es una complicación del TPH. Consulta los <strong>factores de riesgo</strong>, los <strong>criterios diagnósticos</strong> (probable/clínico/probado) y la <strong>gravedad</strong> según la clasificación refinada de la EBMT 2023.'},
   // — Leucemias agudas —
   {v:'eln24',t:'ELN 2024 (LMA baja intensidad)',rx:/eln 2024|lma.*baja intensidad|venetoclax.*azacitidina/,
    a:'La clasificación <strong>ELN 2024</strong> estratifica el riesgo de la LMA tratada con <strong>baja intensidad</strong> (azacitidina + venetoclax), distinta de la ELN 2022 (intensiva).'},
