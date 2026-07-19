@@ -8111,8 +8111,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 366;
-const APP_BUILD = '2026.07.17 (build ' + HP_BUILD + ')';
+const HP_BUILD = 367;
+const APP_BUILD = '2026.07.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -13037,7 +13037,7 @@ const DICT=[
 {a:'Hematíes',u:'x10E12/L',c:'hemograma',k:'num',defHidden:1,pats:['recuento de hematies','recuento de eritrocitos','hematies','eritrocitos','\\brbc\\b']},
 {a:'Hb',u:'g/dl',c:'hemograma',k:'num',pats:['hemoglobina','\\bhgb\\b','\\bhb\\b']},
 {a:'Hto',u:'%',c:'hemograma',k:'pct',defHidden:1,pats:['hematocrito','\\bhto\\b','\\bhct\\b']},
-{a:'VCM',u:'fl',c:'hemograma',k:'num',pats:['volumen corpuscular medio','\\bvcm\\b','v\\.c\\.m\\.?','\\bmcv\\b']},
+{a:'VCM',u:'fl',c:'hemograma',k:'num',defHidden:1,pats:['volumen corpuscular medio','\\bvcm\\b','v\\.c\\.m\\.?','\\bmcv\\b']},
 {a:'HCM',u:'pg',c:'hemograma',k:'num',defHidden:1,pats:['hemoglobina corpuscular media','\\bhcm\\b','h\\.c\\.m\\.?','\\bmch\\b']},
 {a:'CHCM',u:'g/dl',c:'hemograma',k:'num',pats:['concentracion de hemoglobina corpuscular media','concentracion corpuscular media de hemoglobina','\\bchcm\\b','c\\.h\\.c\\.m\\.?','\\bccmh\\b','\\bmchc\\b']},
 {a:'ADE',u:'%',c:'hemograma',k:'pct',pats:['ancho de distribucion eritrocitaria','amplitud de distribucion eritrocitaria','dispersion de hematies','dispersion eritrocitaria','\\bade\\b','\\brdw\\b','\\badve\\b']},
