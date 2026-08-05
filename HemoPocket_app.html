@@ -788,6 +788,8 @@ window.hpApplyCloudData=function(d){
     var _lp=d.lcProfiles; if(typeof _lp==='string'){ try{ _lp=JSON.parse(_lp); }catch(e){ _lp=null; } }
     if(_lp&&typeof _lp==='object'&&Array.isArray(_lp.list)){ls.s('lcProfiles',_lp);}
   }finally{_hpCloudSuppress=false;}
+  // Limpia perfiles antiguos que llegan de la nube (arrastran campos hoy ocultos por defecto).
+  try{ if(window.hpCleanLcProfiles) window.hpCleanLcProfiles(); }catch(e){}
   try{renderMenu($('search')?$('search').value:'');}catch(e){}
   try{if(S.view==='home')$('content').innerHTML=homeView();}catch(e){}
   try{if(S.view==='labconv'||S.view==='lcprof')go(S.view);}catch(e){}
@@ -8149,7 +8151,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 369;
+const HP_BUILD = 370;
 const APP_BUILD = '2026.08.05 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -13384,6 +13386,22 @@ function lcProfiles(){ try{ const o=ls.g('lcProfiles'); return (o&&typeof o==='o
 function lcProfilesSet(o){ try{ ls.s('lcProfiles', o||{active:'',list:[]}); }catch(e){} }
 function lcActiveProfile(){ const o=lcProfiles(); if(!o.active) return null; return (o.list||[]).filter(function(p){return p&&p.id===o.active;})[0]||null; }
 function lcSetActiveProfile(id){ const o=lcProfiles(); o.active=id||''; if(id&&!(o.list||[]).some(function(p){return p&&p.id===id;})) o.active=''; lcProfilesSet(o); }
+// Limpieza automática de perfiles antiguos: cada perfil guarda una copia CONGELADA de la visibilidad
+// de todos los parámetros del momento en que se creó. Los perfiles creados antes de que ciertos campos
+// pasaran a estar OCULTOS por defecto (hematíes, Hto, VCM, HCM, CHCM, ADE, VSG, E, B, VPM) siguen
+// arrastrándolos. Esta función los borra del perfil para que herede la base limpia («Perfil general»);
+// si alguien quiere esos campos en un perfil concreto, basta con volver a marcarlos. Idempotente.
+function _lcDefHiddenSet(){ const s={}; DICT.forEach(function(e){ if(e.defHidden) s[e.a]=1; }); return s; }
+function _lcCleanProfiles(){
+  var o; try{ o=ls.g('lcProfiles'); }catch(e){ return false; }
+  if(!o||!Array.isArray(o.list)||!o.list.length) return false;
+  var dh=_lcDefHiddenSet(), changed=false;
+  o.list.forEach(function(p){ if(p&&p.vis&&typeof p.vis==='object'){ Object.keys(dh).forEach(function(a){ if(a in p.vis){ delete p.vis[a]; changed=true; } }); } });
+  if(changed){ try{ lcProfilesSet(o); }catch(e){} }
+  return changed;
+}
+window.hpCleanLcProfiles=_lcCleanProfiles;
+try{ _lcCleanProfiles(); }catch(e){}
 // Visibilidad EFECTIVA de un parámetro según la config del hospital (sin perfil): usada como base.
 function _lcBaseVisible(a){ const hidden=(lcOverride().hidden)||{}; if(a in hidden) return !hidden[a]; const e=DICT.filter(function(x){return x.a===a;})[0]; return e?!e.defHidden:true; }
 // ¿Se muestra el parámetro/detector 'a'? El PERFIL activo manda; si no, la config del hospital.
