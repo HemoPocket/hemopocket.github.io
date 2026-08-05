@@ -430,7 +430,7 @@ body{font-size:13px}
 .vw-z{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;font-size:19px;line-height:1;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0}
 .vw-z:active{transform:scale(.9)}
 .vw-zlbl{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--mut);min-width:40px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;user-select:none}
-.viewer-pages canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;max-width:100%;height:auto;position:relative;z-index:1}
+.viewer-pages canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);image-rendering:auto;max-width:100%;height:auto;position:relative;z-index:1}
 /* Capa de texto de pdf.js: spans transparentes alineados sobre el canvas → permite seleccionar/copiar y resaltar búsquedas */
 .textLayer{position:absolute;top:0;left:0;transform-origin:0 0;overflow:hidden;line-height:1;z-index:2;text-align:initial;text-size-adjust:none;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 .textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0 0;-webkit-user-select:text;user-select:text;pointer-events:auto}
@@ -7363,18 +7363,6 @@ target.dataset.ratio=ratio;
 // Anchura base disponible (con padding del contenedor); cap a 900px. El zoom amplía solo el tamaño CSS.
 const baseW=Math.min((container.clientWidth||360)-16,900);
 const cssWidth=baseW*_vwZoom;
-const cssHeight=cssWidth*ratio;
-// Oversampling para máxima nitidez en pantallas Retina/iPhone (buffer constante, independiente del zoom)
-// Renderizamos 2× los píxeles físicos del dispositivo (cap a 4× para no abusar)
-const renderScale=Math.min((baseW/natural.width)*dpr*2,4);
-const viewport=page.getViewport({scale:renderScale});
-const canvas=document.createElement('canvas');
-canvas.width=Math.floor(viewport.width);
-canvas.height=Math.floor(viewport.height);
-// Tamaño CSS explícito → el navegador hace downsample limpio del buffer al display
-canvas.style.width=cssWidth+'px';
-canvas.style.height=cssHeight+'px';
-canvas.style.maxWidth='none';
 target.style.width=cssWidth+'px';
 target.style.maxWidth='none';
 target.innerHTML='';
@@ -7384,9 +7372,10 @@ target.style.background='transparent';
 target.style.boxShadow='none';
 target.style.display='block';
 target.style.position='relative';
+// Rasteriza con supersampling (2× píxeles físicos → nitidez HD) dimensionado al tamaño actual.
+const canvas=await _vwRasterize(page,natural.width,ratio,cssWidth);
 target.appendChild(canvas);
-const ctx=canvas.getContext('2d',{alpha:false});
-await page.render({canvasContext:ctx,viewport}).promise;
+target.dataset.renderedZoom=_vwZoom;
 // Capa de texto: habilita seleccionar/copiar y el resaltado del buscador.
 // Aditiva y tolerante a fallos: si no hay texto (PDF escaneado) o falla, el PDF se sigue viendo igual.
 try{
@@ -7428,6 +7417,54 @@ container.innerHTML=`<div class="viewer-error">No se pudo renderizar el PDF.<br>
 };
 
 // Zoom del visor PDF (reescala el tamaño CSS sobre el buffer de alta resolución ya renderizado)
+// Escala de rasterizado: 2× los píxeles físicos del dispositivo (supersampling → nitidez HD), con
+// dos límites de seguridad: escala máx. 8 y área de canvas ≤ 12 Mpx (por debajo del límite de iOS
+// Safari, ~16,7 Mpx, para que el canvas no falle en iPhone/iPad).
+function _vwRenderScale(nw,nh,cssW){
+  const dpr=window.devicePixelRatio||1;
+  let s=(cssW/nw)*dpr*2;
+  if(s>8)s=8;
+  const MAXAREA=12e6;
+  if(nw*nh*s*s>MAXAREA)s=Math.sqrt(MAXAREA/(nw*nh));
+  return s>0?s:1;
+}
+// Rasteriza una página PDF a un canvas nítido dimensionado a cssW (píxeles CSS). Devuelve el canvas.
+async function _vwRasterize(page,nw,ratio,cssW){
+  const scale=_vwRenderScale(nw,nw*ratio,cssW);
+  const vp=page.getViewport({scale});
+  const cv=document.createElement('canvas');
+  cv.width=Math.floor(vp.width);cv.height=Math.floor(vp.height);
+  cv.style.width=cssW+'px';cv.style.height=(cssW*ratio)+'px';cv.style.maxWidth='none';
+  const ctx=cv.getContext('2d',{alpha:false});
+  await page.render({canvasContext:ctx,viewport:vp}).promise;
+  return cv;
+}
+let _vwReTimer=0;
+// Tras un cambio de zoom, vuelve a rasterizar en HD las páginas visibles al nuevo tamaño. El zoom en
+// vivo solo escala por CSS (rápido); esto restaura la resolución sin parpadeo: rasteriza un canvas
+// nuevo y sustituye el anterior cuando está listo. Solo actúa sobre páginas ya renderizadas y a la
+// vista (±1 pantalla), para no gastar de más.
+function _vwReraster(){
+  const c=window._vwContainer,pdf=window._vwPDF;if(!c||!pdf)return;
+  const baseW=Math.min((c.clientWidth||360)-16,900);
+  const cssW=baseW*_vwZoom;
+  const cr=c.getBoundingClientRect();
+  c.querySelectorAll('.viewer-page-placeholder[data-rendered="1"]').forEach(function(p){
+    if(Math.abs((parseFloat(p.dataset.renderedZoom)||1)-_vwZoom)<0.01)return;
+    const pr=p.getBoundingClientRect();
+    if(pr.bottom<cr.top-cr.height||pr.top>cr.bottom+cr.height)return;
+    const n=parseInt(p.dataset.page);if(!n)return;
+    const ratio=parseFloat(p.dataset.ratio)||1.414;
+    p.dataset.renderedZoom=_vwZoom; // marca optimista: evita relanzar en paralelo la misma página
+    pdf.getPage(n).then(function(pg){
+      const nw=pg.getViewport({scale:1}).width;
+      return _vwRasterize(pg,nw,ratio,cssW).then(function(cv){
+        const old=p.querySelector('canvas');
+        if(old)old.replaceWith(cv);else p.insertBefore(cv,p.firstChild);
+      });
+    }).catch(function(){});
+  });
+}
 function vwSetZoom(z){
   _vwZoom=Math.max(0.5,Math.min(3,Math.round(z*100)/100));
   const c=window._vwContainer||$('vw_pages');
@@ -7443,6 +7480,7 @@ function vwSetZoom(z){
     });
   }
   const lbl=$('vw_zlabel');if(lbl)lbl.textContent=Math.round(_vwZoom*100)+'%';
+  clearTimeout(_vwReTimer);_vwReTimer=setTimeout(_vwReraster,200); // re-rasteriza en HD al asentarse el zoom
 }
 // Cambia el zoom SIN saltar de página. Ancla la página que está en el centro del visor y la
 // fracción vertical dentro de ella; tras reescalar, vuelve exactamente a ese punto. Es
@@ -8111,7 +8149,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 368;
+const HP_BUILD = 369;
 const APP_BUILD = '2026.08.05 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
