@@ -8111,8 +8111,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 367;
-const APP_BUILD = '2026.07.19 (build ' + HP_BUILD + ')';
+const HP_BUILD = 368;
+const APP_BUILD = '2026.08.05 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -13039,8 +13039,8 @@ const DICT=[
 {a:'Hto',u:'%',c:'hemograma',k:'pct',defHidden:1,pats:['hematocrito','\\bhto\\b','\\bhct\\b']},
 {a:'VCM',u:'fl',c:'hemograma',k:'num',defHidden:1,pats:['volumen corpuscular medio','\\bvcm\\b','v\\.c\\.m\\.?','\\bmcv\\b']},
 {a:'HCM',u:'pg',c:'hemograma',k:'num',defHidden:1,pats:['hemoglobina corpuscular media','\\bhcm\\b','h\\.c\\.m\\.?','\\bmch\\b']},
-{a:'CHCM',u:'g/dl',c:'hemograma',k:'num',pats:['concentracion de hemoglobina corpuscular media','concentracion corpuscular media de hemoglobina','\\bchcm\\b','c\\.h\\.c\\.m\\.?','\\bccmh\\b','\\bmchc\\b']},
-{a:'ADE',u:'%',c:'hemograma',k:'pct',pats:['ancho de distribucion eritrocitaria','amplitud de distribucion eritrocitaria','dispersion de hematies','dispersion eritrocitaria','\\bade\\b','\\brdw\\b','\\badve\\b']},
+{a:'CHCM',u:'g/dl',c:'hemograma',k:'num',defHidden:1,pats:['concentracion de hemoglobina corpuscular media','concentracion corpuscular media de hemoglobina','\\bchcm\\b','c\\.h\\.c\\.m\\.?','\\bccmh\\b','\\bmchc\\b']},
+{a:'ADE',u:'%',c:'hemograma',k:'pct',defHidden:1,pats:['ancho de distribucion eritrocitaria','amplitud de distribucion eritrocitaria','dispersion de hematies','dispersion eritrocitaria','\\bade\\b','\\brdw\\b','\\badve\\b']},
 {a:'Leucocitos',u:'',c:'hemograma',k:'count',pats:['recuento leucocitario','leucocitos totales','leucocitos','\\bleucos\\b','\\bwbc\\b']},
 {a:'N',u:'',c:'hemograma',k:'count',rp:1,pats:['neutrofilos totales','neutrofilos absolutos','neutrofilos','\\bneut\\b','\\bneu\\b']},
 {a:'L',u:'',c:'hemograma',k:'count',rp:1,pats:['linfocitos totales','linfocitos absolutos','linfocitos','\\blinf\\b']},
@@ -13051,7 +13051,7 @@ const DICT=[
 {a:'VPM',u:'fl',c:'hemograma',k:'num',defHidden:1,pats:['volumen\\s+plaquetar(?:io)?\\s+medio','\\bvpm\\b','\\bmpv\\b']},
 {a:'Reticulocitos',u:'',c:'hemograma',k:'retic',pats:['reticulocitos absolutos','reticulocitos','\\breti\\b']},
 {a:'Frotis',u:'',c:'hemograma',k:'text',pats:['frotis de sangre periferica','extension de sangre periferica','frotis sangre periferica','sangre periferica \\(morfologia\\)','morfologia eritrocitaria','frotis \\(sp\\)','frotis sp','frotis','\\bf\\.?s\\.?p\\.?(?=\\s*[:\\-]|\\s+[a-z])']},
-{a:'VSG',u:'mm/h',c:'hemograma',k:'num',keepUnit:1,pats:['velocidad de sedimentacion(?:\\s+globular)?','\\bvsg\\b','v\\.s\\.g\\.?','\\besr\\b']},
+{a:'VSG',u:'mm/h',c:'hemograma',k:'num',keepUnit:1,defHidden:1,pats:['velocidad de sedimentacion(?:\\s+globular)?','\\bvsg\\b','v\\.s\\.g\\.?','\\besr\\b']},
 {a:'HbA2',u:'%',c:'eritropatologia',k:'num',pats:['hemoglobina a2','\\bhba2\\b','hb a2']},
 {a:'HbF',u:'%',c:'eritropatologia',k:'num',pats:['hemoglobina f\\b','hemoglobina fetal','\\bhbf\\b']},
 {a:'Hb fracciones',u:'',c:'eritropatologia',k:'text',pats:['hemoglobina,?\\s*fracciones(?:\\s*\\(interpretacion\\))?']},
@@ -13452,7 +13452,7 @@ window.lcEditGuardar=lcEditGuardar;
 let _lcProfDraft=null;
 function _lcId(){ return 'p'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
 function lcProfileOptions(){
-  const o=lcProfiles(); let s='<option value="">— Todos los campos (por defecto) —</option>';
+  const o=lcProfiles(); let s='<option value="">Perfil general (por defecto)</option>';
   (o.list||[]).forEach(function(p){ if(p&&p.id) s+='<option value="'+_hpEsc(p.id)+'"'+(o.active===p.id?' selected':'')+'>'+_hpEsc(p.name||'(sin nombre)')+'</option>'; });
   return s;
 }
