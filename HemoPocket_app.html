@@ -8151,8 +8151,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 370;
-const APP_BUILD = '2026.08.05 (build ' + HP_BUILD + ')';
+const HP_BUILD = 371;
+const APP_BUILD = '2026.08.06 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -13359,7 +13359,12 @@ window.LCtranscribe=transcribe;window.LCbuild=build;
 // Capa sobre DICT (parámetros + sinónimos) y CAT_ORDER/CAT_LABEL (plantilla de salida). El override
 // añade sinónimos a parámetros existentes, añade parámetros nuevos y ajusta el orden/nombre de las
 // secciones del informe. El reconocimiento del texto sigue en código. Se guarda en menuconfig/redaccion.
-function lcOverride(){ try{ return _lcMigrate(ls.g('lcOverride')||{}); }catch(e){ return {}; } }
+function lcOverride(){ try{ var ov=_lcMigrate(ls.g('lcOverride')||{});
+  // El defHidden de fábrica manda para los campos ocultos por defecto (hematíes, Hto, VCM, HCM, CHCM,
+  // ADE, VSG, E, B, VPM): la config del hospital NO puede forzarlos a visibles (evita que un ajuste
+  // antiguo los reactive para todos). Si alguien los quiere, se activan por PERFIL, que sí prevalece.
+  if(ov&&ov.hidden&&typeof ov.hidden==='object'){ var dh=_lcDefHiddenSet(); for(var a in dh){ if(ov.hidden[a]===false) delete ov.hidden[a]; } }
+  return ov; }catch(e){ return {}; } }
 // Migración: si una sección personalizada se llama igual que una de fábrica, fusiona sus parámetros
 // en la de fábrica y elimina la sección duplicada; descarta parámetros nuevos que ya cubre un detector
 // automático (p. ej. "Anticoagulante lúpico"), para evitar duplicados al añadirse esas secciones de serie.
