@@ -5191,6 +5191,23 @@ async function hpRenombrarSeccion(id){
   if(window.hpSaveSeccion){ try{ await window.hpSaveSeccion(id,{titulo:t}); toast('✓ Sección renombrada · para todos'); }catch(e){ toast('Guardado. Si fue por falta de conexión, se publicará para todos al reconectar'); } }
   else toast('✓ Renombrada');
 }
+// Renombra el APARTADO DE GUÍAS de una sección (el enlace «Guías clínicas» y el título de su página),
+// sin tocar la cabecera de la categoría ni las calculadoras. Efectivo para todos.
+async function hpRenombrarGuia(id){
+  const itemId='g_'+id;
+  const def=((typeof getAll==='function'&&getAll().find(function(x){return x.id===itemId;}))||{}).name||'Guías clínicas';
+  const actual=hpItemName(itemId,def);
+  const nuevo=prompt('Nombre de este apartado de guías (p. ej. «Guías de leucemias»). Deja vacío para restablecer:', actual);
+  if(nuevo==null) return; const t=nuevo.trim();
+  const m=hpItemMap();
+  if(!t || t===def){ if(m[itemId]){ delete m[itemId].nombre; if(!Object.keys(m[itemId]).length) delete m[itemId]; } }
+  else { m[itemId]=Object.assign({},m[itemId],{nombre:t}); }
+  try{ls.s('itemOverrides',m);}catch(e){}
+  if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
+  go(itemId);
+  if(window.hpSaveItem){ try{ await window.hpSaveItem(itemId,{nombre:(!t||t===def)?'':t}); toast('✓ Apartado de guías renombrado · para todos'); }catch(e){ toast('Guardado. Se publicará para todos al reconectar'); } }
+  else toast('✓ Renombrado');
+}
 async function hpOcultarSeccion(id){
   const nuevo=!hpSecHidden(id);
   const m=hpSecMap(); m[id]=Object.assign({},m[id],{oculta:nuevo}); try{ls.s('secOverrides',m);}catch(e){}
@@ -6806,12 +6823,16 @@ function guidesView(id){
 if(id==='ensayos' && typeof ensayosView==='function') return ensayosView();
 if(!hpSecVisibleUser(id)) return '<div class="card"><h2>No disponible</h2><div class="alert y">Esta sección no está disponible para tu hospital.</div></div>';
 const title=hpSecTitle(id);
+// Si el apartado de guías se ha renombrado (p. ej. «Guías de leucemias»), ese nombre es el título de
+// la página; si no, se usa el título por defecto «Guías Clínicas - {sección}».
+const _gName=hpItemName('g_'+id,'Guías clínicas');
+const _pageTitle=(_gName&&_gName!=='Guías clínicas')?_gName:('Guías Clínicas - '+title);
 const subs=getSubtypes(id);
 const lastUpd=ls.g('lastUpdate');
 // Solo admin o editor de ESTA sección pueden gestionar (editar apartados / subir guías).
 // En modo edición apagado se ocultan los controles (la app queda limpia).
 const canManage=hpEditUISec(id);
-let h=`<div class="card"><h2>Guías Clínicas - ${title}</h2>`;
+let h=`<div class="card"><h2>${_hpEsc(_pageTitle)}</h2>`;
 h+=renderCollaboratorsBlock(id);
 if(!lastUpd){
 h+='<div class="alert y" style="margin-bottom:14px">⚠️ <strong>Sin sincronizar todavía.</strong> Ve a <a onclick="go(\'sync\')" style="cursor:pointer;text-decoration:underline">Actualizar</a> cuando tengas Internet.</div>';
@@ -6824,7 +6845,8 @@ h+=`<div class="btns" style="margin-bottom:12px"><button class="btn btn-out btn-
 // Gestión de la SECCIÓN (renombrar / ocultar del menú): SOLO administradores, no editores. Efectivo para todos.
 if(hpEditUIAdmin()){
 h+='<div class="btns" style="margin-bottom:12px">';
-h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarGuia(\''+id+'\')">✏️ Renombrar apartado de guías</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección (categoría)</button>';
 h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🚫 Ocultar del menú')+'</button>';
 h+='</div>';
 }
@@ -8151,8 +8173,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 371;
-const APP_BUILD = '2026.08.06 (build ' + HP_BUILD + ')';
+const HP_BUILD = 372;
+const APP_BUILD = '2026.08.09 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
