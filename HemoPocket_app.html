@@ -8173,8 +8173,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 372;
-const APP_BUILD = '2026.08.09 (build ' + HP_BUILD + ')';
+const HP_BUILD = 373;
+const APP_BUILD = '2026.08.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -9724,6 +9724,7 @@ qtGroupIds().forEach(id=>{
 return `<div class="card">
 <h2>💊 Asistente de quimioterapia</h2>
 <p class="intro">Selecciona el esquema, introduce la fecha del día +1 y obtén el calendario de administración con fechas reales.</p>
+<div class="alert y" style="margin:10px 0;font-size:13px;line-height:1.5">⚠️ <strong>Medicación oral:</strong> toda la medicación oral (corticoides, antieméticos, profilaxis, etc.) debe prescribirse <strong>aparte, fuera de la línea de prescripción de la QT</strong> —en su propia línea— para que enfermería pueda firmarla y administrarla.</div>
 <div class="fld"><label class="lbl">Esquema</label>
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
