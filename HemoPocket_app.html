@@ -362,16 +362,18 @@ body.hp-editing #hp-edit-banner{display:flex;align-items:center;gap:10px;backgro
 .dir-call svg{width:16px;height:16px}
 [data-t="dark"] .dir-call{background:var(--c2l);color:#0d1117}
 .dir-int-badge{font-size:9.5px;color:var(--mut);border:1px dashed var(--bd);border-radius:8px;padding:5px 8px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
-/* ── Listín telefónico: cada servicio como bloque MUY diferenciado ──
-   Tarjeta con barra roja a la izquierda, buena separación y sombra; la cabecera
-   se queda FIJA al desplazar (sticky) y, al abrirla, se pone en ROJO sólido, para
-   que siempre se vea con claridad en qué servicio estás y dónde empieza cada uno. */
-#ph_list .coll{overflow:visible;border:1px solid var(--bd);border-left:5px solid #c41e3a;border-radius:12px;margin-bottom:16px;box-shadow:var(--shd);background:var(--card,#fff)}
-#ph_list .coll-h{position:sticky;top:0;z-index:6;background:var(--bg2);border-radius:11px;font-weight:700;font-size:13.5px;text-transform:uppercase;letter-spacing:.3px;padding:13px 15px}
+/* ── Listín telefónico: bloques por servicio, estética clínica sobria ──
+   Paleta calmada (azul pizarra, poco saturada) para reducir la fatiga visual en
+   turnos largos y armonizar con el azul de la app; jerarquía clara sin saturar.
+   Cabecera FIJA al desplazar (sticky) y, al abrir, azul pizarra sólido: siempre se
+   ve con claridad en qué servicio estás y dónde empieza cada uno. */
+#ph_list .coll{overflow:visible;border:1px solid var(--bd);border-left:4px solid #4f6285;border-radius:12px;margin-bottom:13px;box-shadow:0 1px 3px rgba(16,24,40,.06);background:var(--card,#fff)}
+#ph_list .coll-h{position:sticky;top:0;z-index:6;background:var(--bg2);color:var(--txt);border-radius:11px;font-weight:600;font-size:13.5px;letter-spacing:.2px;padding:13px 15px;transition:background .15s,color .15s}
 #ph_list .coll:not(.open)>.coll-h:hover{background:var(--hov)}
-#ph_list .coll.open>.coll-h{background:#c41e3a;color:#fff;border-radius:11px 11px 0 0}
+#ph_list .coll.open{border-left-color:#3d4f6b}
+#ph_list .coll.open>.coll-h{background:#4f6285;color:#fff;border-radius:11px 11px 0 0}
 #ph_list .coll.open>.coll-h .ar{color:#fff}
-#ph_list .coll.open>.coll-h .dir-count{background:rgba(255,255,255,.24);color:#fff;border-color:transparent}
+#ph_list .coll.open>.coll-h .dir-count{background:rgba(255,255,255,.22);color:#fff;border-color:transparent}
 #ph_list .coll.open>.coll-c{border-top:1px solid var(--bd)}
 #ph_list .dir-row{padding:10px 4px}
 .lc-tabs{display:flex;gap:6px;margin-bottom:12px}
@@ -8187,7 +8189,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 376;
+const HP_BUILD = 377;
 const APP_BUILD = '2026.08.28 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
