@@ -5943,7 +5943,13 @@ function _hpAddContenido(sec){
 
 
 // Estructura de apartados COMPARTIDA: la rellena la sincronización desde 'subtipos' (Firestore).
-window.hpApplySubtipos=function(section,items){ try{ if(Array.isArray(items)) ls.s('subtypes_'+section,items); }catch(e){} };
+window.hpApplySubtipos=function(section,items){ try{
+  // Si hay un cambio de ESTE apartado pendiente de publicar (cola de escritura), NO lo pises con la
+  // versión del servidor (aún vieja): se conserva lo local hasta que la escritura se confirme. Así un
+  // renombrado/reorden/ocultar de guías no se revierte por una sincronización que llega antes.
+  try{ var q=(typeof hpwqGet==='function')?hpwqGet():null; if(q && q['subt:'+section]) return; }catch(_e){}
+  if(Array.isArray(items)) ls.s('subtypes_'+section,items);
+}catch(e){} };
 // Propaga a la nube (efectivo para todos) un cambio de apartados. Best-effort con aviso.
 async function _hpPropagaSubtipos(id,subs,okMsg){
   if(window.hpSaveSubtipos){
@@ -8189,8 +8195,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 377;
-const APP_BUILD = '2026.08.28 (build ' + HP_BUILD + ')';
+const HP_BUILD = 378;
+const APP_BUILD = '2026.09.05 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -15809,7 +15815,11 @@ async function hpQSet(key, colId, docId, data, merge){
     const q=hpwqGet(); if(q[key]){ delete q[key]; hpwqSet(q); }
     return true;
   }catch(e){
-    if(!navigator.onLine){ const q=hpwqGet(); q[key]={colId:colId,docId:docId,data:data||{},merge:!!merge,ts:Date.now()}; hpwqSet(q); }
+    // Reintento ante CUALQUIER fallo, no solo sin conexión: un error puntual online ya NO se pierde
+    // en silencio; queda en la cola y se reintenta en cada sincronización (hpFlushWrites) hasta
+    // confirmarse. Antes, un fallo online se descartaba y el resync traía la versión vieja → los
+    // cambios (p. ej. renombrar una guía) "se revertían".
+    try{ const q=hpwqGet(); q[key]={colId:colId,docId:docId,data:data||{},merge:!!merge,ts:Date.now()}; hpwqSet(q); }catch(_e){}
     throw e;
   }
 }
