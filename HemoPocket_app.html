@@ -3969,7 +3969,7 @@ VIEWS.ctcae=function(){
  var ulnStyle='width:58px;padding:7px 6px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--mut);font-family:inherit;font-size:12px;text-align:right';
  var h='<div class="card"><h2>🧪 Grado de toxicidad · CTCAE v6.0</h2>';
  h+='<p class="intro">Introduce el valor de laboratorio o elige la clínica: el <strong>grado CTCAE</strong> (0–4) se calcula solo. En hígado, renal y bilirrubina el grado va por múltiplos del <strong>LSN</strong> (editable). Los grados 4 (amenaza vital) y 5 (muerte) requieren además juicio clínico.</p>';
- h+='<div class="alert y" style="font-size:11.5px;margin-bottom:6px"><strong>Actualizado a CTCAE v6.0</strong> (jul 2025) en lo verificado: neutropenia y trombocitopenia (bandas nuevas) y fosfatasa alcalina (solo G1). En v6.0, hígado y creatinina se gradúan respecto a la <strong>basal</strong> si está alterada. Linfopenia, leucocitos, GGT, electrolitos y síntomas se muestran sin cambio documentado respecto a v5.0; para uso en ensayos, contrástalos con la tabla oficial del NCI.</div>';
+ h+='<div class="alert y" style="font-size:11.5px;margin-bottom:6px"><strong>Actualizado a CTCAE v6.0</strong> (jul 2025). Hígado y creatinina se gradúan respecto a la <strong>basal</strong> si está alterada. Linfopenia, leucocitos, GGT, electrolitos y síntomas se muestran sin cambio documentado respecto a v5.0; para uso en ensayos, contrástalos con la tabla oficial del NCI.</div>';
  CTCAE.forEach(function(cat){
    h+='<div style="font-weight:700;font-size:12px;letter-spacing:.3px;color:var(--c2);margin:16px 0 2px;text-transform:uppercase">'+cat.cat+'</div>';
    cat.items.forEach(function(it){
@@ -8298,7 +8298,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 380;
+const HP_BUILD = 381;
 const APP_BUILD = '2026.10.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
