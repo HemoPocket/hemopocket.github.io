@@ -1115,6 +1115,7 @@ const MENU=[
 {id:'labconv',name:'Asistente de redacción',kw:'transcriptor convertidor analitica analiticas laboratorio hemograma bioquimica proteinograma serologia microbiologia formato informe evolutivo limpiar unidades pegar ordenar',new:'2026-05-29',upd:'2026-07-11'}
 ]},
 {h:'CALCULADORAS',items:[
+{id:'ctcae',name:'Toxicidades CTCAE',kw:'ctcae toxicidad toxicidades grado grados efecto adverso evento adverso quimioterapia inmunoterapia anemia neutropenia trombocitopenia linfopenia hepatotoxicidad transaminasas got gpt bilirrubina fosfatasa alcalina ggt creatinina potasio sodio calcio magnesio fosforo glucosa electrolitos nauseas vomitos diarrea mucositis estomatitis v5 v6 version 5 6',new:'2026-10-13'},
 {id:'opioides',name:'Conversión de opioides',kw:'opioides conversion morfina oxicodona fentanilo tramadol tapentadol metadona hidromorfona buprenorfina mme equivalente rotacion',new:'2026-05-13'},
 {id:'qtc',name:'QTc (Fridericia)',kw:'qtc fridericia ekg ecg intervalo'},
 {id:'crcl',name:'Aclaramiento Cr',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
@@ -1124,8 +1125,7 @@ const MENU=[
 {id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
 {id:'rasburicasa',name:'Rasburicasa / hiperuricemia',kw:'rasburicasa hiperuricemia acido urico urato lisis tumoral g6pd fasturtec alopurinol urato oxidasa dosis contraindicacion',new:'2026-06-12'},
 {id:'mtx',name:'Metotrexato altas dosis',kw:'metotrexato mtx altas dosis niveles monitorizacion rescate acido folinico leucovorin folinico glucarpidasa voraxaze aclaramiento retardado nefrotoxicidad alcalinizacion hidratacion nomograma',new:'2026-06-12'},
-{id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'},
-{id:'ctcae',name:'Toxicidades CTCAE',kw:'ctcae toxicidad toxicidades grado grados efecto adverso evento adverso quimioterapia inmunoterapia anemia neutropenia trombocitopenia linfopenia hepatotoxicidad transaminasas got gpt bilirrubina fosfatasa alcalina ggt creatinina potasio sodio calcio magnesio fosforo glucosa electrolitos nauseas vomitos diarrea mucositis estomatitis v5 version 5',new:'2026-10-13'}
+{id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
 {h:'ESCALAS DE VALORACIÓN',items:[
 {sub:true,name:'① Cribado (¿necesita valoración?)'},
@@ -3921,17 +3921,17 @@ window._cacData={ca,mode,alb,prot,corr:corr.toFixed(2),cat,formula,sourceTxt,ext
 }
 function copyCaCorr(){const d=window._cacData;if(!d){toast('Calcula primero');return}copy('Calcio corregido: {calcio} mg/dL ({categoria})',null,{calcio:(''+d.corr).replace('.',','),categoria:d.cat.toLowerCase()});}
 
-// === CTCAE v5.0 — GRADO DE TOXICIDADES ===============================================
+// === CTCAE v6.0 — GRADO DE TOXICIDADES ===============================================
 // Calcula el grado CTCAE (0–4) a partir de valores de laboratorio o de la clínica. Los grados
 // de laboratorio con «>LSN»/«<LIN» usan umbrales editables; los síntomas y la «amenaza vital»
-// (G4/G5) requieren juicio clínico. Fuente: NCI CTCAE v5.0 (27-nov-2017).
+// (G4/G5) requieren juicio clínico. Fuente: NCI CTCAE v6.0 (22-jul-2025).
 const CT_COL=['#6b7280','#2e7d32','#b8860b','#e8590c','#c41e3a','#7a1020']; // G0..G5
 function _ctNum(s){ if(s==null) return null; s=(''+s).replace(',','.').trim(); if(s==='') return null; var v=parseFloat(s); return isNaN(v)?null:v; }
 const CTCAE=[
  {cat:'Hematología',items:[
   {id:'anemia',name:'Anemia',hint:'Hb (g/dL)',ph:'9,2',grade:function(v){return v<8?3:v<10?2:v<12?1:0;},note:'G1 empieza por debajo del límite normal (≈13 varón / 12 mujer). G3 = <8 (transfusión). G4 = amenaza vital.'},
-  {id:'neutro',name:'Neutropenia',hint:'Neutrófilos (RAN) ×10⁹/L',ph:'0,8',grade:function(v){return v<0.5?4:v<1?3:v<1.5?2:v<1.8?1:0;}},
-  {id:'plaq',name:'Trombocitopenia',hint:'Plaquetas ×10⁹/L',ph:'40',grade:function(v){return v<25?4:v<50?3:v<75?2:v<150?1:0;}},
+  {id:'neutro',name:'Neutropenia',hint:'Neutrófilos (RAN) ×10⁹/L',ph:'0,8',grade:function(v){return v<0.1?4:v<0.5?3:v<1?2:v<1.8?1:0;},note:'Bandas CTCAE v6.0 (más estrictas que v5.0): G1 1,0–LIN · G2 0,5–1,0 · G3 0,1–0,5 · G4 <0,1 ×10⁹/L.'},
+  {id:'plaq',name:'Trombocitopenia',hint:'Plaquetas ×10⁹/L',ph:'40',grade:function(v){return v<10?4:v<50?3:v<75?2:v<150?1:0;},note:'CTCAE v6.0: G3 10–50 · G4 <10 ×10⁹/L (G1/G2 sin cambios respecto a v5.0).'},
   {id:'leuco',name:'Leucopenia',hint:'Leucocitos ×10⁹/L',ph:'2,5',grade:function(v){return v<1?4:v<2?3:v<3?2:v<4?1:0;}},
   {id:'linfo',name:'Linfopenia',hint:'Linfocitos ×10⁹/L',ph:'0,6',grade:function(v){return v<0.2?4:v<0.5?3:v<0.8?2:v<1?1:0;}},
   {id:'leucocitosis',name:'Leucocitosis',hint:'Leucocitos ×10⁹/L',ph:'120',grade:function(v){return v>100?3:0;},note:'CTCAE define G3 >100 ×10⁹/L. G4 = leucostasis clínica.'}
@@ -3940,7 +3940,7 @@ const CTCAE=[
   {id:'bili',name:'Bilirrubina total',hint:'mg/dL',ph:'2,0',uln:1.2,grade:function(r){return r>10?4:r>3?3:r>1.5?2:r>1?1:0;}},
   {id:'got',name:'AST / GOT',hint:'U/L',ph:'120',uln:40,grade:function(r){return r>20?4:r>5?3:r>3?2:r>1?1:0;}},
   {id:'gpt',name:'ALT / GPT',hint:'U/L',ph:'120',uln:40,grade:function(r){return r>20?4:r>5?3:r>3?2:r>1?1:0;}},
-  {id:'fa',name:'Fosfatasa alcalina',hint:'U/L',ph:'400',uln:130,grade:function(r){return r>20?4:r>5?3:r>2.5?2:r>1?1:0;}},
+  {id:'fa',name:'Fosfatasa alcalina',hint:'U/L',ph:'400',uln:130,grade:function(r){return r>1?1:0;},note:'CTCAE v6.0 dejó la FA solo con G1 (cualquier elevación >LSN); se retiraron G2–G4.'},
   {id:'ggt',name:'GGT',hint:'U/L',ph:'200',uln:60,grade:function(r){return r>20?4:r>5?3:r>2.5?2:r>1?1:0;}}
  ]},
  {cat:'Renal',items:[
@@ -3967,8 +3967,9 @@ const CTCAE=[
 VIEWS.ctcae=function(){
  var inStyle='width:86px;padding:7px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--inp,#fff);color:var(--txt);font-family:inherit;font-size:13px;text-align:right';
  var ulnStyle='width:58px;padding:7px 6px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--mut);font-family:inherit;font-size:12px;text-align:right';
- var h='<div class="card"><h2>🧪 Grado de toxicidad · CTCAE v5.0</h2>';
+ var h='<div class="card"><h2>🧪 Grado de toxicidad · CTCAE v6.0</h2>';
  h+='<p class="intro">Introduce el valor de laboratorio o elige la clínica: el <strong>grado CTCAE</strong> (0–4) se calcula solo. En hígado, renal y bilirrubina el grado va por múltiplos del <strong>LSN</strong> (editable). Los grados 4 (amenaza vital) y 5 (muerte) requieren además juicio clínico.</p>';
+ h+='<div class="alert y" style="font-size:11.5px;margin-bottom:6px"><strong>Actualizado a CTCAE v6.0</strong> (jul 2025) en lo verificado: neutropenia y trombocitopenia (bandas nuevas) y fosfatasa alcalina (solo G1). En v6.0, hígado y creatinina se gradúan respecto a la <strong>basal</strong> si está alterada. Linfopenia, leucocitos, GGT, electrolitos y síntomas se muestran sin cambio documentado respecto a v5.0; para uso en ensayos, contrástalos con la tabla oficial del NCI.</div>';
  CTCAE.forEach(function(cat){
    h+='<div style="font-weight:700;font-size:12px;letter-spacing:.3px;color:var(--c2);margin:16px 0 2px;text-transform:uppercase">'+cat.cat+'</div>';
    cat.items.forEach(function(it){
@@ -3990,7 +3991,7 @@ VIEWS.ctcae=function(){
  });
  h+='<div id="ct_sum" style="margin-top:16px"></div>';
  h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="ctcaeReset()">Limpiar</button><button class="btn btn-out btn-sm" onclick="copyCTCAE()">Copiar resumen</button></div>';
- h+='<div class="ref">U.S. Department of Health and Human Services, National Cancer Institute. Common Terminology Criteria for Adverse Events (CTCAE) v5.0; 27 nov 2017. Umbrales de laboratorio según LSN/LIN del laboratorio; los síntomas y «amenaza vital» (G4) requieren valoración clínica.</div>';
+ h+='<div class="ref">U.S. Department of Health and Human Services, National Cancer Institute (CTEP). Common Terminology Criteria for Adverse Events (CTCAE) v6.0; publicada 22 jul 2025 (predecesora v5.0, 27 nov 2017). Umbrales de laboratorio según LSN/LIN del laboratorio; los síntomas y la «amenaza vital» (G4) requieren valoración clínica. Para datos de ensayo, verificar término a término con la tabla oficial del NCI.</div>';
  h+='</div>';
  return h;
 };
@@ -4020,7 +4021,7 @@ function ctcaeCalc(){
  box.innerHTML='<div class="alert '+cls+'"><div style="font-weight:600;margin-bottom:7px">Resumen — grado máximo: G'+maxG+'</div>'+chips+'</div>';
 }
 function ctcaeReset(){ CTCAE.forEach(function(cat){cat.items.forEach(function(it){ if(it.opts){var s=document.getElementById('ct_'+it.id+'_sel'); if(s)s.value='0';} else {var e=document.getElementById('ct_'+it.id); if(e)e.value=''; if(it.uln){var u=document.getElementById('ct_'+it.id+'_uln'); if(u)u.value=it.uln;}} });}); ctcaeCalc(); }
-function copyCTCAE(){ var s=window._ctcaeSum||[]; if(!s.length){toast('Sin toxicidades que copiar');return;} var txt='Toxicidades (CTCAE v5.0): '+s.slice().sort(function(a,b){return b.g-a.g;}).map(function(x){return x.name+' G'+x.g;}).join(', ')+'.'; copy(txt); }
+function copyCTCAE(){ var s=window._ctcaeSum||[]; if(!s.length){toast('Sin toxicidades que copiar');return;} var txt='Toxicidades (CTCAE v6.0): '+s.slice().sort(function(a,b){return b.g-a.g;}).map(function(x){return x.name+' G'+x.g;}).join(', ')+'.'; copy(txt); }
 
 // === LÍQUIDO PLEURAL — CRITERIOS DE LIGHT ===
 VIEWS.light=()=>`<div class="card">
@@ -8297,7 +8298,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 379;
+const HP_BUILD = 380;
 const APP_BUILD = '2026.10.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
