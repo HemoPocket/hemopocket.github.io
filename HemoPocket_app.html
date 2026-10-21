@@ -8298,8 +8298,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 381;
-const APP_BUILD = '2026.10.13 (build ' + HP_BUILD + ')';
+const HP_BUILD = 382;
+const APP_BUILD = '2026.10.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -15299,6 +15299,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target === this && !window._hpLegalForcing) cerrarAvisoLegal();
   });
 });
+// ── Red de seguridad del ACCESO ───────────────────────────────────────────────────────────────
+// Si el módulo de Firebase (abajo) NO llega a cargar —la red del hospital bloquea gstatic, un corte
+// puntual, caché limpiada en un sitio sin acceso…— el botón «Entrar» llamaría a funciones que aún
+// no existen y parecería que «no deja entrar» sin explicación. Estos stubs dan un mensaje CLARO
+// hasta que el módulo real los sustituye; un vigilante avisa si en unos segundos Firebase no se ha
+// inicializado. Cuando todo va bien, el módulo los reemplaza y esto no hace nada.
+(function(){
+  function _hpAccesoNoListo(){
+    try{ var e=document.getElementById('hp_login_err'); if(e){ e.className='hp-login-err'; e.textContent='No se pudo conectar con el servidor de acceso. Revisa tu conexión a Internet; si estás en la red del hospital, puede estar bloqueando el acceso (gstatic/Firebase). Reintenta en unos segundos.'; } }catch(_){}
+    try{ var b=document.getElementById('hp_login_btn'); if(b){ b.disabled=false; b.textContent='Entrar'; } }catch(_){}
+    return false;
+  }
+  if(typeof window.hpLogin!=='function') window.hpLogin=_hpAccesoNoListo;
+  if(typeof window.hpRegister!=='function') window.hpRegister=_hpAccesoNoListo;
+  if(typeof window.hpForgotPw!=='function') window.hpForgotPw=_hpAccesoNoListo;
+  setTimeout(function(){ try{ if(!window.__hpFirebaseReady){ var ov=document.getElementById('hp-auth-overlay'); if(ov && !ov.classList.contains('hidden')) _hpAccesoNoListo(); } }catch(_){} }, 9000);
+})();
 </script>
 
 <!-- ══ Firebase Auth ══ -->
