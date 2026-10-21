@@ -8299,7 +8299,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 383;
+const HP_BUILD = 384;
 const APP_BUILD = '2026.10.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -16369,7 +16369,13 @@ const ERR_MSGS = {
   'auth/invalid-email': 'Formato de correo no válido.',
   'auth/too-many-requests': 'Demasiados intentos. Prueba más tarde o restablece tu contraseña.',
   'auth/invalid-credential': 'Correo o contraseña incorrectos.',
-  'auth/network-request-failed': 'Sin conexión. Conéctate a Internet para iniciar sesión.',
+  'auth/invalid-login-credentials': 'Correo o contraseña incorrectos.',
+  'auth/network-request-failed': 'Sin conexión o la red bloquea el servidor de acceso. Conéctate a Internet (fuera de la intranet del hospital si hace falta) e inténtalo de nuevo.',
+  'auth/user-disabled': 'Esta cuenta está DESACTIVADA. Avisa a la administradora de HemoPocket para que la reactive.',
+  'auth/operation-not-allowed': 'El acceso por correo y contraseña no está habilitado en el servidor. Avisa a la administradora.',
+  'auth/user-token-expired': 'La sesión caducó. Vuelve a iniciar sesión.',
+  'auth/internal-error': 'Error interno del servidor de acceso. Inténtalo de nuevo en unos segundos.',
+  'timeout': 'El servidor de acceso no responde (puede que la red del hospital lo esté bloqueando). Revisa la conexión e inténtalo de nuevo.',
 };
 
 window.hpLogin = async function() {
@@ -16382,12 +16388,25 @@ window.hpLogin = async function() {
   btn.disabled = true;
   btn.textContent = 'Entrando…';
   errEl.textContent = '';
+  // Muestra el motivo claro + el CÓDIGO técnico (para poder diagnosticar un caso concreto:
+  // cuenta desactivada, red que bloquea el servidor, credenciales, etc.).
+  const showErr = (code) => {
+    btn.disabled = false; btn.textContent = 'Entrar';
+    const msg = ERR_MSGS[code] || 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+    errEl.innerHTML = msg + ' <span style="opacity:.55;font-size:.82em">(' + String(code).replace(/[<>&]/g,'') + ')</span>';
+  };
+  // Vigilante: si la red del hospital bloquea o retrasa el servidor de acceso, el botón se
+  // quedaría en «Entrando…» para siempre, sin respuesta. A los 12 s lo reactivamos y avisamos.
+  let done = false;
+  const watchdog = setTimeout(() => { if (!done) { done = true; showErr('timeout'); } }, 12000);
   try {
     await signInWithEmailAndPassword(auth, email, pw);
+    done = true; clearTimeout(watchdog);
+    // El éxito lo gestiona onAuthStateChanged (revealAndEnter / pantalla de espera de aprobación).
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Entrar';
-    errEl.textContent = ERR_MSGS[e.code] || 'Error al iniciar sesión. Inténtalo de nuevo.';
+    if (done) return;            // ya avisó el vigilante (timeout)
+    done = true; clearTimeout(watchdog);
+    showErr((e && e.code) ? e.code : 'desconocido');
   }
 };
 
