@@ -540,6 +540,7 @@ body{font-size:13px}
     <button class="hp-login-btn" id="hp_login_btn" onclick="hpLogin()">Entrar</button>
     <button class="hp-login-forgot" onclick="hpForgotPw()">¿Olvidaste tu contraseña?</button>
     <button class="hp-login-forgot" onclick="hpShowRegister()" style="font-weight:600">Crear cuenta nueva</button>
+    <button class="hp-login-forgot" onclick="window.hpWhyLogin&&window.hpWhyLogin()" style="font-size:.76rem;opacity:.72">¿Te pide la contraseña cada vez? Pulsa aquí</button>
     <div id="hp_offline_box" style="display:none; margin-top:14px; padding-top:12px; border-top:1px solid #eee">
       <div style="font-size:0.78rem; color:#666; line-height:1.45; margin-bottom:8px">No se puede conectar con el servidor de acceso (es posible que la red bloquee Google/Firebase). Como <strong>este equipo ya se validó antes</strong>, puedes continuar en modo consulta sin volver a iniciar sesión.</div>
       <button class="hp-login-btn" onclick="hpOfflineEnter()" style="background:#555">Continuar sin conexión</button>
@@ -8298,7 +8299,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 382;
+const HP_BUILD = 383;
 const APP_BUILD = '2026.10.21 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -14935,6 +14936,93 @@ if(document.readyState!=='loading')init();
   };
   // Migración: si versiones anteriores ya dejaron la marca en localStorage, reflejarla en cookie.
   try{ if(localStorage.getItem(CK) === '1') setCookie(); }catch(e){}
+})();
+</script>
+<script>
+/* Diagnóstico de PERSISTENCIA de sesión. NO depende de Firebase ni de la red (funciona aunque
+   el hospital bloquee Google). Resuelve la queja típica: «me pide la contraseña cada vez» aun con
+   la app instalada y las cookies «permitidas». Ese permiso es DISTINTO del ajuste «borrar datos al
+   cerrar» (y de una política de limpieza de IT), que sí borra todo al salir y obliga a re-entrar.
+   Llevamos una marca que cuenta cuántas veces se ha ABIERTO la app recordando la anterior: si tras
+   varios días sigue en «1 vez» y con fechas de hoy, el equipo está borrando los datos al cerrar. */
+(function(){
+  var KEY='hp_diag';
+  function ckGet(k){ try{ var p=('; '+document.cookie).split('; '+k+'='); if(p.length===2) return decodeURIComponent(p.pop().split(';').shift()); }catch(e){} return null; }
+  function ckSet(k,v){ try{ document.cookie=k+'='+encodeURIComponent(v)+'; path=/; max-age=63072000; SameSite=Lax'; }catch(e){} }
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  var now=new Date().toISOString();
+  var rawLS=lsGet(KEY), rawCK=ckGet(KEY);
+  var survLS=!!rawLS, survCK=!!rawCK;
+  var prev=null; try{ prev=JSON.parse(rawLS||rawCK||'null'); }catch(e){ prev=null; }
+  var rec=(prev&&typeof prev==='object')
+    ? { n:(prev.n||0)+1, first:prev.first||now, last:now }
+    : { n:1, first:now, last:now };
+  var json=JSON.stringify(rec);
+  lsSet(KEY,json); ckSet(KEY,json);
+  // IndexedDB es donde Firebase guarda la SESIÓN. Si no persiste entre aperturas, el login se pierde.
+  var idbState='comprobando…';
+  try{
+    var rq=indexedDB.open('hp_diag',1);
+    rq.onupgradeneeded=function(ev){ try{ ev.target.result.createObjectStore('s'); }catch(e){} };
+    rq.onsuccess=function(ev){
+      try{
+        var dbh=ev.target.result, tr=dbh.transaction('s','readwrite'), st=tr.objectStore('s'), g=st.get('seen');
+        g.onsuccess=function(){ idbState = g.result ? ('sí (desde '+String(g.result).slice(0,10)+')') : 'no (primera vez o se borró)'; };
+        st.put(now,'seen');
+      }catch(e){ idbState='no disponible'; }
+    };
+    rq.onerror=function(){ idbState='no disponible'; };
+  }catch(e){ idbState='no disponible'; }
+  window.hpLoginDiag=function(){
+    var standalone=false;
+    try{ standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true; }catch(e){}
+    return { opens:rec.n, first:rec.first, last:rec.last, localStorage:survLS, cookie:survCK, indexedDB:idbState, standalone:standalone, everLogged:!!(window.hpEverValidated && window.hpEverValidated()) };
+  };
+  function fechaCorta(iso){ try{ return new Date(iso).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}); }catch(e){ return iso; } }
+  function row(k,v){ return '<tr><td style="padding:3px 10px 3px 0;color:#666;vertical-align:top">'+k+'</td><td style="padding:3px 0;font-weight:600">'+v+'</td></tr>'; }
+  function showPanel(innerHtml){
+    var old=document.getElementById('hp_diag_ov'); if(old) old.remove();
+    var ov=document.createElement('div');
+    ov.id='hp_diag_ov';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:18px';
+    var card=document.createElement('div');
+    card.style.cssText='background:#fff;border-radius:14px;max-width:460px;width:100%;max-height:85vh;overflow:auto;padding:20px 22px;box-shadow:0 10px 40px rgba(0,0,0,.25);font-family:system-ui,-apple-system,sans-serif';
+    card.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><h3 style="margin:0;font-size:1.05rem;color:#4f6285">¿Por qué me pide la contraseña?</h3><button id="hp_diag_x" style="border:none;background:none;font-size:1.5rem;line-height:1;cursor:pointer;color:#888">×</button></div>'+innerHtml;
+    ov.appendChild(card);
+    ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+    var x=document.getElementById('hp_diag_x'); if(x) x.onclick=function(){ ov.remove(); };
+  }
+  window.hpWhyLogin=function(){
+    var d=window.hpLoginDiag();
+    var persisted='comprobando…';
+    function render(){
+      var evicta=(d.opens<=1)||!d.localStorage||!d.cookie;
+      var veredicto=evicta
+        ? '<strong>Este equipo parece NO conservar los datos entre sesiones.</strong> Si llevas varios días usando la app y aquí sigue poniendo «1 vez» (o todas las fechas son de hoy), el navegador o el equipo están borrando los datos al cerrar: eso es lo que obliga a escribir la contraseña cada vez. No es un fallo de la app.'
+        : '<strong>Este equipo SÍ está recordando el acceso.</strong> Si aun así te pide la contraseña, pásame estos datos y lo reviso a fondo.';
+      var pasos='<b>Qué revisar en este equipo:</b><br>• <b>Edge:</b> Configuración → Cookies y permisos del sitio → «Eliminar al cerrar» debe estar <b>vacío</b> (o añade esta web a «No borrar»).<br>• <b>Chrome:</b> Configuración → Privacidad → Cookies → «Borrar cookies y datos al cerrar todas las ventanas» debe estar <b>desactivado</b>.<br>• No abrir en ventana privada/incógnito.<br>• Si es un equipo del hospital, pide a Informática que NO borre los datos de esta web al cerrar (política de limpieza del perfil).';
+      var html='<div style="font-size:.9rem;line-height:1.5;color:#333">'
+        +'<div style="margin-bottom:10px">'+veredicto+'</div>'
+        +'<table style="border-collapse:collapse;font-size:.82rem;width:100%;margin-bottom:12px">'
+        +row('Veces que ha recordado el acceso', d.opens+(d.opens<=1?' ⚠️':''))
+        +row('Primera vez registrada', fechaCorta(d.first))
+        +row('Última apertura', fechaCorta(d.last))
+        +row('Guarda datos (localStorage)', d.localStorage?'sí':'NO ⚠️')
+        +row('Guarda cookies', d.cookie?'sí':'NO ⚠️')
+        +row('Guarda base de datos (IndexedDB)', d.indexedDB)
+        +row('Almacenamiento duradero', persisted)
+        +row('Abierta como app instalada', d.standalone?'sí':'no (desde el navegador)')
+        +row('Recuerda tu último acceso', d.everLogged?'sí':'no')
+        +'</table>'
+        +'<div style="font-size:.8rem;color:#555;background:#f4f6fa;border-radius:8px;padding:10px 12px">'+pasos+'</div>'
+        +'</div>';
+      showPanel(html);
+    }
+    try{ if(navigator.storage && navigator.storage.persisted){ navigator.storage.persisted().then(function(p){ persisted=p?'sí (duradero)':'no (el navegador puede borrarlo)'; render(); }).catch(function(){ persisted='desconocido'; render(); }); } else { persisted='desconocido'; render(); } }
+    catch(e){ persisted='desconocido'; render(); }
+  };
 })();
 </script>
    <script>
