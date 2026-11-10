@@ -8424,7 +8424,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 386;
+const HP_BUILD = 387;
 const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11172,16 +11172,24 @@ let drugsList=_ce?_ce.drugs:scheme.drugs;
 if(cycle===1&&scheme.r1split){
   drugsList=drugsList.map(d=>/rituximab/i.test(d.name)?d:Object.assign({},d,{days:d.days.map(x=>x+1)}));
 }
-// Corticoide del esquema que cae el MISMO día que el rituximab → esa dosis es la premedicación del
-// rituximab (se anota junto a la línea del corticoide y en la premedicación, sin añadir otro corticoide).
+// Corticoide del esquema que cae el MISMO día que el rituximab → ese día va IV y ES la premedicación
+// del rituximab (no se añade otro corticoide). La prednisona/prednisolona ese día se pone como
+// METILPREDNISOLONA a la misma dosis del esquema; el resto de días sigue por vía oral.
 const _ritDrugs=drugsList.filter(d=>/rituximab/i.test(d.name));
 const _ritDays=[...new Set(_ritDrugs.flatMap(d=>d.days||[]))];
 const _cortPm=[];
 function _dmList(days){ const ds=days.map(x=>qtFmtDM(qtAddDays(base,x-1))); return ds.length===1?ds[0]:ds.slice(0,-1).join(', ')+' y '+ds[ds.length-1]; }
-function _cortCoinc(drug){
+function _cortInfo(drug){
   if(!_ritDays.length||!QT_CORT_RX.test(drug.name)) return null;
   const co=(drug.days||[]).filter(x=>_ritDays.indexOf(x)>=0).sort((a,b)=>a-b);
-  return co.length?co:null;
+  if(!co.length) return null;
+  const rest=(drug.days||[]).filter(x=>co.indexOf(x)<0);
+  const isPred=/predniso/i.test(drug.name)&&!/metilpredniso/i.test(drug.name);
+  const calc=bsa>0?qtCalcDose(drug.dose,bsa,peso):null;
+  const mgTxt=calc?calc.mg.toFixed(2)+' mg':drug.dose;
+  const ivName=isPred?'metilprednisolona':drug.name.split(/[\s(]/)[0].toLowerCase();
+  const restRoute=/VO/i.test(drug.route||'')?'VO':(drug.route||'');
+  return {co:co,rest:rest,isPred:isPred,calc:calc,mgTxt:mgTxt,ivTxt:ivName+' '+mgTxt,restRoute:restRoute};
 }
 if(scheme.conditioning){
   const infDrug=scheme.drugs.find(d=>d.name.toLowerCase().includes('infusi'));
@@ -11206,20 +11214,22 @@ if(scheme.conditioning){
 } else {
   lines.push(cycle+'º ciclo '+qtCycleName(scheme,key)+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
   drugsList.forEach(drug=>{
-    let ln=fmtDrugLine(drug,qtFmtDates(groupDays(drug.days)));
-    const co=_cortCoinc(drug);
-    if(co){
-      const t=_dmList(co);
-      ln+='. '+(co.length===1?'La dosis del día '+t+' usarla':'Las dosis de los días '+t+' usarlas')+' como premedicación de rituximab.';
-      _cortPm.push({name:drug.name,days:co,txt:t});
-    }
-    lines.push(ln);
+    const ci=_cortInfo(drug);
+    if(!ci){ lines.push(fmtDrugLine(drug,qtFmtDates(groupDays(drug.days)))); return; }
+    // p. ej. «* Prednisona (60 mg/m²) = 108.60 mg: 02/11/26 IV como metilprednisolona 108.60 mg
+    //        (premedicación de rituximab); del 03/11/26 al 06/11/26 VO.»
+    const doseLabel=drug.dose.replace(/\s*\(\s*máx\s*([^)]+?)\s*\)/i,' - máx $1');
+    let ln=ci.calc?('* '+drug.name+' ('+doseLabel+') = '+ci.mgTxt):('* '+drug.name+' '+drug.dose);
+    ln+=': '+qtFmtDates(groupDays(ci.co))+' IV'+(ci.isPred?' como metilprednisolona '+ci.mgTxt:'')+' (premedicación de rituximab)';
+    if(ci.rest.length) ln+='; '+qtFmtDates(groupDays(ci.rest))+' '+ci.restRoute;
+    lines.push(ln+'.');
+    _cortPm.push({days:ci.co,txt:_dmList(ci.co),ivTxt:ci.ivTxt});
   });
   // Esquema en días del ciclo → bloque de notas (solo lectura)
   drugsList.forEach(drug=>{
     const rd=qtFmtRelDays(drug.days);
-    const co=_cortCoinc(drug);
-    relLines.push(drug.name+(rd?': día '+rd:'')+(co?' (la dosis del día '+co.map(x=>'+'+x).join(', ')+' es la premedicación de rituximab)':''));
+    const ci=_cortInfo(drug);
+    relLines.push(drug.name+(rd?': día '+rd:'')+(ci?' (día '+ci.co.map(x=>'+'+x).join(', ')+' IV'+(ci.isPred?' como metilprednisolona':'')+' = premedicación de rituximab'+(ci.rest.length&&ci.restRoute!=='IV'?'; resto '+ci.restRoute:'')+')':''));
   });
 }
 // Esquema (calendario) → recuadro copiable
@@ -11238,9 +11248,9 @@ if(scheme.conditioning){
 if(_ritDrugs.length){
   // ¿Todos los días de rituximab tienen ya corticoide del esquema? Entonces no se añade metilprednisolona.
   const allCo=_cortPm.length&&_ritDays.every(x=>_cortPm.some(c=>c.days.indexOf(x)>=0));
-  const cn=_cortPm.map(c=>c.name.split(/[\s(]/)[0].toLowerCase()+' del día '+c.txt).join(' y ');
-  let pm='Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg'+(allCo?'':' + metilprednisolona')+', 30 min antes de iniciar la infusión.';
-  if(_cortPm.length) pm+=allCo?' Como corticoide, usar la dosis de '+cn+' del esquema (no añadir otro corticoide).':' En lugar de metilprednisolona, usar la dosis de '+cn+' del esquema.';
+  const cn=_cortPm.map(c=>c.ivTxt+' IV el día '+c.txt).join(' y ');
+  let pm='Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg'+(allCo?'':(_cortPm.length?' + metilprednisolona (los días sin corticoide en el esquema)':' + metilprednisolona'))+', 30 min antes de iniciar la infusión.';
+  if(_cortPm.length) pm+=' Como corticoide, '+cn+' (es la dosis de corticoide del esquema de ese día; no añadir otro corticoide).';
   _pmList.push(pm);
   if(_ritDrugs.some(d=>/IV/i.test(d.route||''))) _pmList.push(QT_RITUX_VEL);
 }
