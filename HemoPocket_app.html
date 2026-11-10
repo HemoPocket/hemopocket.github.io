@@ -2454,9 +2454,9 @@ VIEWS.mtx=()=>`<div class="card">
 <tr><th>Situación</th><th>Pauta</th></tr>
 <tr><td>Eliminación normal</td><td><strong>15 mg</strong> (~10–15 mg/m²) VO/IM/IV <strong>cada 6 h</strong>, desde las <strong>24 h</strong> del inicio, hasta MTX <strong>&lt; 0,05 µmol/L</strong>.</td></tr>
 <tr><td>Retardo / nivel elevado (p. ej. 24 h &gt; 5 µmol/L o ↑creatinina ≥ 50%)</td><td>Aumentar a <strong>100 mg/m² IV cada 3 h</strong> hasta descenso adecuado.</td></tr>
-<tr><td>Retardo precoz / daño renal (24 h ≥ 50, o 48 h ≥ 5 µmol/L, o ↑creatinina ≥ 100%)</td><td><strong>150 mg IV cada 3 h</strong> hasta MTX &lt; 1 µmol/L; luego 15 mg cada 6 h hasta &lt; 0,05 µmol/L.</td></tr>
+<tr><td>Retardo precoz / daño renal (24 h ≥ 50, o 48 h ≥ 5 µmol/L, o ↑creatinina ≥ 100%)</td><td><strong>150 mg IV cada 3 h</strong> hasta MTX &lt; 1 µmol/L; luego <strong>15 mg IV cada 3 h</strong> hasta &lt; 0,05 µmol/L.</td></tr>
 </table>
-<p class="res-s" style="font-size:11.5px;color:var(--mut)">Levoleucovorina (l-folínico): la mitad de la dosis en mg. No reducir el folínico de forma autónoma; escalonar según nivel y tiempo.</p>
+<p class="res-s" style="font-size:11.5px;color:var(--mut)">Pautas de la ficha técnica de leucovorina, calculadas para <strong>MTX 12 g/m² en 4 h</strong> (osteosarcoma); en otros esquemas manda la pauta de rescate de su protocolo. Levoleucovorina (l-folínico): la mitad de la dosis en mg. No reducir el folínico de forma autónoma; escalonar según nivel y tiempo.</p>
 
 <h3>Glucarpidasa (Voraxaze)</h3>
 <div class="alert b" style="font-size:12.5px">
@@ -2495,7 +2495,7 @@ function calcMtx(){
     cls='md'; title='Aclaramiento retardado';
     const early = (t<=30 && L>=50) || (t>30 && t<=54 && L>=5) || (cr!=null && cr>=100);
     if(early){
-      body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong>: patrón <strong>precoz/renal</strong>. Folínico <strong>150 mg IV c/3 h</strong> hasta MTX &lt; 1 µmol/L, luego 15 mg c/6 h hasta &lt; 0,05. Hidratación intensa, repetir nivel y creatinina cada 12–24 h y <strong>valorar glucarpidasa</strong> si daño renal.`;
+      body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong>: patrón <strong>precoz/renal</strong>. Folínico <strong>150 mg IV c/3 h</strong> hasta MTX &lt; 1 µmol/L, luego 15 mg IV c/3 h hasta &lt; 0,05. Hidratación intensa, repetir nivel y creatinina cada 12–24 h y <strong>valorar glucarpidasa</strong> si daño renal.`;
     } else {
       body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong> por encima de lo esperado (~${normalCeil} µmol/L). <strong>Intensificar el rescate</strong> (p. ej. folínico 100 mg/m² IV c/3 h), mantener hidratación y alcalinización, y repetir el nivel cada 24 h hasta &lt; 0,05 µmol/L.`;
     }
@@ -2504,7 +2504,7 @@ function calcMtx(){
     body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong> dentro de lo esperado (≤ ~${normalCeil} µmol/L). Rescate estándar: folínico <strong>15 mg (~10–15 mg/m²) c/6 h</strong> hasta MTX &lt; 0,05 µmol/L. Mantener hidratación, alcalinización y controles.`;
   }
   el.style.display='block'; el.className='res '+cls;
-  el.innerHTML=`<div class="res-h"><span class="score">${title}</span><span>${t} h · ${L} µmol/L</span></div><div class="res-txt" style="margin-top:6px">${body}</div><div class="res-s" style="font-size:11px;color:var(--mut);margin-top:6px">Umbrales orientativos para infusión ≤24 h; ajusta al nomograma de tu protocolo.</div>`;
+  el.innerHTML=`<div class="res-h"><span class="score">${title}</span><span>${t} h · ${L} µmol/L</span></div><div class="res-txt" style="margin-top:6px">${body}</div><div class="res-s" style="font-size:11px;color:var(--mut);margin-top:6px">Umbrales orientativos (ficha técnica de leucovorina: MTX 12 g/m² en 4 h; glucarpidasa: consenso Ramsey 2018); ajusta al nomograma de tu protocolo.</div>`;
 }
 
 // === RESCATE CON ÁCIDO FOLÍNICO · NOMOGRAMA DE BLEYER (protocolo del servicio) ===
@@ -8424,7 +8424,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 385;
+const HP_BUILD = 386;
 const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
