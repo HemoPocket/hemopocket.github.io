@@ -1111,6 +1111,9 @@ el.title=`${state}\nEstado: ${online?'Online':'Offline'}${lastUpd?'\nÚltima sin
 
 // === MENU CONFIG ===
 const MENU=[
+{h:'PAUTAS DE QT SEHH',items:[
+{id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
+]},
 {h:'ASISTENTE',o:1,items:[
 {id:'qt',name:'Asistente de quimioterapia',kw:'quimioterapia qt esquema rchop chop bendamustina rituximab ciclofosfamida vincristina doxorubicina prednisona calendario dias fechas ciclo'},
 {id:'labconv',name:'Asistente de redacción',kw:'transcriptor convertidor analitica analiticas laboratorio hemograma bioquimica proteinograma serologia microbiologia formato informe evolutivo limpiar unidades pegar ordenar',new:'2026-05-29',upd:'2026-07-11'}
@@ -1125,6 +1128,7 @@ const MENU=[
 {id:'bsa',name:'Superficie corporal',kw:'bsa mosteller superficie corporal'},
 {id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
 {id:'rasburicasa',name:'Rasburicasa / hiperuricemia',kw:'rasburicasa hiperuricemia acido urico urato lisis tumoral g6pd fasturtec alopurinol urato oxidasa dosis contraindicacion',new:'2026-06-12'},
+{id:'bleyer',name:'Rescate MTX (nomograma de Bleyer)',kw:'bleyer nomograma normograma metotrexato mtx rescate acido folinico lederfolin leucovorina folinato calcico niveles horas altas dosis dosis rescate',new:'2026-11-10'},
 {id:'mtx',name:'Metotrexato altas dosis',kw:'metotrexato mtx altas dosis niveles monitorizacion rescate acido folinico leucovorin folinico glucarpidasa voraxaze aclaramiento retardado nefrotoxicidad alcalinizacion hidratacion nomograma',new:'2026-06-12'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
@@ -1248,9 +1252,6 @@ const MENU=[
 {h:'HEMATOLOGÍA PEDIÁTRICA',items:[
 {id:'g_ped',name:'Guías clínicas',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
 ]},
-{h:'PAUTAS DE QT SEHH',items:[
-{id:'libroazul',name:'Pautas de QT SEHH',kw:'pautas qt sehh libro azul quimioterapia protocolo dosis esquemas farmacos citostaticos vademecum pdf',new:'2026-06-03'}
-]},
 {h:'CITODIAGNÓSTICO',items:[
 {id:'citodx',name:'Tubos para estudios',kw:'citodiagnostico citogenetica cariotipo citometria flujo inmunofenotipo fish biologia molecular ngs tubos muestras edta heparina litio citrato medula osea aspirado que pedir estudios',new:'2026-06-04'},
 {id:'citomol',name:'Seguimiento molecular / EMR',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
@@ -1266,9 +1267,7 @@ const MENU=[
 {id:'reportes',name:'Errores reportados',kw:'errores reportes reportar fallos bugs incidencias problemas sugerencias buzon administrador admin',admin:true},
 {id:'solicitudes',name:'Solicitudes de acceso',kw:'solicitudes cuentas usuarios aprobar aprobacion registro altas administrador admin pendientes terminos',admin:true},
 {id:'gsecciones',name:'Gestionar secciones',kw:'gestionar secciones guias crear renombrar ocultar ordenar eliminar menu administrador estructura subsecciones',admin:true,edOk:true},
-{id:'revision',name:'Revisión semanal',kw:'revision semanal salud chequeo automatico errores sincronizacion auditoria administrador estado app codigo fallo',admin:true},
 {id:'centros',name:'Hospitales / Centros',kw:'hospitales centros organizaciones multihospital acceso visibilidad permisos administrador hunsc',admin:true,principal:true},
-{id:'cambios',name:'Registro de cambios',kw:'registro cambios auditoria historial quien edito publico elimino aprobo log actividad administrador trazabilidad',admin:true},
 {id:'propuestas',name:'Propuestas de compartir',kw:'propuestas compartir global hospital ofrecer proponer aprobar principal contenido',admin:true,principal:true},
 {id:'vismap',name:'Mapa de visibilidad',kw:'mapa visibilidad quien ve que contenido hospital restringido admin acceso panorama resumen',admin:true,principal:true}
 ]}
@@ -2441,6 +2440,7 @@ VIEWS.mtx=()=>`<div class="card">
 <p class="intro">Interpreta el nivel de MTX según el tiempo desde el <strong>inicio</strong> de la infusión y orienta el rescate con folínico y la valoración de glucarpidasa. Los umbrales dependen del protocolo y de la duración de la infusión: <strong>sigue siempre el nomograma de tu centro</strong>.</p>
 
 <div class="alert y" style="font-size:12.5px"><strong>Herramienta de apoyo.</strong> No sustituye el protocolo institucional ni el juicio del facultativo. Verifica los niveles y la pauta antes de actuar.</div>
+<div class="alert b" style="font-size:12.5px">📈 Dosis de Lederfolín con el <strong>nomograma de Bleyer</strong> del servicio: <a href="#" onclick="go('bleyer');return false"><strong>abrir la calculadora de rescate</strong></a>.</div>
 
 <div class="row">
 <div class="fld"><label class="lbl">Tiempo desde inicio de infusión (h)</label><input type="number" step="1" id="mtx_t" placeholder="p. ej. 48" oninput="calcMtx()"></div>
@@ -2505,6 +2505,125 @@ function calcMtx(){
   }
   el.style.display='block'; el.className='res '+cls;
   el.innerHTML=`<div class="res-h"><span class="score">${title}</span><span>${t} h · ${L} µmol/L</span></div><div class="res-txt" style="margin-top:6px">${body}</div><div class="res-s" style="font-size:11px;color:var(--mut);margin-top:6px">Umbrales orientativos para infusión ≤24 h; ajusta al nomograma de tu protocolo.</div>`;
+}
+
+// === RESCATE CON ÁCIDO FOLÍNICO · NOMOGRAMA DE BLEYER (protocolo del servicio) ===
+// Tabla «Dosificación de MTX y rescate con ác. folínico» (Bleyer WA, Cancer Treat Rev 1977;4:87-101).
+// Filas: horas desde el INICIO de la infusión. Columnas: nivel sérico de MTX (µM = µmol/L).
+// Cada celda: [dosis de Lederfolín en mg/m², intervalo en horas]. Las celdas combinadas de la tabla
+// original se repiten aquí en cada fila/columna que abarcan.
+const BLY_COLS=[{lo:0.01,t:'0,01–0,1'},{lo:0.1,t:'0,1–1'},{lo:1,t:'1–5'},{lo:5,t:'5–10'},{lo:10,t:'10–25'},{lo:25,t:'25–50'},{lo:50,t:'50–75'},{lo:75,t:'>75'}];
+const BLY_H=[20,36,48,60,72,84,96];
+const BLY_T={
+  20:[[10,6],[25,6],[25,6],[50,6],[100,6],[200,6],[500,3],[750,3]],
+  36:[[10,6],[25,6],[25,6],[50,6],[100,6],[350,6],[750,3],[1000,3]],
+  48:[[25,6],[50,6],[100,6],[500,6],[500,6],[500,3],[1000,3],[1000,3]],
+  60:[[25,6],[50,6],[100,6],[500,6],[500,3],[750,3],[1000,3],[1000,3]],
+  72:[[25,6],[100,6],[250,6],[1000,3],[1000,3],[1000,3],[1000,3],[1000,3]],
+  84:[[25,6],[100,6],[250,6],[1000,3],[1000,3],[1000,3],[1000,3],[1000,3]],
+  96:[[25,6],[100,6],[500,6],[1000,3],[1000,3],[1000,3],[1000,3],[1000,3]]
+};
+// Columna del nivel. En un valor límite (p. ej. exactamente 1 µM) se toma la columna SUPERIOR
+// (rescate más alto, lo más seguro). <0,01 µM → -1 (se suspende el Lederfolín).
+function blyCol(lv){ if(lv<0.01) return -1; let c=0; BLY_COLS.forEach(function(x,i){ if(lv>=x.lo) c=i; }); return c; }
+function _blyF(x,d){ return (Math.round(x*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function _blyLv(x){ return (+x).toLocaleString('es-ES',{maximumFractionDigits:3}); } // nivel tal cual se escribió
+window._bly={h:null,res:null};
+VIEWS.bleyer=function(){
+  var p=(S.p&&S.p.weight)||'', t=(S.p&&S.p.height)||'';
+  var inS='width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--inp,#fff);color:var(--txt);font-family:inherit;font-size:15px';
+  var h='<div class="card"><h2>💊 Rescate con ácido folínico · Nomograma de Bleyer</h2>';
+  h+='<p class="intro">Elige las <strong>horas desde el inicio</strong> de la infusión de MTX y escribe el <strong>nivel</strong>: la dosis de Lederfolín (ácido folínico) sale al instante, en mg/m² y en mg si indicas la superficie corporal.</p>';
+  h+='<div class="alert b" style="font-size:12.5px"><strong>Dosis inicial:</strong> Lederfolín <strong>35 mg/m²</strong> a las <strong>20 h</strong> del inicio de la infusión, antes de conocer los niveles de MTX<span id="bly_ini"></span>.</div>';
+  h+='<div class="lbl" style="margin:12px 0 6px">Horas desde el inicio de la infusión</div><div id="bly_hrs" style="display:flex;flex-wrap:wrap;gap:6px">';
+  BLY_H.forEach(function(x){ h+='<button type="button" class="btn btn-out btn-sm" data-h="'+x+'" onclick="blySetH('+x+')" style="min-width:58px">'+x+' h</button>'; });
+  h+='</div>';
+  h+='<div class="row" style="margin-top:12px">';
+  h+='<div class="fld"><label class="lbl">Nivel de MTX (µM = µmol/L)</label><input id="bly_lv" type="number" step="any" inputmode="decimal" placeholder="p. ej. 0,8" oninput="blyCalc()" style="'+inS+'"></div>';
+  h+='<div class="fld"><label class="lbl">Superficie corporal (m²)</label><input id="bly_sc" type="number" step="any" inputmode="decimal" placeholder="opcional" oninput="blyCalc()" style="'+inS+'"></div>';
+  h+='</div>';
+  h+='<div class="row"><div class="fld"><label class="lbl">Peso (kg) · calcula la SC</label><input id="bly_p" type="number" step="any" inputmode="decimal" value="'+p+'" oninput="blyFromPT()" style="'+inS+'"></div>';
+  h+='<div class="fld"><label class="lbl">Talla (cm) · calcula la SC</label><input id="bly_t" type="number" step="any" inputmode="decimal" value="'+t+'" oninput="blyFromPT()" style="'+inS+'"></div></div>';
+  h+='<div id="bly_pt" style="font-size:12px;color:var(--mut);margin:-2px 2px 6px;min-height:15px"></div>';
+  h+='<div id="bly_res" style="margin-top:6px"></div>';
+  h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="blyReset()">Limpiar</button><button class="btn btn-out btn-sm" onclick="copyBleyer()">Copiar</button></div>';
+  h+='<h3 style="margin-top:16px">Nomograma</h3><div style="font-size:11.5px;color:var(--mut);margin-bottom:6px">Dosis de Lederfolín en mg/m² y su intervalo (cada 6 h o cada 3 h). Se resalta la casilla que corresponde.</div>';
+  h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="bly_tbl" style="border-collapse:collapse;font-size:11.5px;min-width:620px;width:100%">';
+  h+='<tr><th style="padding:6px;border:1px solid var(--bd);background:var(--bg2);text-align:left">Horas / MTX (µM)</th>'+BLY_COLS.map(function(c,i){return '<th data-c="'+i+'" style="padding:6px 4px;border:1px solid var(--bd);background:var(--bg2);white-space:nowrap">'+c.t+'</th>';}).join('')+'</tr>';
+  BLY_H.forEach(function(x){
+    h+='<tr><th data-h="'+x+'" onclick="blySetH('+x+')" style="cursor:pointer;padding:6px;border:1px solid var(--bd);background:var(--bg2);text-align:left;white-space:nowrap">'+x+' h</th>';
+    BLY_T[x].forEach(function(cell,i){ var q3=cell[1]===3; h+='<td data-h="'+x+'" data-c="'+i+'" style="padding:6px 4px;border:1px solid var(--bd);text-align:center;white-space:nowrap;'+(q3?'color:#a3121f;font-weight:600':'')+'">'+cell[0].toLocaleString('es-ES')+'<span style="opacity:.7">/'+cell[1]+'h</span></td>'; });
+    h+='</tr>';
+  });
+  h+='</table></div>';
+  h+='<div style="font-size:11.5px;color:var(--mut);margin-top:6px">En rojo, rescate <strong>cada 3 h</strong>. En un valor límite (p. ej. exactamente 1 µM) se aplica la columna superior.</div>';
+  h+='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Pauta del protocolo (hidratación, alcalinización, niveles)</span><span class="ar">▶</span></div><div class="coll-c"><ul style="font-size:13px;line-height:1.6;padding-left:18px">';
+  h+='<li><strong>Hiperhidratación</strong> IV 3 L/m² y <strong>alcalinización</strong> con bicarbonato 1 M 250 ml/12 h desde al menos 12 h antes de la infusión.</li>';
+  h+='<li><strong>No iniciar</strong> la infusión si la creatinina sérica ha aumentado o la diuresis es &lt; 125 ml/m²/h. Valorar sondaje uretral y asociar furosemida, acetazolamida o manitol 20 % si se precisa.</li>';
+  h+='<li>Mantener el <strong>pH urinario &gt; 7,5</strong> antes, durante y después de la infusión, las primeras 24 h.</li>';
+  h+='<li>Reconstituir el MTX (3–8 g/m² según protocolo) con SF hasta 500 ml e <strong>infundir en 4 h</strong>.</li>';
+  h+='<li>Si se combina con un bolo de <strong>vincristina</strong>, administrarla 1 h antes de la infusión de MTX.</li>';
+  h+='<li>Niveles a las <strong>20, 48 y 72 h</strong> como mínimo, manteniendo la hiperhidratación y la alcalinización hasta MTX &lt; 0,5 µM. En rango tóxico, niveles <strong>cada 12 h</strong> modificando el rescate según los mismos.</li>';
+  h+='<li>Se <strong>suspende el Lederfolín</strong> cuando MTX &lt; 0,01 µM.</li>';
+  h+='<li>Si se precisan &lt; 25 mg/m²/6 h y el paciente no vomita, puede completarse el rescate con Lederfolín <strong>por vía oral</strong>.</li>';
+  h+='</ul></div></div>';
+  h+='<p style="font-size:12px;margin-top:10px">Para glucarpidasa y aclaramiento retardado: <a href="#" onclick="go(\'mtx\');return false">Metotrexato altas dosis</a>.</p>';
+  h+='<div class="ref">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101. Tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio.</div>';
+  h+='</div>';
+  return h;
+};
+VIEWS.bleyer_post=function(){ if(_ctNum(($('bly_p')||{}).value)&&_ctNum(($('bly_t')||{}).value)) blyFromPT(); else blyCalc(); };
+function blySetH(x){ window._bly.h=x; blyCalc(); }
+function blyFromPT(){
+  var p=_ctNum(($('bly_p')||{}).value), t=_ctNum(($('bly_t')||{}).value), info=$('bly_pt');
+  if(p>0&&t>0){ var sc=qtBSA(p,t), imc=hpIMC(p,t); var e=$('bly_sc'); if(e) e.value=sc.toFixed(3); if(info) info.innerHTML='SC (DuBois): <strong>'+_blyF(sc,3)+' m²</strong> · IMC: <strong>'+_blyF(imc.v,2)+' kg/m²</strong> ('+imc.cat+')'; }
+  else if(info) info.innerHTML='';
+  blyCalc();
+}
+function blyCalc(){
+  var H=window._bly.h, lv=_ctNum(($('bly_lv')||{}).value), sc=_ctNum(($('bly_sc')||{}).value);
+  if(!(sc>0)) sc=null;
+  // Chips de hora
+  document.querySelectorAll('#bly_hrs button').forEach(function(b){ var on=+b.getAttribute('data-h')===H; b.style.background=on?'var(--c1)':''; b.style.color=on?'#fff':''; b.style.borderColor=on?'var(--c1)':''; });
+  var ini=$('bly_ini'); if(ini) ini.innerHTML=sc?(' = <strong>'+_blyF(35*sc,2)+' mg</strong>'):'';
+  var col=(lv!=null&&lv>=0)?blyCol(lv):null;
+  // Resaltado de la tabla
+  document.querySelectorAll('#bly_tbl [data-h],#bly_tbl [data-c]').forEach(function(c){
+    var ch=c.getAttribute('data-h'), cc=c.getAttribute('data-c'); var isTd=c.tagName==='TD';
+    var rowOn=ch!=null&&+ch===H, colOn=cc!=null&&col!=null&&col>=0&&+cc===col;
+    if(isTd){ var hit=rowOn&&colOn; c.style.background=hit?'var(--c1)':(rowOn||colOn)?'rgba(79,98,133,.13)':''; c.style.color=hit?'#fff':(BLY_T[+ch][+cc][1]===3?'#a3121f':''); c.style.outline=hit?'2px solid var(--c1)':''; }
+    else { c.style.background=(rowOn||colOn)?'rgba(79,98,133,.22)':'var(--bg2)'; }
+  });
+  var box=$('bly_res'); if(!box) return;
+  window._bly.res=null;
+  if(H==null||lv==null){ box.innerHTML='<div class="alert b" style="font-size:12.5px">'+(H==null?'Elige las <strong>horas</strong> desde el inicio de la infusión':'Escribe el <strong>nivel de MTX</strong>')+' para ver la dosis.</div>'; return; }
+  if(lv<0){ box.innerHTML='<div class="alert y" style="font-size:12.5px">Nivel no válido.</div>'; return; }
+  if(col<0){
+    window._bly.res={H:H,lv:lv,stop:true};
+    box.innerHTML='<div class="alert g"><div style="font-size:17px;font-weight:700">Suspender el Lederfolín</div><div style="font-size:12.5px;margin-top:4px">MTX '+_blyLv(lv)+' µM a las '+H+' h: por debajo de 0,01 µM. Fin del rescate.</div></div>';
+    return;
+  }
+  var cell=BLY_T[H][col], dm2=cell[0], q=cell[1], mg=sc?dm2*sc:null;
+  window._bly.res={H:H,lv:lv,col:col,dm2:dm2,q:q,sc:sc,mg:mg};
+  var cls=q===3?'r':'y';
+  var r='<div class="alert '+cls+'">';
+  r+='<div style="font-size:12px;opacity:.85;margin-bottom:2px">'+H+' h · MTX '+_blyLv(lv)+' µM · columna '+BLY_COLS[col].t+' µM</div>';
+  r+='<div style="font-size:19px;font-weight:700;line-height:1.3">Lederfolín '+dm2.toLocaleString('es-ES')+' mg/m² cada '+q+' h</div>';
+  if(mg!=null) r+='<div style="font-size:16px;font-weight:600;margin-top:2px">= '+_blyF(mg,2)+' mg cada '+q+' h <span style="font-weight:400;font-size:12px">(SC '+_blyF(sc,3)+' m²)</span></div>';
+  else r+='<div style="font-size:12px;margin-top:3px">Indica la superficie corporal (o peso y talla) para la dosis en mg.</div>';
+  var notas=[];
+  if(dm2<25&&q===6) notas.push('Dosis &lt; 25 mg/m²/6 h: si no vomita, puede completarse el rescate <strong>por vía oral</strong>.');
+  notas.push(lv>=0.5?'MTX ≥ 0,5 µM: <strong>mantener</strong> la hiperhidratación y la alcalinización.':'MTX &lt; 0,5 µM: según el protocolo, ya no es necesario mantener la hiperhidratación y la alcalinización.');
+  if(q===3) notas.push('Si está en rango tóxico: niveles <strong>cada 12 h</strong>, reajustando el rescate según los mismos.');
+  r+='<ul style="margin:8px 0 0;padding-left:18px;font-size:12.5px">'+notas.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>';
+  box.innerHTML=r;
+}
+function blyReset(){ ['bly_lv','bly_sc','bly_p','bly_t'].forEach(function(id){ var e=$(id); if(e) e.value=''; }); var i=$('bly_pt'); if(i) i.innerHTML=''; window._bly.h=null; blyCalc(); }
+function copyBleyer(){
+  var r=window._bly.res; if(!r){ toast('Elige la hora y el nivel'); return; }
+  var lvT=_blyLv(r.lv);
+  if(r.stop){ copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM (< 0,01 µM) → se suspende el Lederfolín.'); return; }
+  copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM → Lederfolín (ácido folínico) '+r.dm2+' mg/m² cada '+r.q+' h'+(r.mg!=null?(' = '+_blyF(r.mg,2)+' mg cada '+r.q+' h (SC '+_blyF(r.sc,3)+' m²)'):'')+'. Según nomograma de Bleyer.');
 }
 
 // === LLC ===
@@ -3840,7 +3959,7 @@ function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}
 
 VIEWS.bsa=()=>`<div class="card">
 <h2>Superficie corporal — paciente oncohematológico</h2>
-<p class="intro">Superficie corporal por la fórmula de <strong>DuBois &amp; DuBois</strong>, de referencia en la dosificación de quimioterapia.</p>
+<p class="intro">Superficie corporal por la fórmula de <strong>DuBois &amp; DuBois</strong>, de referencia en la dosificación de quimioterapia (3 decimales, la misma que usa el asistente de QT), con el <strong>IMC</strong>.</p>
 <div class="row">
 <div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="bs_h" value="${S.p.height||''}" oninput="calcBSA()"></div>
 <div class="fld"><label class="lbl">Peso (kg)</label><input type="number" step="0.1" id="bs_w" value="${S.p.weight||''}" oninput="calcBSA()"></div>
@@ -3860,10 +3979,11 @@ if(!h||!w){$('bs_res').style.display='none';return}
 const bsaMost=Math.sqrt((h*w)/3600);
 const bsaDuBois=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725);
 const el=$('bs_res');el.style.display='block';el.className='res in';
-el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(2)} m²</span><span>BSA (DuBois)</span></div>`;
-window._bsaData={h,w,bsaMost,bsaDuBois};
+const imc=hpIMC(w,h);
+el.innerHTML=`<div class="res-h"><span class="score">${bsaDuBois.toFixed(3)} m²</span><span>BSA (DuBois)</span></div>`+(imc?`<div class="res-s" style="margin-top:6px">IMC: <strong>${imc.v.toFixed(2)} kg/m²</strong> · ${imc.cat}</div>`:'');
+window._bsaData={h,w,bsaMost,bsaDuBois,imc};
 }
-function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}copy('Superficie corporal: {bsa} m² (DuBois)',null,{bsa:d.bsaDuBois.toFixed(2).replace('.',',')});}
+function copyBSA(){const d=window._bsaData;if(!d){toast('Calcula primero');return}copy('Superficie corporal: {bsa} m² (DuBois) · IMC: {imc} kg/m² ({imccat})',null,{bsa:d.bsaDuBois.toFixed(3).replace('.',','),imc:d.imc?d.imc.v.toFixed(2).replace('.',','):'',imccat:d.imc?d.imc.cat:''});}
 
 // === CALCIO CORREGIDO ===
 VIEWS.cacorr=()=>`<div class="card">
@@ -5076,7 +5196,11 @@ function hpSecMap(){ try{ return ls.g('secOverrides')||{}; }catch(e){ return {};
 // Orden de las CATEGORÍAS del menú (reordenable por admin, efectivo para todos).
 function hpCatOrden(h){ try{ const m=ls.g('catOrden')||{}; return (h in m)?m[h]:null; }catch(e){ return null; } }
 window.hpApplyCatOrden=function(m){ try{ ls.s('catOrden', m||{}); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
-function _hpMenuCats(){ const arr=MENU.map(function(sec,si){return {sec:sec,si:si};}); arr.sort(function(a,b){ var oa=hpCatOrden(a.sec.h), ob=hpCatOrden(b.sec.h); var va=(oa==null?a.si:oa), vb=(ob==null?b.si:ob); return (va-vb)||(a.si-b.si); }); return arr; }
+// «Pautas de QT» va la PRIMERA del menú (petición de la autora), aunque exista un orden guardado en la
+// nube anterior a este cambio. En cuanto un admin reordena las categorías, ese orden (que ya parte con
+// Pautas arriba) se guarda con la marca __qtTop y a partir de ahí manda el orden guardado.
+const HP_CAT_TOP='PAUTAS DE QT SEHH';
+function _hpMenuCats(){ var _m={}; try{ _m=ls.g('catOrden')||{}; }catch(e){} const pin=!_m.__qtTop; const arr=MENU.map(function(sec,si){return {sec:sec,si:si};}); arr.sort(function(a,b){ var oa=hpCatOrden(a.sec.h), ob=hpCatOrden(b.sec.h); var va=(pin&&a.sec.h===HP_CAT_TOP)?-1e9:(oa==null?a.si:oa), vb=(pin&&b.sec.h===HP_CAT_TOP)?-1e9:(ob==null?b.si:ob); return (va-vb)||(a.si-b.si); }); return arr; }
 async function hpMoverCategoria(h,dir){
   const cats=_hpMenuCats().filter(function(e){return (e.sec.h||'')!=='AJUSTES';});
   const i=cats.findIndex(function(e){return e.sec.h===h;}); if(i<0) return;
@@ -5084,6 +5208,7 @@ async function hpMoverCategoria(h,dir){
   const m=ls.g('catOrden')||{};
   cats.forEach(function(e,idx){ m[e.sec.h]=idx; });
   const a=cats[i].sec.h, b=cats[j].sec.h; const t=m[a]; m[a]=m[b]; m[b]=t;
+  m.__qtTop=1; // el orden queda explícito: deja de forzarse «Pautas de QT» arriba
   try{ls.s('catOrden',m);}catch(e){}
   if(typeof renderMenu==='function') renderMenu(($('search')&&$('search').value)||'');
   if(window.hpSaveCatOrden){ try{ await window.hpSaveCatOrden(m); toast('✓ Orden del menú actualizado · para todos'); }catch(e){ toast('Guardado solo en este equipo'); } }
@@ -7253,7 +7378,7 @@ window.hpStopGuidesListener=function(){
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpUpdateRevBadge)window.hpUpdateRevBadge();if(window.hpLoadPushState)window.hpLoadPushState();if(window.hpUpdateBrand)window.hpUpdateBrand();};
+window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpLoadPushState)window.hpLoadPushState();if(window.hpUpdateBrand)window.hpUpdateBrand();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
 window.hpUpdateRepBadge=async function(){
   try{
@@ -8299,8 +8424,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 384;
-const APP_BUILD = '2026.10.21 (build ' + HP_BUILD + ')';
+const HP_BUILD = 385;
+const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -8603,6 +8728,28 @@ const HOSP_DIR=[["ADMISIÓN",[["Corporativo","","","431893"]]],["ALERGIA",[["Con
 })();
 
 // ===== ASISTENTE DE QT =====
+// Velocidad de infusión de rituximab que se propone en TODOS los esquemas con rituximab IV.
+const QT_RITUX_VEL='Velocidad de infusión de rituximab: iniciar a 25 ml/h y subir hasta 100 ml/h.';
+// Corticoides de los esquemas (para usar la dosis del día del rituximab como su premedicación).
+const QT_CORT_RX=/predniso|prednisolo|dexametaso|metilpredniso|hidrocortiso/i;
+// R-DA-EPOCH: ajuste de dosis por nadir (reglas y niveles de los protocolos del NCI, Wilson/Dunleavy).
+// Se pinta desde el código (no desde las notas del esquema) para que aparezca aunque el esquema
+// se haya editado en la nube.
+const QT_DA_EPOCH_RX=/DA-EPOCH|dose-adjusted|^R-EPOCH\b/i;
+function qtDaEpochNadirHtml(){
+  const L=[['−2','50','10','480'],['−1','50','10','600'],['1 (inicial)','50','10','750'],['2','60','12','900'],['3','72','14,4','1.080'],['4','86,4','17,3','1.296'],['5','103,7','20,7','1.555'],['6','124,4','24,8','1.866']];
+  let h='<div class="alert b" style="margin-top:10px;font-size:12.5px"><div style="font-weight:700;margin-bottom:4px">Ajuste de dosis según el nadir (DA-EPOCH)</div>';
+  h+='<div style="margin-bottom:4px">Hemograma <strong>2 veces por semana</strong> (separados ≥ 3 días). El ajuste se aplica al ciclo siguiente, partiendo del nivel del ciclo previo:</div><ul style="margin:0 0 8px;padding-left:18px">';
+  h+='<li>Neutrófilos ≥ 500/µL en todas las determinaciones → <strong>subir 1 nivel</strong>.</li>';
+  h+='<li>Neutrófilos &lt; 500/µL en 1–2 determinaciones → <strong>mantener</strong> el nivel.</li>';
+  h+='<li>Neutrófilos &lt; 500/µL en ≥ 3 determinaciones → <strong>bajar 1 nivel</strong>.</li>';
+  h+='<li>Plaquetas &lt; 25.000/µL en ≥ 1 determinación → <strong>bajar 1 nivel</strong>.</li></ul>';
+  h+='<div style="margin-bottom:6px">Por encima del nivel 1 suben <strong>etopósido, doxorrubicina y ciclofosfamida</strong>; por debajo del nivel 1 solo baja la <strong>ciclofosfamida</strong>. Vincristina, prednisona y rituximab no se ajustan por nadir.</div>';
+  h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:12px"><tr><th>Nivel</th><th>Etopósido (mg/m²/día)</th><th>Doxorrubicina (mg/m²/día)</th><th>Ciclofosfamida (mg/m²)</th></tr>';
+  L.forEach(function(r){ h+='<tr'+(r[0].indexOf('1 (')===0?' style="font-weight:700"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>'; });
+  h+='</table></div></div>';
+  return h;
+}
 const QT_SCHEMES = {
   // ── LINFOMA ──────────────────────────────────────────────────────────
   'R-CHOP': {
@@ -8616,7 +8763,6 @@ const QT_SCHEMES = {
       {name:'Prednisona',    dose:'60 mg/m²',  route:'VO/IV', days:[1,2,3,4,5]}
     ],
     premed: [
-      'Velocidad de infusión de rituximab (ml/h, subir cada 30 min): 12 → 24 → 36 → 48 → 60 → 72 → 84 → 96.'
     ]
   },
   'CHOP': {
@@ -8691,8 +8837,7 @@ const QT_SCHEMES = {
     notes: [
       'Desde el ciclo 2: administrar el rituximab en primer lugar e iniciar la infusión continua de los 3 fármacos (etopósido, vincristina, doxorubicina) inmediatamente después de finalizar el rituximab el mismo día 1.',
       'Prednisona 120 mg/m²/día dividida en 2 dosis (VO o IV); administrarla antes del rituximab.',
-      'Ciclofosfamida (día 5) inmediatamente después de finalizar la infusión continua de los 3 fármacos.',
-      'Dose-adjusted (DA): ajustar las dosis de etopósido, doxorubicina y ciclofosfamida en los ciclos siguientes según el nadir de neutrófilos/plaquetas del ciclo previo.'
+      'Ciclofosfamida (día 5) inmediatamente después de finalizar la infusión continua de los 3 fármacos.'
     ]
   },
   'R-BENDAMUSTINA': {
@@ -8724,7 +8869,6 @@ const QT_SCHEMES = {
       {name:'Dexametasona',  dose:'40 mg/día (20 mg/12 h)', route:'IV/VO', days:[1,2,3,4]}
     ],
     premed: [
-      'Velocidad de infusión de rituximab (ml/h, subir cada 30 min): 12 → 24 → 36 → 48 → 60 → 72 → 84 → 96.'
     ],
     notes: [
       'Hidratación: suero glucosalino 3 L/día + suero bicarbonatado 1/6 M 1 L/día (asociar furosemida en pacientes de edad avanzada).',
@@ -9988,6 +10132,9 @@ const CHAT_SYN={
   tls:'lisis tumoral cairo bishop',
   lisis:'lisis tumoral cairo bishop rasburicasa',
   mtx:'metotrexato altas dosis folinico glucarpidasa',
+  bleyer:'nomograma rescate metotrexato folinico lederfolin',
+  lederfolin:'acido folinico leucovorina rescate metotrexato bleyer',
+  normograma:'nomograma bleyer metotrexato',
   // erratas habituales
   neutropenina:'neutropenia febril fiebre',
   netropenia:'neutropenia febril fiebre',
@@ -10405,8 +10552,8 @@ function bsaInline(s,toks){
   if(w==null)w=_hpNearLabel(toks,t=>/^(peso|pesa)/.test(t),3,'cm');
   if(h==null||w==null){const nums=toks.map(_hpVal).filter(v=>v!=null);if(nums.length===2){const big=Math.max(nums[0],nums[1]),small=Math.min(nums[0],nums[1]);if(big>=120&&big<=230&&small>=2&&small<=300){h=big;w=small;}}}
   if(h==null||w==null||h<50||h>250||w<2||w>400)return chatCalcRouter('bsa','📐','Superficie corporal','Dame la <strong>talla</strong> (cm) y el <strong>peso</strong> (kg) y te doy la BSA. Te abro la calculadora.');
-  const most=Math.sqrt((h*w)/3600),du=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725);
-  return chatCalcCard('📐','Superficie corporal','bsa',`Talla ${_hpFmt(h,0)} cm y peso ${_hpFmt(w,1)} kg → <strong style="color:var(--c1)">${du.toFixed(2)} m²</strong> (DuBois).`,`Mosteller: ${most.toFixed(2)} m². DuBois es la fórmula de referencia para dosificar quimioterapia.`);
+  const most=Math.sqrt((h*w)/3600),du=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725),imc=hpIMC(w,h);
+  return chatCalcCard('📐','Superficie corporal','bsa',`Talla ${_hpFmt(h,0)} cm y peso ${_hpFmt(w,1)} kg → <strong style="color:var(--c1)">${du.toFixed(3)} m²</strong> (DuBois) · IMC ${imc.v.toFixed(2)} kg/m² (${imc.cat}).`,`Mosteller: ${most.toFixed(3)} m². DuBois es la fórmula de referencia para dosificar quimioterapia.`);
 }
 function pesoInline(s,toks){
   if(!/(peso ideal|peso ajustad\w*|\bibw\b|\babw\b|\blbw\b|peso magro|masa magra|ajust\w* de peso|ajustar peso|peso a usar|peso corporal ideal)/.test(s))return null;
@@ -10749,6 +10896,8 @@ const CHAT_FAQ=[
    a:'El <strong>síndrome de lisis tumoral</strong> se clasifica por los criterios de <strong>Cairo-Bishop</strong> (laboratorio y clínico). El manejo incluye hidratación y control del urato; revisa el riesgo y la profilaxis.'},
   {v:'rasburicasa',neu:1,t:'Rasburicasa / hiperuricemia',rx:/rasburicasa|hiperuricemia|acido urico|\burato\b|fasturtec/,
    a:'La <strong>rasburicasa</strong> reduce rápidamente el ácido úrico en la lisis tumoral. <strong>Contraindicada en déficit de G6PD</strong> (riesgo de hemólisis y metahemoglobinemia). Consulta dosis e indicación.'},
+  {v:'bleyer',neu:1,t:'Rescate MTX · nomograma de Bleyer',rx:/bleyer|normograma|lederfol|nomograma.*(metotrexato|mtx)|(metotrexato|mtx).*nomograma|dosis.*(folinico|leucovorin).*(metotrexato|mtx)/,
+   a:'El <strong>nomograma de Bleyer</strong> da la dosis de <strong>Lederfolín</strong> (ácido folínico) según el nivel de MTX y las horas desde el inicio de la infusión. Te abro la calculadora.'},
   {v:'mtx',neu:1,t:'Metotrexato a altas dosis',rx:/metotrexato.*(alta|nivel|rescate|monitoriz|aclaramiento)|altas dosis.*metotrexato|glucarpidasa|folinico.*metotrexato/,
    a:'El <strong>metotrexato a altas dosis</strong> exige hidratación, <strong>alcalinización</strong>, <strong>rescate con ácido folínico</strong> y monitorización de niveles; en aclaramiento retardado/toxicidad valorar <strong>glucarpidasa</strong>. Revisa el nomograma.'},
   {v:'hctci',t:'HCT-CI (Sorror)',rx:/hct ?ci|hctci|sorror|comorbilidad.*trasplante/,
@@ -10916,9 +11065,17 @@ const d=new Date(base);d.setDate(d.getDate()+n);return d;
 }
 
 function qtBSA(weightKg,heightCm){ // DuBois & DuBois (Arch Intern Med 1916)
-  // SC redondeada a 2 decimales: las dosis de QT se calculan a partir de ESTA superficie exacta,
+  // SC redondeada a 3 decimales: las dosis de QT se calculan a partir de ESTA superficie exacta,
   // así coinciden con la SC mostrada y son reproducibles a mano. (Precisión pedida por la autora.)
-  return Math.round(0.007184*Math.pow(weightKg,0.425)*Math.pow(heightCm,0.725)*100)/100;
+  return Math.round(0.007184*Math.pow(weightKg,0.425)*Math.pow(heightCm,0.725)*1000)/1000;
+}
+// IMC (categorías OMS) a partir de peso (kg) y talla (cm). Se muestra siempre junto a la SC
+// (calculadora de superficie corporal, asistente de QT y respuesta de Eri).
+function hpIMC(weightKg,heightCm){
+  if(!(weightKg>0&&heightCm>0)) return null;
+  const v=weightKg/Math.pow(heightCm/100,2);
+  const cat=v<18.5?'bajo peso':v<25?'normopeso':v<30?'sobrepeso':v<35?'obesidad I':v<40?'obesidad II':'obesidad III (mórbida)';
+  return {v:v,cat:cat};
 }
 function qtRoundDose(mg){
   // Precisión máxima: valor EXACTO con 2 decimales, sin redondear a 5/entero (lo pide la autora).
@@ -10954,7 +11111,8 @@ function qtUpdateBSA(){
       const bsa=qtBSA(p,t);
       const sx=$('qt_sexo')?.value;
       const sxStr=sx==='H'?' · Hombre':sx==='M'?' · Mujer':'';
-      d.innerHTML='SC: <strong>'+bsa.toFixed(2)+' m²</strong> (DuBois) · '+p+' kg · '+t+' cm'+sxStr;
+      const imc=hpIMC(p,t);
+      d.innerHTML='SC: <strong>'+bsa.toFixed(3)+' m²</strong> (DuBois) · IMC: <strong>'+imc.v.toFixed(2)+' kg/m²</strong> ('+imc.cat+') · '+p+' kg · '+t+' cm'+sxStr;
       d.style.color='var(--c1)';
     } else {
       d.innerHTML='Introduce peso y talla para calcular la dosis';
@@ -11006,12 +11164,24 @@ function fmtDrugLine(drug,dateStr){
   return '* '+drug.name+' '+drug.dose+' '+drug.route+': '+dateStr;
 }
 const lines=[];const relLines=[];
-const bsaNote=bsa>0?' · SC: '+bsa.toFixed(2)+' m²':'';
+const _imc=bsa>0?hpIMC(peso,talla):null;
+const bsaNote=bsa>0?' · SC: '+bsa.toFixed(3)+' m²'+(_imc?' · IMC: '+_imc.v.toFixed(2)+' kg/m²':''):'';
 const _ce=scheme.conditioning?null:qtDrugsForCycle(scheme,cycle);
 let drugsList=_ce?_ce.drugs:scheme.drugs;
 // Ciclo 1 con rituximab: la 1.ª infusión es lenta → rituximab el día 1 y el resto de la QT desde el día 2.
 if(cycle===1&&scheme.r1split){
   drugsList=drugsList.map(d=>/rituximab/i.test(d.name)?d:Object.assign({},d,{days:d.days.map(x=>x+1)}));
+}
+// Corticoide del esquema que cae el MISMO día que el rituximab → esa dosis es la premedicación del
+// rituximab (se anota junto a la línea del corticoide y en la premedicación, sin añadir otro corticoide).
+const _ritDrugs=drugsList.filter(d=>/rituximab/i.test(d.name));
+const _ritDays=[...new Set(_ritDrugs.flatMap(d=>d.days||[]))];
+const _cortPm=[];
+function _dmList(days){ const ds=days.map(x=>qtFmtDM(qtAddDays(base,x-1))); return ds.length===1?ds[0]:ds.slice(0,-1).join(', ')+' y '+ds[ds.length-1]; }
+function _cortCoinc(drug){
+  if(!_ritDays.length||!QT_CORT_RX.test(drug.name)) return null;
+  const co=(drug.days||[]).filter(x=>_ritDays.indexOf(x)>=0).sort((a,b)=>a-b);
+  return co.length?co:null;
 }
 if(scheme.conditioning){
   const infDrug=scheme.drugs.find(d=>d.name.toLowerCase().includes('infusi'));
@@ -11036,12 +11206,20 @@ if(scheme.conditioning){
 } else {
   lines.push(cycle+'º ciclo '+qtCycleName(scheme,key)+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
   drugsList.forEach(drug=>{
-    lines.push(fmtDrugLine(drug,qtFmtDates(groupDays(drug.days))));
+    let ln=fmtDrugLine(drug,qtFmtDates(groupDays(drug.days)));
+    const co=_cortCoinc(drug);
+    if(co){
+      const t=_dmList(co);
+      ln+='. '+(co.length===1?'La dosis del día '+t+' usarla':'Las dosis de los días '+t+' usarlas')+' como premedicación de rituximab.';
+      _cortPm.push({name:drug.name,days:co,txt:t});
+    }
+    lines.push(ln);
   });
   // Esquema en días del ciclo → bloque de notas (solo lectura)
   drugsList.forEach(drug=>{
     const rd=qtFmtRelDays(drug.days);
-    relLines.push(drug.name+(rd?': día '+rd:''));
+    const co=_cortCoinc(drug);
+    relLines.push(drug.name+(rd?': día '+rd:'')+(co?' (la dosis del día '+co.map(x=>'+'+x).join(', ')+' es la premedicación de rituximab)':''));
   });
 }
 // Esquema (calendario) → recuadro copiable
@@ -11057,9 +11235,18 @@ if(scheme.conditioning){
 }else if(!scheme.noAntiemetic){
   _pmList.push('Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.');
 }
-if(drugsList.some(d=>/rituximab/i.test(d.name)))
-  _pmList.push('Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg + metilprednisolona (o el corticoide del esquema el día correspondiente), 30 min antes de iniciar la infusión.');
-_pmList.push(...(scheme.premed||[]));
+if(_ritDrugs.length){
+  // ¿Todos los días de rituximab tienen ya corticoide del esquema? Entonces no se añade metilprednisolona.
+  const allCo=_cortPm.length&&_ritDays.every(x=>_cortPm.some(c=>c.days.indexOf(x)>=0));
+  const cn=_cortPm.map(c=>c.name.split(/[\s(]/)[0].toLowerCase()+' del día '+c.txt).join(' y ');
+  let pm='Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg'+(allCo?'':' + metilprednisolona')+', 30 min antes de iniciar la infusión.';
+  if(_cortPm.length) pm+=allCo?' Como corticoide, usar la dosis de '+cn+' del esquema (no añadir otro corticoide).':' En lugar de metilprednisolona, usar la dosis de '+cn+' del esquema.';
+  _pmList.push(pm);
+  if(_ritDrugs.some(d=>/IV/i.test(d.route||''))) _pmList.push(QT_RITUX_VEL);
+}
+// La velocidad de rituximab la pone siempre la línea estándar de arriba: se descartan las antiguas que
+// traigan los esquemas (de fábrica o editados en la nube) para que no aparezcan velocidades viejas.
+_pmList.push(...(scheme.premed||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l)));
 if(_pm)_pm.value=_pmList.join('\n').replace(/→/g,'/');
 if(_pmw)_pmw.style.display='';
 // Notas (solo lectura) + esquema en días del ciclo
@@ -11068,7 +11255,9 @@ if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:
 const _cyc=(scheme.label||'').match(/(\d+)\s*días/);
 const _cycTxt=_cyc?' · ciclo de '+_cyc[1]+' días':'';
 if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)'+_cycTxt+'</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
-if(scheme.notes&&scheme.notes.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Notas</div><ul style="margin:0;padding-left:18px;color:var(--mut)">'+scheme.notes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
+const _notes=(scheme.notes||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l));
+if(_notes.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Notas</div><ul style="margin:0;padding-left:18px;color:var(--mut)">'+_notes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
+if(QT_DA_EPOCH_RX.test(key+' '+(scheme.label||'')))_nh+=qtDaEpochNadirHtml();
 if(_nt){_nt.innerHTML=_nh;_nt.style.display=_nh?'':'none';}
 wrap.style.display='';
 info.innerHTML='';
