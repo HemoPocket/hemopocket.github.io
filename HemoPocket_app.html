@@ -2509,7 +2509,7 @@ VIEWS.bleyer=function(){
   h+='</ul></div></div>';
   h+='<div style="margin-top:14px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2)">';
   h+='<div style="font-weight:700;font-size:14px;margin-bottom:4px">📊 MTXPK.org · farmacocinética del MTX</div>';
-  h+='<div style="font-size:12.5px;line-height:1.5;margin-bottom:8px">Herramienta web gratuita (modelo bayesiano) que, con los datos del paciente, la creatinina y los niveles de MTX, estima su curva de eliminación y ayuda a decidir el soporte y el uso de <strong>glucarpidasa</strong> ante un aclaramiento retardado. Su modelo se construyó con infusiones de 24 h en LAL pediátrica.</div>';
+  h+='<div style="font-size:12.5px;line-height:1.5;margin-bottom:8px">Herramienta web gratuita (modelo bayesiano) que, con los datos del paciente, la creatinina y los niveles de MTX, estima su curva de eliminación y ayuda a decidir el soporte y el uso de <strong>glucarpidasa</strong> ante un aclaramiento retardado.</div>';
   h+='<a class="btn btn-sm" href="https://mtxpk.org" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Abrir MTXPK.org ↗</a>';
   h+='</div>';
   h+='<div class="ref">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101. Tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio. · Taylor ZL, et al. MTXPK.org: a clinical decision support tool evaluating high-dose methotrexate pharmacokinetics to inform post-infusion care and use of glucarpidase. Clin Pharmacol Ther. 2020;108(3):635-643.</div>';
@@ -6156,12 +6156,21 @@ return [];
 // por la administradora y sincronizados desde Firestore 'colaboradores' → 'editorCollabs'.
 const DEFAULT_COLLABORATORS={};
 function getCollaborators(id){const all=getAllCollaborators();return all[id]||[]}
+// Créditos FIJOS por sección (petición de la autora): van SIEMPRE los primeros de su sección.
+const HP_PINNED_COLLABS={ leuc_ag:[{n:'M.T. Busnego'}] };
 function getAllCollaborators(){
-// Única fuente: los EDITORES validados que la administradora ha acreditado (cada uno con su
-// nombre de crédito y sus secciones). Ya no se mezcla ningún equipo fijo ni lista heredada,
-// de modo que el Aviso Legal y los créditos por sección reflejan solo a los editores reales.
+// Fuente: los EDITORES validados que la administradora ha acreditado (cada uno con su nombre
+// de crédito y sus secciones), más los créditos fijos de arriba, que se colocan delante y no se
+// repiten si esa persona también figura en la nube (se compara por el apellido).
 let ed=null; try{ ed=ls.g('editorCollabs'); }catch(e){}
-return ed||{};
+const all=Object.assign({}, ed||{});
+Object.keys(HP_PINNED_COLLABS).forEach(function(sec){
+  const pin=HP_PINNED_COLLABS[sec];
+  const apellidos=pin.map(function(p){ return (p.n||'').toLowerCase().split(/\s+/).pop(); });
+  const resto=(all[sec]||[]).filter(function(c){ const n=(c.n||c.name||'').toLowerCase(); return !apellidos.some(function(a){ return a&&n.indexOf(a)!==-1; }); });
+  all[sec]=pin.concat(resto);
+});
+return all;
 }
 // Cache local del crédito de editores por tema (la rellena la sincronización de 'colaboradores').
 window.hpStoreEditorCollabs=function(map){ try{ ls.s('editorCollabs', map||{}); }catch(e){} };
@@ -8371,7 +8380,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 389;
+const HP_BUILD = 390;
 const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -15386,7 +15395,7 @@ function poblarRevisoresAviso() {
   var items = uniq.map(function (e) {
     var label;
     if (e.perfil === 'admin') {
-      label = e.principal ? 'Administradora (autora principal)' : 'Administrador/a';
+      label = e.principal ? 'Administradora (autora principal) · colaboradora de Leucemias agudas' : 'Administrador/a';
     } else {
       var areas = (e.sections || []).map(secTitle).filter(Boolean);
       var resp = areas.length ? ('responsable de ' + areas.join(', ')) : '';
