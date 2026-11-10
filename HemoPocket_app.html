@@ -2505,7 +2505,7 @@ VIEWS.bleyer=function(){
   h+='<li>Niveles a las <strong>20, 48 y 72 h</strong> como mínimo, manteniendo la hiperhidratación y la alcalinización hasta MTX &lt; 0,5 µM. En rango tóxico, niveles <strong>cada 12 h</strong> modificando el rescate según los mismos.</li>';
   h+='<li>Se <strong>suspende el Lederfolín</strong> cuando MTX &lt; 0,01 µM.</li>';
   h+='<li>Si se precisan &lt; 25 mg/m²/6 h y el paciente no vomita, puede completarse el rescate con Lederfolín <strong>por vía oral</strong>.</li>';
-  h+='<li><strong>Velocidad IV del Lederfolín:</strong> es <strong>folinato cálcico</strong>; por su contenido en calcio, <strong>no más de 160 mg por minuto</strong> (ficha técnica). Toda dosis &gt; 160 mg, nunca en bolo rápido: administrarla lentamente (p. ej. 1.000 mg en ≥ 7 min).</li>';
+  h+='<li><strong>Ritmo máximo IV del Lederfolín: 160 mg por minuto.</strong> El Lederfolín es folinato <strong>cálcico</strong> y lleva calcio; pasarlo más rápido aporta demasiado calcio de golpe (ficha técnica). Hasta 160 mg puede pasarse en 1 minuto; las dosis mayores, más despacio: por ejemplo, 1.000 mg en al menos 7 minutos.</li>';
   h+='</ul></div></div>';
   h+='<div style="margin-top:14px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2)">';
   h+='<div style="font-weight:700;font-size:14px;margin-bottom:4px">📊 MTXPK.org · farmacocinética del MTX</div>';
@@ -2557,9 +2557,9 @@ function blyCalc(){
   else r+='<div style="font-size:12px;margin-top:3px">Indica la superficie corporal (o peso y talla) para la dosis en mg.</div>';
   var notas=[];
   if(dm2<25&&q===6) notas.push('Dosis &lt; 25 mg/m²/6 h: si no vomita, puede completarse el rescate <strong>por vía oral</strong>.');
-  // Folinato cálcico: por su contenido en calcio, IV a ≤ 160 mg/min (ficha técnica).
-  if(mg!=null) notas.push(mg>160?('<strong>Administrar lentamente:</strong> folinato cálcico a ≤ 160 mg/min (contiene calcio) → estos '+_blyF(mg,2)+' mg en <strong>≥ '+Math.ceil(mg/160)+' min</strong>, nunca en bolo rápido.'):'Velocidad IV: ≤ 160 mg/min (folinato cálcico, contiene calcio).');
-  else notas.push('Velocidad IV: <strong>≤ 160 mg/min</strong> (folinato cálcico, contiene calcio). Indica la SC y te calculo el tiempo mínimo.');
+  // Folinato cálcico: lleva calcio → ritmo IV máximo 160 mg/min (ficha técnica).
+  if(mg!=null) notas.push(mg>160?('<strong>Pasar en al menos '+Math.ceil(mg/160)+' minutos.</strong> El Lederfolín lleva calcio y su ritmo máximo IV es 160 mg/min.'):'Esta dosis puede pasarse en 1 minuto (el ritmo máximo IV es 160 mg/min, porque lleva calcio).');
+  else notas.push('El ritmo máximo IV es <strong>160 mg/min</strong>, porque lleva calcio. Indica la SC y te digo cuántos minutos debe durar.');
   notas.push(lv>=0.5?'MTX ≥ 0,5 µM: <strong>mantener</strong> la hiperhidratación y la alcalinización.':'MTX &lt; 0,5 µM: según el protocolo, ya no es necesario mantener la hiperhidratación y la alcalinización.');
   if(q===3) notas.push('Si está en rango tóxico: niveles <strong>cada 12 h</strong>, reajustando el rescate según los mismos.');
   r+='<ul style="margin:8px 0 0;padding-left:18px;font-size:12.5px">'+notas.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>';
@@ -2570,7 +2570,7 @@ function copyBleyer(){
   var r=window._bly.res; if(!r){ toast('Elige la hora y el nivel'); return; }
   var lvT=_blyLv(r.lv);
   if(r.stop){ copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM (< 0,01 µM) → se suspende el Lederfolín.'); return; }
-  copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM → Lederfolín (ácido folínico) '+r.dm2+' mg/m² cada '+r.q+' h'+(r.mg!=null?(' = '+_blyF(r.mg,2)+' mg cada '+r.q+' h (SC '+_blyF(r.sc,3)+' m²)'):'')+'. Según nomograma de Bleyer.'+(r.mg!=null&&r.mg>160?(' Administrar a ≤ 160 mg/min (en ≥ '+Math.ceil(r.mg/160)+' min).'):''));
+  copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM → Lederfolín (ácido folínico) '+r.dm2+' mg/m² cada '+r.q+' h'+(r.mg!=null?(' = '+_blyF(r.mg,2)+' mg cada '+r.q+' h (SC '+_blyF(r.sc,3)+' m²)'):'')+'. Según nomograma de Bleyer.'+(r.mg!=null&&r.mg>160?(' Pasar en al menos '+Math.ceil(r.mg/160)+' minutos (ritmo máximo 160 mg/min, lleva calcio).'):''));
 }
 
 // === LLC ===
@@ -8380,7 +8380,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 390;
+const HP_BUILD = 391;
 const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -15395,7 +15395,7 @@ function poblarRevisoresAviso() {
   var items = uniq.map(function (e) {
     var label;
     if (e.perfil === 'admin') {
-      label = e.principal ? 'Administradora (autora principal) · colaboradora de Leucemias agudas' : 'Administrador/a';
+      label = e.principal ? 'Administradora (autora principal)' : 'Administrador/a';
     } else {
       var areas = (e.sections || []).map(secTitle).filter(Boolean);
       var resp = areas.length ? ('responsable de ' + areas.join(', ')) : '';
