@@ -1128,8 +1128,7 @@ const MENU=[
 {id:'bsa',name:'Superficie corporal',kw:'bsa mosteller superficie corporal'},
 {id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
 {id:'rasburicasa',name:'Rasburicasa / hiperuricemia',kw:'rasburicasa hiperuricemia acido urico urato lisis tumoral g6pd fasturtec alopurinol urato oxidasa dosis contraindicacion',new:'2026-06-12'},
-{id:'bleyer',name:'Rescate MTX (nomograma de Bleyer)',kw:'bleyer nomograma normograma metotrexato mtx rescate acido folinico lederfolin leucovorina folinato calcico niveles horas altas dosis dosis rescate',new:'2026-11-10'},
-{id:'mtx',name:'Metotrexato altas dosis',kw:'metotrexato mtx altas dosis niveles monitorizacion rescate acido folinico leucovorin folinico glucarpidasa voraxaze aclaramiento retardado nefrotoxicidad alcalinizacion hidratacion nomograma',new:'2026-06-12'},
+{id:'bleyer',name:'Rescate MTX (nomograma de Bleyer)',kw:'bleyer nomograma normograma metotrexato mtx rescate acido folinico lederfolin leucovorina folinato calcico niveles horas altas dosis dosis rescate mtxpk farmacocinetica glucarpidasa aclaramiento retardado',new:'2026-11-10'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
 {h:'ESCALAS DE VALORACIÓN',items:[
@@ -1370,6 +1369,7 @@ function go(id, params) {
     try{ if(window._hpPendingReload && !/edit$/.test(id)){ window.location.reload(); return; } }catch(e){}
     if (id === 'chat') { closeSb(); openChat(); return; }
     if (id === 'libroazul') { closeSb(); openPDFurl('guias/LibroAzul_QT.pdf','Pautas de QT SEHH'); return; }
+    if (id === 'mtx') id = 'bleyer'; // la antigua calculadora de MTX a altas dosis se sustituyó por la de Bleyer
     // Ítem del menú restringido a otros hospitales: no accesible por enlace directo.
     try{ if(id && id.indexOf('g_')!==0 && getAll().some(x=>x.id===id) && !hpItemVisibleUser(id)){ if(typeof toast==='function')toast('No disponible para tu hospital'); id='home'; } }catch(e){}
     S.view = id;
@@ -2434,79 +2434,6 @@ VIEWS.rasburicasa=()=>`<div class="card">
 <div class="ref">Coiffier B, et al. Guidelines for the management of pediatric and adult tumor lysis syndrome. J Clin Oncol. 2008;26(16):2767-2778. https://ascopubs.org/doi/10.1200/JCO.2007.15.0177 · Howard SC, Jones DP, Pui CH. The tumor lysis syndrome. N Engl J Med. 2011;364(19):1844-1854. https://www.nejm.org/doi/full/10.1056/NEJMra0904569 · Ficha técnica Fasturtec® (rasburicasa), AEMPS/EMA.</div>
 </div>`;
 
-// === METOTREXATO A ALTAS DOSIS · monitorización y rescate ===
-VIEWS.mtx=()=>`<div class="card">
-<h2>Metotrexato a altas dosis · monitorización</h2>
-<p class="intro">Interpreta el nivel de MTX según el tiempo desde el <strong>inicio</strong> de la infusión y orienta el rescate con folínico y la valoración de glucarpidasa. Los umbrales dependen del protocolo y de la duración de la infusión: <strong>sigue siempre el nomograma de tu centro</strong>.</p>
-
-<div class="alert y" style="font-size:12.5px"><strong>Herramienta de apoyo.</strong> No sustituye el protocolo institucional ni el juicio del facultativo. Verifica los niveles y la pauta antes de actuar.</div>
-<div class="alert b" style="font-size:12.5px">📈 Dosis de Lederfolín con el <strong>nomograma de Bleyer</strong> del servicio: <a href="#" onclick="go('bleyer');return false"><strong>abrir la calculadora de rescate</strong></a>.</div>
-
-<div class="row">
-<div class="fld"><label class="lbl">Tiempo desde inicio de infusión (h)</label><input type="number" step="1" id="mtx_t" placeholder="p. ej. 48" oninput="calcMtx()"></div>
-<div class="fld"><label class="lbl">Nivel de MTX (µmol/L)</label><input type="number" step="0.01" id="mtx_l" placeholder="p. ej. 1.2" oninput="calcMtx()"></div>
-<div class="fld"><label class="lbl">↑ Creatinina vs basal (%)</label><input type="number" step="1" id="mtx_cr" placeholder="opcional" oninput="calcMtx()"></div>
-</div>
-<div id="mtx_res" class="res" style="display:none"></div>
-
-<h3>Rescate con ácido folínico (leucovorina)</h3>
-<table class="tbl">
-<tr><th>Situación</th><th>Pauta</th></tr>
-<tr><td>Eliminación normal</td><td><strong>15 mg</strong> (~10–15 mg/m²) VO/IM/IV <strong>cada 6 h</strong>, desde las <strong>24 h</strong> del inicio, hasta MTX <strong>&lt; 0,05 µmol/L</strong>.</td></tr>
-<tr><td>Retardo / nivel elevado (p. ej. 24 h &gt; 5 µmol/L o ↑creatinina ≥ 50%)</td><td>Aumentar a <strong>100 mg/m² IV cada 3 h</strong> hasta descenso adecuado.</td></tr>
-<tr><td>Retardo precoz / daño renal (24 h ≥ 50, o 48 h ≥ 5 µmol/L, o ↑creatinina ≥ 100%)</td><td><strong>150 mg IV cada 3 h</strong> hasta MTX &lt; 1 µmol/L; luego <strong>15 mg IV cada 3 h</strong> hasta &lt; 0,05 µmol/L.</td></tr>
-</table>
-<p class="res-s" style="font-size:11.5px;color:var(--mut)">Pautas de la ficha técnica de leucovorina, calculadas para <strong>MTX 12 g/m² en 4 h</strong> (osteosarcoma); en otros esquemas manda la pauta de rescate de su protocolo. Levoleucovorina (l-folínico): la mitad de la dosis en mg. No reducir el folínico de forma autónoma; escalonar según nivel y tiempo.</p>
-
-<h3>Glucarpidasa (Voraxaze)</h3>
-<div class="alert b" style="font-size:12.5px">
-<strong>Indicación (consenso Ramsey 2018, infusión ≤ 24 h, con ascenso de creatinina/FRA):</strong> MTX &gt; <strong>50</strong> µmol/L a las 24 h · &gt; <strong>30</strong> a las 36 h · &gt; <strong>10</strong> a las 42 h · &gt; <strong>5</strong> a las 48 h. Ficha FDA: MTX <strong>&gt; 1 µmol/L</strong> con aclaramiento retardado por insuficiencia renal.<br>
-<strong>Ventana:</strong> idealmente dentro de <strong>48–60 h</strong> del inicio (menos eficaz después).<br>
-<strong>Dosis:</strong> <strong>50 U/kg IV</strong> en bolo de 5 min, dosis única (≈ 0,05 mg/kg).<br>
-<strong>Con folínico:</strong> NO administrar folínico en las 2 h previas ni posteriores (también es sustrato); mantener la <strong>misma dosis</strong> de folínico previa a la glucarpidasa durante 48 h.<br>
-<strong>Analítica:</strong> durante ~48 h tras glucarpidasa el <strong>inmunoensayo sobreestima</strong> el MTX (metabolito DAMPA) → medir por <strong>cromatografía (HPLC/LC-MS)</strong>.</div>
-
-<h3>Soporte</h3>
-<ul style="font-size:13px">
-<li><strong>Hidratación</strong> ~3 L/m²/día; diuresis &gt; 100 mL/m²/h (o &gt; 2,5 L/m²/día).</li>
-<li><strong>Alcalinización</strong> con bicarbonato hasta <strong>pH urinario ≥ 7</strong>, antes y durante, hasta aclarar el MTX.</li>
-<li>Evitar <strong>nefrotóxicos</strong> e interacciones: AINE, IBP (omeprazol), penicilinas, probenecid, trimetoprim-sulfametoxazol.</li>
-<li>Niveles a las <strong>24, 48 y 72 h</strong> y después a diario hasta &lt; 0,05–0,1 µmol/L; vigilar creatinina, iones y pH urinario.</li>
-</ul>
-
-<div class="ref">Stoller RG, et al. Use of plasma pharmacokinetics to predict and prevent methotrexate toxicity. N Engl J Med. 1977;297(12):630-634. https://pubmed.ncbi.nlm.nih.gov/302412/ · Howard SC, et al. Preventing and Managing Toxicities of High-Dose Methotrexate. Oncologist. 2016;21(12):1471-1482. https://pmc.ncbi.nlm.nih.gov/articles/PMC5153332/ · Ramsey LB, et al. Consensus Guideline for Use of Glucarpidase… Oncologist. 2018;23(1):52-61. https://pmc.ncbi.nlm.nih.gov/articles/PMC5759822/ · Ficha técnica Voraxaze® (glucarpidasa) y leucovorina (FDA/AEMPS).</div>
-</div>`;
-
-function calcMtx(){
-  const t=n($('mtx_t').value), L=n($('mtx_l').value), cr=n($('mtx_cr').value);
-  const el=$('mtx_res');
-  if(t==null||L==null||t<0||L<0){el.style.display='none';return;}
-  // Techo de eliminación "normal" según el tiempo (valores convencionales: ~10 µmol/L 24h, ~1 µmol/L 48h, ~0,2 µmol/L 72h)
-  const normalCeil = t<=30?10 : (t<=54?1 : 0.2);
-  // Umbral de glucarpidasa (Ramsey 2018, infusión ≤24 h) por tiempo
-  const gThr = t<=30?50 : (t<=39?30 : (t<=45?10 : (t<=54?5 : 1)));
-  const aki = (cr!=null && cr>=50);
-  let cls,title,body;
-  const glucWindow = t<=60 ? 'dentro de la ventana de 48–60 h' : '<strong>fuera de la ventana óptima de 48–60 h</strong> (eficacia reducida)';
-  if(L>gThr && (aki || L>gThr*1.0)){
-    cls='hi'; title='Territorio de glucarpidasa';
-    body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong> supera el umbral para ese tiempo (${gThr} µmol/L)${aki?' con ascenso de creatinina ('+cr+'%)':''}. <strong>Valorar glucarpidasa</strong> 50 U/kg IV (dosis única) con farmacia/oncología, ${glucWindow}. Continuar el folínico a la dosis previa (no reducir por el inmunoensayo, que sobreestima por DAMPA → usar HPLC). Intensificar hidratación; repetir nivel y creatinina.`;
-  } else if(L>normalCeil){
-    cls='md'; title='Aclaramiento retardado';
-    const early = (t<=30 && L>=50) || (t>30 && t<=54 && L>=5) || (cr!=null && cr>=100);
-    if(early){
-      body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong>: patrón <strong>precoz/renal</strong>. Folínico <strong>150 mg IV c/3 h</strong> hasta MTX &lt; 1 µmol/L, luego 15 mg IV c/3 h hasta &lt; 0,05. Hidratación intensa, repetir nivel y creatinina cada 12–24 h y <strong>valorar glucarpidasa</strong> si daño renal.`;
-    } else {
-      body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong> por encima de lo esperado (~${normalCeil} µmol/L). <strong>Intensificar el rescate</strong> (p. ej. folínico 100 mg/m² IV c/3 h), mantener hidratación y alcalinización, y repetir el nivel cada 24 h hasta &lt; 0,05 µmol/L.`;
-    }
-  } else {
-    cls='lo'; title='Dentro del rango esperado';
-    body=`MTX <strong>${L} µmol/L</strong> a las <strong>${t} h</strong> dentro de lo esperado (≤ ~${normalCeil} µmol/L). Rescate estándar: folínico <strong>15 mg (~10–15 mg/m²) c/6 h</strong> hasta MTX &lt; 0,05 µmol/L. Mantener hidratación, alcalinización y controles.`;
-  }
-  el.style.display='block'; el.className='res '+cls;
-  el.innerHTML=`<div class="res-h"><span class="score">${title}</span><span>${t} h · ${L} µmol/L</span></div><div class="res-txt" style="margin-top:6px">${body}</div><div class="res-s" style="font-size:11px;color:var(--mut);margin-top:6px">Umbrales orientativos (ficha técnica de leucovorina: MTX 12 g/m² en 4 h; glucarpidasa: consenso Ramsey 2018); ajusta al nomograma de tu protocolo.</div>`;
-}
-
 // === RESCATE CON ÁCIDO FOLÍNICO · NOMOGRAMA DE BLEYER (protocolo del servicio) ===
 // Tabla «Dosificación de MTX y rescate con ác. folínico» (Bleyer WA, Cancer Treat Rev 1977;4:87-101).
 // Filas: horas desde el INICIO de la infusión. Columnas: nivel sérico de MTX (µM = µmol/L).
@@ -2567,8 +2494,12 @@ VIEWS.bleyer=function(){
   h+='<li>Se <strong>suspende el Lederfolín</strong> cuando MTX &lt; 0,01 µM.</li>';
   h+='<li>Si se precisan &lt; 25 mg/m²/6 h y el paciente no vomita, puede completarse el rescate con Lederfolín <strong>por vía oral</strong>.</li>';
   h+='</ul></div></div>';
-  h+='<p style="font-size:12px;margin-top:10px">Para glucarpidasa y aclaramiento retardado: <a href="#" onclick="go(\'mtx\');return false">Metotrexato altas dosis</a>.</p>';
-  h+='<div class="ref">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101. Tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio.</div>';
+  h+='<div style="margin-top:14px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2)">';
+  h+='<div style="font-weight:700;font-size:14px;margin-bottom:4px">📊 MTXPK.org · farmacocinética del MTX</div>';
+  h+='<div style="font-size:12.5px;line-height:1.5;margin-bottom:8px">Herramienta web gratuita (modelo bayesiano) que, con los datos del paciente, la creatinina y los niveles de MTX, estima su curva de eliminación y ayuda a decidir el soporte y el uso de <strong>glucarpidasa</strong> ante un aclaramiento retardado. Su modelo se construyó con infusiones de 24 h en LAL pediátrica.</div>';
+  h+='<a class="btn btn-sm" href="https://mtxpk.org" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Abrir MTXPK.org ↗</a>';
+  h+='</div>';
+  h+='<div class="ref">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101. Tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio. · Taylor ZL, et al. MTXPK.org: a clinical decision support tool evaluating high-dose methotrexate pharmacokinetics to inform post-infusion care and use of glucarpidase. Clin Pharmacol Ther. 2020;108(3):635-643.</div>';
   h+='</div>';
   return h;
 };
@@ -8424,7 +8355,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 387;
+const HP_BUILD = 388;
 const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -8730,8 +8661,12 @@ const HOSP_DIR=[["ADMISIÓN",[["Corporativo","","","431893"]]],["ALERGIA",[["Con
 // ===== ASISTENTE DE QT =====
 // Velocidad de infusión de rituximab que se propone en TODOS los esquemas con rituximab IV.
 const QT_RITUX_VEL='Velocidad de infusión de rituximab: iniciar a 25 ml/h y subir hasta 100 ml/h.';
-// Corticoides de los esquemas (para usar la dosis del día del rituximab como su premedicación).
+// Corticoides de los esquemas: en el ciclo 1 con rituximab separado NO se desplazan (siguen desde el día 1).
 const QT_CORT_RX=/predniso|prednisolo|dexametaso|metilpredniso|hidrocortiso/i;
+// Corticoides cuya dosis del día del rituximab ES su premedicación (prednisona/prednisolona → ese día
+// metilprednisolona IV a la misma dosis; metilprednisolona del esquema). Con dexametasona NO: la
+// premedicación de rituximab lleva su metilprednisolona aparte.
+const QT_CORT_PM_RX=/predniso|prednisolo/i;
 // R-DA-EPOCH: ajuste de dosis por nadir (reglas y niveles de los protocolos del NCI, Wilson/Dunleavy).
 // Se pinta desde el código (no desde las notas del esquema) para que aparezca aunque el esquema
 // se haya editado en la nube.
@@ -10750,7 +10685,7 @@ function chatNfIntent(q){
 function chatMtxIntent(q){
   const nq=chatNorm(q);
   if(!/metotrexat|metrotexat|\bmtx\b|folinic|leucovorin|glucarpidasa|voraxaze|carboxipeptidasa/.test(nq))return null;
-  return chatRouteCard('mtx','💊','Metotrexato a altas dosis','Monitorización de niveles, <strong>rescate con ácido folínico</strong>, soporte (hidratación y alcalinización urinaria) y criterios de <strong>glucarpidasa</strong> ante aclaramiento retardado.',[]);
+  return chatRouteCard('bleyer','💊','Rescate MTX · nomograma de Bleyer','Dosis de <strong>Lederfolín</strong> según el nivel de MTX y las horas desde el inicio de la infusión (protocolo del servicio), con enlace a <strong>MTXPK.org</strong> para la farmacocinética y la glucarpidasa.',[]);
 }
 // ¿La consulta pide una ACTITUD terapéutica / manejo de caso / diagnóstico? → Eri remite a la guía SIN emitir juicio (lead neutro, nunca "claro/sí").
 const THERAPY_RX=/\b(puedo|podria|podriamos|debo|debe|debemos|deberia|deberiamos|podemos|conviene|procede|toca|hay que|se puede)\b[^?]{0,40}\b(transfund\w*|trasfund\w*|trasfu\w*|anticoagul\w*|dar(le|les)?|administr\w*|pautar|poner|ponerle|iniciar|empezar|comenzar|suspender|retirar|parar|tratar|profilax\w*|premedic\w*)\b|\b(esta|estaria) indicad|indicacion de (transfu|trasfu|anticoagul|tratar|dar|poner|profilax)|\b(transfundo|trasfundo|le doy|le pongo|le pauto|le administro)\b|\b(tratamiento|tratar|diagnostico|diagnosticar|que actitud|actitud a seguir|actitud terapeutica|conducta a seguir|que hago|que hacer)\b|como (lo |la |le )?(trato|tratar|manejo|manejar|trataria|manejaria)/;
@@ -10896,10 +10831,8 @@ const CHAT_FAQ=[
    a:'El <strong>síndrome de lisis tumoral</strong> se clasifica por los criterios de <strong>Cairo-Bishop</strong> (laboratorio y clínico). El manejo incluye hidratación y control del urato; revisa el riesgo y la profilaxis.'},
   {v:'rasburicasa',neu:1,t:'Rasburicasa / hiperuricemia',rx:/rasburicasa|hiperuricemia|acido urico|\burato\b|fasturtec/,
    a:'La <strong>rasburicasa</strong> reduce rápidamente el ácido úrico en la lisis tumoral. <strong>Contraindicada en déficit de G6PD</strong> (riesgo de hemólisis y metahemoglobinemia). Consulta dosis e indicación.'},
-  {v:'bleyer',neu:1,t:'Rescate MTX · nomograma de Bleyer',rx:/bleyer|normograma|lederfol|nomograma.*(metotrexato|mtx)|(metotrexato|mtx).*nomograma|dosis.*(folinico|leucovorin).*(metotrexato|mtx)/,
-   a:'El <strong>nomograma de Bleyer</strong> da la dosis de <strong>Lederfolín</strong> (ácido folínico) según el nivel de MTX y las horas desde el inicio de la infusión. Te abro la calculadora.'},
-  {v:'mtx',neu:1,t:'Metotrexato a altas dosis',rx:/metotrexato.*(alta|nivel|rescate|monitoriz|aclaramiento)|altas dosis.*metotrexato|glucarpidasa|folinico.*metotrexato/,
-   a:'El <strong>metotrexato a altas dosis</strong> exige hidratación, <strong>alcalinización</strong>, <strong>rescate con ácido folínico</strong> y monitorización de niveles; en aclaramiento retardado/toxicidad valorar <strong>glucarpidasa</strong>. Revisa el nomograma.'},
+  {v:'bleyer',neu:1,t:'Rescate MTX · nomograma de Bleyer',rx:/bleyer|normograma|lederfol|mtxpk|nomograma.*(metotrexato|mtx)|(metotrexato|mtx).*nomograma|dosis.*(folinico|leucovorin).*(metotrexato|mtx)|metotrexato.*(alta|nivel|rescate|monitoriz|aclaramiento)|altas dosis.*metotrexato|glucarpidasa|folinico.*metotrexato/,
+   a:'El <strong>nomograma de Bleyer</strong> da la dosis de <strong>Lederfolín</strong> (ácido folínico) según el nivel de MTX y las horas desde el inicio de la infusión. Para la farmacocinética y la glucarpidasa, la calculadora enlaza a <strong>MTXPK.org</strong>. Te abro la calculadora.'},
   {v:'hctci',t:'HCT-CI (Sorror)',rx:/hct ?ci|hctci|sorror|comorbilidad.*trasplante/,
    a:'El <strong>HCT-CI (Sorror)</strong> cuantifica la comorbilidad antes del <strong>trasplante alogénico</strong> y se asocia a la mortalidad no relacionada con la recaída.'},
   {v:'ecog',t:'ECOG',rx:/\becog\b|estado funcional|performance status/,
@@ -11169,8 +11102,9 @@ const bsaNote=bsa>0?' · SC: '+bsa.toFixed(3)+' m²'+(_imc?' · IMC: '+_imc.v.to
 const _ce=scheme.conditioning?null:qtDrugsForCycle(scheme,cycle);
 let drugsList=_ce?_ce.drugs:scheme.drugs;
 // Ciclo 1 con rituximab: la 1.ª infusión es lenta → rituximab el día 1 y el resto de la QT desde el día 2.
+// Los corticoides NO se desplazan: siguen desde el día 1 (p. ej. prednisona días 1-5 en R-CHOP).
 if(cycle===1&&scheme.r1split){
-  drugsList=drugsList.map(d=>/rituximab/i.test(d.name)?d:Object.assign({},d,{days:d.days.map(x=>x+1)}));
+  drugsList=drugsList.map(d=>(/rituximab/i.test(d.name)||QT_CORT_RX.test(d.name))?d:Object.assign({},d,{days:d.days.map(x=>x+1)}));
 }
 // Corticoide del esquema que cae el MISMO día que el rituximab → ese día va IV y ES la premedicación
 // del rituximab (no se añade otro corticoide). La prednisona/prednisolona ese día se pone como
@@ -11180,7 +11114,7 @@ const _ritDays=[...new Set(_ritDrugs.flatMap(d=>d.days||[]))];
 const _cortPm=[];
 function _dmList(days){ const ds=days.map(x=>qtFmtDM(qtAddDays(base,x-1))); return ds.length===1?ds[0]:ds.slice(0,-1).join(', ')+' y '+ds[ds.length-1]; }
 function _cortInfo(drug){
-  if(!_ritDays.length||!QT_CORT_RX.test(drug.name)) return null;
+  if(!_ritDays.length||!QT_CORT_PM_RX.test(drug.name)) return null;
   const co=(drug.days||[]).filter(x=>_ritDays.indexOf(x)>=0).sort((a,b)=>a-b);
   if(!co.length) return null;
   const rest=(drug.days||[]).filter(x=>co.indexOf(x)<0);
@@ -11250,7 +11184,7 @@ if(_ritDrugs.length){
   const allCo=_cortPm.length&&_ritDays.every(x=>_cortPm.some(c=>c.days.indexOf(x)>=0));
   const cn=_cortPm.map(c=>c.ivTxt+' IV el día '+c.txt).join(' y ');
   let pm='Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg'+(allCo?'':(_cortPm.length?' + metilprednisolona (los días sin corticoide en el esquema)':' + metilprednisolona'))+', 30 min antes de iniciar la infusión.';
-  if(_cortPm.length) pm+=' Como corticoide, '+cn+' (es la dosis de corticoide del esquema de ese día; no añadir otro corticoide).';
+  if(_cortPm.length) pm+=' Como corticoide, '+cn+' (es la dosis de corticoide del esquema de ese día).';
   _pmList.push(pm);
   if(_ritDrugs.some(d=>/IV/i.test(d.route||''))) _pmList.push(QT_RITUX_VEL);
 }
@@ -11261,7 +11195,7 @@ if(_pm)_pm.value=_pmList.join('\n').replace(/→/g,'/');
 if(_pmw)_pmw.style.display='';
 // Notas (solo lectura) + esquema en días del ciclo
 const _nt=$('qt_notes');let _nh='';
-if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1:</strong> rituximab el día +1 y el resto de la quimioterapia desde el día +2 (la 1.ª infusión de rituximab es lenta). Desde el ciclo 2, todo el día +1.</div>';
+if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1:</strong> rituximab el día +1 y el resto de la quimioterapia desde el día +2 (la 1.ª infusión de rituximab es lenta); el corticoide mantiene sus días desde el +1. Desde el ciclo 2, todo el día +1.</div>';
 const _cyc=(scheme.label||'').match(/(\d+)\s*días/);
 const _cycTxt=_cyc?' · ciclo de '+_cyc[1]+' días':'';
 if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)'+_cycTxt+'</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
