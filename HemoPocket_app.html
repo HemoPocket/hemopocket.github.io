@@ -7454,10 +7454,10 @@ _returnView=(S.view&&S.view!=='viewer')?S.view:'home';
 go('viewer',{key:decodeURIComponent(encodedKey)});
 }
 // Abrir un PDF empaquetado en la app por URL (mismo origen). El service worker lo cachea → queda offline.
-function openPDFurl(url,name){
+function openPDFurl(url,name,page){
 if(window._currentPDF&&window._currentPDF.url)URL.revokeObjectURL(window._currentPDF.url);
 _returnView=(S.view&&S.view!=='viewer')?S.view:'home';
-go('viewer',{url:url,name:name||'PDF'});
+go('viewer',{url:url,name:name||'PDF',page:page||null});
 }
 
 function viewerBack(){go(_returnView||'home')}
@@ -7582,6 +7582,8 @@ container.appendChild(ph);
 }
 if($('vw_total'))$('vw_total').textContent=pdf.numPages;
 if($('vw_page'))$('vw_page').value='1';
+// Abrir directamente en una página concreta (p. ej. desde la herramienta de envío de muestras).
+if(params.page&&params.page>1)setTimeout(()=>{try{vwGoToPage(params.page);}catch(e){}},80);
 container.addEventListener('scroll',()=>{if(!_pgRAF)_pgRAF=requestAnimationFrame(()=>{_pgRAF=0;vwUpdateCurrentPage();});},{passive:true});
 const renderPage=async(pageNum,target)=>{
 if(target.dataset.rendered)return;
@@ -8380,7 +8382,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 391;
+const HP_BUILD = 392;
 const APP_BUILD = '2026.11.10 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
