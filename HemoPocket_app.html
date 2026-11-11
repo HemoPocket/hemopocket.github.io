@@ -250,7 +250,18 @@ body.view-home .app-footer{padding-bottom:18px}
 .mx-dxh{font-weight:700;font-size:15px;color:var(--txt)}
 .mx-big{margin-top:6px;padding:8px 10px;border-radius:8px;background:var(--mxb);font-size:13.5px;color:var(--txt)}
 .mx-big b{color:var(--mxc)}
-.mx-url{display:block;font-size:12px;color:var(--mut);margin-top:1px}
+.mx-url{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--c2);margin-top:3px;text-decoration:underline;text-underline-offset:2px}
+[data-t="dark"] .mx-url{color:var(--c2l)}
+.mx-url svg{width:12px;height:12px;flex:none}
+.mx-acc{margin-top:6px;padding:8px 10px;border:1px dashed var(--bd);border-radius:8px;font-size:12.5px}
+.mx-acch{font-weight:700;margin-bottom:5px}
+.mx-accr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:7px 0 0}
+.mx-accr .mx-k{flex-basis:100%;margin:0}
+.mx-accr code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;padding:3px 7px;border-radius:6px;background:var(--bg2);color:var(--txt);user-select:all;word-break:break-all}
+.mx-accf{display:grid;gap:7px}
+.mx-accf label{display:block;font-size:12px;font-weight:600}
+.mx-accf input{display:block;width:100%;margin-top:3px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--inp);color:var(--txt);font-size:14px;font-family:inherit}
+.mx-accb{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .mx-hl{background:rgba(245,158,11,.26);padding:0 3px;border-radius:3px}
 .mx-loc{font-size:12.5px;color:var(--mut);margin-top:4px}
 .mx-loc b{color:var(--txt);font-weight:600}
@@ -3682,7 +3693,7 @@ function _mxPdf(p,pg,txt){ return '<a href="#" onclick="event.stopPropagation();
 function _mxProtoL25(){ return MX_PROTOS.find(function(x){return x.id==='lal25';}); }
 const MX_ARW='<svg class="mx-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-VIEWS.mxenvio=function(){
+VIEWS.mxenvio=function(){ try{ window._mxAcc.show=false; window._mxAcc.edit=false; }catch(e){}
   _mxLoad();
   return '<div class="card"><h2>Envío de muestras · leucemias agudas</h2><div id="mx_body"></div></div>';
 };
@@ -3693,12 +3704,69 @@ function mxSetS(id){ window._mx.s=id; var p=_mxP(), m=p&&p.m.find(function(x){re
 function mxSetM(id){ window._mx.m=(window._mx.m===id?null:id); _mxSave(); mxRender(); if(window._mx.m){ var r=document.getElementById('mx_row_'+id); if(r&&r.scrollIntoView) try{ r.scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){} } }
 function _mxChip(on,label,fn){ return '<button type="button" class="btn btn-sm'+(on?'':' btn-out')+'" onclick="'+fn+'" style="margin:0 6px 6px 0">'+label+'</button>'; }
 
+// Enlace a la plataforma PLATAFO-LMA (se abre en otra pestaña).
+var MX_PLAT_LINK='<a class="mx-url" href="https://www.platafolma.org" target="_blank" rel="noopener noreferrer">www.platafolma.org<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>';
+// Acceso compartido del servicio a PLATAFO-LMA (usuario y contraseña). No está en el código: se guarda en
+// la nube, lo leen solo los usuarios aprobados del hospital y lo escribe una administradora desde aquí.
+// Solo se tiene en memoria mientras la app está abierta; la contraseña sale oculta hasta pulsar «Mostrar».
+window._mxAcc=window._mxAcc||{st:'idle',d:null,show:false,edit:false};
+function _mxAccId(){ return 'platafolma_'+hpUserCentro(); }
+function _mxAccAdmin(){ try{ return !!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin()); }catch(e){ return false; } }
+function mxAccHtml(){
+  var a=window._mxAcc, b=function(txt,fn,solid){ return '<button type="button" class="btn btn-sm'+(solid?'':' btn-out')+'" onclick="'+fn+'">'+txt+'</button>'; };
+  var h='<div class="mx-acc" id="mx_acc"><div class="mx-acch">Acceso del servicio a la plataforma</div>';
+  if(a.edit){
+    h+='<div class="mx-accf"><label>Usuario<input id="mx_acc_u" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="'+_hpEsc((a.d&&a.d.usuario)||'')+'"></label>'
+      +'<label>Contraseña<input id="mx_acc_p" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="'+_hpEsc((a.d&&a.d.clave)||'')+'"></label></div>'
+      +'<div class="mx-accb">'+b('Guardar','mxAccSave()',true)+b('Cancelar','mxAccEdit(false)')+'</div>'
+      +'<div class="mx-mut" style="margin-top:5px">Se guarda en la nube y solo lo ven los usuarios aprobados del hospital.</div>';
+  }else if(a.st==='load'){
+    h+='<span class="mx-mut">Consultando…</span>';
+  }else if(a.st==='ok'&&a.d){
+    h+='<div class="mx-accr"><span class="mx-k">Usuario</span><code>'+_hpEsc(a.d.usuario||'—')+'</code>'+b('Copiar',"mxAccCopy('usuario')")+'</div>'
+      +'<div class="mx-accr"><span class="mx-k">Contraseña</span><code>'+(a.show?_hpEsc(a.d.clave||'—'):'••••••••')+'</code>'+b(a.show?'Ocultar':'Mostrar','mxAccShow()')+b('Copiar',"mxAccCopy('clave')")+'</div>'
+      +(_mxAccAdmin()?'<div class="mx-accb">'+b('Editar','mxAccEdit(true)')+'</div>':'');
+  }else if(a.st==='none'){
+    h+='<span class="mx-mut">Aún no hay datos guardados.</span>'+(_mxAccAdmin()?'<div class="mx-accb">'+b('Añadir usuario y contraseña','mxAccEdit(true)')+'</div>':'');
+  }else if(a.st==='err'){
+    h+='<span class="mx-mut">No disponible: hace falta conexión y la sesión de un usuario aprobado.</span><div class="mx-accb">'+b('Reintentar','mxAccLoad()')+'</div>';
+  }else{
+    h+=b('Ver usuario y contraseña','mxAccLoad()');
+  }
+  return h+'</div>';
+}
+function _mxAccDraw(){ var e=document.getElementById('mx_acc'); if(e) e.outerHTML=mxAccHtml(); }
+async function mxAccLoad(){
+  var a=window._mxAcc; a.st='load'; a.show=false; a.edit=false; _mxAccDraw();
+  try{
+    if(!window.hpGetAcceso) throw new Error('sin nube');
+    var d=await window.hpGetAcceso(_mxAccId());
+    if(d&&(d.usuario||d.clave)){ a.d={usuario:String(d.usuario||''),clave:String(d.clave||'')}; a.st='ok'; }
+    else{ a.d=null; a.st='none'; }
+  }catch(e){ a.d=null; a.st='err'; }
+  _mxAccDraw();
+}
+function mxAccShow(){ window._mxAcc.show=!window._mxAcc.show; _mxAccDraw(); }
+function mxAccCopy(k){ var a=window._mxAcc; if(a.d&&a.d[k]) _hpDoCopy(a.d[k]); }
+function mxAccEdit(on){ var a=window._mxAcc; if(on&&!_mxAccAdmin()) return; a.edit=!!on; _mxAccDraw(); }
+async function mxAccSave(){
+  var a=window._mxAcc, u=(($('mx_acc_u')||{}).value||'').trim(), p=(($('mx_acc_p')||{}).value||'').trim();
+  if(!u||!p){ toast('Escribe el usuario y la contraseña'); return; }
+  try{
+    if(!window.hpSaveAcceso) throw new Error('sin nube');
+    await window.hpSaveAcceso(_mxAccId(),{usuario:u,clave:p,centro:hpUserCentro()});
+    a.d={usuario:u,clave:p}; a.st='ok'; a.edit=false; a.show=false; toast('Acceso guardado');
+  }catch(e){ toast('No se pudo guardar: hace falta conexión y ser administradora'); }
+  _mxAccDraw();
+}
+
 // Nuevo diagnóstico: todavía no se sabe el protocolo, solo si es mieloide o linfoblástica
 function mxDxHtml(){
   var l25=_mxProtoL25();
   var h='<div class="mx-sec">Nuevo diagnóstico</div><div class="mx-dx">';
   h+='<div class="mx-dxc mx-lma"><div class="mx-dxh">Leucemia mieloide aguda</div>'
-    +'<div class="mx-big">Se registra en la <b>plataforma web PLATAFO-LMA</b><span class="mx-url">www.platafolma.org</span></div>'
+    +'<div class="mx-big">Se registra en la <b>plataforma web PLATAFO-LMA</b><br>'+MX_PLAT_LINK+'</div>'
+    +mxAccHtml()
     +'<ol><li>Registrar al paciente y <b>crear el envío</b>; imprimir el volante y meterlo con los tubos.</li>'
     +'<li>Las muestras van al <b>HUDNGC</b>.</li>'
     +'<li><b>Tubos:</b> MO en EDTA, 3-6 ml · SP en EDTA, 5 ml. Rotular MO / SP.</li>'
@@ -3735,7 +3803,7 @@ function mxRender(){
   h+='<div class="mx-pc"><div><b>'+_hpEsc(p.n)+'</b> <span class="mx-mut">· '+_hpEsc(p.v)+'</span></div>'
     +'<div class="mx-mut" style="margin-top:2px">'+_hpEsc(p.d)+'</div>'
     +(MX_EMR[p.id]?'<div style="margin-top:6px"><b>Qué se sigue:</b> '+_hpEsc(MX_EMR[p.id])+'</div>':'')
-    +(usesPlat?'<div class="mx-circ mx-lma">Los envíos centrales se programan en la <b>plataforma web PLATAFO-LMA</b> (van al HUDNGC).</div>':'')
+    +(usesPlat?'<div class="mx-circ mx-lma">Los envíos centrales se programan en la <b>plataforma web PLATAFO-LMA</b> (van al HUDNGC). '+MX_PLAT_LINK+'</div>':'')
     +(usesSal?'<div class="mx-circ mx-lla">Cada envío a Salamanca lleva la <b>hoja de solicitud en papel con el momento marcado</b> + <b>copia del hemograma del día</b>.</div>':'')
     +(p.id==='lpa'?'<div class="mx-circ mx-lma">La PCR de PML::RARA va <b>siempre al HUDNGC</b>. <b>No se registra en PLATAFO-LMA</b>: tiene su propio sistema de registro.</div>':'')
     +'</div>';
@@ -9022,7 +9090,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 407;
+const HP_BUILD = 408;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -17476,6 +17544,11 @@ window.hpSyncPlantillas = async function(){
 // ── Bloques editables (texto de algoritmos/herramientas). Doc por clave; admin/editor escriben. ──
 window.hpSaveBloque = async function(key, html){ await hpQSet('bloque:'+key, 'bloques', key, { html: html }, true); };
 window.hpDeleteBloque = async function(key){ await deleteDoc(doc(fs, 'bloques', key)); };
+// ── Accesos compartidos (usuario y contraseña de plataformas externas, p. ej. PLATAFO-LMA) ──
+// No van en el código (el repositorio es público) ni en el almacenamiento local de la app: se leen del
+// servidor cuando el usuario los pide. Las reglas solo los dejan leer a usuarios aprobados del hospital.
+window.hpGetAcceso = async function(id){ const s = await getDoc(doc(fs, 'accesos', id)); return s.exists() ? (s.data()||{}) : null; };
+window.hpSaveAcceso = async function(id, data){ await setDoc(doc(fs, 'accesos', id), Object.assign({}, data, { ts: serverTimestamp() })); };
 window.hpSyncBloques = async function(){
   try{
     const snap = await getDocs(collection(fs, 'bloques'));

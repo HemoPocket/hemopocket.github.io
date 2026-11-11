@@ -329,6 +329,27 @@ service cloud.firestore {
       allow write:  if request.auth.uid == 'oHgd0fQBUfQV1NxGKbFHkHNZSWz1';
     }
 
+    // ── Accesos compartidos (usuario y contraseña de plataformas externas, p. ej. PLATAFO-LMA) ──
+    // Dato sensible: NO se guarda en el código de la app (el repositorio es público) y aquí NO vale el
+    // acceso heredado de isApproved() (usuario sin ficha). Solo lo lee quien tiene rol asignado o cuenta
+    // APROBADA, y solo el de SU hospital (la principal, todos). Un documento por hospital
+    // (id «plataforma_centro»). Lo escriben únicamente los administradores, y solo el de su hospital.
+    match /accesos/{id} {
+      allow get:    if request.auth != null
+                    && ( hasRole() || ( hasAccount() && accountData().estado == 'aprobada' ) )
+                    && ( resource == null || isPrincipal()
+                         || ( 'centro' in resource.data && resource.data.centro == userCentro() ) );
+      allow list:   if false;
+      allow create: if isAdmin()
+                    && request.resource.data.centro is string
+                    && ( isPrincipal() || request.resource.data.centro == userCentro() );
+      allow update: if isAdmin()
+                    && request.resource.data.centro is string
+                    && ( isPrincipal()
+                         || ( resource.data.centro == userCentro() && request.resource.data.centro == userCentro() ) );
+      allow delete: if isAdmin() && ( isPrincipal() || resource.data.centro == userCentro() );
+    }
+
     match /config/{doc} {
       // Token de GitHub y similares: solo lo leen admin/editores (para subir PDF).
       // Nunca se escribe desde la app; se gestiona desde la consola.
