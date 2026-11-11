@@ -21,3 +21,6 @@ desktop.ini
 firebase/scripts/node_modules/
 firebase/functions/node_modules/
 firebase/**/package-lock.json
+
+# Dependencias de la revisión automática (navegador de prueba)
+/node_modules/
