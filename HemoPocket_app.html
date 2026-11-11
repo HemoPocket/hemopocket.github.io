@@ -233,6 +233,10 @@ body.view-home .app-footer{padding-bottom:18px}
 .tbl-scroll>.tbl{margin:0;min-width:max-content}
 .tbl th,.tbl td{padding:8px 9px;border:1px solid var(--bd);text-align:left;vertical-align:top}
 .tbl th{background:var(--bg2);font-weight:600;font-size:12px}
+/* DA-EPOCH: niveles de dosis. Ancha = disposición de HemOnc (fármacos en filas); estrecha = girada, para que quepan todos los niveles sin desplazar. */
+.qt-epo{container-type:inline-size}
+.qt-epo-w{display:none}
+@container (min-width:440px){.qt-epo-w{display:block}.qt-epo-n{display:none}}
 /* Envío de muestras (leucemias agudas) */
 .mx-sec{font-weight:700;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--mut);margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--bd)}
 .mx-dx{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
@@ -8827,7 +8831,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 402;
+const HP_BUILD = 403;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9139,22 +9143,51 @@ const QT_CORT_RX=/predniso|prednisolo|dexametaso|metilpredniso|hidrocortiso/i;
 // metilprednisolona IV a la misma dosis; metilprednisolona del esquema). Con dexametasona NO: la
 // premedicación de rituximab lleva su metilprednisolona aparte.
 const QT_CORT_PM_RX=/predniso|prednisolo/i;
-// R-DA-EPOCH: ajuste de dosis por nadir (reglas y niveles de los protocolos del NCI, Wilson/Dunleavy).
+// R-DA-EPOCH: ajuste de dosis por nadir. Paradigma del NCI (Wilson, Blood 2002; Dunleavy, NEJM 2013),
+// con la misma disposición que la tabla de HemOnc.org: fármacos en filas, niveles de dosis en columnas.
 // Se pinta desde el código (no desde las notas del esquema) para que aparezca aunque el esquema
 // se haya editado en la nube.
 const QT_DA_EPOCH_RX=/DA-EPOCH|dose-adjusted|^R-EPOCH\b/i;
 function qtDaEpochNadirHtml(){
-  const L=[['−2','50','10','480'],['−1','50','10','600'],['1 (inicial)','50','10','750'],['2','60','12','900'],['3','72','14,4','1.080'],['4','86,4','17,3','1.296'],['5','103,7','20,7','1.555'],['6','124,4','24,8','1.866']];
-  let h='<div class="alert b" style="margin-top:10px;font-size:12.5px"><div style="font-weight:700;margin-bottom:4px">Ajuste de dosis según el nadir (DA-EPOCH)</div>';
-  h+='<div style="margin-bottom:4px">Hemograma <strong>2 veces por semana</strong> (separados ≥ 3 días). El ajuste se aplica al ciclo siguiente, partiendo del nivel del ciclo previo:</div><ul style="margin:0 0 8px;padding-left:18px">';
-  h+='<li>Neutrófilos ≥ 500/µL en todas las determinaciones → <strong>subir 1 nivel</strong>.</li>';
-  h+='<li>Neutrófilos &lt; 500/µL en 1–2 determinaciones → <strong>mantener</strong> el nivel.</li>';
-  h+='<li>Neutrófilos &lt; 500/µL en ≥ 3 determinaciones → <strong>bajar 1 nivel</strong>.</li>';
-  h+='<li>Plaquetas &lt; 25.000/µL en ≥ 1 determinación → <strong>bajar 1 nivel</strong>.</li></ul>';
-  h+='<div style="margin-bottom:6px">Por encima del nivel 1 suben <strong>etopósido, doxorrubicina y ciclofosfamida</strong>; por debajo del nivel 1 solo baja la <strong>ciclofosfamida</strong>. Vincristina, prednisona y rituximab no se ajustan por nadir.</div>';
-  h+='<div style="overflow-x:auto"><table class="tbl" style="font-size:12px"><tr><th>Nivel</th><th>Etopósido (mg/m²/día)</th><th>Doxorrubicina (mg/m²/día)</th><th>Ciclofosfamida (mg/m²)</th></tr>';
-  L.forEach(function(r){ h+='<tr'+(r[0].indexOf('1 (')===0?' style="font-weight:700"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>'; });
-  h+='</table></div></div>';
+  const LV=['−2','−1','1','2','3','4','5','6'];
+  const D=[['Doxorrubicina','mg/m²/día',['10','10','10','12','14,4','17,3','20,7','24,8']],
+           ['Etopósido','mg/m²/día',['50','50','50','60','72','86,4','103,7','124,4']],
+           ['Ciclofosfamida','mg/m²',['480','600','750','900','1080','1296','1555','1866']]];
+  const R=[['Neutrófilos ≥ 500/µL en todas las determinaciones','Subir 1 nivel'],
+           ['Neutrófilos &lt; 500/µL en 1 o 2 determinaciones','Mismo nivel'],
+           ['Neutrófilos &lt; 500/µL en 3 o más determinaciones','Bajar 1 nivel'],
+           ['Plaquetas &lt; 25.000/µL en 1 determinación','Bajar 1 nivel']];
+  const c='padding:5px 5px;text-align:center;white-space:nowrap', k=';background:rgba(59,130,246,.16);font-weight:700';
+  const u=function(d){ return '<strong>'+d[0]+'</strong><div style="color:var(--mut);font-size:11px;font-weight:400">'+d[1]+'</div>'; };
+  let h='<div class="alert b qt-epo" style="margin-top:10px;font-size:12.5px"><div style="font-weight:700;margin-bottom:6px">DA-EPOCH · ajuste de dosis según el nadir del ciclo previo</div>';
+  h+='<div style="overflow-x:auto;margin-bottom:6px"><table class="tbl" style="font-size:12px;min-width:0"><tr><th style="text-align:left">Nadir del ciclo previo</th><th style="text-align:left">Ciclo siguiente</th></tr>';
+  R.forEach(function(r){ h+='<tr><td>'+r[0]+'</td><td style="font-weight:700;white-space:nowrap">'+r[1]+'</td></tr>'; });
+  h+='</table></div>';
+  h+='<div style="margin-bottom:8px">Nadir medido con <strong>hemograma 2 veces por semana</strong> (separados 3 días); para el ajuste solo cuentan esos.</div>';
+  // Disposición de HemOnc: fármacos en filas, niveles en columnas
+  h+='<div class="qt-epo-w" style="overflow-x:auto;margin-bottom:6px"><table class="tbl" style="font-size:12px;min-width:0;width:100%"><tr><th style="text-align:left">Nivel de dosis</th>';
+  LV.forEach(function(l){ h+='<th style="'+c+(l==='1'?k:'')+'">'+l+'</th>'; });
+  h+='</tr>';
+  D.forEach(function(d){
+    h+='<tr><td style="white-space:nowrap">'+u(d)+'</td>';
+    d[2].forEach(function(v,i){ h+='<td style="'+c+(LV[i]==='1'?k:'')+'">'+v+'</td>'; });
+    h+='</tr>';
+  });
+  h+='</table></div>';
+  // Pantalla estrecha: la misma tabla girada (un nivel por fila)
+  h+='<div class="qt-epo-n" style="overflow-x:auto;margin-bottom:6px"><table class="tbl" style="font-size:12px;min-width:0;width:100%"><tr><th style="padding:5px 3px;text-align:center">Nivel</th>';
+  D.forEach(function(d){ h+='<th style="padding:5px 3px;text-align:center;font-size:11px">'+u(d)+'</th>'; });
+  h+='</tr>';
+  LV.forEach(function(l,i){
+    const hi=l==='1'?k:'';
+    h+='<tr><td style="'+c+hi+'">'+l+'</td>';
+    D.forEach(function(d){ h+='<td style="'+c+hi+'">'+d[2][i]+'</td>'; });
+    h+='</tr>';
+  });
+  h+='</table></div>';
+  h+='<div style="margin-bottom:6px">Nivel 1 = dosis inicial. Por encima del nivel 1 se ajustan <strong>doxorrubicina, etopósido y ciclofosfamida</strong>; por debajo, solo la <strong>ciclofosfamida</strong>. Vincristina, prednisona y rituximab no se ajustan por nadir.</div>';
+  h+='<div style="margin-bottom:6px"><strong>Inicio del ciclo (día 21):</strong> neutrófilos ≥ 1000/µL y plaquetas ≥ 100.000/µL. Si no, retrasar hasta 1 semana (G-CSF si neutrófilos &lt; 1000/µL, suspendido 24 h antes del ciclo); si tras la semana siguen bajos, bajar 1 nivel.</div>';
+  h+='<div style="color:var(--mut);font-size:11.5px">Wilson et al., Blood 2002; Dunleavy et al., N Engl J Med 2013 (tabla reproducida en HemOnc.org).</div></div>';
   return h;
 }
 const QT_SCHEMES = {
@@ -9258,7 +9291,7 @@ const QT_SCHEMES = {
       'Ciclofosfamida (día 5) inmediatamente después de finalizar la infusión continua de los 3 fármacos.',
       'G-CSF obligatorio: filgrastim 300 µg/día si < 75 kg o 480 µg/día si > 75 kg, desde el día 6 hasta neutrófilos > 0,5 × 10⁹/L (la tabla de ajuste por nadir lo presupone).',
       '6 ciclos.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -9271,7 +9304,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       '6 ciclos.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -9287,7 +9320,7 @@ const QT_SCHEMES = {
     notes: [
       'Prednisona 60 mg/m² días 1-5 (libro azul).',
       '6 ciclos.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -9308,7 +9341,7 @@ const QT_SCHEMES = {
       'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6 h.',
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
       'Cisplatino 100 mg/m² en 24 h el día 1 (ensayo CORAL y DHAP del propio libro azul). La tabla del R-DHAP del libro pone 50 mg/m², probable errata. Ajustar por función renal.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -9328,7 +9361,7 @@ const QT_SCHEMES = {
     notes: [
       'G-CSF 300 µg/día desde el día +6 hasta alcanzar neutrófilos > 1.000/µL.',
       'Carboplatino: dosis optimizada para AUC 5 = 5 × (25 + CrCl), máximo 800 mg.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -9451,7 +9484,7 @@ const QT_SCHEMES = {
       'Hidratación: suero glucosalino 4 L/día + suero bicarbonatado 1/6 M 2 L/día.',
       'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -9506,7 +9539,7 @@ const QT_SCHEMES = {
       'Tromboprofilaxis por la lenalidomida: heparina de bajo peso molecular los 4 primeros ciclos y después AAS (libro azul).',
       'Lenalidomida según el aclaramiento (ficha técnica): ClCr 30-50 ml/min, 10 mg/día; < 30 sin diálisis, 15 mg cada 48 h; en diálisis, 5 mg/día (tras la sesión).',
       'Bortezomib — neuropatía: grado 1 sin dolor → sin cambios; grado 1 con dolor o grado 2 → 1 mg/m²; grado 2 con dolor o grado 3 → suspender hasta resolución y reiniciar a 0,7 mg/m² una vez por semana; grado 4 → suspender definitivamente.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
     ]
   },
 
@@ -9582,7 +9615,7 @@ const QT_SCHEMES = {
       'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.',
       'Ciclos 1-8: DVCd. Desde el ciclo 9, mantenimiento con daratumumab + dexametasona 12 mg el día 1 (el libro azul indica 12 ciclos de mantenimiento).',
       'Bortezomib — neuropatía: grado 1 sin dolor → sin cambios; grado 1 con dolor o grado 2 → 1 mg/m²; grado 2 con dolor o grado 3 → suspender hasta resolución y reiniciar a 0,7 mg/m² una vez por semana; grado 4 → suspender definitivamente.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
     ]
   },
   'ISATUXIMAB-VRD': {
@@ -9619,7 +9652,7 @@ const QT_SCHEMES = {
       'Lenalidomida según el aclaramiento (ficha técnica): ClCr 30-50 ml/min, 10 mg/día; < 30 sin diálisis, 15 mg cada 48 h; en diálisis, 5 mg/día (tras la sesión).',
       'Daratumumab/isatuximab interfieren con las pruebas cruzadas: fenotipo eritrocitario antes de empezar y avisar al banco de sangre (si hace falta transfundir, hematíes Kell negativos).',
       'Bortezomib — neuropatía: grado 1 sin dolor → sin cambios; grado 1 con dolor o grado 2 → 1 mg/m²; grado 2 con dolor o grado 3 → suspender hasta resolución y reiniciar a 0,7 mg/m² una vez por semana; grado 4 → suspender definitivamente.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
     ]
   },
   'ISA-KD': {
@@ -9729,7 +9762,7 @@ const QT_SCHEMES = {
       'LA-MIX: si BCR::ABL1 positivo, asociar imatinib según protocolo. Intratecal (ARA-C + MTX + corticoide) solo si se hace punción lumbar por sospecha de afectación del SNC.',
       'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
       'Hidratación: suero glucosalino 2 L/día + suero bicarbonatado 1/6 M 1 L/día. Profilaxis hiperuricémica: alopurinol 300 mg/día VO. Protección gástrica: omeprazol 20 mg/día.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis (libro azul): por la fludarabina, cotrimoxazol frente a Pneumocystis hasta 3-4 meses después de la última dosis; aciclovir 800 mg/12 h en seropositivos para VHS-1 o VVZ.'
     ]
   },
   'CBF-AML': {
@@ -10081,7 +10114,7 @@ const QT_SCHEMES = {
     notes: [
       'En el primer ciclo de quimioterapia NO se administra rituximab.',
       'Las dos pautas (A y B) se alternan cada 21 días.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -10099,7 +10132,7 @@ const QT_SCHEMES = {
       'Hidratación: suero glucosalino 3 L/día + suero bicarbonatado 1/6 M 1 L/día.',
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
       'Las dos pautas (A y B) se alternan cada 21 días.',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.',
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -10158,7 +10191,7 @@ const QT_SCHEMES = {
       'Indicación: MM en recaída/refractario tras ≥3 líneas (incluido inmunomodulador, inhibidor del proteasoma y anti-CD38). Mantener hasta progresión o toxicidad inaceptable.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
     ]
   },
   'TALQUETAMAB': {
@@ -10185,7 +10218,7 @@ const QT_SCHEMES = {
       'Cada escalada puede administrarse 2-4 días después de la anterior (hasta 7 días para permitir la resolución de reacciones). Dosis según peso actual.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
     ]
   },
   'ELRANATAMAB': {
@@ -10212,7 +10245,7 @@ const QT_SCHEMES = {
       'Tras la escalada, 76 mg semanal hasta el ciclo 6. Desde el ciclo 7 (≥ 24 semanas de tratamiento), pasar a 76 mg cada 2 semanas solo si además hay respuesta (≥ respuesta parcial) mantenida ≥ 2 meses: hacen falta las dos condiciones (ficha técnica). Ciclos de 28 días.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
-      'Profilaxis infecciosa (libro azul): cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) + aciclovir 800 mg/día o valaciclovir 500 mg/12 h.'
+      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
     ]
   },
   // ── LEUCEMIA LINFOBLÁSTICA AGUDA · PETHEMA LAL-2025 (Ph−) ───────────
@@ -10417,7 +10450,7 @@ const QT_SCHEMES = {
       'Se recomienda iniciar el MTX a las 18:00; la IT debe coincidir con la infusión (mañana siguiente). Nunca IT con el rescate ya iniciado (si no es posible, ≥24 h tras finalizar el rescate).',
       'Niveles de MTX a las 12, 23, 36, 42, 60 h (desde el inicio) y después cada 24 h hasta <0,2 µM. Alerta a las 12 h: >75 µM con 3 g/m² (>50 µM con 1,5 g/m²) → hidratación máxima (hasta 4,5 L/m²/día); si oliguria o ↑creatinina, valorar detener la infusión.',
       'Rescate con folínico (LV racémico; levofolinato = mitad de dosis): 15 mg/m²/6 h IV desde la hora 42 tras el INICIO del MTX hasta MTX <0,2 µM (mínimo 3 dosis). Según [MTX] a 42 h: <1 µM 15; 1-2 → 30; 2-3 → 45; 3-4 → 60; 4-5 → 75; 5-10 → 100; 10-20 → 200; 20-50 → 500 mg/m²/6 h; 50-100 → 500 mg/m²/3 h (≥10 µM valorar glucarpidasa). Según [MTX] a 60 h: <0,2 suspender; 0,2-0,5 → 15 mg/m²/12 h; 0,5-1 → 15/6 h; 1-2 → 30/6 h; 2-4 → 50/6 h; 4-5 → 75/6 h; 5-10 → 100/6 h; >10 individualizado. Desde 84 h (eliminación retardada) no suspender hasta <0,1 µM. Si LV >20 mg/kg, infundir en ≥1 h.',
-      'Glucarpidasa 50 UI/kg IV en 5 min (considerar si [MTX] >30 µM a las 36 h); mantener la misma dosis de LV 48 h y separarla 2-4 h de la glucarpidasa.',
+      'Glucarpidasa 50 UI/kg IV en 5 min (considerar si [MTX] >50 µM a las 24 h, >30 µM a las 36 h, >10 µM a las 42 h o >5 µM a las 48 h); mantener la misma dosis de LV 48 h y separarla 2-4 h de la glucarpidasa.',
       'Hepatotoxicidad por PEG-ASP en el ciclo previo (pág. 53-54): G1-2 → misma dosis con control estrecho; G3 → siguiente ciclo cuando ≤G1 (G2 de transaminasas aceptable) y PEG-ASP al 50% si duró <6 semanas (si no se resolvió en 6 semanas, omitirla en el siguiente ciclo y reintroducir al 50%); G4 o amenazante → ver pág. 54 (no reintroducir si amenazó la vida).',
       'Hipersensibilidad grado 2-4 o inactivación silente (actividad <100 UI/L): sustituir por crisantaspasa recombinante (Enrylaze®, única Erwinia desde 09/2026): lunes y miércoles 25 mg/m² + viernes 50 mg/m² (IM/IM, IV/IM o IV/IV); sin ajuste por edad.',
       'Trombosis: HBPM profiláctica y/o antitrombina III (si actividad <60%) a criterio; fibrinógeno Clauss semanal; no usar plasma fresco.',
@@ -10487,7 +10520,7 @@ const QT_SCHEMES = {
       'Se recomienda iniciar el MTX a las 18:00; la IT debe coincidir con la infusión (mañana siguiente). Nunca IT con el rescate ya iniciado (si no es posible, ≥24 h tras finalizar el rescate).',
       'Niveles de MTX a las 12, 23, 36, 42, 60 h (desde el inicio) y después cada 24 h hasta <0,2 µM. Alerta a las 12 h: >100 µM con 5 g/m² (>50 µM con 1,5 g/m²) → hidratación máxima (hasta 4,5 L/m²/día); si oliguria o ↑creatinina, valorar detener la infusión.',
       'Rescate con folínico (LV racémico; levofolinato = mitad de dosis): 15 mg/m²/6 h IV desde la hora 42 tras el INICIO del MTX hasta MTX <0,2 µM (mínimo 3 dosis). Según [MTX] a 42 h: <1 µM 15; 1-2 → 30; 2-3 → 45; 3-4 → 60; 4-5 → 75; 5-10 → 100; 10-20 → 200; 20-50 → 500 mg/m²/6 h; 50-100 → 500 mg/m²/3 h (≥10 µM valorar glucarpidasa). Según [MTX] a 60 h: <0,2 suspender; 0,2-0,5 → 15 mg/m²/12 h; 0,5-1 → 15/6 h; 1-2 → 30/6 h; 2-4 → 50/6 h; 4-5 → 75/6 h; 5-10 → 100/6 h; >10 individualizado. Desde 84 h (eliminación retardada) no suspender hasta <0,1 µM. Si LV >20 mg/kg, infundir en ≥1 h.',
-      'Glucarpidasa 50 UI/kg IV en 5 min (considerar si [MTX] >30 µM a las 36 h); mantener la misma dosis de LV 48 h y separarla 2-4 h de la glucarpidasa.',
+      'Glucarpidasa 50 UI/kg IV en 5 min (considerar si [MTX] >50 µM a las 24 h, >30 µM a las 36 h, >10 µM a las 42 h o >5 µM a las 48 h); mantener la misma dosis de LV 48 h y separarla 2-4 h de la glucarpidasa.',
       'Hepatotoxicidad por PEG-ASP en el ciclo previo (pág. 53-54): G1-2 → misma dosis con control estrecho; G3 → siguiente ciclo cuando ≤G1 (G2 de transaminasas aceptable) y PEG-ASP al 50% si duró <6 semanas (si no se resolvió en 6 semanas, omitirla en el siguiente ciclo y reintroducir al 50%); G4 o amenazante → ver pág. 54 (no reintroducir si amenazó la vida).',
       'Hipersensibilidad grado 2-4 o inactivación silente (actividad <100 UI/L): sustituir por crisantaspasa recombinante (Enrylaze®, única Erwinia desde 09/2026): lunes y miércoles 25 mg/m² + viernes 50 mg/m² (IM/IM, IV/IM o IV/IV); sin ajuste por edad.',
       'Trombosis: HBPM profiláctica y/o antitrombina III (si actividad <60%) a criterio; fibrinógeno Clauss semanal; no usar plasma fresco.',
