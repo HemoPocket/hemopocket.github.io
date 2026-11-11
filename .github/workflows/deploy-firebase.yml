@@ -29,6 +29,26 @@ jobs:
       - name: Descargar el código
         if: env.HAS_SA == 'true'
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Las funciones solo se redespliegan si han cambiado (o al lanzarlo a mano). Así un problema
+      # con las funciones no impide publicar las reglas de seguridad, que van siempre primero.
+      - name: Comprobar si han cambiado las funciones
+        id: cambios
+        if: env.HAS_SA == 'true'
+        env:
+          EVENTO: ${{ github.event_name }}
+          ANTES: ${{ github.event.before }}
+          AHORA: ${{ github.sha }}
+        run: |
+          if [ "$EVENTO" = "workflow_dispatch" ]; then
+            echo "funciones=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$ANTES" "$AHORA" 2>/dev/null | grep -qE '^(firebase/functions/|firebase\.json$|\.firebaserc$)'; then
+            echo "funciones=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "funciones=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Preparar Node 20
         if: env.HAS_SA == 'true'
@@ -36,17 +56,25 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Instalar firebase-tools y dependencias
+      - name: Instalar firebase-tools
         if: env.HAS_SA == 'true'
-        run: |
-          npm install -g firebase-tools
-          npm --prefix firebase/functions install
+        run: npm install -g firebase-tools
 
-      - name: Desplegar funciones y reglas
+      - name: Desplegar reglas de Firestore
         if: env.HAS_SA == 'true'
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
-          firebase deploy --only functions,firestore:rules --project hemopocket --non-interactive --force
+          firebase deploy --only firestore:rules --project hemopocket --non-interactive --force
+
+      - name: Desplegar funciones
+        if: env.HAS_SA == 'true' && steps.cambios.outputs.funciones == 'true'
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          npm --prefix firebase/functions install
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          firebase deploy --only functions --project hemopocket --non-interactive --force
