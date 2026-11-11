@@ -1,12 +1,12 @@
 {
-  "fecha": "2026-11-11T06:41:17.298Z",
-  "build": 396,
+  "fecha": "2026-11-11T06:44:34.824Z",
+  "build": 397,
   "ok": true,
   "corregidos": [],
   "pendientes": [],
   "comprobaciones": [
     "Código revisado: 12 bloques (todos correctos)",
-    "Versión coherente: build 396 = caché v396.",
+    "Versión coherente: build 397 = caché v397.",
     "Reglas de seguridad: correctas (73 bloques).",
     "Sincronización en vivo: las 21 colecciones editables están todas conectadas."
   ]

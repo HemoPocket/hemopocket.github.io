@@ -1319,7 +1319,7 @@ const MENU=[
 ]},
 {h:'CITODIAGNÓSTICO',items:[
 {id:'mxenvio',name:'Envío de muestras (leucemias agudas)',kw:'envio de muestras tubos que enviar donde enviar medula osea sangre periferica edta heparina citometria emr enfermedad minima residual pcr ngs biobanco platafolma salamanca negrin reference asparaginasa niveles actividad 0567 lma lla lpa flow cbf npm1 mix papu rr-on lal-2025 lal ph burkimab reevaluacion diagnostico fin de induccion consolidacion tph recaida pethema citodiagnostico tubos para estudios platafo lma plataforma web hoja papel solicitud consentimiento hemograma blastos nuevo diagnostico gran canaria',new:'2026-11-11'},
-{id:'citomol',name:'Seguimiento molecular / EMR',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
+{id:'citomol',name:'Seguimiento molecular / EMR (LMC, mieloma, LLC)',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
 {id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'},
 {id:'g_citodiag',name:'Guías clínicas',kw:'guias clinicas citodiagnostico citogenetica inmunofenotipo fish biologia molecular ngs protocolo pdf'}
 ]},
@@ -3677,66 +3677,14 @@ function mxCopyObs(){ mxObs(); var o=document.getElementById('mx_obs'); if(!o||!
 // === CITODIAGNÓSTICO · Seguimiento molecular / EMR ===
 VIEWS.citomol=()=>`<div class="card">
 <h2>🔬 Seguimiento molecular / EMR</h2>
-<p class="intro">Qué seguir por biología molecular o EMR (citometría) según la patología, y cuándo. Marco ELN-MRD 2021 y protocolos PETHEMA; confirma el calendario con el protocolo vigente.</p>
-
-<div class="coll open">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · NPM1 mutada</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<p><strong>qRT-PCR cuantitativa de NPM1</strong> mutado, centralizada. La <strong>sangre periférica (SP)</strong> es la muestra de referencia para el seguimiento de la EMR (en MO la EMR por PCR es investigacional/de apoyo).</p>
+<div class="alert b" style="font-size:13px;margin-bottom:12px">🧪 <strong>Leucemias agudas (LMA, LPA, LLA):</strong> qué EMR se sigue en cada protocolo, cuándo se mide y qué muestra se envía están en <a href="#" onclick="go('mxenvio');return false"><strong>Envío de muestras (leucemias agudas)</strong></a>.</div>
+<p class="intro">Seguimiento molecular y EMR en LMC, mieloma y LLC.</p>
 <ul style="padding-left:20px;line-height:1.7">
-<li><strong>Intratratamiento:</strong> SP y MO tras la inducción y tras cada ciclo de consolidación, y <strong>pre-TPH</strong> si se realiza.</li>
-<li><strong>Seguimiento · SP:</strong> <strong>cada 3 meses</strong> desde el fin del tratamiento hasta cumplir <strong>2 años</strong> (o 2 años post-TPH si el TPH fue en 1.ª RC). En alo-TPH puede hacerse cada 2 meses.</li>
-<li><strong>Seguimiento · MO:</strong> aspirado a los <strong>3, 12 y 24 meses</strong> tras finalizar el tratamiento.</li>
-<li><strong>Fin del tratamiento</strong> = recuperación de la neutropenia tras el último ciclo (incluido TPH).</li>
-</ul>
-<p class="small muted" style="margin-top:6px">Recaída molecular = SP positiva [ratio (NPM1/gen control) × 10⁴ ≥ 1]; confirmar en una 2.ª muestra antes de darla por positiva. Ver <strong>protocolo PETHEMA LMA-NPM1</strong>.</p>
-</div></div>
-
-<div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA · core-binding factor (CBF)</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<p><strong>qRT-PCR del transcrito de fusión</strong>, centralizada (SP y MO): RUNX1::RUNX1T1 [t(8;21)] o CBFB::MYH11 [inv(16)/t(16;16)].</p>
-<ul style="padding-left:20px;line-height:1.7">
-<li><strong>Intratratamiento:</strong> tras cada uno de los <strong>4 ciclos</strong> de quimioterapia y <strong>pre-TPH</strong> si se realiza.</li>
-<li><strong>Seguimiento · SP:</strong> <strong>cada 3 meses</strong> desde el fin del tratamiento hasta cumplir <strong>2 años desde el diagnóstico</strong> (y 2 años post-TPH si el TPH fue en 1.ª RC).</li>
-<li>Una <strong>reducción &lt; 3 log</strong> tras inducción/consolidación o un <strong>ascenso de la EMR</strong> predicen la recaída.</li>
-</ul>
-<p class="small muted" style="margin-top:6px">Recaída/persistencia molecular: muestra positiva confirmada en una 2.ª determinación. Ver <strong>protocolo PETHEMA LMA-CBF</strong>.</p>
-</div></div>
-
-<div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Leucemia promielocítica aguda (LPA · PML::RARA)</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<p><strong>RT-PCR de PML::RARA</strong> en MO, tras alcanzar la RC y al final de la consolidación.</p>
-<ul style="padding-left:20px;line-height:1.7">
-<li><strong>Bajo/intermedio riesgo (ATO+ATRA):</strong> si se alcanza <strong>RC molecular</strong> tras la consolidación, no precisa monitorización molecular rutinaria (recaída muy infrecuente).</li>
-<li><strong>Alto riesgo / esquema con quimioterapia (ATRA+QT):</strong> PML::RARA <strong>cada 2 meses durante 2 años</strong>, después <strong>cada 3 meses durante 1 año</strong> y luego <strong>cada 6 meses durante 2 años</strong>.</li>
-<li>Recaída molecular = <strong>2 PCR positivas consecutivas</strong> → iniciar tratamiento.</li>
-</ul>
-</div></div>
-
-<div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>LMA sin marcador molecular (no CBF, no NPM1) · LMA-FLOW</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<p><strong>EMR por citometría de flujo multiparamétrica</strong> (LAIP/diferente-de-normal) en <strong>médula ósea</strong>, centralizada — método de referencia cuando no hay marcador molecular seguible.</p>
-<ul style="padding-left:20px;line-height:1.7">
-<li>Determinación en MO <strong>tras la inducción</strong> y <strong>tras la consolidación</strong>; el resultado post-inducción orienta la indicación de <strong>ATSP vs alo-TPH</strong>.</li>
-<li>Nueva evaluación de MO <strong>antes del ATSP o del alo-TPH</strong>.</li>
-</ul>
-<p class="small muted" style="margin-top:6px">Ver <strong>protocolo PETHEMA LMA-FLOW</strong>. Marco general ELN-MRD 2021.</p>
-</div></div>
-
-<div class="coll" style="margin-top:8px">
-<div class="coll-h" onclick="this.parentElement.classList.toggle('open')"><span>Otras patologías con EMR estandarizada</span><span class="ar">▶</span></div>
-<div class="coll-c">
-<ul style="padding-left:20px;line-height:1.7">
-<li><strong>LLA:</strong> EMR por <strong>citometría de flujo</strong> y/o molecular (reordenamientos Ig/TCR; BCR::ABL1 si Ph+) en los puntos del protocolo (fin de inducción, fin de consolidación, etc.).</li>
 <li><strong>LMC:</strong> <strong>BCR::ABL1</strong> cuantitativo (escala internacional) cada 3 meses hasta la RMM, luego cada 3-6 meses. Objetivos: ≤ 10 % a los 3 meses, ≤ 1 % a los 6 meses, ≤ 0,1 % (RMM) a los 12 meses.</li>
 <li><strong>Mieloma:</strong> EMR por <strong>citometría de nueva generación (NGF/EuroFlow)</strong> o NGS (sensibilidad 10⁻⁵–10⁻⁶) en MO tras la inducción, tras el TPH y en mantenimiento.</li>
 <li><strong>LLC:</strong> EMR por citometría (EMR indetectable &lt; 10⁻⁴) tras venetoclax de duración fija.</li>
 </ul>
-</div></div>
-<div class="ref">Heuser M, et al. 2021 Update on MRD in AML: consensus document from the ELN MRD Working Party. Blood. 2021;138(26):2753-2767. Protocolos PETHEMA (LMA-NPM1, LMA-CBF, LPA, LAL). Hochhaus A, et al. ELN 2020 (LMC). Kumar S, et al. IMWG (EMR en mieloma).</div>
+<div class="ref">Hochhaus A, et al. ELN 2020 (LMC). Kumar S, et al. IMWG (EMR en mieloma).</div>
 </div>`;
 
 // === CITODIAGNÓSTICO · Clasificación LMA (ICC/OMS) y linfomas ===
@@ -8845,7 +8793,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 396;
+const HP_BUILD = 397;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11714,10 +11662,10 @@ const CHAT_FAQ=[
   {v:'binet_rai',t:'Estadiaje Binet / Rai',rx:/\bbinet\b|\brai\b|estadiaje.*llc|estadio.*llc/,
    a:'<strong>Binet</strong> (A/B/C) y <strong>Rai</strong> (0–IV) estadifican la LLC según áreas linfoides afectas y la presencia de anemia o trombopenia.'},
   // — Citodiagnóstico —
-  {v:'mxenvio',t:'Envío de muestras (leucemias agudas)',rx:/(envi|mand|remit).*(muestra|tubo|medula|aspirado|sangre)|(muestra|tubo)s?.*(envi|mand|remit|platafolma|salamanca|negrin|reference)|que (tubo|muestra)|tubos para|niveles? de asparaginasa|asparaginasa.*(nivel|actividad|reference)|reference.*0567/,
+  {v:'mxenvio',t:'Envío de muestras (leucemias agudas)',rx:/(envi|mand|remit).*(muestra|tubo|medula|aspirado|sangre)|(muestra|tubo)s?.*(envi|mand|remit|platafolma|salamanca|negrin|reference)|que (tubo|muestra)|tubos para|niveles? de asparaginasa|asparaginasa.*(nivel|actividad|reference)|reference.*0567|(emr|enfermedad minima residual|seguimiento molecular|monitorizacion molecular).*(lma|lla|lal|lpa|leucemia|npm1|cbf|pml|flow)|(lma|lla|lal|lpa|leucemia aguda|npm1|cbf).*(\bemr\b|enfermedad minima residual|seguimiento molecular)/,
    a:'Según el <strong>protocolo PETHEMA</strong> y el <strong>momento de la reevaluación</strong>: qué muestra, en qué <strong>tubo</strong> y a qué laboratorio enviarla (Salamanca, Dr. Negrín, PLATAFO-LMA…). Incluye los <strong>niveles de asparaginasa</strong> de la LLA (a Reference, código 0567).'},
-  {v:'citomol',t:'Seguimiento molecular / EMR',rx:/enfermedad minima residual|\bemr\b|seguimiento molecular|monitorizacion molecular/,
-   a:'Revisa los marcadores y la cadencia del <strong>seguimiento molecular / EMR</strong> por entidad (NPM1, CBF, PML::RARA, BCR::ABL1, citometría…) y los puntos de decisión.'},
+  {v:'citomol',t:'Seguimiento molecular / EMR (LMC, mieloma, LLC)',rx:/enfermedad minima residual|\bemr\b|seguimiento molecular|monitorizacion molecular/,
+   a:'Seguimiento molecular y <strong>EMR</strong> en <strong>LMC</strong> (BCR::ABL1 en escala internacional), <strong>mieloma</strong> (NGF/NGS) y <strong>LLC</strong>. Para leucemias agudas, ver <strong>Envío de muestras</strong>.'},
   {v:'citoclas',t:'Clasificación LMA (ICC/OMS)',rx:/clasificacion.*lma|icc.*oms|who 2022.*lma|oms 2022.*lma/,
    a:'Consulta la <strong>clasificación de la LMA</strong> (ICC y OMS 2022) por alteraciones genéticas definitorias y el umbral de blastos.'},
   // — Ingreso —
@@ -12122,9 +12070,14 @@ if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:
 const _cyc=(scheme.label||'').match(/(\d+)\s*días/);
 const _cycTxt=_cyc?' · ciclo de '+_cyc[1]+' días':'';
 if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)'+_cycTxt+'</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
-const _notes=(scheme.notes||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l));
+const _notes0=(scheme.notes||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l));
+// Ajustes por edad: el asistente calcula la dosis plena; se sacan a un recuadro para que no pasen desapercibidos.
+const _AGE_RX=/[>≥]\s*\d{2}\s*años|mayores de \d{2} años|de \d{2}-\d{2} años/i;
+const _ageNotes=_notes0.filter(l=>_AGE_RX.test(l)&&!/^Indicaci[oó]n/i.test(l));
+const _notes=_notes0.filter(l=>_ageNotes.indexOf(l)<0);
 if(!scheme.conditioning&&drugsList.some(d=>/rituximab|obinutuzumab/i.test(d.name))&&!_notes.some(l=>/VHB|hepatitis B/i.test(l))) _notes.push(QT_ANTICD20_VHB);
 if(scheme.conditioning) _notes.push(QT_COND_PESO);
+if(_ageNotes.length)_nh+='<div style="margin:0 0 10px;padding:8px 11px;border-radius:9px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.5);font-size:12.5px"><strong>⚠️ Ajuste por edad:</strong> la dosis calculada arriba es la plena; si corresponde, ajustarla a mano.<ul style="margin:4px 0 0;padding-left:18px">'+_ageNotes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul></div>';
 if(_notes.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Notas</div><ul style="margin:0;padding-left:18px;color:var(--mut)">'+_notes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
 if(QT_DA_EPOCH_RX.test(key+' '+(scheme.label||'')))_nh+=qtDaEpochNadirHtml();
 if(_nt){_nt.innerHTML=_nh;_nt.style.display=_nh?'':'none';}
