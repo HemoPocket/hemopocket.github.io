@@ -3221,10 +3221,10 @@ const MX_TUBE={
 };
 const MX_LABS={
   local:{n:'En el hospital (HUNSC)'},
-  negrin:{n:'HUDNGC · citometría (EMR)',how:'Se programa en la plataforma web PLATAFO-LMA.'},
-  plata:{n:'HUDNGC · PLATAFO-LMA (PCR, NGS y biobanco)',how:'Se programa en la plataforma web PLATAFO-LMA: crear el envío e imprimir el volante.'},
-  lpaRef:{n:'HUDNGC · PCR de PML::RARA',how:'No se registra en PLATAFO-LMA: tiene su propio sistema de registro.'},
-  salCmf:{n:'Salamanca · Servicio de Citometría de la Universidad',how:'Hoja de solicitud en papel con el momento marcado + copia del hemograma del día (y del consentimiento en el primer envío).'},
+  negrin:{n:'HUDNGC · citometría (EMR)'},
+  plata:{n:'HUDNGC · PLATAFO-LMA (PCR, NGS y biobanco)'},
+  lpaRef:{n:'HUDNGC · PCR de PML::RARA'},
+  salCmf:{n:'Salamanca · Servicio de Citometría de la Universidad'},
   ijc:{n:'Barcelona · Institut Josep Carreras (LLA-T)',how:'Diagnóstico y 1.ª recaída: hoja del Anexo 3. Seguimiento: contactar antes con el laboratorio.'},
   ref:{n:'Reference Laboratory (código 0567)',how:'En observaciones: diagnóstico, asparaginasa administrada, día de administración y código 0567.'}
 };
@@ -3270,7 +3270,7 @@ const MX_PROTOS=[
    {id:'rec',n:'Recaída',w:'Ante sospecha de recaída.',p:57,it:[
      _mxI('Aspirado de MO','MO',[['ext',''],['edta','1 tubo']],'local','El paciente pasa a LMA-RR-On (ver ese protocolo para los envíos).',42)]}
   ]},
- {id:'cbf',g:'LMA',n:'LMA-CBF 2016',v:'enmienda 23/07/2019',pdf:'guias/CBF.pdf',d:'LMA CBF [t(8;21) RUNX1::RUNX1T1 o inv(16) CBFB::MYH11], 14-70 años, QT intensiva + GO. La EMR que decide es la RT-PCR en SANGRE PERIFÉRICA.',
+ {id:'cbf',g:'LMA',n:'LMA-CBF 2016',v:'enmienda 23/07/2019',pdf:'guias/CBF.pdf',d:'LMA CBF [t(8;21) RUNX1::RUNX1T1 o inv(16) CBFB::MYH11], 14-70 años, QT intensiva + GO.',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento. Cribado rápido de CBF (< 4 días) para decidir el GO de los días 4 y/o 7.',p:17,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[2],
@@ -3299,7 +3299,7 @@ const MX_PROTOS=[
    {id:'rec',n:'Recaída',w:'Ante sospecha de recaída hematológica.',p:38,it:[
      _mxI('Estudio de recaída','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','«Siempre enviar MO y SP al laboratorio central».',38,MX_INF_MO)]}
   ]},
- {id:'npm1',g:'LMA',n:'LMA-NPM1 2017',v:'enmienda 23/07/2019',pdf:'guias/NPM1.pdf',d:'LMA con NPM1 mutado, 14-70 años, QT intensiva (± midostaurina si FLT3+). La EMR que decide es la qRT-PCR de NPM1 en SANGRE PERIFÉRICA tras la consolidación 2.',
+ {id:'npm1',g:'LMA',n:'LMA-NPM1 2017',v:'enmienda 23/07/2019',pdf:'guias/NPM1.pdf',d:'LMA con NPM1 mutado, 14-70 años, QT intensiva (± midostaurina si FLT3+).',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento; FLT3 en < 72 h para iniciar midostaurina el día 8.',p:13,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[2],
@@ -3345,7 +3345,7 @@ const MX_PROTOS=[
    {id:'rec',n:'Recaída',w:'Ante sospecha.',p:38,it:[
      _mxI('PCR y NGS a la recaída','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','',20,MX_INF_MO)]}
   ]},
- {id:'papu',g:'LMA',n:'PAPU-70+ 2025',v:'v1 · 01/08/2025',pdf:'guias/PAPU.pdf',d:'LMA en ancianos (≥ 70) o unfit, tratamiento de baja intensidad (AZA, DEC, LDAC, VEN+AZA, IVO+AZA, FLUGA). La EMR es solo exploratoria.',
+ {id:'papu',g:'LMA',n:'PAPU-70+ 2025',v:'v1 · 01/08/2025',pdf:'guias/PAPU.pdf',d:'LMA en ancianos (≥ 70) o unfit, tratamiento de baja intensidad (AZA, DEC, LDAC, VEN+AZA, IVO+AZA, FLUGA).',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Al diagnóstico, con el CI PLATAFO-LMA.',p:20,it:MX_LOCAL_DX.concat([
      _mxI('Estudio molecular (NGS + PCR: IDH1/2, NPM1, FLT3, TP53, KMT2Ar, CBF…)','MO (o SP)',[['edta','MO 3-6 ml']],'plata','«Los estudios moleculares son obligados.»',20,MX_INF_MO),
@@ -3365,7 +3365,7 @@ const MX_PROTOS=[
    {id:'rec',n:'Recaída',w:'Ante sospecha de recaída o progresión.',p:30,it:[
      _mxI('Aspirado de MO + dianas (FLT3…) para la 2.ª línea','MO',[['edta','3-6 ml']],'plata','Ver LMA-RR-On.',22,MX_INF_MO)]}
   ]},
- {id:'rron',g:'LMA',n:'LMA-RR-On 2024',v:'v1 · 20/01/2024',pdf:'guias/LMArron.pdf',d:'LMA en primer episodio de recaída o refractariedad (FLAG-IDA o gilteritinib si FLT3+). La EMR central es solo informativa.',
+ {id:'rron',g:'LMA',n:'LMA-RR-On 2024',v:'v1 · 20/01/2024',pdf:'guias/LMArron.pdf',d:'LMA en primer episodio de recaída o refractariedad (FLAG-IDA o gilteritinib si FLT3+).',
   m:[
    {id:'dx',n:'Recaída / refractariedad',w:'Antes del rescate. Cribado central en ~7 días (descartar FLT3).',p:20,it:[
      _mxI('Morfología','MO',[['ext',''],['edta','1 tubo']],'local','Obligado.',21),
@@ -3400,7 +3400,7 @@ const MX_PROTOS=[
      _mxI('RT-PCR PML::RARA (confirmación de la recaída)','MO (o tejido/LCR)',[['edta','1-2 ml']],'lpaRef','Como al diagnóstico.',28),
      _mxI('Cariotipo/FISH y anti-PML','MO',[['rpmi','cariotipo/FISH'],['frotis','anti-PML']],'local','',28)]}
   ]},
- {id:'lal25',g:'LLA',n:'LAL-2025 (Ph−)',v:'sept. 2026',pdf:'guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf',d:'LAL BCR::ABL1 negativa del adulto (18-65 años, tratamiento intensivo) y linfoma linfoblástico. Todas las muestras centrales van al Servicio de Citometría de Salamanca, que las reparte; la LLA-T envía además al IJC. La ER se hace siempre en MO.',
+ {id:'lal25',g:'LLA',n:'LAL-2025 (Ph−)',v:'sept. 2026',pdf:'guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf',d:'LAL BCR::ABL1 negativa del adulto (18-65 años) y linfoma linfoblástico.',
   subs:[{id:'B',n:'LAL-B'},{id:'Tm',n:'LLA-T madura'},{id:'Ti',n:'LLA-T inmadura (ETP)'}],
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento (durante la prefase con prednisona, máx. 7 días).',p:10,it:[
@@ -3441,7 +3441,7 @@ const MX_PROTOS=[
      {f:'Reacción de hipersensibilidad grado 1 a PEG-ASP',w:'Tras la reacción: actividad de asparaginasa para descartar inactivación (si no la hay, seguir con PEG-ASP; grado 2-4: cambiar a crisantaspasa)',p:49}],
     aspNote:'Regla general del protocolo: niveles a los 14 días de la última dosis; deben ser > 100 UI/L. Si hay inactivación silente, cambiar siempre a Erwinia (p. 49-50). El protocolo no aclara si el nivel del día 29 se extrae antes de la 2.ª dosis; al ser un nivel «a los 14 días de la última dosis», corresponde extraerlo antes de administrarla.'}
   ]},
- {id:'lalph',g:'LLA',n:'LAL Ph-2022 (Ph+)',v:'oct. 2025',pdf:'guias/LALPh.pdf',d:'LAL BCR::ABL1+ del adulto. Todas las muestras centrales van al Servicio de Citometría de Salamanca. La ratio BCR::ABL1/ABL1 es SIEMPRE local y las decisiones se toman con la MO.',
+ {id:'lalph',g:'LLA',n:'LAL Ph-2022 (Ph+)',v:'oct. 2025',pdf:'guias/LALPh.pdf',d:'LAL BCR::ABL1+ del adulto. Las decisiones se toman con la MO.',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Al diagnóstico (durante la prefase).',p:9,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],MX_LOCAL_DX[2],
@@ -3476,7 +3476,7 @@ const MX_PROTOS=[
      _mxI('Ídem','SP',[['edta','2 × 10 ml']],'salCmf','',38),
      _mxI('Ratio BCR::ABL1 + estudio de mutaciones','MO',[['edta','1 tubo']],'local','',29)]}
   ]},
- {id:'lalr',g:'LLA',n:'LAL en recaída (Ph−)',v:'guía sin fecha',pdf:'guias/LALR.pdf',d:'LAL Ph− del adulto refractaria o en primera recaída. El único envío central es el de la recaída (Citometría / Biobanco de Salamanca).',
+ {id:'lalr',g:'LLA',n:'LAL en recaída (Ph−)',v:'guía sin fecha',pdf:'guias/LALR.pdf',d:'LAL Ph− del adulto refractaria o en primera recaída. Solo la recaída va al central (Salamanca).',
   m:[
    {id:'rec',n:'Recaída / refractariedad',w:'En la recaída, antes de cualquier tratamiento (incluso la prefase si es posible).',p:6,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],MX_LOCAL_DX[2],
@@ -3487,7 +3487,7 @@ const MX_PROTOS=[
    {id:'reev',n:'Reevaluación (inotuzumab / CAR-T)',w:'Tras cada ciclo de inotuzumab (alo-TPH si EMR < 0,1%); tras CAR-T si EMR > 0,1%.',p:13,it:[
      _mxI('EMR por citometría','MO',[['edta','1 tubo']],'local','La guía no dice si es local o central.',13)]}
   ]},
- {id:'burki',g:'LLA',n:'BURKIMAB-14',v:'09/05/2017',pdf:'guias/BURKIMAB.pdf',d:'LLA-B madura (Burkitt) y linfoma de Burkitt del adulto. Este protocolo NO tiene envíos centralizados: todo es local.',
+ {id:'burki',g:'LLA',n:'BURKIMAB-14',v:'09/05/2017',pdf:'guias/BURKIMAB.pdf',d:'LLA-B madura (Burkitt) y linfoma de Burkitt del adulto.',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes de la prefase; la muestra de citogenética, antes de cualquier citorreducción.',p:14,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],
@@ -3558,26 +3558,26 @@ function _mxChip(on,label,fn){ return '<button type="button" class="btn btn-sm'+
 // Nuevo diagnóstico: todavía no se sabe el protocolo, solo si es mieloide o linfoblástica
 function mxDxHtml(){
   var l25=_mxProtoL25();
-  var h='<div class="mx-sec">🆕 Nuevo diagnóstico <span>(todavía sin protocolo: solo se sabe si es mieloide o linfoblástica)</span></div><div class="mx-dx">';
+  var h='<div class="mx-sec">🆕 Nuevo diagnóstico</div><div class="mx-dx">';
   h+='<div class="mx-dxc mx-lma"><div class="mx-dxh">Leucemia MIELOIDE aguda</div>'
     +'<div class="mx-big">🌐 Se registra en la <b>plataforma web PLATAFO-LMA</b></div><div class="mx-url">www.platafolma.org</div>'
-    +'<ol><li>Registrar al paciente en la plataforma y <b>crear el envío</b>. La web genera el volante: imprimirlo y meterlo con los tubos.</li>'
+    +'<ol><li>Registrar al paciente y <b>crear el envío</b>; imprimir el volante y meterlo con los tubos.</li>'
     +'<li>Las muestras van al <b>HUDNGC</b>.</li>'
     +'<li><b>Tubos:</b> MO en EDTA, 3-6 ml · SP en EDTA, 5 ml. Rotular MO / SP.</li>'
     +'<li>Adjuntar la <b class="mx-hl">copia del consentimiento informado</b> PLATAFO-LMA firmado.</li></ol>'
-    +'<div class="mx-loc">🏥 En el hospital, como siempre: morfología (extensiones + EDTA), inmunofenotipo (EDTA), cariotipo (heparina de litio) y FISH.</div>'
-    +'<div class="mx-loc">Si se sospecha <b>LPA</b>: ATRA de inmediato y enviar muestra para <b>PML::RARA</b> (confirmación) al HUDNGC. <b>No se registra en PLATAFO-LMA</b>: tiene su propio sistema de registro.</div>'
-    +'<div class="mx-next">➡️ Cuando se conozca el subtipo (CBF, NPM1, fenotipo mixto, resto → LMA-FLOW; ≥ 70 años o no candidato → PAPU-70+), seguir su protocolo abajo.</div></div>';
+    +'<div class="mx-loc">🏥 En el hospital: morfología, inmunofenotipo, cariotipo y FISH.</div>'
+    +'<div class="mx-loc">Sospecha de <b>LPA</b>: ATRA y muestra para <b>PML::RARA</b> al HUDNGC (registro propio, no PLATAFO-LMA).</div>'
+    +'<div class="mx-next">➡️ Después, su protocolo: CBF, NPM1, LA-MIX, LMA-FLOW (resto) o PAPU-70+ (≥ 70 años o no candidato).</div></div>';
   h+='<div class="mx-dxc mx-lla"><div class="mx-dxh">Leucemia LINFOBLÁSTICA aguda</div>'
     +'<div class="mx-big">📄 Se registra en <b>papel</b>: no hay plataforma ni página web</div>'
-    +'<ol><li>Rellenar la <b>hoja de solicitud</b> (Anexo 2; la misma para LAL-2025 y LAL Ph-2022) con los datos que pide: médico y hospital; iniciales, edad, ID y sexo del paciente; tipo de LLA; fechas de diagnóstico, extracción y envío; nº de leucocitos y <b class="mx-hl">% de blastos en médula ósea</b>. Marcar «Diagnóstico» y los tubos que se envían.</li>'
-    +'<li>Adjuntar la <b class="mx-hl">copia del hemograma del día</b> (va en todos los envíos) y la <b class="mx-hl">copia del consentimiento informado</b> firmado (sin él no se hacen los estudios).</li>'
-    +'<li>Enviar a <b>Salamanca</b>: Servicio de Citometría de la Universidad, que reparte las muestras al resto de laboratorios.</li>'
-    +'<li><b>Tubos:</b> MO heparina de litio 4-5 ml + EDTA 4-5 ml · SP heparina de litio 5 ml + EDTA 2 × 10 ml. Priorizar los primeros ml del aspirado y rotular MO / SP. Si el aspirado es seco, hay &lt; 5 % de blastos o es un linfoma linfoblástico: SP heparina de litio 10-15 ml + EDTA 30-40 ml.</li></ol>'
-    +'<div class="mx-loc">🏥 En el hospital: morfología, inmunofenotipo, cariotipo, BCR::ABL1 (y el resto de PCR/FISH según la línea) y LCR.</div>'
-    +'<div class="mx-next">➡️ Cuando se sepa el tipo (Ph−: LAL-2025 · Ph+: LAL Ph-2022 · Burkitt: BURKIMAB-14), seguir su protocolo abajo. En la LLA-T, además, estudios genéticos en el IJC (Anexo 3).</div>'
+    +'<ol><li>Rellenar la <b>hoja de solicitud</b> (Anexo 2) con todos sus datos, incluido el <b class="mx-hl">% de blastos en médula ósea</b>. Marcar «Diagnóstico» y los tubos enviados.</li>'
+    +'<li>Adjuntar <b class="mx-hl">copia del hemograma del día</b> y del <b class="mx-hl">consentimiento informado firmado</b>.</li>'
+    +'<li>Enviar a <b>Salamanca</b> (Servicio de Citometría de la Universidad).</li>'
+    +'<li><b>Tubos:</b> MO heparina de litio 4-5 ml + EDTA 4-5 ml · SP heparina de litio 5 ml + EDTA 2 × 10 ml (primeros ml del aspirado; rotular MO / SP). Aspirado seco, &lt; 5 % de blastos o linfoma linfoblástico: SP heparina de litio 10-15 ml + EDTA 30-40 ml.</li></ol>'
+    +'<div class="mx-loc">🏥 En el hospital: morfología, inmunofenotipo, cariotipo, BCR::ABL1 y LCR.</div>'
+    +'<div class="mx-next">➡️ Después, su protocolo: LAL-2025 (Ph−), LAL Ph-2022 (Ph+) o BURKIMAB-14 (Burkitt). LLA-T: además, genética en el IJC (Anexo 3).</div>'
     +(l25?'<div style="margin-top:6px">'+_mxPdf(l25,89,'📄 Ver la hoja de solicitud (Anexo 2)')+'</div>':'')+'</div>';
-  h+='</div><div class="mx-ci">⚠️ En los dos casos, enviar siempre la <b>copia del consentimiento informado firmado</b>.</div>';
+  h+='</div>';
   return h;
 }
 
@@ -3591,7 +3591,7 @@ function mxRender(){
   h+='<div class="mx-sec">📋 Seguimiento, según el protocolo</div>';
   h+='<div class="mx-tabs">'+MX_TIPOS.map(function(x){ return '<button type="button" class="mx-tab'+(x[0]===st.t?' on':'')+'" onclick="mxSetT(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div>';
   h+='<div style="margin-top:8px">'+MX_PROTOS.filter(function(x){return x.g===st.t;}).map(function(x){ return _mxChip(p&&x.id===p.id,_hpEsc(x.n),"mxSetP('"+x.id+"')"); }).join('')+'</div>';
-  if(!p){ box.innerHTML=h+'<div class="mx-hint">Elige el protocolo para ver cuándo se reevalúa y qué se envía en cada momento.</div>'; return; }
+  if(!p){ box.innerHTML=h+'<div class="mx-hint">Elige el protocolo.</div>'; return; }
   var usesSal=p.m.some(function(m){ return (m.it||[]).some(function(i){ return i.lab==='salCmf'; }); });
   var usesPlat=p.m.some(function(m){ return (m.it||[]).some(function(i){ return i.lab==='plata'||i.lab==='negrin'; }); });
   h+='<div class="mx-pc"><div><b>'+_hpEsc(p.n)+'</b> <span class="mx-mut">· '+_hpEsc(p.v)+'</span> '+_mxPdf(p,1,'Abrir protocolo')+'</div>'
@@ -3602,7 +3602,7 @@ function mxRender(){
     +(p.id==='lpa'?'<div class="mx-circ mx-lma">🧬 La PCR de PML::RARA va <b>siempre al HUDNGC</b>. <b>No se registra en PLATAFO-LMA</b>: tiene su propio sistema de registro.</div>':'')
     +'</div>';
   if(p.subs) h+='<div style="margin-top:8px">'+p.subs.map(function(s){ return _mxChip(s.id===st.s,_hpEsc(s.n),"mxSetS('"+s.id+"')"); }).join('')+'</div>';
-  h+='<div class="mx-lbl">Momentos de reevaluación · toca uno para ver qué enviar</div><div class="mx-list">';
+  h+='<div class="mx-lbl">Momentos de reevaluación</div><div class="mx-list">';
   var ws=MX_WS[p.id]||{};
   p.m.filter(_mxOk).forEach(function(m){
     var open=st.m===m.id;
@@ -8794,7 +8794,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 398;
+const HP_BUILD = 399;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
