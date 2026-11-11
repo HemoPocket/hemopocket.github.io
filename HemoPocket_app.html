@@ -9022,7 +9022,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 406;
+const HP_BUILD = 407;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9339,11 +9339,25 @@ const QT_CORT_PM_RX=/predniso|prednisolo/i;
 // Se pinta desde el código (no desde las notas del esquema) para que aparezca aunque el esquema
 // se haya editado en la nube.
 const QT_DA_EPOCH_RX=/DA-EPOCH|dose-adjusted|^R-EPOCH\b/i;
-function qtDaEpochNadirHtml(){
-  const LV=['−2','−1','1','2','3','4','5','6'];
-  const D=[['Doxorrubicina','mg/m²/día',['10','10','10','12','14,4','17,3','20,7','24,8']],
-           ['Etopósido','mg/m²/día',['50','50','50','60','72','86,4','103,7','124,4']],
-           ['Ciclofosfamida','mg/m²',['480','600','750','900','1080','1296','1555','1866']]];
+// Niveles de dosis: una sola tabla para la nota de ajuste y para el selector de nivel del asistente.
+const QT_DA_EPOCH_LV=['−2','−1','1','2','3','4','5','6'];
+const QT_DA_EPOCH_DOSE={doxo:['10','10','10','12','14,4','17,3','20,7','24,8'],etop:['50','50','50','60','72','86,4','103,7','124,4'],ciclo:['480','600','750','900','1080','1296','1555','1866']};
+// Dosis de etopósido, doxorrubicina y ciclofosfamida del nivel elegido (el nivel 1 es el del propio esquema).
+function qtDaEpochApply(list,lvl){
+  const i=QT_DA_EPOCH_LV.indexOf(lvl); if(i<0||lvl==='1') return list;
+  return list.map(function(d){
+    const n=d.name||'';
+    if(/etop[oó]sido/i.test(n)) return Object.assign({},d,{dose:QT_DA_EPOCH_DOSE.etop[i]+' mg/m²/día'});
+    if(/doxorr?ubicina|adriamicina/i.test(n)) return Object.assign({},d,{dose:QT_DA_EPOCH_DOSE.doxo[i]+' mg/m²/día'});
+    if(/ciclofosfamida/i.test(n)) return Object.assign({},d,{dose:QT_DA_EPOCH_DOSE.ciclo[i]+' mg/m²'});
+    return d;
+  });
+}
+function qtDaEpochNadirHtml(sel){
+  const LV=QT_DA_EPOCH_LV; sel=(LV.indexOf(sel)>=0)?sel:'1';
+  const D=[['Doxorrubicina','mg/m²/día',QT_DA_EPOCH_DOSE.doxo],
+           ['Etopósido','mg/m²/día',QT_DA_EPOCH_DOSE.etop],
+           ['Ciclofosfamida','mg/m²',QT_DA_EPOCH_DOSE.ciclo]];
   const R=[['Neutrófilos ≥ 500/µL en todas las determinaciones','Subir 1 nivel'],
            ['Neutrófilos &lt; 500/µL en 1 o 2 determinaciones','Mismo nivel'],
            ['Neutrófilos &lt; 500/µL en 3 o más determinaciones','Bajar 1 nivel'],
@@ -9357,11 +9371,11 @@ function qtDaEpochNadirHtml(){
   h+='<div style="margin-bottom:8px">Nadir medido con <strong>hemograma 2 veces por semana</strong> (separados 3 días); para el ajuste solo cuentan esos.</div>';
   // Disposición de HemOnc: fármacos en filas, niveles en columnas
   h+='<div class="qt-epo-w" style="overflow-x:auto;margin-bottom:6px"><table class="tbl" style="font-size:12px;min-width:0;width:100%"><tr><th style="text-align:left">Nivel de dosis</th>';
-  LV.forEach(function(l){ h+='<th style="'+c+(l==='1'?k:'')+'">'+l+'</th>'; });
+  LV.forEach(function(l){ h+='<th style="'+c+(l===sel?k:'')+'">'+l+'</th>'; });
   h+='</tr>';
   D.forEach(function(d){
     h+='<tr><td style="white-space:nowrap">'+u(d)+'</td>';
-    d[2].forEach(function(v,i){ h+='<td style="'+c+(LV[i]==='1'?k:'')+'">'+v+'</td>'; });
+    d[2].forEach(function(v,i){ h+='<td style="'+c+(LV[i]===sel?k:'')+'">'+v+'</td>'; });
     h+='</tr>';
   });
   h+='</table></div>';
@@ -9370,13 +9384,13 @@ function qtDaEpochNadirHtml(){
   D.forEach(function(d){ h+='<th style="padding:5px 3px;text-align:center;font-size:11px">'+u(d)+'</th>'; });
   h+='</tr>';
   LV.forEach(function(l,i){
-    const hi=l==='1'?k:'';
+    const hi=l===sel?k:'';
     h+='<tr><td style="'+c+hi+'">'+l+'</td>';
     D.forEach(function(d){ h+='<td style="'+c+hi+'">'+d[2][i]+'</td>'; });
     h+='</tr>';
   });
   h+='</table></div>';
-  h+='<div style="margin-bottom:6px">Nivel 1 = dosis inicial. Por encima del nivel 1 se ajustan <strong>doxorrubicina, etopósido y ciclofosfamida</strong>; por debajo, solo la <strong>ciclofosfamida</strong>. Vincristina, prednisona y rituximab no se ajustan por nadir.</div>';
+  h+='<div style="margin-bottom:6px">Resaltado: nivel '+sel+(sel==='1'?' (dosis inicial)':'; el nivel 1 es la dosis inicial')+'. Por encima del nivel 1 se ajustan <strong>doxorrubicina, etopósido y ciclofosfamida</strong>; por debajo, solo la <strong>ciclofosfamida</strong>. Vincristina, prednisona y rituximab no se ajustan por nadir.</div>';
   h+='<div style="margin-bottom:6px"><strong>Inicio del ciclo (día 21):</strong> neutrófilos ≥ 1000/µL y plaquetas ≥ 100.000/µL. Si no, retrasar hasta 1 semana (G-CSF si neutrófilos &lt; 1000/µL, suspendido 24 h antes del ciclo); si tras la semana siguen bajos, bajar 1 nivel.</div>';
   h+='<div style="color:var(--mut);font-size:11.5px">Wilson et al., Blood 2002; Dunleavy et al., N Engl J Med 2013 (tabla reproducida en HemOnc.org).</div></div>';
   return h;
@@ -11066,6 +11080,11 @@ ${(hpCanEditQt()&&hpEditing())?'<div class="btns" style="margin-bottom:10px"><bu
 <div class="fld"><label class="lbl">Nº de ciclo</label>
 <input type="number" id="qt_cycle" value="1" min="1" max="12" oninput="qtCalc()" style="font-family:inherit;width:80px"></div>
 </div>
+<div class="fld" id="qt_lvl_wrap" style="display:none"><label class="lbl">Nivel de dosis (DA-EPOCH)</label>
+<select id="qt_lvl" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
+${QT_DA_EPOCH_LV.map(l=>`<option value="${l}"${l==='1'?' selected':''}>Nivel ${l}${l==='1'?' (inicial)':''}</option>`).join('')}
+</select>
+<div id="qt_lvl_hint" style="font-size:12.5px;color:var(--mut);margin-top:5px"></div></div>
 <div class="row2" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
 <div class="fld"><label class="lbl">Peso (kg)</label>
 <input type="number" id="qt_peso" placeholder="70" min="20" max="250" step="0.1" oninput="qtUpdateBSA()" style="font-family:inherit"></div>
@@ -12212,6 +12231,20 @@ const peso=parseFloat($('qt_peso')?.value)||0;
 const talla=parseFloat($('qt_talla')?.value)||0;
 const bsa=(peso>0&&talla>0)?qtBSA(peso,talla):0;
 const wrap=$('qt_out_wrap');const info=$('qt_info');
+// R-DA-EPOCH: selector de nivel de dosis (visible solo en ese esquema).
+const _sch0=key?qtSchemes()[key]:null;
+const _isEpo=!!(_sch0&&!_sch0.conditioning&&QT_DA_EPOCH_RX.test(key+' '+(_sch0.label||'')));
+const _lw=$('qt_lvl_wrap'),_ls=$('qt_lvl');
+if(_lw)_lw.style.display=_isEpo?'':'none';
+let _lvl='1';
+if(_isEpo&&_ls){
+  // Esquema recién elegido o vuelta al ciclo 1: se parte del nivel inicial.
+  if(window._qtLvlKey!==key||(cycle===1&&window._qtLvlCyc!==1))_ls.value='1';
+  _lvl=_ls.value||'1';
+  const _li=QT_DA_EPOCH_LV.indexOf(_lvl),_lh=$('qt_lvl_hint');
+  if(_lh&&_li>=0)_lh.textContent='Doxorrubicina '+QT_DA_EPOCH_DOSE.doxo[_li]+' y etopósido '+QT_DA_EPOCH_DOSE.etop[_li]+' mg/m²/día · ciclofosfamida '+QT_DA_EPOCH_DOSE.ciclo[_li]+' mg/m²';
+}
+window._qtLvlKey=key;window._qtLvlCyc=cycle;
 if(!wrap||!info)return;
 if(!key||!d1str){wrap.style.display='none';info.innerHTML='';return;}
 const scheme=qtSchemes()[key];if(!scheme){wrap.style.display='none';return;}
@@ -12247,6 +12280,8 @@ let drugsList=_ce?_ce.drugs:scheme.drugs;
 if(cycle===1&&scheme.r1split){
   drugsList=drugsList.map(d=>(/rituximab/i.test(d.name)||QT_CORT_RX.test(d.name))?d:Object.assign({},d,{days:d.days.map(x=>x+1)}));
 }
+// R-DA-EPOCH: dosis del nivel elegido.
+if(_isEpo)drugsList=qtDaEpochApply(drugsList,_lvl);
 // Corticoide del esquema que cae el MISMO día que el rituximab → ese día va IV y ES la premedicación
 // del rituximab (no se añade otro corticoide). La prednisona/prednisolona ese día se pone como
 // METILPREDNISOLONA a la misma dosis del esquema; el resto de días sigue por vía oral.
@@ -12287,7 +12322,7 @@ if(scheme.conditioning){
     }
   });
 } else {
-  lines.push(cycle+'º ciclo '+qtCycleName(scheme,key)+(_ce&&_ce.label?' · '+_ce.label:'')+':'+bsaNote);
+  lines.push(cycle+'º ciclo '+qtCycleName(scheme,key)+(_ce&&_ce.label?' · '+_ce.label:'')+(_isEpo?' · nivel de dosis '+_lvl:'')+':'+bsaNote);
   drugsList.forEach(drug=>{
     const ci=_cortInfo(drug);
     if(!ci){ lines.push(fmtDrugLine(drug,qtFmtDates(groupDays(drug.days)))); return; }
@@ -12353,7 +12388,8 @@ if(!scheme.conditioning&&drugsList.some(d=>/rituximab|obinutuzumab/i.test(d.name
 if(scheme.conditioning) _notes.push(QT_COND_PESO);
 if(_ageNotes.length)_nh+='<div style="margin:0 0 10px;padding:8px 11px;border-radius:9px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.5);font-size:12.5px"><strong>⚠️ Ajuste por edad:</strong> la dosis calculada arriba es la plena; si corresponde, ajustarla a mano.<ul style="margin:4px 0 0;padding-left:18px">'+_ageNotes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul></div>';
 if(_notes.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Notas</div><ul style="margin:0;padding-left:18px;color:var(--mut)">'+_notes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
-if(QT_DA_EPOCH_RX.test(key+' '+(scheme.label||'')))_nh+=qtDaEpochNadirHtml();
+if(_isEpo&&cycle===1&&_lvl!=='1')_nh='<div class="alert y" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1 a nivel '+_lvl+':</strong> el ciclo 1 se administra habitualmente a nivel 1. Comprobar.</div>'+_nh;
+if(QT_DA_EPOCH_RX.test(key+' '+(scheme.label||'')))_nh+=qtDaEpochNadirHtml(_lvl);
 if(_nt){_nt.innerHTML=_nh;_nt.style.display=_nh?'':'none';}
 wrap.style.display='';
 info.innerHTML='';
