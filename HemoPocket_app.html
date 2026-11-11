@@ -1275,6 +1275,7 @@ const MENU=[
 {h:'TERAPIA CELULAR',items:[
 {id:'crs',name:'CRS (ASTCT)',kw:'crs sindrome liberacion citoquinas car t car-t cart celulas car biespecificos terapia celular tocilizumab'},
 {id:'icans',name:'ICE / ICANS',kw:'ice icans neurotoxicidad car t car-t cart celulas car terapia celular biespecificos'},
+{id:'hematotox',name:'CAR-HEMATOTOX',kw:'car hematotox carhematotox hematotoxicidad toxicidad hematologica citopenias neutropenia prolongada icaht car t car-t cart terapia celular linfodeplecion ferritina pcr plaquetas neutrofilos hemoglobina rejeski infeccion g-csf',new:'2026-11-11'},
 {id:'taspe',name:'TASPE',kw:'taspe trasplante autologo progenitores hematopoyeticos auto-tph autosct movilizacion plerixafor acondicionamiento bea m mel200 cd34 prendimiento'},
 {id:'evohsos',name:'EVOH/SOS (riesgo, dx, gravedad)',kw:'evoh sos vod veno oclusiva venooclusiva enfermedad venooclusiva sinusoidal obstruction syndrome defibrotida defibrotide riesgo diagnostico gravedad severidad ebmt 2023 mohty hepatica bilirrubina ascitis hepatomegalia sofa dmo disfuncion multiorganica trasplante tph busulfan',new:'2026-07-17'},
 {id:'g_cart',name:'Guías clínicas',kw:'guias clinicas terapia celular cart biespecificos protocolo pdf'}
@@ -4961,6 +4962,79 @@ function evoTab(n){
 [1,2,3].forEach(function(i){const s=document.getElementById('evo_s'+i);if(s)s.style.display=(i===n)?'':'none';});
 document.querySelectorAll('.evo-tab').forEach(function(b){b.className='btn btn-sm evo-tab'+((+b.dataset.t===n)?'':' btn-out');});
 }
+// === CAR-HEMATOTOX (Rejeski et al., Blood 2021) ===
+// Puntos de corte según los autores (J Hematol Oncol 2023;16:88): 1 punto por neutrófilos ≤ 1200/µL,
+// Hb ≤ 9,0 g/dL, plaquetas 76-175 × 10⁹/L, PCR ≥ 3,0 mg/dL y ferritina 650-2000 ng/mL; 2 puntos por
+// plaquetas ≤ 75 × 10⁹/L y ferritina > 2000 ng/mL. Riesgo alto: 2 puntos o más.
+VIEWS.hematotox=()=>{
+  const u=(ls.g('htCrpU')==='l')?'l':'dl';
+  const c='padding:6px 8px;text-align:center;white-space:nowrap';
+  return `<div class="card">
+<h2>CAR-HEMATOTOX</h2>
+<p class="intro">Riesgo de toxicidad hematológica tras CAR-T. Usar la analítica <strong>previa a la linfodepleción</strong> (margen de hasta 3 días).</p>
+<div class="row">
+<div class="fld"><label class="lbl">Plaquetas (× 10⁹/L)</label><input type="number" inputmode="decimal" id="ht_plq" placeholder="150" oninput="calcHT()"></div>
+<div class="fld"><label class="lbl">Neutrófilos (× 10⁹/L)</label><input type="number" inputmode="decimal" step="0.01" id="ht_anc" placeholder="1,8" oninput="calcHT()"></div>
+<div class="fld"><label class="lbl">Hemoglobina (g/dL)</label><input type="number" inputmode="decimal" step="0.1" id="ht_hb" placeholder="10,5" oninput="calcHT()"></div>
+<div class="fld"><label class="lbl">PCR</label><div style="display:flex;gap:6px"><input type="number" inputmode="decimal" step="0.01" id="ht_crp" style="flex:1;min-width:0" oninput="calcHT()"><select id="ht_crpu" style="width:auto;flex:none" onchange="calcHT()" aria-label="Unidad de la PCR"><option value="dl"${u==='dl'?' selected':''}>mg/dL</option><option value="l"${u==='l'?' selected':''}>mg/L</option></select></div></div>
+<div class="fld"><label class="lbl">Ferritina (ng/mL)</label><input type="number" inputmode="decimal" id="ht_fer" placeholder="400" oninput="calcHT()"></div>
+</div>
+<div id="ht_res" class="res" style="display:none"></div>
+<div class="btns"><button class="btn btn-out btn-sm" onclick="copyHT()">Copiar evolución</button></div>
+<h3>Puntuación</h3>
+<div style="overflow-x:auto"><table class="tbl" style="font-size:12.5px;min-width:0;width:100%"><tr><th style="text-align:left">Parámetro</th><th style="${c}">0</th><th style="${c}">1</th><th style="${c}">2</th></tr>
+<tr><td>Plaquetas (× 10⁹/L)</td><td style="${c}">&gt; 175</td><td style="${c}">76–175</td><td style="${c}">≤ 75</td></tr>
+<tr><td>Neutrófilos (× 10⁹/L)</td><td style="${c}">&gt; 1,2</td><td style="${c}">≤ 1,2</td><td style="${c}">—</td></tr>
+<tr><td>Hemoglobina (g/dL)</td><td style="${c}">&gt; 9,0</td><td style="${c}">≤ 9,0</td><td style="${c}">—</td></tr>
+<tr><td>PCR (mg/dL)</td><td style="${c}">&lt; 3,0</td><td style="${c}">≥ 3,0</td><td style="${c}">—</td></tr>
+<tr><td>Ferritina (ng/mL)</td><td style="${c}">&lt; 650</td><td style="${c}">650–2000</td><td style="${c}">&gt; 2000</td></tr>
+</table></div>
+<p style="font-size:12.5px;margin:6px 0 0"><strong>Riesgo bajo:</strong> 0–1 puntos · <strong>Riesgo alto:</strong> ≥ 2 puntos.</p>
+<h3>Resultados publicados (riesgo alto frente a bajo)</h3>
+<div style="overflow-x:auto"><table class="tbl" style="font-size:12.5px;min-width:0;width:100%"><tr><th style="text-align:left">Enfermedad</th><th style="${c};white-space:normal">Neutropenia grave, mediana</th><th style="${c};white-space:normal">Infección grave</th></tr>
+<tr><td>Linfoma B de células grandes</td><td style="${c}">12 vs 5,5 días</td><td style="${c}">40 % vs 8 %</td></tr>
+<tr><td>Linfoma del manto</td><td style="${c}">14 vs 6 días</td><td style="${c}">30 % vs 5 %</td></tr>
+<tr><td>Mieloma múltiple</td><td style="${c}">9 vs 3 días</td><td style="${c}">40 % vs 5 %</td></tr>
+</table></div>
+<p style="font-size:12px;color:var(--mut);margin:6px 0 0">Neutropenia grave: neutrófilos &lt; 0,5 × 10⁹/L entre los días 0 y +60.</p>
+<div class="ref">Rejeski K, et al. Blood. 2021;138(24):2499-2513 · J Immunother Cancer. 2022;10(5):e004475 · Am J Hematol. 2023;98(11):1699-1710 · J Hematol Oncol. 2023;16:88.</div></div>`;
+};
+function htNum(id){ const e=$(id); if(!e) return null; const v=String(e.value||'').replace(',','.').trim(); if(v==='') return null; const n=parseFloat(v); return (isFinite(n)&&n>=0)?n:null; }
+function calcHT(){
+  const u=(($('ht_crpu')||{}).value==='l')?'l':'dl'; try{ ls.s('htCrpU',u); }catch(e){}
+  let plq=htNum('ht_plq'), anc=htNum('ht_anc'), hb=htNum('ht_hb'), crp=htNum('ht_crp'), fer=htNum('ht_fer');
+  const avisos=[];
+  // Valores tecleados en /µL (p. ej. 150000 o 1200): se pasan a × 10⁹/L y se avisa.
+  if(plq!=null&&plq>=2000){ plq=plq/1000; avisos.push('Plaquetas interpretadas como /µL.'); }
+  if(anc!=null&&anc>=30){ anc=anc/1000; avisos.push('Neutrófilos interpretados como /µL.'); }
+  if(hb!=null&&hb>=30){ hb=hb/10; avisos.push('Hemoglobina interpretada como g/L.'); }
+  if(crp!=null&&u==='l') crp=crp/10;
+  const f=n=>String(Math.round(n*100)/100).replace('.',',');
+  const it=[
+    {n:'Plaquetas',   v:plq, p:plq==null?null:(plq>175?0:(plq>75?1:2)),    t:v=>f(v)+' × 10⁹/L'},
+    {n:'Neutrófilos', v:anc, p:anc==null?null:(anc>1.2?0:1),              t:v=>f(v)+' × 10⁹/L'},
+    {n:'Hemoglobina', v:hb,  p:hb==null?null:(hb>9?0:1),                  t:v=>f(v)+' g/dL'},
+    {n:'PCR',         v:crp, p:crp==null?null:(crp>=3?1:0),               t:v=>f(v)+' mg/dL'},
+    {n:'Ferritina',   v:fer, p:fer==null?null:(fer<650?0:(fer<=2000?1:2)), t:v=>f(v)+' ng/mL'}
+  ];
+  const lc=n=>n==='PCR'?n:n.toLowerCase();
+  const ok=it.filter(x=>x.p!=null), falta=it.filter(x=>x.p==null).map(x=>lc(x.n));
+  const el=$('ht_res'); if(!el) return;
+  if(!ok.length){ el.style.display='none'; window._htData=null; return; }
+  const tot=ok.reduce((a,x)=>a+x.p,0), completo=!falta.length, alto=tot>=2;
+  const cat=alto?'Riesgo alto':(completo?'Riesgo bajo':'Faltan datos');
+  el.className='res '+(alto?'hi':(completo?'lo':'')); el.style.display='block';
+  let h='<div class="res-h"><span class="score">CAR-HEMATOTOX '+tot+(completo?'':'+')+'</span><span>'+cat+'</span></div>';
+  h+='<div class="res-s">'+ok.map(x=>x.n+' '+x.t(x.v)+' → <strong>'+x.p+'</strong>').join(' · ')+'</div>';
+  if(!completo) h+='<div class="res-s">'+(alto?'Ya es riesgo alto con los datos introducidos. ':'')+'Falta: '+falta.join(', ')+'.</div>';
+  if(alto) h+='<div class="res-s">Mayor riesgo de neutropenia prolongada e infección grave. Valorar profilaxis antiinfecciosa, G-CSF precoz y la disponibilidad de progenitores (CD34+) para un refuerzo.</div>';
+  else if(completo) h+='<div class="res-s">Riesgo bajo de neutropenia prolongada e infección grave.</div>';
+  if(avisos.length) h+='<div class="res-s" style="color:var(--wn)">'+avisos.join(' ')+'</div>';
+  el.innerHTML=h;
+  window._htData=(completo||alto)?{puntos:tot+(completo?'':'+'),riesgo:cat.toLowerCase(),detalle:ok.map(x=>lc(x.n)+' '+x.t(x.v)+' ('+x.p+')').join(', ')}:null;
+}
+function copyHT(){ const d=window._htData; if(!d){ toast('Introduce los cinco valores'); return; } copy('CAR-HEMATOTOX: {puntos} puntos ({riesgo}). Previo a la linfodepleción: {detalle}.',null,d); }
+
 VIEWS.evohsos=()=>`<div class="card">
 <h2>EVOH/SOS — riesgo, diagnóstico y gravedad</h2>
 <p class="intro">Enfermedad venooclusiva hepática / síndrome de obstrucción sinusoidal (EVOH/SOS) tras el TPH. Clasificación refinada de la <strong>EBMT 2023</strong>. Tres módulos independientes.</p>
@@ -8948,7 +9022,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 405;
+const HP_BUILD = 406;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11814,6 +11888,8 @@ const CHAT_FAQ=[
    a:'La <strong>ICANS</strong> es la neurotoxicidad asociada a terapia celular; se evalúa con el <strong>score ICE</strong> y se gradúa por ASTCT. El manejo se basa en corticoides según el grado (el tocilizumab no atraviesa bien la BHE).'},
   {v:'taspe',t:'TASPE (autotrasplante)',rx:/taspe|trasplante autologo|auto ?tph|movilizacion.*progenitores|plerixafor/,
    a:'Consulta el proceso del <strong>autotrasplante (TASPE)</strong>: movilización (± plerixafor), objetivo de CD34, acondicionamiento (p. ej. BEAM, Mel200) y prendimiento.'},
+  {v:'hematotox',t:'CAR-HEMATOTOX',rx:/hematotox|hemato ?toxicidad|\bicaht\b|(car ?-?t|cart).*(citopenia|neutropenia)|(citopenia|neutropenia).*(car ?-?t|cart)/,
+   a:'El <strong>CAR-HEMATOTOX</strong> estima, con la analítica previa a la linfodepleción (plaquetas, neutrófilos, hemoglobina, PCR y ferritina), el riesgo de <strong>neutropenia prolongada</strong> e infección grave tras CAR-T. <strong>Riesgo alto: ≥ 2 puntos</strong>.'},
   {v:'evohsos',t:'EVOH/SOS (enf. venooclusiva)',rx:/evoh|\bsos\b|\bvod\b|veno ?oclusiva|venooclusiva|obstruccion sinusoidal|defibrotida|defibrotide/,
    a:'La <strong>EVOH/SOS</strong> (enfermedad venooclusiva hepática / síndrome de obstrucción sinusoidal) es una complicación del TPH. Consulta los <strong>factores de riesgo</strong>, los <strong>criterios diagnósticos</strong> (probable/clínico/probado) y la <strong>gravedad</strong> según la clasificación refinada de la EBMT 2023.'},
   // — Leucemias agudas —
