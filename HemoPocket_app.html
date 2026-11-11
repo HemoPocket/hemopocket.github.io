@@ -3615,6 +3615,7 @@ function mxRender(){
     if(open) h+='<div class="mx-det">'+(m.asp?mxAspHtml(p,m):mxMomentHtml(p,m))+'</div>';
   });
   h+='</div>';
+  h+='<div style="margin-top:12px"><button type="button" class="btn btn-sm btn-out" onclick="openPDFurl(\''+p.pdf+'\',\''+p.n.replace(/'/g,'')+'\',1)">📄 Abrir el protocolo completo · '+_hpEsc(p.n)+'</button></div>';
   box.innerHTML=h;
   var mm=p.m.find(function(x){return x.id===st.m;}); if(mm&&mm.asp) mxObs();
 }
@@ -8811,7 +8812,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 400;
+const HP_BUILD = 401;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
