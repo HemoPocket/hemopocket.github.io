@@ -1,12 +1,12 @@
 {
-  "fecha": "2026-11-11T07:14:15.824Z",
-  "build": 401,
+  "fecha": "2026-11-11T08:12:56.997Z",
+  "build": 402,
   "ok": true,
   "corregidos": [],
   "pendientes": [],
   "comprobaciones": [
     "Código revisado: 12 bloques (todos correctos)",
-    "Versión coherente: build 401 = caché v401.",
+    "Versión coherente: build 402 = caché v402.",
     "Reglas de seguridad: correctas (73 bloques).",
     "Sincronización en vivo: las 21 colecciones editables están todas conectadas.",
     "Prueba en navegador: la app abre sin errores y sus 131 apartados se abren bien."
