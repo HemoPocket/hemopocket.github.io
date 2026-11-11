@@ -707,6 +707,7 @@ body{font-size:13px}
 <main class="main">
 <div class="top-bar">
 <button class="menu-btn" onclick="openSb()" title="Menú" aria-label="Menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+<button class="tb-btn" id="hp-back" onclick="hpBack()" title="Atrás" aria-label="Volver atrás" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
 <div class="tb-spacer"></div>
 <button class="tb-btn" onclick="openCmd()" title="Búsqueda rápida (Ctrl+K)" aria-label="Búsqueda rápida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
 <button class="tb-btn" onclick="go('phone')" title="Listín Telefónico" aria-label="Listín Telefónico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg></button>
@@ -1444,6 +1445,117 @@ function wrapTbls(root){
     });
   }catch(e){}
 }
+// === Historial de navegación: volver a la vista anterior ===
+// Cada vista abierta con go() es una entrada del historial del navegador, así que funcionan el botón o
+// gesto «atrás» del sistema y el botón «Atrás» de la barra. Al volver, la vista reaparece como se dejó
+// (formularios rellenos y misma altura de página): su contenido se guarda en memoria al salir de ella.
+var _hpNav={i:0,init:false,pop:false,same:false,sid:null,tok:0,mem:{},doms:[]};
+var HP_NAV_KEEP=6, HP_NAV_MAXAGE=15*60*1000;
+// Vistas genéricas que pintan un estado global (algoritmo, calculadora o ficha abiertos): se recuerda cuál era.
+var HP_NAV_STATEFUL={algo:'algoOpen',calc:'calcOpen',info:'infoOpen'};
+function _hpNavStGet(id){ try{ return id==='algo'?_algoState:id==='calc'?_calcState:id==='info'?_infoState:undefined; }catch(e){ return undefined; } }
+function _hpNavStSet(id,v){ try{ if(id==='algo')_algoState=v; else if(id==='calc')_calcState=v; else if(id==='info')_infoState=v; }catch(e){} }
+// No se guarda el contenido del visor (pesa), del inicio (debe refrescarse) ni de los editores (el borrador cambia).
+function _hpNavNoDom(id){ return id==='viewer'||id==='home'||/edit$/.test(id||''); }
+function _hpNavSer(p){ try{ return p===undefined?null:JSON.parse(JSON.stringify(p)); }catch(e){ return null; } }
+function _hpNavFlushDom(){ try{ _hpNav.doms.forEach(function(k){ if(_hpNav.mem[k]) delete _hpNav.mem[k].dom; }); _hpNav.doms=[]; }catch(e){} }
+function _hpNavDropFrom(i){ try{ Object.keys(_hpNav.mem).forEach(function(k){ if(+k>=i) delete _hpNav.mem[k]; }); _hpNav.doms=_hpNav.doms.filter(function(k){ return k<i; }); }catch(e){} }
+// Al salir de la vista actual (nextId = la que se va a abrir).
+function _hpNavLeave(nextId){
+  try{
+    _hpNav.same=false; _hpNav.tok++;
+    if(!_hpNav.init) return;
+    var cur=S.view, i=_hpNav.i, m=_hpNav.mem[i]||(_hpNav.mem[i]={});
+    // La misma vista que se vuelve a pintar (cambió un dato, el modo edición…): no es una página nueva,
+    // y lo guardado de otras vistas puede haber quedado desfasado.
+    if(!_hpNav.pop && nextId===cur && (!(cur in HP_NAV_STATEFUL) || _hpNavStGet(cur)===m.obj)){ _hpNav.same=true; _hpNavFlushDom(); return; }
+    m.y=Math.round(window.scrollY||window.pageYOffset||0);
+    if(!_hpNav.pop){ try{ var st=history.state; if(st&&st.hp&&st.i===i) history.replaceState(Object.assign({},st,{y:m.y}),''); }catch(e){} }
+    if(!_hpNavNoDom(cur)){
+      var c=$('content'), f=document.createDocumentFragment();
+      while(c.firstChild) f.appendChild(c.firstChild);
+      m.dom=f; m.domId=cur; m.t=Date.now();
+      _hpNav.doms=_hpNav.doms.filter(function(k){ return k!==i; }); _hpNav.doms.push(i);
+      while(_hpNav.doms.length>HP_NAV_KEEP){ var k=_hpNav.doms.shift(); if(_hpNav.mem[k]) delete _hpNav.mem[k].dom; }
+    }
+  }catch(e){}
+}
+// Al entrar en la vista: apila una entrada nueva, o sella la existente si se está volviendo a ella.
+function _hpNavEnter(id, params){
+  try{
+    var cur=history.state, st, url='#'+id;
+    if(_hpNav.pop){
+      _hpNav.i=_hpNav.pop.i;
+      if(!cur||!cur.hp||cur.id!==id||cur.i!==_hpNav.i) history.replaceState({hp:1,i:_hpNav.i,id:id,p:_hpNavSer(params),sid:(cur&&cur.sid)||null,y:(cur&&cur.y)||0},'',url);
+    }else{
+      var first=!_hpNav.init;
+      if(first) _hpNav.i=(cur&&cur.hp&&typeof cur.i==='number')?cur.i:0;
+      else if(!_hpNav.same){ _hpNav.i++; _hpNavDropFrom(_hpNav.i); }
+      st={hp:1,i:_hpNav.i,id:id,p:_hpNavSer(params),sid:_hpNav.sid||((_hpNav.same&&cur&&cur.sid)||null)};
+      if(first||_hpNav.same) history.replaceState(st,'',url); else history.pushState(st,'',url);
+      _hpNav.init=true;
+    }
+  }catch(e){ try{ window.location.hash=id; }catch(_){} }
+  _hpNav.sid=null;
+  var m=_hpNav.mem[_hpNav.i]||(_hpNav.mem[_hpNav.i]={});
+  m.params=params;
+  if(id in HP_NAV_STATEFUL) m.obj=_hpNavStGet(id);
+  _hpNavBtn();
+}
+// Contenido guardado de la entrada a la que se vuelve (o null si hay que pintarla de nuevo).
+function _hpNavDom(id){
+  try{
+    if(!_hpNav.pop) return null;
+    var i=_hpNav.i, m=_hpNav.mem[i]; if(!m||!m.dom) return null;
+    var d=m.dom; delete m.dom; _hpNav.doms=_hpNav.doms.filter(function(k){ return k!==i; });
+    if(m.domId!==id || Date.now()-m.t>HP_NAV_MAXAGE) return null;
+    if(/Cargando/.test(d.textContent||'')) return null;   // se dejó a medio cargar: mejor pintarla de nuevo
+    return d;
+  }catch(e){ return null; }
+}
+function _hpNavScroll(y){
+  if(!y) return;
+  var tok=_hpNav.tok, n=0;
+  (function tick(){
+    if(tok!==_hpNav.tok) return;
+    var max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+    window.scrollTo(0,Math.min(y,max));
+    if(max<y && ++n<12) setTimeout(tick,120);   // el contenido aún se está cargando: reintentar
+  })();
+}
+function _hpNavBtn(){ try{ var b=$('hp-back'); if(!b) return; var st=history.state; b.style.display=((st&&st.hp&&st.i>0)||S.view!=='home')?'':'none'; }catch(e){} }
+// Botón «Atrás»: vuelve a la vista anterior; si no la hay (se abrió por enlace directo), al inicio.
+function hpBack(){ try{ var st=history.state; if(_hpNav.init&&st&&st.hp&&st.i>0){ history.back(); return; } }catch(e){} if(S.view!=='home') go('home'); }
+try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){}
+window.addEventListener('popstate', function(e){
+  try{
+    var st=e.state, id, target;
+    if(st&&st.hp&&typeof st.i==='number'){ id=st.id; target=st.i; }
+    else{
+      id=(location.hash||'').replace(/^#/,'').trim();
+      if(!id || !(VIEWS[id]||getAll().some(function(x){ return x.id===id; }))) return;   // ancla que no es una vista
+      target=_hpNav.i+1; _hpNavDropFrom(target);
+    }
+    var m=_hpNav.mem[target]||{};
+    var params=('params' in m)?m.params:((st&&st.p!=null)?st.p:undefined);
+    var y=(typeof m.y==='number')?m.y:((st&&st.y)||0);
+    try{ closeCmd(); }catch(_){}
+    _hpNav.pop={i:target};
+    try{
+      var op=HP_NAV_STATEFUL[id];
+      if(op && !m.obj){
+        // Tras recargar la app no queda el estado en memoria: se reabre por su identificador.
+        if(st&&st.sid&&typeof window[op]==='function') window[op](st.sid);
+        if(S.view!==id || _hpNav.i!==target) go('home');
+      }else{
+        if(op) _hpNavStSet(id,m.obj);
+        go(id, params);
+      }
+    }finally{ _hpNav.pop=false; }
+    _hpNavScroll(y);
+    _hpNavBtn();
+  }catch(err){ _hpNav.pop=false; try{ console.error(err); }catch(_){} }
+});
 function go(id, params) {
     // Si llegó una versión nueva mientras editabas, se aplica al salir del editor (sin perder cambios).
     try{ if(window._hpPendingReload && !/edit$/.test(id)){ window.location.reload(); return; } }catch(e){}
@@ -1453,25 +1565,30 @@ function go(id, params) {
     if (id === 'mtx') id = 'bleyer'; // la antigua calculadora de MTX a altas dosis se sustituyó por la de Bleyer
     // Ítem del menú restringido a otros hospitales: no accesible por enlace directo.
     try{ if(id && id.indexOf('g_')!==0 && getAll().some(x=>x.id===id) && !hpItemVisibleUser(id)){ if(typeof toast==='function')toast('No disponible para tu hospital'); id='home'; } }catch(e){}
+    _hpNavLeave(id);
     S.view = id;
     if(id!=='home'&&id!=='viewer'&&getAll().some(x=>x.id===id)){
         S.recent=[id].concat((S.recent||[]).filter(x=>x!==id)).slice(0,6);
         ls.s('recent',S.recent);
     }
-    window.location.hash = id;
+    _hpNavEnter(id, params);
     document.title = "HemoPocket";
     closeSb();
     window.scrollTo(0, 0);
     renderMenu($('search').value);
     
-    const v = VIEWS[id];
-    let _base = (v ? v(params) : homeView());
-    let _skipPost = false;
-    try{ const _pw = hpPageWrap(id, _base); _base = _pw.html; _skipPost = _pw.skipPost; }catch(e){}
-    $('content').innerHTML = hpVerifyBanner(id) + _base;
-    if (typeof wrapTbls==='function') wrapTbls($('content'));
-    if (!HP_NO_BANNER.has(id)){try{var _uit=getAll().find(function(x){return x.id===id;});var _udt=(_uit&&(_uit.upd||_uit.new))||HP_UPD_DATES[id]||null;if(_udt){var _up=_udt.split('-');if(_up.length===3){var _uel=document.createElement('p');_uel.style.cssText='font-size:11px;color:var(--mut);text-align:right;padding:4px 4px 10px;margin:0';_uel.textContent='Actualizado: '+_up[2]+'/'+_up[1]+'/'+_up[0];var _uc=$('content');if(_uc)_uc.appendChild(_uel);}}}catch(e){}}
-    if (!_skipPost && VIEWS[id + '_post']) VIEWS[id + '_post'](params);
+    const _kept = _hpNavDom(id);   // al volver atrás: la vista tal como se dejó
+    if (_kept) { const _c = $('content'); _c.textContent = ''; _c.appendChild(_kept); }
+    else {
+      const v = VIEWS[id];
+      let _base = (v ? v(params) : homeView());
+      let _skipPost = false;
+      try{ const _pw = hpPageWrap(id, _base); _base = _pw.html; _skipPost = _pw.skipPost; }catch(e){}
+      $('content').innerHTML = hpVerifyBanner(id) + _base;
+      if (typeof wrapTbls==='function') wrapTbls($('content'));
+      if (!HP_NO_BANNER.has(id)){try{var _uit=getAll().find(function(x){return x.id===id;});var _udt=(_uit&&(_uit.upd||_uit.new))||HP_UPD_DATES[id]||null;if(_udt){var _up=_udt.split('-');if(_up.length===3){var _uel=document.createElement('p');_uel.style.cssText='font-size:11px;color:var(--mut);text-align:right;padding:4px 4px 10px;margin:0';_uel.textContent='Actualizado: '+_up[2]+'/'+_up[1]+'/'+_up[0];var _uc=$('content');if(_uc)_uc.appendChild(_uel);}}}catch(e){}}
+      if (!_skipPost && VIEWS[id + '_post']) VIEWS[id + '_post'](params);
+    }
     document.body.classList.toggle('view-home', !!document.querySelector('#content .home-screen'));
     const _ew = $('eriWrap');
     if (_ew) { _ew._manual = false; if (typeof eriAnchor === 'function') requestAnimationFrame(eriAnchor); }
@@ -6058,7 +6175,7 @@ VIEWS.algo=()=>{
 function algoChoose(i){ const st=_algoState; if(!st)return; const node=st.algo.nodos[st.current]; const o=(node.opciones||[])[i]; if(!o||!o.destino){toast('Esta opción no lleva a ningún paso');return;} st.history.push(st.current); st.current=o.destino; go('algo'); }
 function algoBack(){ const st=_algoState; if(st&&st.history.length){ st.current=st.history.pop(); go('algo'); } }
 function algoReset(){ const st=_algoState; if(st){ st.current=st.algo.inicio; st.history=[]; go('algo'); } }
-function algoOpen(id){ const a=hpAlgos()[id]; if(!a){toast('Algoritmo no encontrado');return;} _algoState={algo:JSON.parse(JSON.stringify(a)),current:a.inicio,history:[]}; go('algo'); }
+function algoOpen(id){ const a=hpAlgos()[id]; if(!a){toast('Algoritmo no encontrado');return;} _algoState={algo:JSON.parse(JSON.stringify(a)),current:a.inicio,history:[]}; _hpNav.sid=id; go('algo'); }
 // ── Editor por formulario ──
 let _algoDraft=null;
 function algoNuevo(sec){ _algoDraft={id:'alg_'+Date.now(),seccion:sec,titulo:'',intro:'',estado:'borrador',inicio:'',nodos:{},ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; go('algoedit'); }
@@ -6355,7 +6472,7 @@ VIEWS.calc=()=>{
   h+='<div id="calc-result" style="margin-top:14px">'+_calcResultHtml(c, st.vals)+'</div>';
   h+='</div>'; return h;
 };
-function calcOpen(id){ const c=hpCalcs()[id]; if(!c){toast('Calculadora no encontrada');return;} _calcState={calc:JSON.parse(JSON.stringify(c)),vals:{}}; go('calc'); }
+function calcOpen(id){ const c=hpCalcs()[id]; if(!c){toast('Calculadora no encontrada');return;} _calcState={calc:JSON.parse(JSON.stringify(c)),vals:{}}; _hpNav.sid=id; go('calc'); }
 // ── Editor por formulario ──
 let _calcDraft=null;
 function calcNuevo(sec,tipo){ tipo=(tipo==='formula')?'formula':'score'; _calcDraft={id:'cal_'+Date.now(),seccion:sec,titulo:'',intro:'',fuente:'',estado:'borrador',tipo:tipo,campos:[],resultados:[],ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; if(tipo==='formula'){ _calcDraft.formula=''; _calcDraft.unidadResultado=''; _calcDraft.decimales=2; } go('calcedit'); }
@@ -6510,7 +6627,7 @@ VIEWS.info=()=>{
   if(x.fuente) h+='<p style="font-size:11px;color:var(--mut);margin-top:12px">Fuente: '+_hpEsc(x.fuente)+'</p>';
   h+='</div>'; return h;
 };
-function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); go('info'); }
+function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); _hpNav.sid=id; go('info'); }
 let _infoDraft=null;
 function infoNuevo(sec){ _infoDraft={id:'inf_'+Date.now(),seccion:sec,titulo:'',cuerpo:'',fuente:'',estado:'borrador',ambito:hpAmbitoNuevo(),vis:hpVisNuevaContenido()}; go('infoedit'); }
 function infoEditOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} if(!hpCanEditAmbito(x,x.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes editarlo'); return; } _infoDraft=JSON.parse(JSON.stringify(x)); go('infoedit'); }
@@ -7901,7 +8018,7 @@ _returnView=(S.view&&S.view!=='viewer')?S.view:'home';
 go('viewer',{url:url,name:name||'PDF',page:page||null});
 }
 
-function viewerBack(){go(_returnView||'home')}
+function viewerBack(){ try{ var st=history.state; if(_hpNav.init&&st&&st.hp&&st.i>0){ history.back(); return; } }catch(e){} go(_returnView||'home'); }
 
 function retryViewer(){
 _pdfjsLoadPromise=null;
@@ -8831,7 +8948,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 404;
+const HP_BUILD = 405;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
