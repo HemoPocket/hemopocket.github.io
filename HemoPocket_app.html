@@ -1318,7 +1318,7 @@ const MENU=[
 {id:'g_ped',name:'Guías clínicas',kw:'guias clinicas pediatria oncohematologia infantil lla lma hodgkin pti falciforme protocolo pdf'}
 ]},
 {h:'CITODIAGNÓSTICO',items:[
-{id:'mxenvio',name:'Envío de muestras (leucemias agudas)',kw:'envio de muestras tubos que enviar donde enviar medula osea sangre periferica edta heparina citometria emr enfermedad minima residual pcr ngs biobanco platafolma salamanca negrin reference asparaginasa niveles actividad 0567 lma lla lpa flow cbf npm1 mix papu rr-on lal-2025 lal ph burkimab reevaluacion diagnostico fin de induccion consolidacion tph recaida pethema citodiagnostico tubos para estudios platafo lma plataforma web hoja papel solicitud consentimiento hemograma blastos nuevo diagnostico gran canaria',new:'2026-11-11'},
+{id:'mxenvio',name:'Envío de muestras (leucemias agudas)',kw:'hudngc negrin envio de muestras tubos que enviar donde enviar medula osea sangre periferica edta heparina citometria emr enfermedad minima residual pcr ngs biobanco platafolma salamanca negrin reference asparaginasa niveles actividad 0567 lma lla lpa flow cbf npm1 mix papu rr-on lal-2025 lal ph burkimab reevaluacion diagnostico fin de induccion consolidacion tph recaida pethema citodiagnostico tubos para estudios platafo lma plataforma web hoja papel solicitud consentimiento hemograma blastos nuevo diagnostico gran canaria',new:'2026-11-11'},
 {id:'citomol',name:'Seguimiento molecular / EMR (LMC, mieloma, LLC)',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
 {id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'},
 {id:'g_citodiag',name:'Guías clínicas',kw:'guias clinicas citodiagnostico citogenetica inmunofenotipo fish biologia molecular ngs protocolo pdf'}
@@ -3221,9 +3221,9 @@ const MX_TUBE={
 };
 const MX_LABS={
   local:{n:'En el hospital (HUNSC)'},
-  negrin:{n:'Gran Canaria · citometría del H. U. de Gran Canaria Dr. Negrín',how:'Se programa en la plataforma web PLATAFO-LMA.'},
-  plata:{n:'Gran Canaria · PLATAFO-LMA (PCR, NGS y biobanco)',how:'Se programa en la plataforma web PLATAFO-LMA: crear el envío e imprimir el volante.'},
-  lpaRef:{n:'Laboratorio de referencia de biología molecular (LPA)',how:'Solo para confirmar una PCR positiva: H. U. La Fe (Valencia) o H. U. de Salamanca.'},
+  negrin:{n:'HUDNGC · citometría (EMR)',how:'Se programa en la plataforma web PLATAFO-LMA.'},
+  plata:{n:'HUDNGC · PLATAFO-LMA (PCR, NGS y biobanco)',how:'Se programa en la plataforma web PLATAFO-LMA: crear el envío e imprimir el volante.'},
+  lpaRef:{n:'HUDNGC · PCR de PML::RARA',how:'No se registra en PLATAFO-LMA: tiene su propio sistema de registro.'},
   salCmf:{n:'Salamanca · Servicio de Citometría de la Universidad',how:'Hoja de solicitud en papel con el momento marcado + copia del hemograma del día (y del consentimiento en el primer envío).'},
   ijc:{n:'Barcelona · Institut Josep Carreras (LLA-T)',how:'Diagnóstico y 1.ª recaída: hoja del Anexo 3. Seguimiento: contactar antes con el laboratorio.'},
   ref:{n:'Reference Laboratory (código 0567)',how:'En observaciones: diagnóstico, asparaginasa administrada, día de administración y código 0567.'}
@@ -3382,22 +3382,23 @@ const MX_PROTOS=[
    {id:'nueva_rr',n:'Nuevo episodio de R/R',w:'En cada episodio sucesivo.',p:43,it:[
      _mxI('PCR/NGS centralizada y biobanco','MO (SP si aspirado seco)',[['edta','3-6 ml']],'plata','',43)]}
   ]},
- {id:'lpa',g:'LPA',n:'LPA 2017',v:'15/05/2017',pdf:'guias/LPA.pdf',d:'Leucemia promielocítica aguda (PML::RARA). EMR por RT-PCR en MO; toda PCR positiva se CONFIRMA en un laboratorio de referencia.',
+ {id:'lpa',g:'LPA',n:'LPA 2017',v:'15/05/2017',pdf:'guias/LPA.pdf',d:'Leucemia promielocítica aguda (PML::RARA). Al diagnóstico se envía la muestra de PML::RARA para confirmarla.',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento (ATRA ante la mínima sospecha).',p:11,it:[
      _mxI('Frotis para inmunotinción anti-PML (PG-M3) y archivo','MO y SP',[['frotis','3-4 de MO y 3-4 de SP']],'local','Temperatura ambiente, sin refrigerar. Nunca sustituye a la RT-PCR.',11),
-     _mxI('RT-PCR PML::RARA (define la isoforma para la EMR)','MO y SP',[['edta','MO 1-2 ml'],['edta','SP 5-20 ml']],'local','Preferible EDTA (vale citrato). Enviar a 4 °C.',11),
+     _mxI('RT-PCR PML::RARA: confirmación del diagnóstico (define la isoforma para la EMR)','MO y SP',[['edta','MO 1-2 ml'],['edta','SP 5-20 ml']],'lpaRef','Preferible EDTA (vale citrato). Enviar a 4 °C.',11),
      _mxI('Cariotipo y FISH PML::RARA','MO',[['rpmi','1-2 ml de aspirado']],'local','Temperatura ambiente.',11)]},
    {id:'fin_ind',n:'Fin de inducción',w:'Nunca antes de 30 días (fin de QT o inicio de ATO); diferenciación hasta 40-50 días: no cambiar el tratamiento.',p:30,it:[
      _mxI('Aspirado de MO (RC morfológica)','MO',[['ext',''],['edta','1 tubo']],'local','La EMR precoz es solo investigacional: no tomar decisiones con ella.',30)]},
    {id:'fin_cons',n:'Fin de consolidación',w:'ATRA+QT: al final del 3.er ciclo. ATO+ATRA: con la recuperación tras el ciclo 4.',p:31,it:[
-     _mxI('RT-PCR PML::RARA (EMR)','MO',[['edta','1-2 ml']],'local','Tubo como al diagnóstico. Si positiva → confirmar en laboratorio de referencia.',31)]},
+     _mxI('RT-PCR PML::RARA (EMR)','MO',[['edta','1-2 ml']],'lpaRef','Tubo como al diagnóstico. Si es positiva, confirmar con otra MO en ≤ 2 semanas.',31)]},
    {id:'seg',n:'Mantenimiento y seguimiento',w:'MO cada 6-12 meses hasta 2 años (riesgo bajo-intermedio); cada 3-6 meses (riesgo alto).',p:31,it:[
-     _mxI('RT-PCR PML::RARA','MO',[['edta','1-2 ml']],'local','Si positiva → confirmar en laboratorio de referencia.',32)]},
+     _mxI('RT-PCR PML::RARA','MO',[['edta','1-2 ml']],'lpaRef','Si es positiva, confirmar con otra MO en ≤ 2 semanas.',32)]},
    {id:'conf',n:'Confirmar PCR positiva',w:'Nueva muestra en las 2 semanas siguientes.',p:28,it:[
      _mxI('RT-PCR PML::RARA (sensibilidad 10⁻⁴)','MO',[['edta','1-2 ml']],'lpaRef','Recaída molecular = 2 PCR+ en 2 MO consecutivas. Enviar a 4 °C, como al diagnóstico.',28)]},
    {id:'rec',n:'Recaída',w:'Al diagnóstico de la recaída hematológica o extramedular.',p:28,it:[
-     _mxI('Confirmación genética (cariotipo, FISH, RT-PCR o anti-PML)','MO (o tejido/LCR)',[['edta','RT-PCR 1-2 ml'],['rpmi','cariotipo/FISH'],['frotis','anti-PML']],'local','Como al diagnóstico.',28)]}
+     _mxI('RT-PCR PML::RARA (confirmación de la recaída)','MO (o tejido/LCR)',[['edta','1-2 ml']],'lpaRef','Como al diagnóstico.',28),
+     _mxI('Cariotipo/FISH y anti-PML','MO',[['rpmi','cariotipo/FISH'],['frotis','anti-PML']],'local','',28)]}
   ]},
  {id:'lal25',g:'LLA',n:'LAL-2025 (Ph−)',v:'sept. 2026',pdf:'guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf',d:'LAL BCR::ABL1 negativa del adulto (18-65 años, tratamiento intensivo) y linfoma linfoblástico. Todas las muestras centrales van al Servicio de Citometría de Salamanca, que las reparte; la LLA-T envía además al IJC. La ER se hace siempre en MO.',
   subs:[{id:'B',n:'LAL-B'},{id:'Tm',n:'LLA-T madura'},{id:'Ti',n:'LLA-T inmadura (ETP)'}],
@@ -3431,9 +3432,9 @@ const MX_PROTOS=[
      {s:['B'],f:'Inducción-1 · PEG-ASP días 16 y 29',w:'Día 29 (antes de la 2.ª dosis) y día 43 o antes del blinatumomab 1',p:94},
      {s:['B'],f:'Consolidación C1-C4 · PEG-ASP día 3',w:'Día 17 de cada bloque (14 días tras la dosis)',p:94},
      {s:['B'],f:'Consolidación con Erwinia (crisantaspasa)',w:'Días 7 y 14 de cada bloque',p:94},
-     {s:['Tm'],f:'Inducción-1 · PEG-ASP días 15 y 29',w:'Día 29 (antes de la 2.ª dosis) y día 43',p:95},
+     {s:['Tm'],f:'Inducción-1 · PEG-ASP días 16 y 29',w:'Día 29 (antes de la 2.ª dosis) y día 43',p:95},
      {s:['Tm'],f:'Consolidación 1-3 · PEG-ASP día 3',w:'Día 17 de cada bloque',p:95},
-     {s:['Tm'],f:'Reinducción · PEG-ASP día 15',w:'Día 29',p:95},
+     {s:['Tm'],f:'Reinducción · PEG-ASP día 16',w:'Día 30 (14 días tras la dosis)',p:95},
      {s:['Tm'],f:'Consolidación con Erwinia',w:'Días 7 y 14 de cada bloque',p:95},
      {s:['Tm'],f:'Reinducción con Erwinia',w:'Días 21 y 29',p:95},
      {s:['Ti'],f:'Consolidación 1-2 · PEG-ASP día 3 (la inducción FLAG-Ida no lleva asparaginasa)',w:'Día 17 de cada bloque',p:95},
@@ -3520,19 +3521,19 @@ const MX_HOJA={
   lalph:{dx:'Diagnóstico',fin_ind:'Fin inducción-1',fin_cons:'Tras el 6.º ciclo de consolidación',post_tph:'Pacientes con TPH alogénico (primer mes, cuarto mes o +1 a 5 años)',mant:'Pacientes con quimioterapia e ITK (+1 a 5 años del fin)',rec:'1.ª Recaída'}
 };
 const MX_EMR={
-  flow:'EMR por citometría en MO (Gran Canaria, H. Dr. Negrín). Decide la de tras la consolidación 1 en el riesgo intermedio (alo-TPH frente a autotrasplante).',
+  flow:'EMR por citometría en MO (HUDNGC). Decide la de tras la consolidación 1 en el riesgo intermedio (alo-TPH frente a autotrasplante).',
   cbf:'qRT-PCR del transcrito (RUNX1::RUNX1T1 o CBFB::MYH11). Decide la de sangre periférica; una SP positiva se confirma con otra a las 4 semanas.',
   npm1:'qRT-PCR de NPM1 mutado. Decide la de sangre periférica tras la consolidación 2: positiva (ratio ×10⁴ ≥ 1) → alo-TPH.',
-  mix:'EMR por citometría en MO (Gran Canaria, H. Dr. Negrín), positiva si > 0,05 %. Si BCR::ABL1+, PCR cuantitativa en el laboratorio habitual.',
+  mix:'EMR por citometría en MO (HUDNGC), positiva si > 0,05 %. Si BCR::ABL1+, PCR cuantitativa en el laboratorio habitual.',
   papu:'EMR solo exploratoria, al final del ciclo 4: no se toman decisiones con ella.',
   rron:'EMR central solo informativa: citometría antes y después del alo-TPH.',
-  lpa:'RT-PCR de PML::RARA en MO, en el hospital. Toda PCR positiva se confirma con otra MO en ≤ 2 semanas en un laboratorio de referencia.',
+  lpa:'RT-PCR de PML::RARA en MO. Toda PCR positiva se confirma con otra MO en ≤ 2 semanas.',
   lal25:'Enfermedad residual (ER) por citometría en MO (Salamanca). Decide la de fin de Blin1 en la LLA-B y la de fin de la C1 en la LLA-T: negativa si < 0,01 %.',
   lalph:'BCR::ABL1 cuantitativo en el hospital + ER por citometría en Salamanca en los puntos de la hoja.',
   lalr:'EMR antes y después del rescate: < 0,1 % tras inotuzumab orienta al alo-TPH.',
   burki:'Sin envíos centrales: todo se estudia en el hospital.'
 };
-const MX_LAB_SHORT={local:'hospital',negrin:'Negrín',plata:'PLATAFO-LMA',lpaRef:'lab. de referencia',salCmf:'Salamanca',ijc:'IJC',ref:'Reference'};
+const MX_LAB_SHORT={local:'hospital',negrin:'HUDNGC citometría',plata:'HUDNGC PCR/NGS',lpaRef:'HUDNGC PML::RARA',salCmf:'Salamanca',ijc:'IJC',ref:'Reference'};
 const MX_TIPOS=[['LMA','Mieloide (LMA)'],['LPA','Promielocítica (LPA)'],['LLA','Linfoblástica (LLA)']];
 
 window._mx={t:'LMA',p:null,s:null,m:null};
@@ -3561,11 +3562,11 @@ function mxDxHtml(){
   h+='<div class="mx-dxc mx-lma"><div class="mx-dxh">Leucemia MIELOIDE aguda</div>'
     +'<div class="mx-big">🌐 Se registra en la <b>plataforma web PLATAFO-LMA</b></div><div class="mx-url">www.platafolma.org</div>'
     +'<ol><li>Registrar al paciente en la plataforma y <b>crear el envío</b>. La web genera el volante: imprimirlo y meterlo con los tubos.</li>'
-    +'<li>Las muestras van a <b>Gran Canaria</b> (la plataforma asigna el laboratorio).</li>'
+    +'<li>Las muestras van al <b>HUDNGC</b>.</li>'
     +'<li><b>Tubos:</b> MO en EDTA, 3-6 ml · SP en EDTA, 5 ml. Rotular MO / SP.</li>'
     +'<li>Adjuntar la <b class="mx-hl">copia del consentimiento informado</b> PLATAFO-LMA firmado.</li></ol>'
     +'<div class="mx-loc">🏥 En el hospital, como siempre: morfología (extensiones + EDTA), inmunofenotipo (EDTA), cariotipo (heparina de litio) y FISH.</div>'
-    +'<div class="mx-loc">Si se sospecha <b>LPA</b>: ATRA de inmediato y PCR de PML::RARA en el hospital (ver protocolo LPA).</div>'
+    +'<div class="mx-loc">Si se sospecha <b>LPA</b>: ATRA de inmediato y enviar muestra para <b>PML::RARA</b> (confirmación) al HUDNGC. <b>No se registra en PLATAFO-LMA</b>: tiene su propio sistema de registro.</div>'
     +'<div class="mx-next">➡️ Cuando se conozca el subtipo (CBF, NPM1, fenotipo mixto, resto → LMA-FLOW; ≥ 70 años o no candidato → PAPU-70+), seguir su protocolo abajo.</div></div>';
   h+='<div class="mx-dxc mx-lla"><div class="mx-dxh">Leucemia LINFOBLÁSTICA aguda</div>'
     +'<div class="mx-big">📄 Se registra en <b>papel</b>: no hay plataforma ni página web</div>'
@@ -3596,9 +3597,9 @@ function mxRender(){
   h+='<div class="mx-pc"><div><b>'+_hpEsc(p.n)+'</b> <span class="mx-mut">· '+_hpEsc(p.v)+'</span> '+_mxPdf(p,1,'Abrir protocolo')+'</div>'
     +'<div class="mx-mut" style="margin-top:2px">'+_hpEsc(p.d)+'</div>'
     +(MX_EMR[p.id]?'<div style="margin-top:6px"><b>Qué se sigue:</b> '+_hpEsc(MX_EMR[p.id])+'</div>':'')
-    +(usesPlat?'<div class="mx-circ mx-lma">🌐 Los envíos centrales se programan en la <b>plataforma web PLATAFO-LMA</b> (van a Gran Canaria).</div>':'')
+    +(usesPlat?'<div class="mx-circ mx-lma">🌐 Los envíos centrales se programan en la <b>plataforma web PLATAFO-LMA</b> (van al HUDNGC).</div>':'')
     +(usesSal?'<div class="mx-circ mx-lla">📄 Cada envío a Salamanca lleva la <b>hoja de solicitud en papel con el momento marcado</b> + <b>copia del hemograma del día</b>.</div>':'')
-    +(p.id==='lpa'?'<div class="mx-circ">🏥 La PCR se hace en el hospital; solo la confirmación de una PCR positiva va a un laboratorio de referencia.</div>':'')
+    +(p.id==='lpa'?'<div class="mx-circ mx-lma">🧬 La PCR de PML::RARA va <b>siempre al HUDNGC</b>. <b>No se registra en PLATAFO-LMA</b>: tiene su propio sistema de registro.</div>':'')
     +'</div>';
   if(p.subs) h+='<div style="margin-top:8px">'+p.subs.map(function(s){ return _mxChip(s.id===st.s,_hpEsc(s.n),"mxSetS('"+s.id+"')"); }).join('')+'</div>';
   h+='<div class="mx-lbl">Momentos de reevaluación · toca uno para ver qué enviar</div><div class="mx-list">';
@@ -3677,7 +3678,7 @@ function mxCopyObs(){ mxObs(); var o=document.getElementById('mx_obs'); if(!o||!
 // === CITODIAGNÓSTICO · Seguimiento molecular / EMR ===
 VIEWS.citomol=()=>`<div class="card">
 <h2>🔬 Seguimiento molecular / EMR</h2>
-<div class="alert b" style="font-size:13px;margin-bottom:12px">🧪 <strong>Leucemias agudas (LMA, LPA, LLA):</strong> qué EMR se sigue en cada protocolo, cuándo se mide y qué muestra se envía están en <a href="#" onclick="go('mxenvio');return false"><strong>Envío de muestras (leucemias agudas)</strong></a>.</div>
+<div class="alert b" style="font-size:13px;margin-bottom:12px">🧪 Para la <strong>LMA</strong> (y el resto de leucemias agudas: LPA y LLA), ir al apartado <strong>Envío de muestras (leucemias agudas)</strong>: ahí está qué EMR se sigue en cada protocolo, cuándo y qué muestra se envía.<div style="margin-top:8px"><button class="btn btn-sm" onclick="go('mxenvio')">Ir a Envío de muestras →</button></div></div>
 <p class="intro">Seguimiento molecular y EMR en LMC, mieloma y LLC.</p>
 <ul style="padding-left:20px;line-height:1.7">
 <li><strong>LMC:</strong> <strong>BCR::ABL1</strong> cuantitativo (escala internacional) cada 3 meses hasta la RMM, luego cada 3-6 meses. Objetivos: ≤ 10 % a los 3 meses, ≤ 1 % a los 6 meses, ≤ 0,1 % (RMM) a los 12 meses.</li>
@@ -8793,7 +8794,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 397;
+const HP_BUILD = 398;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9684,8 +9685,8 @@ const QT_SCHEMES = {
     label: 'FLAG-Ida – PETHEMA LMA-FLOW 2026 / LA-MIX (refractariedad, recaída o fenotipo mixto)',
     drugs: [
       {name:'Fludarabina',     dose:'30 mg/m²',  route:'IV 30 min', days:[1,2,3,4]},
-      {name:'Citarabina (empezar 4 h después de acabar la fludarabina)', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4]},
-      {name:'Idarubicina',     dose:'10 mg/m²',  route:'IV 15 min', days:[1,2,3]},
+      {name:'Citarabina (empezar 4 h después de acabar la fludarabina)', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4], adj:'≥ 60 años: 1000 mg/m²'},
+      {name:'Idarubicina',     dose:'10 mg/m²',  route:'IV 15 min', days:[1,2,3], adj:'LA-MIX, ≥ 60 años: 8 mg/m²'},
       {name:'G-CSF',           dose:'5 µg/kg/día', route:'SC', days:[1,2,3,4]}
     ],
     notes: [
@@ -9721,7 +9722,7 @@ const QT_SCHEMES = {
       'Premedicación de gemtuzumab (la recomienda el libro azul; pauta de ficha técnica): 1 h antes, corticoide (p. ej., metilprednisolona) + antihistamínico + paracetamol.'
     ],
     drugs: [
-      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3]},
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3], adj:'≥ 60 años: 1500 mg/m²/12 h'},
       {name:'Gemtuzumab ozogamicin', dose:'3 mg/m² (máx 4,5 mg)', route:'IV 2h', days:[1]}
     ],
     notes: [
@@ -9735,8 +9736,8 @@ const QT_SCHEMES = {
     label: 'FLAG-Ida – recaída/refractario (1 ciclo)',
     drugs: [
       {name:'Fludarabina', dose:'30 mg/m²', route:'IV 30 min', days:[1,2,3,4]},
-      {name:'Citarabina (ARA-C) — 4 h tras fludarabina', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4]},
-      {name:'Idarubicina — 4 h tras ARA-C', dose:'10 mg/m²', route:'IV 15 min', days:[1,2,3]},
+      {name:'Citarabina (ARA-C) — 4 h tras fludarabina', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4], adj:'≥ 60 años: 1000 mg/m²'},
+      {name:'Idarubicina — 4 h tras ARA-C', dose:'10 mg/m²', route:'IV 15 min', days:[1,2,3], adj:'≥ 60 años: 8 mg/m²'},
       {name:'G-CSF (días 1-4; solo d1 si leucocitos >10.000/µL; no administrar si >25.000/µL)', dose:'5 µg/kg/día', route:'SC', days:[1,2,3,4]}
     ],
     notes: [
@@ -9771,7 +9772,7 @@ const QT_SCHEMES = {
   'HiDAC': {
     label: 'ARA-C AD / HiDAC – Citarabina altas dosis (consolidación LMA, 1-4 ciclos)',
     drugs: [
-      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3]}
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3], adj:'≥ 60 años: 1500 mg/m²/12 h'}
     ],
     notes: [
       'En pacientes ≥60 años, reducir a 1500 mg/m²/12 h con la misma pauta de administración.',
@@ -9784,7 +9785,7 @@ const QT_SCHEMES = {
   'ARAC-AD-MIDO': {
     label: 'ARA-C AD + Midostaurin – consolidación LMA FLT3+ (1-4 ciclos)',
     drugs: [
-      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3]},
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3], adj:'≥ 60 años: 1500 mg/m²/12 h'},
       {name:'Midostaurin', dose:'50 mg/12h', route:'VO', days:[8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
     ],
     notes: [
@@ -10207,14 +10208,15 @@ const QT_SCHEMES = {
       {name:'Prednisona', dose:'60 mg/m²', route:'VO/IV', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]},
       {name:'Prednisona', dose:'30 mg/m²', route:'VO/IV', days:[15,16,17,18,19,20,21]},
       {name:'Prednisona', dose:'15 mg/m²', route:'VO/IV', days:[22,23,24,25,26,27,28]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV en 120 min', days:[16,29]},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV en 120 min', days:[16,29], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[1,22]}
     ],
     premed: [
-      'Prednisona: es recomendable que el día de la PEG-ASP la dosis sea de 80-100 mg.'
+      'Prednisona: es recomendable que el día de la PEG-ASP la dosis sea de 80-100 mg.',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
-      'PEG-ASP los días 16 y 29.',
+      'PEG-ASP los días 16 y 29, separada de la vincristina del día 15.',
       'Hepatotoxicidad grado ≥3 tras la 1.ª dosis de PEG-ASP: suprimir la del d29. Grado ≤2: valorar individualmente bajar la del d29 a 1000 o 500 UI/m².',
       'PEG-ASP 500 UI/m² si >50 años, IMC >30, antecedentes de hepatopatía/esteatosis/fibrosis (fibroscan), alteración de pruebas hepáticas o hepatotoxicidad previa.',
       'Separar la PEG-ASP ≥12 h de la vincristina (VCR al menos 12 h antes).',
@@ -10237,15 +10239,16 @@ const QT_SCHEMES = {
       {name:'Prednisona', dose:'60 mg/m²', route:'VO/IV', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]},
       {name:'Prednisona', dose:'30 mg/m²', route:'VO/IV', days:[15,16,17,18,19,20,21]},
       {name:'Prednisona', dose:'15 mg/m²', route:'VO/IV', days:[22,23,24,25,26,27,28]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV en 120 min', days:[15,29]},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV en 120 min', days:[16,29], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[1,22]}
     ],
     premed: [
-      'Prednisona: es recomendable que el día de la PEG-ASP la dosis sea de 80-100 mg.'
+      'Prednisona: es recomendable que el día de la PEG-ASP la dosis sea de 80-100 mg.',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
       'Solo LLA-T de fenotipo maduro (T cortical y T madura). Las T inmaduras (pro-T, pre-T, near-ETP, ETP) van a FLAG-IDA.',
-      'Hepatotoxicidad grado ≥3 tras la dosis del d15: suprimir la del d29.',
+      'PEG-ASP los días 16 y 29, separada de la vincristina del día 15 (el protocolo pone el día 15). Hepatotoxicidad grado ≥3 tras la dosis del día 16: suprimir la del día 29.',
       'PEG-ASP 500 UI/m² si >50 años, IMC >30, antecedentes de hepatopatía/esteatosis/fibrosis (fibroscan), alteración de pruebas hepáticas o hepatotoxicidad previa.',
       'Separar la PEG-ASP ≥12 h de la vincristina (VCR al menos 12 h antes).',
       'Hipersensibilidad grado 2-4 o inactivación silente (actividad <100 UI/L): sustituir por crisantaspasa recombinante (Enrylaze®, única Erwinia desde 09/2026): lunes y miércoles 25 mg/m² + viernes 50 mg/m² (IM/IM, IV/IM o IV/IV); sin ajuste por edad.',
@@ -10263,7 +10266,7 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Idarubicina', dose:'12 mg/m²', route:'IV', days:[1,3,5]},
       {name:'Fludarabina', dose:'30 mg/m²', route:'IV', days:[1,2,3,4,5]},
-      {name:'Citarabina (ARA-C)', dose:'2000 mg/m²', route:'IV', days:[1,2,3,4,5]},
+      {name:'Citarabina (ARA-C)', dose:'2000 mg/m²', route:'IV', days:[1,2,3,4,5], adj:'> 50 años: 1000 mg/m²'},
       {name:'G-CSF', dose:'300 µg/día', route:'IV o SC', days:[1,2,3,4,5]},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[7]}
     ],
@@ -10307,7 +10310,7 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Idarubicina', dose:'12 mg/m²', route:'IV', days:[1,3,5]},
       {name:'Fludarabina', dose:'30 mg/m²', route:'IV', days:[1,2,3,4,5]},
-      {name:'Citarabina (ARA-C)', dose:'2000 mg/m²', route:'IV', days:[1,2,3,4,5]},
+      {name:'Citarabina (ARA-C)', dose:'2000 mg/m²', route:'IV', days:[1,2,3,4,5], adj:'50-60 años: 1000 mg/m²'},
       {name:'G-CSF', dose:'300 µg/día', route:'IV o SC', days:[1,2,3,4,5]},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[7]}
     ],
@@ -10360,13 +10363,14 @@ const QT_SCHEMES = {
       {name:'Dexametasona', dose:'5 mg/m²', route:'VO/IV', days:[7]},
       {name:'Dexametasona', dose:'2,5 mg/m²', route:'VO/IV', days:[8]},
       {name:'Vincristina', dose:'1,5 mg/m² (máx 2 mg)', route:'IV', days:[1,8]},
-      {name:'Metotrexato (fracción inicial)', dose:'500 mg/m²', route:'IV en 30 min', days:[1]},
-      {name:'Metotrexato (resto, total 3000 mg/m²)', dose:'2500 mg/m²', route:'IV en 23,5 h', days:[1]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3]},
+      {name:'Metotrexato (fracción inicial)', dose:'500 mg/m²', route:'IV en 30 min', days:[1], adj:'> 50 años: MTX total 1,5 g/m²'},
+      {name:'Metotrexato (resto, total 3000 mg/m²)', dose:'2500 mg/m²', route:'IV en 23,5 h', days:[1], adj:'> 50 años: MTX total 1,5 g/m²'},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[1]}
     ],
     premed: [
-      'Puede administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).'
+      'Puede administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
       'C3 = C1. Iniciar al menos tras 2 semanas de descanso del ciclo previo de blinatumomab. Requisitos para iniciar el bloque: granulocitos + monocitos >1,5×10⁹/L y plaquetas >100×10⁹/L; ≥2 semanas entre dosis de PEG-ASP.',
@@ -10394,14 +10398,15 @@ const QT_SCHEMES = {
       {name:'Dexametasona', dose:'10 mg/m²', route:'VO/IV', days:[6]},
       {name:'Dexametasona', dose:'5 mg/m²', route:'VO/IV', days:[7]},
       {name:'Dexametasona', dose:'2,5 mg/m²', route:'VO/IV', days:[8]},
-      {name:'Citarabina (ARA-C)', dose:'2000 mg/m² cada 12 h', route:'IV en 3 h', days:[1,2]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3]},
+      {name:'Citarabina (ARA-C)', dose:'2000 mg/m² cada 12 h', route:'IV en 3 h', days:[1,2], adj:'> 50 años: 1000 mg/m²/12 h'},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[4]}
     ],
     premed: [
       'Puede administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).',
       'Colirio de dexametasona 1 gota en cada ojo cada 8 h durante 3 días (ARA-C AD).',
-      'Vitamina B6 (profilaxis de neurotoxicidad).'
+      'Vitamina B6 (profilaxis de neurotoxicidad).',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
       'C4 = C2. ARA-C: 4 dosis (cada 12 h los días 1 y 2). Requisitos para iniciar el bloque: granulocitos + monocitos >1,5×10⁹/L y plaquetas >100×10⁹/L; ≥2 semanas entre dosis de PEG-ASP.',
@@ -10425,13 +10430,14 @@ const QT_SCHEMES = {
       {name:'Dexametasona', dose:'5 mg/m²', route:'VO/IV', days:[7]},
       {name:'Dexametasona', dose:'2,5 mg/m²', route:'VO/IV', days:[8]},
       {name:'Vincristina', dose:'1,5 mg/m² (máx 2 mg)', route:'IV', days:[1,8]},
-      {name:'Metotrexato (fracción inicial)', dose:'500 mg/m²', route:'IV en 30 min', days:[1]},
-      {name:'Metotrexato (resto, total 5000 mg/m²)', dose:'4500 mg/m²', route:'IV en 23,5 h', days:[1]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3]},
+      {name:'Metotrexato (fracción inicial)', dose:'500 mg/m²', route:'IV en 30 min', days:[1], adj:'> 50 años: MTX total 1,5 g/m²'},
+      {name:'Metotrexato (resto, total 5000 mg/m²)', dose:'4500 mg/m²', route:'IV en 23,5 h', days:[1], adj:'> 50 años: MTX total 1,5 g/m²'},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[1]}
     ],
     premed: [
-      'Puede administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).'
+      'Puede administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
       'Común a LLA-T madura e inmadura. Consolidación-3 = Consolidación-1; en la consolidación tardía se repiten C1, C2 y C3.',
@@ -10460,14 +10466,15 @@ const QT_SCHEMES = {
       {name:'Dexametasona', dose:'10 mg/m²', route:'VO/IV', days:[6]},
       {name:'Dexametasona', dose:'5 mg/m²', route:'VO/IV', days:[7]},
       {name:'Dexametasona', dose:'2,5 mg/m²', route:'VO/IV', days:[8]},
-      {name:'Citarabina (ARA-C)', dose:'2000 mg/m² cada 12 h', route:'IV en 3 h', days:[1,2]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3]},
+      {name:'Citarabina (ARA-C)', dose:'2000 mg/m² cada 12 h', route:'IV en 3 h', days:[1,2], adj:'> 50 años: 1000 mg/m²/12 h'},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[3], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[4]}
     ],
     premed: [
       'Puede administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).',
       'Colirio de dexametasona 1 gota en cada ojo cada 8 h durante 3 días (ARA-C AD).',
-      'Vitamina B6 (profilaxis de neurotoxicidad).'
+      'Vitamina B6 (profilaxis de neurotoxicidad).',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
       'ARA-C: 4 dosis (cada 12 h los días 1 y 2). Bloques separados 3-4 semanas. Requisitos para iniciar el bloque: granulocitos + monocitos >1,5×10⁹/L y plaquetas >100×10⁹/L; ≥2 semanas entre dosis de PEG-ASP.',
@@ -10491,15 +10498,16 @@ const QT_SCHEMES = {
       {name:'Prednisona', dose:'60 mg/m²', route:'VO/IV', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]},
       {name:'Prednisona', dose:'30 mg/m²', route:'VO/IV', days:[15,16,17,18,19,20,21]},
       {name:'Prednisona', dose:'15 mg/m²', route:'VO/IV', days:[22,23,24,25,26,27,28]},
-      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[15]},
+      {name:'PEG-asparaginasa', dose:'1500 UI/m²', route:'IV', days:[16], adj:'500 UI/m² si > 50 años, IMC > 30 o hepatopatía'},
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[1,22]}
     ],
     premed: [
-      'Puede administrarse 80-100 mg de prednisona antes de la PEG-ASP (opcional).'
+      'Puede administrarse 80-100 mg de prednisona antes de la PEG-ASP (opcional).',
+      'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
       'Como la inducción sin daunorubicina. Solo LLA-T madura en RC tras inducción-1 con ER <0,01% y sin genética desfavorable, tras C1-C2-C3; también si correspondía alo-TPH y no puede hacerse por criterios médicos.',
-      'PEG-ASP ≥12 h después de la VCR del día 15. PEG-ASP 500 UI/m² si >50 años, IMC >30, antecedentes de hepatopatía/esteatosis/fibrosis (fibroscan), alteración de pruebas hepáticas o hepatotoxicidad previa.',
+      'PEG-ASP el día 16, separada de la VCR del día 15 (el protocolo pone el día 15). PEG-ASP 500 UI/m² si >50 años, IMC >30, antecedentes de hepatopatía/esteatosis/fibrosis (fibroscan), alteración de pruebas hepáticas o hepatotoxicidad previa.',
       'Hepatotoxicidad por PEG-ASP en el ciclo previo (pág. 53-54): G1-2 → misma dosis con control estrecho; G3 → siguiente ciclo cuando ≤G1 (G2 de transaminasas aceptable) y PEG-ASP al 50% si duró <6 semanas (si no se resolvió en 6 semanas, omitirla en el siguiente ciclo y reintroducir al 50%); G4 o amenazante → ver pág. 54 (no reintroducir si amenazó la vida).',
       'Hipersensibilidad grado 2-4 o inactivación silente (actividad <100 UI/L): sustituir por crisantaspasa recombinante (Enrylaze®, única Erwinia desde 09/2026): lunes y miércoles 25 mg/m² + viernes 50 mg/m² (IM/IM, IV/IM o IV/IV); sin ajuste por edad.',
       'Trombosis: HBPM profiláctica y/o antitrombina III (si actividad <60%) a criterio; fibrinógeno Clauss semanal; no usar plasma fresco.',
@@ -10624,7 +10632,7 @@ const QT_SCHEMES = {
       {name:'Etopósido (1ª de 3 subdosis seguidas, sin pausa)', dose:'7 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
       {name:'Etopósido (2ª de 3 subdosis seguidas)',            dose:'7 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
       {name:'Etopósido (3ª de 3 subdosis seguidas)',            dose:'6 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
-      {name:'Citarabina (AraC)',                     dose:'3 g/m²/12h',    route:'IV 3h', days:[7,8]},
+      {name:'Citarabina (AraC)',                     dose:'3 g/m²/12h',    route:'IV 3h', days:[7,8], adj:'≥ 60 años: 1,5 g/m²/12 h'},
       {name:'Infusión de progenitores hematopoyéticos', dose:'—',          route:'IV', days:[10]}
     ],
     notes: [
@@ -11958,10 +11966,10 @@ function fmtDrugLine(drug,dateStr){
     const calc=qtCalcDose(drug.dose,bsa,peso);
     if(calc){
       const doseLabel=drug.dose.replace(/\s*\(\s*máx\s*([^)]+?)\s*\)/i,' - máx $1');
-      return '* '+drug.name+' ('+doseLabel+') = '+(typeof calc.mg==='number'?calc.mg.toFixed(2):calc.mg)+' '+(calc.u||'mg')+' '+drug.route+': '+dateStr;
+      return '* '+drug.name+' ('+doseLabel+') = '+(typeof calc.mg==='number'?calc.mg.toFixed(2):calc.mg)+' '+(calc.u||'mg')+' '+drug.route+': '+dateStr+(drug.adj?'  ⚠️ '+drug.adj:'');
     }
   }
-  return '* '+drug.name+' '+drug.dose+' '+drug.route+': '+dateStr;
+  return '* '+drug.name+' '+drug.dose+' '+drug.route+': '+dateStr+(drug.adj?'  ⚠️ '+drug.adj:'');
 }
 const lines=[];const relLines=[];
 const _imc=bsa>0?hpIMC(peso,talla):null;
