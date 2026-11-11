@@ -519,6 +519,7 @@ body{font-size:13px}
 .viewer-search{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--bd);background:var(--bg2)}
 .viewer-search input{flex:1;min-width:0;padding:6px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px}
 .viewer-search .vw-scount{font-size:11px;color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums;min-width:34px;text-align:center}
+.viewer-page-placeholder canvas{margin:0}
 .viewer-page-placeholder{width:100%;max-width:900px;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:300px}
 .viewer-loading{padding:30px;text-align:center;color:var(--mut)}
 .viewer-error{padding:20px;text-align:center;color:var(--er);background:var(--card);border-radius:var(--rs);margin:14px}
@@ -7746,7 +7747,7 @@ window.hpStopGuidesListener=function(){
 };
 
 // Re-render al cargar el rol, para que aparezcan los botones de subida.
-window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpLoadPushState)window.hpLoadPushState();if(window.hpUpdateBrand)window.hpUpdateBrand();};
+window.hpOnRoleLoaded=function(){try{hpEditFab();}catch(e){}renderMenu($('search').value);const v=S.view;if(v&&v!=='home'&&v!=='viewer'&&typeof VIEWS!=='undefined'&&VIEWS[v]){try{go(v);}catch(e){}}if(window.hpUpdateRepBadge)window.hpUpdateRepBadge();if(window.hpUpdateSolBadge)window.hpUpdateSolBadge();if(window.hpUpdateRevBadge)window.hpUpdateRevBadge();if(window.hpLoadPushState)window.hpLoadPushState();if(window.hpUpdateBrand)window.hpUpdateBrand();};
 // Cuenta los reportes sin resolver y muestra el número junto a «Errores reportados» (solo admin).
 window.hpUpdateRepBadge=async function(){
   try{
@@ -7757,25 +7758,33 @@ window.hpUpdateRepBadge=async function(){
     if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
   }catch(e){}
 };
-// Cuenta los hallazgos de la revisión que NECESITAN APROBACIÓN y los marca junto a «Revisión» (solo admin).
+// Aviso de la revisión semanal (solo administradores, una vez por informe): qué se corrigió solo y qué
+// no se pudo corregir (con su código, para decírselo a Claude). Lee revisiones/ultima.json (GitHub Action).
+window.hpInfo=function(msg){
+  const ov=$('hp-confirm'); if(!ov){ alert(msg); return; }
+  const m=$('hp_confirm_msg'), yes=$('hp_confirm_yes'), no=$('hp_confirm_no');
+  const yt=yes.textContent, ws=m.style.whiteSpace, ta=m.style.textAlign;
+  m.textContent=msg; m.style.whiteSpace='pre-line'; m.style.textAlign='left'; no.style.display='none'; yes.textContent='Entendido';
+  const close=()=>{ ov.classList.remove('show'); yes.onclick=null; ov.onclick=null; no.style.display=''; yes.textContent=yt; m.style.whiteSpace=ws; m.style.textAlign=ta; };
+  yes.onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
+  ov.classList.add('show');
+};
 window.hpUpdateRevBadge=async function(){
   try{
-    if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())){window._hpRevNew=0;return;}
-    if(!navigator.onLine)return;
-    const r=await fetch('revisiones/ultima.json?ts='+Date.now(),{cache:'no-store'});
-    if(!r.ok)return;
-    const data=await r.json();
-    const pend=Array.isArray(data.pendientes)?data.pendientes:(Array.isArray(data.problemas)?data.problemas:[]);
-    window._hpRevNew=pend.length;
-    if(typeof renderMenu==='function')renderMenu(($('search')&&$('search').value)||'');
-    // Aviso al abrir la app: una sola vez por informe nuevo (no molesta en cada carga).
-    if(pend.length>0){
-      let visto=''; try{ visto=localStorage.getItem('hpRevSeen')||''; }catch(e){}
-      if(visto!==(data.fecha||'') && typeof toast==='function'){
-        toast('⚠️ La revisión encontró '+pend.length+' aviso(s) que necesitan aprobación · Ajustes → Revisión');
-        try{ localStorage.setItem('hpRevSeen', data.fecha||''); }catch(e){}
-      }
-    }
+    if(!(window.HemoCloud&&window.HemoCloud.isAdmin&&window.HemoCloud.isAdmin())) return;
+    if(!navigator.onLine) return;
+    const r=await fetch('revisiones/ultima.json?ts='+Date.now(),{cache:'no-store'}); if(!r.ok) return;
+    const d=await r.json();
+    const corr=Array.isArray(d.corregidos)?d.corregidos:[], pend=Array.isArray(d.pendientes)?d.pendientes:[];
+    if(!corr.length&&!pend.length) return;
+    let visto=''; try{ visto=localStorage.getItem('hpRevSeen')||''; }catch(e){}
+    if(visto===(d.fecha||'')) return;
+    try{ localStorage.setItem('hpRevSeen',d.fecha||''); }catch(e){}
+    const f=(d.fecha||'').slice(0,10).split('-').reverse().join('/');
+    let msg='Revisión semanal'+(f?' ('+f+')':'')+':';
+    if(corr.length) msg+='\n\n🔧 Corregido automáticamente:\n'+corr.map(c=>'• '+c.titulo).join('\n');
+    if(pend.length) msg+='\n\n⚠️ No se pudo corregir solo (díselo a Claude con el código):\n'+pend.map(p=>'• ['+p.code+'] '+p.titulo).join('\n');
+    window.hpInfo(msg);
   }catch(e){}
 };
 // Cuenta las solicitudes de acceso PENDIENTES y muestra el número junto a «Solicitudes de acceso».
@@ -8011,8 +8020,8 @@ const cssWidth=baseW*_vwZoom;
 target.style.width=cssWidth+'px';
 target.style.maxWidth='none';
 target.innerHTML='';
-target.style.aspectRatio='';
-target.style.minHeight='';
+target.style.aspectRatio=natural.width+'/'+natural.height; // mantiene el alto mientras se pinta
+target.style.minHeight='0';
 target.style.background='transparent';
 target.style.boxShadow='none';
 target.style.display='block';
@@ -8162,9 +8171,17 @@ function vwGoToPage(n){
   n=Math.max(1,total?Math.min(total,n):n);
   const p=c.querySelector('.viewer-page-placeholder[data-page="'+n+'"]');
   if(!p)return;
-  const top=p.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop-4;
-  c.scrollTo({top:Math.max(0,top),behavior:'smooth'});
   const el=$('vw_page');if(el)el.value=n;
+  // Salto inmediato, no «suave»: al pasar por las páginas intermedias se pintaban y cambiaban de altura,
+  // y se acababa varias páginas más abajo. Se reajusta mientras se pinta el destino, salvo que el usuario ya se haya movido.
+  let last=-1,tries=0;
+  const go=()=>{
+    if(last>=0&&Math.abs(c.scrollTop-last)>40)return; // el usuario se ha movido (los ajustes del navegador son de pocos px)
+    c.scrollTop=Math.max(0,p.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop-4);
+    last=c.scrollTop;
+    if(++tries<12)setTimeout(go,tries<3?120:300);
+  };
+  go();
 }
 function vwGoInput(){const el=$('vw_page');if(!el)return;const n=parseInt(el.value);if(n>=1)vwGoToPage(n);}
 let _pgRAF=0;
@@ -8172,7 +8189,7 @@ function vwUpdateCurrentPage(){
   const c=window._vwContainer,el=$('vw_page');if(!c||!el)return;
   if(document.activeElement===el)return; // no pisar mientras se escribe
   const ct=c.getBoundingClientRect().top;let cur=1,best=-Infinity;
-  c.querySelectorAll('.viewer-page-placeholder').forEach(p=>{const t=p.getBoundingClientRect().top-ct;if(t<=8&&t>best){best=t;cur=parseInt(p.dataset.page)||cur;}});
+  c.querySelectorAll('.viewer-page-placeholder').forEach(p=>{const t=p.getBoundingClientRect().top-ct;if(t<=30&&t>best){best=t;cur=parseInt(p.dataset.page)||cur;}});
   el.value=cur;
 }
 // Pinch-zoom con dos dedos (el viewport global desactiva el pinch nativo, así que lo gestionamos aquí)
@@ -8794,7 +8811,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 399;
+const HP_BUILD = 400;
 const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:

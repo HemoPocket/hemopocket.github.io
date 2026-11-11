@@ -12,6 +12,9 @@
 //   node scripts/health-check.mjs --fix     (revisa, autocorrige lo seguro, y reporta)
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import http from 'node:http';
+import path from 'node:path';
 
 const FIX = process.argv.includes('--fix');
 const root = new URL('..', import.meta.url).pathname;
@@ -131,6 +134,56 @@ function checkSync(html){
   if (ghost.length) comprobaciones.push('Aviso menor: en la lista de sync hay nombres sin función: ' + ghost.join(', ') + '.');
 }
 
+// ── Comprobación 5: abrir la app en un navegador y entrar en cada apartado ─────────────
+// Detecta errores que solo aparecen al ejecutarse (la sintaxis puede estar bien y la app no cargar).
+// Si no hay navegador instalado, se omite sin fallar.
+function loadPlaywright(){
+  const req = createRequire(import.meta.url);
+  try { return req('playwright'); } catch (e) {}
+  try { const g = execSync('npm root -g', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); return req(g + '/playwright'); } catch (e) {}
+  return null;
+}
+async function checkLoad(){
+  const pw = loadPlaywright();
+  if (!pw || !pw.chromium) { comprobaciones.push('Prueba en navegador: omitida (no hay navegador instalado).'); return; }
+  const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.pdf': 'application/pdf', '.webmanifest': 'application/manifest+json' };
+  const srv = http.createServer((req, res) => {
+    try {
+      let u = decodeURIComponent(req.url.split('?')[0]); if (u === '/') u = '/HemoPocket_app.html';
+      const f = path.join(root, u);
+      if (!f.startsWith(root)) { res.writeHead(403); return res.end(); }
+      const d = fs.readFileSync(f);
+      res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream' }); res.end(d);
+    } catch (e) { res.writeHead(404); res.end(); }
+  });
+  await new Promise(r => srv.listen(0, '127.0.0.1', r));
+  const base = 'http://127.0.0.1:' + srv.address().port;
+  let browser;
+  try {
+    browser = await pw.chromium.launch();
+    const page = await (await browser.newContext()).newPage();
+    const errs = []; page.on('pageerror', e => errs.push(String(e.message).split('\n')[0]));
+    await page.route(u => !u.href.startsWith(base), r => r.abort()); // sin red externa: se prueba solo el código de la app
+    await page.goto(base + '/HemoPocket_app.html', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2500);
+    const loadErrs = errs.splice(0);
+    if (loadErrs.length) {
+      pendientes.push({ code: 'APP-CARGA', titulo: 'La app da un error al abrirse', detalle: 'Al abrir la app en un navegador salta: «' + loadErrs.slice(0, 3).join('» · «') + '». Puede dejar partes sin funcionar. Díselo a Claude con el código APP-CARGA.' });
+      return;
+    }
+    const v = await page.evaluate(() => { const bad = []; const ids = Object.keys(VIEWS).filter(k => !/_post$/.test(k)); for (const id of ids) { try { go(id); } catch (e) { bad.push(id + ': ' + e.message); } } return { n: ids.length, bad }; });
+    await page.waitForTimeout(1200);
+    v.bad.push(...errs.splice(0));
+    if (v.bad.length) pendientes.push({ code: 'APP-APARTADO', titulo: 'Algún apartado da error al abrirlo', detalle: 'Errores: ' + v.bad.slice(0, 5).join(' · ') + '. Díselo a Claude con el código APP-APARTADO.' });
+    else comprobaciones.push('Prueba en navegador: la app abre sin errores y sus ' + v.n + ' apartados se abren bien.');
+  } catch (e) {
+    comprobaciones.push('Prueba en navegador: no se pudo hacer (' + String(e.message).split('\n')[0] + ').');
+  } finally {
+    try { if (browser) await browser.close(); } catch (e) {}
+    srv.close();
+  }
+}
+
 // ── Ejecutar ───────────────────────────────────────────────────────────────────────────
 try { readHtml(); }
 catch (e) { pendientes.push({ code: 'APP-FALTA', titulo: 'No se puede leer la app', detalle: 'No se encontró HemoPocket_app.html: ' + e.message }); finish(); }
@@ -139,6 +192,7 @@ checkSyntax(readHtml());
 checkVersion();          // puede autocorregir con --fix
 checkRules();
 checkSync(readHtml());   // re-lee por si la versión cambió el archivo
+await checkLoad();       // abre la app en un navegador (si lo hay)
 
 finish();
 

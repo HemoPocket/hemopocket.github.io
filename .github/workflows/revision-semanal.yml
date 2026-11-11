@@ -1,7 +1,10 @@
 name: Revisión semanal HemoPocket
 
 # Revisión automática de salud, cada semana, en la nube (no depende de ninguna sesión abierta).
-# Si encuentra un problema, abre o actualiza un "issue" en GitHub con el detalle.
+# Corrige sola lo que es seguro (p. ej., la versión). Si encuentra algo:
+#  - la app se lo muestra a los administradores al abrirla (qué se corrigió y qué falta, con su código);
+#  - abre o actualiza un "issue" en GitHub con el detalle.
+# Incluye una prueba en navegador: abre la app y entra en cada apartado para cazar errores de ejecución.
 # También se puede lanzar a mano desde la pestaña Actions (botón "Run workflow").
 
 on:
@@ -23,6 +26,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Navegador para la prueba de carga
+        continue-on-error: true
+        run: |
+          npm i --no-save --no-package-lock playwright@1.48.2
+          npx playwright install --with-deps chromium
+
       - name: Ejecutar revisión y autocorregir lo seguro
         id: check
         continue-on-error: true
@@ -36,7 +45,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git reset -q -- revision.txt 2>/dev/null || true
+          git reset -q -- revision.txt node_modules 2>/dev/null || true
+          # Si lo único que cambia es la fecha del informe, no se guarda (sin commits vacíos cada semana).
+          if git diff --cached --quiet -- . ':(exclude)revisiones/ultima.json' && [ -z "$(git diff --cached -U0 -- revisiones/ultima.json | grep '^[+-] ' | grep -v '"fecha"')" ]; then
+            git reset -q -- revisiones/ultima.json
+          fi
           if git diff --cached --quiet; then
             echo "Sin cambios que guardar."
           else

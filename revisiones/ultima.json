@@ -1,13 +1,14 @@
 {
-  "fecha": "2026-11-11T07:02:19.683Z",
-  "build": 399,
+  "fecha": "2026-11-11T07:12:49.346Z",
+  "build": 400,
   "ok": true,
   "corregidos": [],
   "pendientes": [],
   "comprobaciones": [
     "Código revisado: 12 bloques (todos correctos)",
-    "Versión coherente: build 399 = caché v399.",
+    "Versión coherente: build 400 = caché v400.",
     "Reglas de seguridad: correctas (73 bloques).",
-    "Sincronización en vivo: las 21 colecciones editables están todas conectadas."
+    "Sincronización en vivo: las 21 colecciones editables están todas conectadas.",
+    "Prueba en navegador: la app abre sin errores y sus 131 apartados se abren bien."
   ]
 }
