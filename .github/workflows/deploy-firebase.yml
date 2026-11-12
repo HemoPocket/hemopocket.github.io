@@ -50,11 +50,11 @@ jobs:
             echo "funciones=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Preparar Node 20
+      - name: Preparar Node 22
         if: env.HAS_SA == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Instalar firebase-tools
         if: env.HAS_SA == 'true'

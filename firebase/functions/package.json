@@ -2,7 +2,7 @@
   "name": "hemopocket-functions",
   "description": "Cloud Functions de HemoPocket: aviso por correo de nuevas solicitudes de cuenta",
   "private": true,
-  "engines": { "node": "20" },
+  "engines": { "node": "22" },
   "main": "index.js",
   "dependencies": {
     "firebase-admin": "^12.6.0",

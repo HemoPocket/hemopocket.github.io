@@ -1037,7 +1037,7 @@ function hpAddPick(sec,type){
   if(type==='info') return infoNuevo(sec);
 }
 function _hpAddGuia(sec){
-  var subs=(typeof getSubtypes==='function')?getSubtypes(sec):[];
+  var subs=((typeof getSubtypes==='function')?getSubtypes(sec):[]).filter(function(st){ return !hpSubHidden(sec,st); });
   var box=document.getElementById('add-box'); if(!box)return;
   var head='<button onclick="hpAddClose()" style="position:absolute;top:.5rem;right:.6rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888" aria-label="Cerrar">✕</button>';
   if(!subs.length){
@@ -3710,9 +3710,9 @@ function mxSetM(id){ window._mx.m=(window._mx.m===id?null:id); _mxSave(); mxRend
 function _mxChip(on,label,fn){ return '<button type="button" class="btn btn-sm'+(on?'':' btn-out')+'" onclick="'+fn+'" style="margin:0 6px 6px 0">'+label+'</button>'; }
 
 // === Documentos para el envío de muestras ===
-// Hojas de solicitud, consentimientos, volantes… Se suben como las guías (apartado «mxdocs» de la sección
-// Citodiagnóstico: mismo almacenamiento, sincronización y uso sin conexión) y aquí se abren en el visor,
-// se descargan o se imprimen directamente.
+// Hojas de solicitud, consentimientos, volantes… Solo se muestran aquí. Por dentro usan el mismo sistema que
+// las guías (apartado «mxdocs» de Citodiagnóstico, oculto en «Guías clínicas»): mismo almacenamiento,
+// sincronización y uso sin conexión. Se abren en el visor, se descargan o se imprimen directamente.
 var MX_DOCS_SEC='citodiag', MX_DOCS_SUB='mxdocs', MX_DOCS_NAME='Documentos para el envío de muestras';
 window._mxDocs=window._mxDocs||{items:null,loading:false};
 function _mxDocsK(){ return MX_DOCS_SEC+'_'+MX_DOCS_SUB; }
@@ -3973,7 +3973,7 @@ VIEWS.citomol=()=>`<div class="card">
 const HP_AIPAL_URL='https://alcazerv.shinyapps.io/AIPAL/';
 VIEWS.aipal=()=>`<div class="card">
 <h2>Orientación de leucemia aguda (AI-PAL)</h2>
-<p class="intro">Clasificador de leucemia según la analítica. <strong>Aplicar SÓLO ante sospecha de LMA.</strong></p>
+<p class="intro">Clasificador de leucemia según la analítica. <strong>Aplicar SÓLO ante sospecha de leucemia aguda.</strong></p>
 <div class="btns"><a class="btn" href="${HP_AIPAL_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Abrir AI-PAL ↗</a></div>
 <p style="font-size:12.5px;color:var(--mut);margin:8px 0 0">Herramienta web externa (requiere conexión): <a href="${HP_AIPAL_URL}" target="_blank" rel="noopener noreferrer" style="color:inherit">alcazerv.shinyapps.io/AIPAL</a></p>
 <div class="alert b" style="margin-top:12px;font-size:13px">Predice <strong>LMA, LPA o LLA</strong> con parámetros analíticos de rutina. Desarrollado y validado en <strong>adultos</strong>. Es orientativo: no sustituye a la morfología, la citometría ni la genética.</div>
@@ -5911,6 +5911,9 @@ const DEFAULT_CONTACTS=[
 ];
 const DEFAULT_SUBTYPES={"lf": [{"id": "fol", "name": "Linfoma Folicular", "pdfs": [{"name": "Guía Linfoma Folicular GELTAMO", "url": "guias/Folicular.pdf"}]}, {"id": "lbdcg", "name": "Linfoma B Difuso de Células Grandes (LBDCG)", "pdfs": [{"name": "Guía LDCGB GELTAMO 2022", "url": "guias/LCGBD.pdf"}]}, {"id": "manto", "name": "Linfoma del Manto", "pdfs": [{"name": "Guía Linfoma del Manto GELTAMO", "url": "guias/LCM.pdf"}]}, {"id": "hodgkin", "name": "Linfoma de Hodgkin", "pdfs": [{"name": "Guía Linfoma Hodgkin GELTAMO", "url": "guias/Hodgkin.pdf"}]}, {"id": "marg", "name": "Zona Marginal / MALT", "pdfs": []}, {"id": "burkitt", "name": "Burkitt / High-grade B-cell", "pdfs": [{"name": "Protocolo Burkimab", "url": "guias/BURKIMAB.pdf"}]}, {"id": "tcell", "name": "Linfomas T", "pdfs": [{"name": "Guía Linfoma T-NK GELTAMO 2024", "url": "guias/Linfoma_T_NK_2024.pdf"}]}, {"id": "snc", "name": "Linfoma primario del SNC", "pdfs": [{"name": "Guía Linfoma cerebral primario GELTAMO 2019", "url": "guias/MATRIX.pdf"}]}, {"id": "general", "name": "Generales / Otros esquemas QT", "pdfs": [{"name": "Guía profilaxis SNC LDCGB GELTAMO", "url": "guias/Profilaxis_SNC.pdf"}, {"name": "Normograma de Bleyer", "url": "guias/Bleyer.pdf"}]}], "mm": [{"id": "mm", "name": "Mieloma Múltiple", "pdfs": [{"name": "Guía MM - GEM 2025", "url": "guias/MM.pdf"}]}, {"id": "amyl", "name": "Amiloidosis AL", "pdfs": []}, {"id": "mgus", "name": "GMSI", "pdfs": []}, {"id": "wm", "name": "Macroglobulinemia de Waldenström", "pdfs": [{"name": "Guía Linfoma linfoplasmocítico/MW GELTAMO 2025", "url": "guias/MW.pdf"}]}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "llc": [{"id": "llc", "name": "Leucemia Linfática Crónica", "pdfs": [{"name": "Guía LLC GELL 2024", "url": "guias/LLC.pdf"}]}, {"id": "tric", "name": "Tricoleucemia", "pdfs": []}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "leuc_ag": [{"id": "lma_int", "name": "LMA: QT intensiva", "pdfs": [{"name": "Protocolo PETHEMA LMA FLOW 2026", "url": "guias/FLOW.pdf"}, {"name": "Protocolo PETHEMA LMA CBF 2016 (Enmienda 2019)", "url": "guias/CBF.pdf"}, {"name": "Protocolo PETHEMA LMA NPM1 2017 (Enmienda 2019)", "url": "guias/NPM1.pdf"}, {"name": "Protocolo PETHEMA LPA 2017", "url": "guias/LPA.pdf"}, {"name": "Protocolo PETHEMA LMA MIX 2021", "url": "guias/MIX.pdf"}]}, {"id": "lma_bi", "name": "LMA: QT de baja intensidad", "pdfs": [{"name": "Protocolo LMA Unfit HUNSC", "url": "guias/LMA_UNFIT_HUNSC.pdf"}, {"name": "Protocolo PETHEMA LMA PAPU 2025", "url": "guias/PAPU.pdf"}, {"name": "Protocolo LMA CETLAM", "url": "guias/LMA_CETLAM.pdf"}]}, {"id": "lma_rec", "name": "LMA en recaída", "pdfs": [{"name": "Protocolo LMA-RRon 2024", "url": "guias/LMArron.pdf"}]}, {"id": "lla", "name": "LLA", "pdfs": [{"name": "Protocolo LLA Ph negativo", "url": "guias/LAL.pdf"}, {"name": "Protocolo LLA Ph positivo", "url": "guias/LALPh.pdf"}, {"name": "Protocolo Burkimab", "url": "guias/BURKIMAB.pdf"}, {"name": "LLA en recaída", "url": "guias/LALR.pdf"}]}, {"id": "otros", "name": "Otros", "pdfs": [{"name": "Síndrome de obstrucción sinusoidal 2019", "url": "guias/EVOH.pdf"}]}], "mieloide": [{"id": "smd", "name": "SMD", "pdfs": []}, {"id": "mfp", "name": "Mielofibrosis / NMP", "pdfs": []}, {"id": "lmmc", "name": "LMMC", "pdfs": []}, {"id": "otros", "name": "Otros", "pdfs": []}], "cito": [{"id": "pti", "name": "PTI - Púrpura Trombocitopénica Inmune", "pdfs": [{"name": "Protocolo PTI HUNSC", "url": "guias/PTI_2023.pdf"}, {"name": "Guía Trombocitopenia SEHH 2025", "url": "guias/TROMBOCIT.pdf"}, {"name": "Guía PTI 2023", "url": "guias/GEPTI.pdf"}]}, {"id": "ahai", "name": "AHAI - Anemia Hemolítica Autoinmune", "pdfs": []}, {"id": "erit", "name": "Eritropatología (Falciforme, Talasemias...)", "pdfs": []}, {"id": "aplasia", "name": "Aplasia Medular / HPN", "pdfs": [{"name": "Guía AM", "url": "guias/AM.pdf"}]}, {"id": "general", "name": "Generales / Soporte", "pdfs": []}], "ped": [{"id": "lla_ped", "name": "LLA pediátrica", "pdfs": []}, {"id": "lma_ped", "name": "LMA pediátrica", "pdfs": []}, {"id": "falc_ped", "name": "Anemia Falciforme", "pdfs": [{"name": "Guía Enfermedad de células falciformes SEHOP 2019", "url": "guias/Falciforme.pdf"}]}, {"id": "tal_ped", "name": "Talasemia", "pdfs": [{"name": "Guía Talasemia SEHOP 2015", "url": "guias/Talasemia.pdf"}]}, {"id": "aplasia_ped", "name": "Aplasia Medular", "pdfs": [{"name": "Guía AM", "url": "guias/AM.pdf"}]}, {"id": "general_ped", "name": "Generales / Soporte", "pdfs": []}], "cart": [{"id": "cart_ind", "name": "CAR-T - Indicaciones y manejo", "pdfs": []}, {"id": "biesp", "name": "Anticuerpos Biespecíficos", "pdfs": [{"name": "AcBs HUNSC 2025", "url": "guias/Biespecificos.pdf"}, {"name": "AcBs GELTAMO", "url": "guias/Biespecificos_GELTAMO.pdf"}]}, {"id": "taspe", "name": "TASPE - Trasplante Autólogo", "pdfs": [{"name": "Protocolo TASPE HUNSC", "url": "guias/TASPE.pdf"}, {"name": "Guía acondicionamiento GETH 2024", "url": "guias/geth.pdf"}]}, {"id": "otros", "name": "Otros", "pdfs": []}], "bs": [{"id": "transf_comp", "name": "Transfusión de componentes (CH / Plaquetas / PFC / Crioprecipitados)", "pdfs": []}, {"id": "inmunohem", "name": "Inmunohematología (ABO/Rh, AAII, discrepancias)", "pdfs": [{"name": "Inmunohematología básica y aplicada", "url": "guias/Inmunobanco.pdf"}]}, {"id": "react_transf", "name": "Reacciones transfusionales y hemovigilancia", "pdfs": [{"name": "Estándares en Hemoterapia", "url": "guias/Hemoterapia.pdf"}]}, {"id": "pbm", "name": "Patient Blood Management / Optimización preoperatoria", "pdfs": []}, {"id": "aferesis", "name": "Aféresis terapéutica", "pdfs": []}, {"id": "situ_esp", "name": "Situaciones especiales (neonatos, embarazo, TPH, drepanocitosis)", "pdfs": []}, {"id": "transf_masiva", "name": "Transfusión masiva / Hemorragia crítica", "pdfs": []}, {"id": "autoinmune", "name": "AHAI y panaglutinación", "pdfs": []}, {"id": "general", "name": "Generales / Procedimientos del servicio", "pdfs": []}], "th": [{"id": "anticoag", "name": "Anticoagulación", "pdfs": []}, {"id": "rotem", "name": "ROTEM", "pdfs": [{"name": "Protocolo ROTEM", "url": "guias/ROTEM.pdf"}]}, {"id": "ecmo", "name": "ECMO", "pdfs": [{"name": "Protocolo ECMO", "url": "guias/ECMO.pdf"}]}, {"id": "mat", "name": "MAT (PTT / SHU)", "pdfs": [{"name": "Guía PTT", "url": "guias/PTT.pdf"}]}, {"id": "cid", "name": "CID", "pdfs": []}, {"id": "hemof", "name": "Hemofilia y Coagulopatías", "pdfs": []}, {"id": "saf", "name": "SAF / Trombofilia", "pdfs": []}, {"id": "antic", "name": "Manejo perioperatorio anticoagulación", "pdfs": []}, {"id": "general", "name": "Generales / Reversión", "pdfs": []}], "inf": [{"id": "nf_protocolo", "name": "Neutropenia febril — protocolos", "pdfs": []}, {"id": "ecil", "name": "Guías ECIL (bacterianas y fúngicas)", "pdfs": []}, {"id": "ifi_guias", "name": "IFI / Aspergilosis / Candidiasis", "pdfs": []}, {"id": "profilaxis_atb", "name": "Profilaxis antimicrobiana", "pdfs": []}, {"id": "profilaxis_viral", "name": "Profilaxis viral (VHS/VVZ/CMV/PJP)", "pdfs": []}, {"id": "cmv_pcr", "name": "CMV / EBV / BK virus", "pdfs": []}, {"id": "tuberculosis", "name": "Tuberculosis e inmunodeprimidos", "pdfs": []}, {"id": "inf_general", "name": "Generales / Soporte infeccioso", "pdfs": []}], "uh": [{"id": "leucost", "name": "Leucostasis / Hiperleucocitosis", "pdfs": []}, {"id": "lisis", "name": "Síndrome de lisis tumoral", "pdfs": []}, {"id": "cid_urg", "name": "CID urgente", "pdfs": []}, {"id": "mat_urg", "name": "MAT (PTT / SHU)", "pdfs": []}, {"id": "compr", "name": "Compresión Medular / Sd. VCS", "pdfs": []}, {"id": "sangr", "name": "Sangrado Mayor / Reversión", "pdfs": []}, {"id": "sind_dif", "name": "Síndrome de diferenciación (LPA)", "pdfs": []}, {"id": "general", "name": "Generales / Soporte UCI", "pdfs": []}, {"id": "otros", "name": "Otros", "pdfs": [{"name": "Citología óptica - Woessner", "url": "guias/Citologia.pdf"}, {"name": "Pregrado de Hematología 2017", "url": "guias/Pregrado.pdf"}]}]};
 function getSubtypes(id){return ls.g('subtypes_'+id)||DEFAULT_SUBTYPES[id]||[]}
+// Apartados de guías que se muestran en otra página y no en «Guías clínicas»: los documentos del envío de
+// muestras (Citodiagnóstico) viven solo en la herramienta «Envío de muestras».
+function hpSubHidden(sec,st){ return sec==='citodiag' && !!st && st.id==='mxdocs'; }
 function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 // ── Capa dinámica de SECCIONES de guías (título / visibilidad), compartida ──
 window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catch(e){} try{ Object.keys(map||{}).forEach(function(id){ if(!(id in GUIDES_TITLES) && typeof VIEWS!=='undefined' && !VIEWS['g_'+id]) VIEWS['g_'+id]=function(){return guidesView(id);}; }); }catch(e){} };
@@ -7838,10 +7841,13 @@ h+='</div>';
 if(hpEditUISec(id)){
 h+='<div class="btns" style="margin-bottom:12px"><button class="btn btn-2 btn-sm" onclick="hpAddChooser(\''+id+'\')">➕ Añadir calculadora, algoritmo, info o guía</button></div>';
 }
-if(!subs.length){
+const _visIdx=subs.map((st,i)=>hpSubHidden(id,st)?-1:i).filter(i=>i>=0);
+if(!_visIdx.length){
 h+=canManage?'<div class="alert b">Sin apartados todavía. Crea uno con «➕ Añadir apartado».</div>':'<div class="alert b">Sin contenido por ahora.</div>';
 }else{
 subs.forEach((st,i)=>{
+if(hpSubHidden(id,st))return;
+const _vp=_visIdx.indexOf(i);
 const k=`${id}_${st.id}`;
 const algos=geltamoAlgosFor(id,st);
 let bundled='';
@@ -7855,8 +7861,8 @@ const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out b
 let ctrls='';
 if(canManage){
 const v=st.name.replace(/"/g,'&quot;');
-const upA=i>0?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},-1)" title="Subir apartado" style="background:var(--c2)">↑</button>`:'';
-const dnA=i<subs.length-1?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},1)" title="Bajar apartado" style="background:var(--c2)">↓</button>`:'';
+const upA=_vp>0?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},-1)" title="Subir apartado" style="background:var(--c2)">↑</button>`:'';
+const dnA=_vp<_visIdx.length-1?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},1)" title="Bajar apartado" style="background:var(--c2)">↓</button>`:'';
 ctrls=`<div class="st-edit" style="margin:0 0 6px"><input type="text" value="${v}" data-id="${id}" data-i="${i}" onchange="renameSubtype(this)" onclick="event.stopPropagation()" title="Renombrar apartado">${upA}${dnA}<button onclick="event.stopPropagation();delSubtype('${id}',${i})" title="Eliminar apartado">×</button></div>`;
 }
 h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span class="ar">▶</span></div>
@@ -7875,7 +7881,8 @@ function toggleEditGuide(id){_editGuide=_editGuide===id?null:id;go('g_'+id)}
 // Reordenar apartados (subir/bajar). El orden es el del array, que se sincroniza tal cual.
 async function moveSubtype(id,i,dir){
 const subs=getSubtypes(id);
-const j=i+dir;if(j<0||j>=subs.length)return;
+let j=i+dir;while(j>=0&&j<subs.length&&hpSubHidden(id,subs[j]))j+=dir;
+if(j<0||j>=subs.length)return;
 const t=subs[i];subs[i]=subs[j];subs[j]=t;
 setSubtypes(id,subs);
 go('g_'+id);
@@ -9209,7 +9216,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 409;
+const HP_BUILD = 410;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
