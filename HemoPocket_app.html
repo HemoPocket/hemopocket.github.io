@@ -2499,76 +2499,76 @@ function copyR2ISS(){ copyShortRes('r2_res','R2-ISS'); }
 
 VIEWS.eln24=()=>`<div class="card">
 <h2>ELN 2024 – LMA (terapias de baja intensidad)</h2>
-<p class="intro">Estratificación pronóstica ELN 2024 específica para LMA tratada con terapias de <strong>baja intensidad</strong> (HMA + venetoclax, HMA en monoterapia, dosis bajas de citarabina). Marca TODAS las anomalías presentes; la categoría final es la peor (Adverso &gt; Intermedio &gt; Favorable).</p>
-<h3>Lesiones favorables</h3>
-<label class="chk-card"><input type="checkbox" id="el24_npm" onchange="calcELN24()"><span>NPM1 mutado <small>(Favorable solo si SIN FLT3-ITD)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>IDH2 mutado <small>(Favorable)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>DDX41 mutado (germinal o somático) <small>(Favorable)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>t(8;21) / RUNX1::RUNX1T1 <small>(Favorable)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN24()"><span>inv(16) o t(16;16) / CBFB::MYH11 <small>(Favorable)</small></span></label>
-<h3>Lesiones adversas</h3>
-<label class="chk-card"><input type="checkbox" id="el24_flt" onchange="calcELN24()"><span>FLT3-ITD <small>(Adverso, anula favorable de NPM1)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>TP53 mutado <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>KRAS / NRAS mutado <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>−5 / del(5q) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>−7 / del(7q) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>−17 / abn(17p) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>inv(3)(q21q26) o t(3;3) / MECOM(EVI1) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>t(6;9) / DEK::NUP214 <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>KMT2A reordenado (excepto KMT2A-PTD) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>MECOM(EVI1) reordenado <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN24()"><span>Cariotipo complejo (≥3 anomalías) <small>(Adverso)</small></span></label>
+<p class="intro">Riesgo genético ELN 2024 para LMA de nuevo diagnóstico tratada con hipometilantes (HMA) en monoterapia, HMA + venetoclax o azacitidina + ivosidenib (LMA con IDH1). Solo cuentan TP53, FLT3-ITD, NRAS, KRAS, NPM1, IDH2, IDH1 y DDX41: la citogenética (incluidos el cariotipo complejo y la t(8;21)) no cambia la categoría. El 80-90 % de las LMA con TP53 mutado tienen cariotipo complejo: buscar siempre TP53.</p>
+<div class="fld"><label class="lbl">Tratamiento</label><select id="el24_tto" onchange="calcELN24()"><option value="hma">HMA en monoterapia o HMA + venetoclax</option><option value="ivo">Azacitidina + ivosidenib (LMA con IDH1)</option></select></div>
+<label class="chk-card"><input type="checkbox" data-e24="prev" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>Ya ha recibido un HMA <small>La clasificación no se aplica.</small></span></label>
+<h3>Mutaciones</h3>
+<label class="chk-card"><input type="checkbox" data-e24="tp53" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>TP53 mutado <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-e24="flt3" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>FLT3-ITD <small>Con NRAS/KRAS: mutaciones de señalización.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-e24="nras" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>NRAS mutado</span></label>
+<label class="chk-card"><input type="checkbox" data-e24="kras" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>KRAS mutado</span></label>
+<label class="chk-card"><input type="checkbox" data-e24="npm1" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>NPM1 mutado <small>Favorable sin mutaciones de señalización.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-e24="idh2" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>IDH2 mutado <small>Favorable sin mutaciones de señalización.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-e24="idh1" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>IDH1 mutado <small>Favorable con azacitidina + ivosidenib, aunque haya mutaciones de señalización.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-e24="ddx41" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN24()"><span>DDX41 mutado <small>(Favorable)</small> <small>Con VAF próxima al 50 %, considerar mutación germinal.</small></span></label>
 <div id="el24_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="copyELN24()">Copiar evolución</button>
 <button class="btn btn-out btn-sm" onclick="resetELN24()">Reiniciar</button></div>
-<div class="ref">Döhner H, et al. Genetic risk classification for adults with acute myeloid leukaemia treated with non-intensive therapy: the 2024 ELN recommendations. Blood. 2024;144(21):2169-2179.</div>
+<div class="ref">Döhner H, et al. Genetic risk classification for adults with AML receiving less-intensive therapies: the 2024 ELN recommendations. Blood. 2024;144(21):2169-2173 (tablas 1 y 2).</div>
 </div>`;
 
+// ELN 2024 (baja intensidad): tabla 1 del artículo y sus notas (* IDH1 con AZA + IVO, † DDX41, ‡ otras alteraciones).
 function calcELN24(){
-const npm=$('el24_npm')&&$('el24_npm').checked,flt=$('el24_flt')&&$('el24_flt').checked;
-const cats=[];
-if(npm&&!flt)cats.push('F');
-if(flt)cats.push('A');
-document.querySelectorAll('#content .chk-card input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});
-let f='I';
-if(cats.length===0)f='I';
-else if(cats.includes('A'))f='A';
-else if(cats.includes('F'))f='F';
-const lbl={F:'Favorable',I:'Intermedio',A:'Adverso'};
-const cls={F:'lo',I:'md',A:'hi'};
-const inf={
-F:'<div class="res-s">Mediana SG con HMA+VEN ~24-30 meses. Buena respuesta esperada a azacitidina + venetoclax.</div>',
-I:'<div class="res-s">Mediana SG con HMA+VEN ~12-18 meses. Considerar protocolos de investigación si elegible.</div>',
-A:'<div class="res-s">Mediana SG con HMA+VEN ~5-10 meses. <strong>Pronóstico desfavorable</strong> incluso con baja intensidad. Considerar ensayo clínico o terapias dirigidas (TP53: magrolimab/eprenetapopt; FLT3: gilteritinib + AZA).</div>'
-};
-const el=$('el24_res');el.style.display='block';el.className='res '+cls[f];
-el.innerHTML=`<div class="res-h"><span class="score">ELN 2024</span><span>Riesgo ${lbl[f]}</span></div>${inf[f]}`;
+  const g={}; document.querySelectorAll('#content input[data-e24]').forEach(function(c){ g[c.dataset.e24]=c.checked; });
+  const tto=($('el24_tto')||{}).value||'hma';
+  const el=$('el24_res'); el.style.display='block';
+  if(g.prev){ el.className='res md'; el.innerHTML='<div class="res-h"><span class="score">ELN 2024</span><span>No aplicable</span></div><div class="res-s">La clasificación no se aplica a pacientes que ya han recibido un HMA.</div>'; return; }
+  const sig=[]; if(g.flt3) sig.push('FLT3-ITD'); if(g.nras) sig.push('NRAS'); if(g.kras) sig.push('KRAS');
+  let cat, why, os, note='';
+  if(g.tp53){
+    cat='A'; why='TP53 mutado.'; os='5-8 meses';
+    if(g.ddx41) note='La tabla no pone condiciones a DDX41, pero el artículo asocia TP53 mutado «universalmente» a riesgo adverso; se aplica adverso.';
+  } else if(g.ddx41){
+    cat='F'; why='DDX41 mutado.'; os='> 24 meses';
+  } else if(g.idh1&&tto==='ivo'){
+    cat='F'; why='IDH1 mutado tratado con azacitidina + ivosidenib (con o sin mutaciones de señalización), TP53 no mutado.'; os='29 meses';
+  } else if(sig.length){
+    cat='I'; os='12-13 meses';
+    why=(g.npm1?'NPM1 mutado':(g.idh2?'IDH2 mutado':'Otras alteraciones'))+' con '+sig.join(', ')+', TP53 no mutado.';
+  } else {
+    cat='F';
+    if(g.npm1){ why='NPM1 mutado sin FLT3-ITD, NRAS ni KRAS, TP53 no mutado.'; os='39 meses'; }
+    else if(g.idh2){ why='IDH2 mutado sin FLT3-ITD, NRAS ni KRAS, TP53 no mutado.'; os='37 meses'; }
+    else { why='Otras alteraciones citogenéticas y/o moleculares sin FLT3-ITD, NRAS ni KRAS, TP53 no mutado.'; os='> 24 meses'; note='Asignación provisional: para muchas de estas alteraciones no hay datos y se clasifican según haya o no mutaciones de señalización.'; }
+  }
+  if(cat==='I'&&!g.npm1&&!g.idh2) note='Asignación provisional: para muchas de estas alteraciones no hay datos y se clasifican según haya o no mutaciones de señalización.';
+  if(g.idh1&&tto!=='ivo'&&cat!=='A') note=(note?note+' ':'')+'IDH1: el riesgo favorable de la tabla es solo con azacitidina + ivosidenib; con HMA ± venetoclax cuenta como «otras alteraciones».';
+  const lbl={F:'Riesgo favorable',I:'Riesgo intermedio',A:'Riesgo adverso'}, cls={F:'lo',I:'md',A:'hi'};
+  el.className='res '+cls[cat];
+  el.innerHTML='<div class="res-h"><span class="score">ELN 2024</span><span>'+lbl[cat]+'</span></div>'
+    +'<div class="res-s">'+why+' Mediana de supervivencia publicada: '+os+'.</div>'
+    +(note?'<div class="res-s" style="margin-top:6px"><b>Atención:</b> '+note+'</div>':'');
 }
 function resetELN24(){
-['el24_npm','el24_flt'].forEach(id=>{const e=$(id);if(e){e.checked=false;e.parentElement.classList.remove('checked')}});
-document.querySelectorAll('#content .chk-card input[data-r]').forEach(cb=>{cb.checked=false;cb.parentElement.classList.remove('checked')});
-$('el24_res').style.display='none';
+  document.querySelectorAll('#content input[data-e24]').forEach(function(c){ c.checked=false; c.parentElement.classList.remove('checked'); });
+  const t=$('el24_tto'); if(t) t.value='hma';
+  $('el24_res').style.display='none';
 }
 function copyELN24(){
-const r=$('el24_res');if(r.style.display==='none'){toast('Selecciona criterios');return}
-const sel=[];
-document.querySelectorAll('#content .chk-card input:checked').forEach(cb=>{
-const span=cb.parentElement.querySelector('span');
-const t=span.cloneNode(true);t.querySelectorAll('small').forEach(s=>s.remove());
-sel.push(t.textContent.trim());
-});
-const result=r.textContent.replace(/\s+/g,' ').trim();
-const hallazgos=sel.length?sel.join('; '):'sin alteraciones moleculares específicas seleccionadas';
-const tpl=`Estratificación ELN 2024 – LMA con tratamiento de baja intensidad
+  const r=$('el24_res'); if(!r||r.style.display==='none'){ toast('Calcula primero'); return; }
+  const sel=[];
+  document.querySelectorAll('#content input[data-e24]:checked').forEach(function(cb){ const t=cb.parentElement.querySelector('span').cloneNode(true); t.querySelectorAll('small').forEach(function(x){ x.remove(); }); sel.push(t.textContent.trim()); });
+  const tsel=$('el24_tto'), tto=tsel?tsel.options[tsel.selectedIndex].text:'';
+  const result=r.textContent.replace(/\s+/g,' ').trim();
+  const hallazgos=sel.length?sel.join('; '):'sin mutaciones de TP53, FLT3-ITD, NRAS, KRAS, NPM1, IDH2, IDH1 ni DDX41';
+  const tpl=`Estratificación ELN 2024 – LMA con tratamiento de baja intensidad
 ─────────────────────────────────────────────
-{paciente}Se aplica la clasificación de riesgo ELN 2024 específica para pacientes con leucemia mieloide aguda no candidatos a quimioterapia intensiva (tratamiento con HMA + venetoclax). Hallazgos del paciente: {hallazgos}.
+{paciente}Clasificación genética ELN 2024 para LMA tratada con terapias de baja intensidad ({tto}). Hallazgos: {hallazgos}.
 
-Categoría obtenida: {categoria}.
-
-Esta categoría informa la expectativa de respuesta al esquema azacitidina/decitabina + venetoclax y orienta la valoración de ensayos clínicos o terapias dirigidas en pacientes de pronóstico desfavorable.
+Resultado: {categoria}
 
 [Fecha: {fecha}]`;
-copy(tpl, null, {paciente:patientHeader(), hallazgos:hallazgos, categoria:result, fecha:new Date().toLocaleDateString('es-ES')});
+  copy(tpl, null, {paciente:patientHeader(), tto:tto, hallazgos:hallazgos, categoria:result, fecha:new Date().toLocaleDateString('es-ES')});
 }
 
 // === FERRARA: aptitud para QT intensiva (LMA) ===
@@ -9464,7 +9464,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 416;
+const HP_BUILD = 417;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
