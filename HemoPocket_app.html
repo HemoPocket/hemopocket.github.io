@@ -1915,53 +1915,77 @@ ref:"Hasenclever D, Diehl V. A prognostic score for advanced Hodgkin's disease. 
 
 VIEWS.eln=()=>`<div class="card">
 <h2>ELN 2022 – LMA</h2>
-<p class="intro">Estratificación pronóstica de la European LeukemiaNet 2022 para Leucemia Mieloide Aguda. Marca TODAS las anomalías presentes; la categoría final es la peor (Adverso &gt; Intermedio &gt; Favorable).</p>
-<h3>Citogenética / Reordenamientos</h3>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>t(8;21)(q22;q22.1) / RUNX1::RUNX1T1 <small>(Favorable)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>inv(16)(p13.1q22) o t(16;16) / CBFB::MYH11 <small>(Favorable)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="I" onchange="calcELN()"><span>t(9;11)(p21.3;q23.3) / MLLT3::KMT2A <small>(Intermedio)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>t(6;9)(p23;q34.1) / DEK::NUP214 <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>t(v;11q23.3) / KMT2A reordenado (excepto t(9;11) y KMT2A-PTD) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>t(9;22)(q34.1;q11.2) / BCR::ABL1 <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>t(8;16)(p11;p13) / KAT6A::CREBBP <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>inv(3)(q21.3q26.2) o t(3;3) / GATA2,MECOM(EVI1) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>t(3q26.2;v) / MECOM(EVI1) reordenado <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>−5 o del(5q); −7; −17 o abn(17p) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>Cariotipo complejo (≥3 anomalías sin t/inv recurrentes favorables) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>Cariotipo monosómico <small>(Adverso)</small></span></label>
+<p class="intro">Riesgo genético al diagnóstico de la European LeukemiaNet 2022 (tabla 6), con las notas de la tabla aplicadas. Marca todas las alteraciones presentes. Basada en pacientes con quimioterapia intensiva; no se aplica a la LPA. El riesgo inicial puede cambiar según la ERM.</p>
+<h3>Citogenética / reordenamientos</h3>
+<label class="chk-card"><input type="checkbox" data-el="t821" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(8;21)(q22;q22.1) / RUNX1::RUNX1T1 <small>(Favorable)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="inv16" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>inv(16)(p13.1q22) o t(16;16)(p13.1;q22) / CBFB::MYH11 <small>(Favorable)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="t911" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(9;11)(p21.3;q23.3) / MLLT3::KMT2A <small>(Intermedio)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="t69" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(6;9)(p23.3;q34.1) / DEK::NUP214 <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="kmt2a" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(v;11q23.3) / KMT2A reordenado <small>(Adverso)</small> <small>Excluye t(9;11) y la duplicación en tándem parcial (KMT2A-PTD).</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="bcr" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(9;22)(q34.1;q11.2) / BCR::ABL1 <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="t816" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(8;16)(p11.2;p13.3) / KAT6A::CREBBP <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="inv3" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>inv(3)(q21.3q26.2) o t(3;3)(q21.3;q26.2) / GATA2, MECOM(EVI1) <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="mecom" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>t(3q26.2;v) / MECOM(EVI1) reordenado <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="m57" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>−5 o del(5q); −7; −17/abn(17p) <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="ck" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>Cariotipo complejo <small>(Adverso)</small> <small>≥ 3 anomalías cromosómicas no relacionadas sin otra alteración recurrente que defina entidad. No cuenta el hiperdiploide con ≥ 3 trisomías (o polisomías) sin anomalías estructurales.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="mk" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>Cariotipo monosómico <small>(Adverso)</small> <small>≥ 2 monosomías distintas (sin contar −X o −Y), o 1 monosomía autosómica + ≥ 1 anomalía estructural. No se aplica a la LMA-CBF.</small></span></label>
 <h3>Mutaciones</h3>
-<label class="chk-card"><input type="checkbox" id="el_npm" onchange="calcELN()"><span>NPM1 mutado</span></label>
-<label class="chk-card"><input type="checkbox" id="el_flt" onchange="calcELN()"><span>FLT3-ITD presente <small>(independiente del ratio alélico desde 2022)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="F" onchange="calcELN()"><span>CEBPA mutación bZIP in-frame (mono o bialélica) <small>(Favorable)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>TP53 mutado (VAF ≥ 10%) <small>(Adverso)</small></span></label>
-<label class="chk-card"><input type="checkbox" data-r="A" onchange="calcELN()"><span>ASXL1 / BCOR / EZH2 / RUNX1 / SF3B1 / SRSF2 / STAG2 / U2AF1 / ZRSR2 mutado <small>(Adverso)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="npm1" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>NPM1 mutado <small>Favorable sin FLT3-ITD; intermedio con FLT3-ITD; adverso si hay citogenética adversa.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="flt3" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>FLT3-ITD <small>Independiente del ratio alélico.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="cebpa" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>CEBPA con mutación in-frame en bZIP (mono o bialélica) <small>(Favorable)</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="mr" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>ASXL1, BCOR, EZH2, RUNX1, SF3B1, SRSF2, STAG2, U2AF1 y/o ZRSR2 mutado <small>(Adverso)</small> <small>No cuentan como adversas si coinciden con un subtipo favorable.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="tp53" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>TP53 mutado (VAF ≥ 10 %) <small>(Adverso)</small> <small>Mono o bialélica.</small></span></label>
+<label class="chk-card"><input type="checkbox" data-el="kit" onchange="this.parentElement.classList.toggle('checked',this.checked);calcELN()"><span>KIT mutado <small>No cambia la categoría de la LMA-CBF.</small></span></label>
 <div id="el_res" class="res" style="display:none"></div>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="copyELN()">Copiar evolución</button>
 <button class="btn btn-out btn-sm" onclick="resetELN()">Reiniciar</button></div>
-<div class="ref">Döhner H, et al. Diagnosis and management of AML in adults: 2022 recommendations from an international expert panel on behalf of the ELN. Blood. 2022;140(12):1345-1377.</div>
+<div class="ref">Döhner H, et al. Diagnosis and management of AML in adults: 2022 recommendations from an international expert panel on behalf of the ELN. Blood. 2022;140(12):1345-1377 (tabla 6 y sus notas).</div>
 </div>`;
 
+// ELN 2022: categoría según la tabla 6 y sus notas (‡ KIT/FLT3 en CBF, § NPM1 + citogenética adversa,
+// ¶ precedencia de t(9;11), ** y †† definiciones de cariotipo complejo y monosómico, ‡‡ genes MR con subtipo favorable).
 function calcELN(){
-const npm=$('el_npm')&&$('el_npm').checked,flt=$('el_flt')&&$('el_flt').checked;
-const cats=[];
-if(npm&&!flt)cats.push('F');
-if(npm&&flt)cats.push('I');
-if(!npm&&flt)cats.push('I');
-document.querySelectorAll('#content .chk-card input[data-r]').forEach(cb=>{if(cb.checked)cats.push(cb.dataset.r)});
-let f='I';
-if(cats.length===0)f='I';
-else if(cats.includes('A'))f='A';
-else if(cats.includes('I'))f='I';
-else if(cats.includes('F'))f='F';
-const lbl={F:'Riesgo Favorable',I:'Riesgo Intermedio',A:'Riesgo Adverso'};
-const cls={F:'lo',I:'md',A:'hi'};
-const inf={
-F:'<div class="res-s">SG 5 años ~65%</div>',
-I:'<div class="res-s">SG 5 años ~40%</div>',
-A:'<div class="res-s">SG 5 años ~10-20%</div>'
-};
-const el=$('el_res');el.style.display='block';el.className='res '+cls[f];
-el.innerHTML=`<div class="res-h"><span class="score">ELN 2022</span><span>${lbl[f]}</span></div>${inf[f]}`;
+  const g={}; document.querySelectorAll('#content input[data-el]').forEach(function(c){ g[c.dataset.el]=c.checked; });
+  const any=Object.keys(g).some(function(k){ return g[k]; });
+  const el=$('el_res'); if(!any){ el.style.display='none'; return; }
+  const why=[], doubt=[];
+  const cbf=g.t821||g.inv16;
+  const adRearr=['t69','kmt2a','bcr','t816','inv3','mecom'].filter(function(k){ return g[k]; });
+  let ck=g.ck, mk=g.mk, mr=g.mr, tp53=g.tp53, flt3=g.flt3;
+  let cat='I';
+  if(cbf){
+    if(ck){ ck=false; why.push('Con t(8;21) o inv(16) no se considera cariotipo complejo: la definición excluye las alteraciones recurrentes que definen entidad.'); }
+    if(mk){ mk=false; why.push('El cariotipo monosómico excluye la LMA-CBF.'); }
+    if(flt3||g.kit){ flt3=false; why.push('KIT y/o FLT3 concurrentes no cambian la categoría de la LMA-CBF.'); }
+    if(mr){ mr=false; why.push('Las mutaciones relacionadas con mielodisplasia no cuentan como adversas con un subtipo favorable.'); }
+    const rest=[]; if(g.m57) rest.push('−5/del(5q), −7 o −17/abn(17p)'); if(tp53) rest.push('TP53 mutado'); if(adRearr.length) rest.push('otro reordenamiento adverso');
+    if(rest.length){ cat='A'; doubt.push('LMA-CBF con '+rest.join(', ')+': la ELN no la exceptúa; se aplica la categoría adversa.'); }
+    else cat='F';
+  } else if(g.t911){
+    if(ck){ ck=false; why.push('Con t(9;11) no se considera cariotipo complejo (alteración recurrente que define entidad).'); }
+    if(mr||tp53){ mr=false; tp53=false; why.push('La t(9;11) tiene precedencia sobre mutaciones adversas raras concurrentes.'); }
+    const rest=[]; if(g.m57) rest.push('−5/del(5q), −7 o −17/abn(17p)'); if(mk) rest.push('cariotipo monosómico'); if(adRearr.length) rest.push('otro reordenamiento adverso');
+    if(rest.length){ cat='A'; doubt.push('t(9;11) con '+rest.join(', ')+': la precedencia de la t(9;11) solo se refiere a mutaciones; se aplica la categoría adversa.'); }
+    else cat='I';
+  } else {
+    const adCyto=adRearr.length>0||g.m57||ck||mk;
+    const favSub=(g.npm1&&!flt3)||g.cebpa;
+    if(favSub&&mr){ mr=false; why.push('Las mutaciones relacionadas con mielodisplasia no cuentan como adversas con un subtipo favorable (NPM1 sin FLT3-ITD o CEBPA bZIP).'); }
+    if(g.npm1&&adCyto) why.push('NPM1 mutado con citogenética adversa = riesgo adverso.');
+    if(g.npm1&&flt3&&mr) doubt.push('NPM1 con FLT3-ITD y mutaciones relacionadas con mielodisplasia: la ELN dice que su efecto en la LMA con NPM1 está en estudio; se aplica la categoría adversa.');
+    if(g.cebpa&&(adCyto||tp53)) doubt.push('CEBPA bZIP con citogenética adversa o TP53: la ELN no lo especifica; se aplica la categoría adversa.');
+    if(g.cebpa&&flt3&&!adCyto&&!tp53) doubt.push('CEBPA bZIP con FLT3-ITD: la ELN no lo especifica; se aplica la categoría intermedia (FLT3-ITD sin NPM1).');
+    if(adCyto||tp53||mr) cat='A';
+    else if(flt3) cat='I';
+    else if(favSub) cat='F';
+    else { cat='I'; if(!g.kit) why.push('Alteraciones no clasificadas como favorables ni adversas (o sin alteraciones) = riesgo intermedio.'); }
+    if(cat==='I'&&flt3) why.push('FLT3-ITD (con o sin NPM1) sin otras lesiones adversas = riesgo intermedio.');
+  }
+  const lbl={F:'Riesgo favorable',I:'Riesgo intermedio',A:'Riesgo adverso'}, cls={F:'lo',I:'md',A:'hi'};
+  el.style.display='block'; el.className='res '+cls[cat];
+  el.innerHTML='<div class="res-h"><span class="score">ELN 2022</span><span>'+lbl[cat]+'</span></div>'
+    +(why.length?'<div class="res-s">'+why.map(function(t){ return '• '+t; }).join('<br>')+'</div>':'')
+    +(doubt.length?'<div class="res-s" style="margin-top:6px"><b>Atención:</b> '+doubt.join(' ')+'</div>':'');
 }
 function resetELN(){document.querySelectorAll('#content .chk-card input').forEach(cb=>{cb.checked=false;cb.parentElement.classList.remove('checked')});$('el_res').style.display='none'}
 function copyELN(){ copyShortRes('el_res','ELN 2022'); }
@@ -9440,7 +9464,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 415;
+const HP_BUILD = 416;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
