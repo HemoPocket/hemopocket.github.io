@@ -262,6 +262,10 @@ body.view-home .app-footer{padding-bottom:18px}
 .mx-accf label{display:block;font-size:12px;font-weight:600}
 .mx-accf input{display:block;width:100%;margin-top:3px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--inp);color:var(--txt);font-size:14px;font-family:inherit}
 .mx-accb{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.mx-doc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--card);margin-bottom:6px}
+.mx-docn{flex:1 1 170px;min-width:0;text-align:left;background:none;border:0;padding:0;font:inherit;font-size:13.5px;font-weight:600;color:var(--txt);cursor:pointer}
+.mx-docn:hover{text-decoration:underline}
+.mx-docb{display:flex;gap:6px;flex-wrap:wrap}
 .mx-hl{background:rgba(245,158,11,.26);padding:0 3px;border-radius:3px}
 .mx-loc{font-size:12.5px;color:var(--mut);margin-top:4px}
 .mx-loc b{color:var(--txt);font-weight:600}
@@ -1346,6 +1350,7 @@ const MENU=[
 ]},
 {h:'CITODIAGNÓSTICO',items:[
 {id:'mxenvio',name:'Envío de muestras (leucemias agudas)',kw:'hudngc negrin envio de muestras tubos que enviar donde enviar medula osea sangre periferica edta heparina citometria emr enfermedad minima residual pcr ngs biobanco platafolma salamanca negrin reference asparaginasa niveles actividad 0567 lma lla lpa flow cbf npm1 mix papu rr-on lal-2025 lal ph burkimab reevaluacion diagnostico fin de induccion consolidacion tph recaida pethema citodiagnostico tubos para estudios platafo lma plataforma web hoja papel solicitud consentimiento hemograma blastos nuevo diagnostico gran canaria',new:'2026-11-11'},
+{id:'aipal',name:'Orientación de leucemia aguda (AI-PAL)',kw:'aipal ai-pal ai pal orientacion leucemia aguda clasificador analitica inteligencia artificial machine learning lma lpa lla prediccion subtipo sospecha alcazer lancet digital health shinyapps web',new:'2026-11-12'},
 {id:'citomol',name:'Seguimiento molecular / EMR (LMC, mieloma, LLC)',kw:'seguimiento molecular emr enfermedad minima residual pcr npm1 cbf runx1 cbfb pml rara lma lpa flt3 wt1 citometria de flujo lla bcr abl lmc mieloma llc pethema eln monitorizacion',new:'2026-06-04'},
 {id:'citoclas',name:'Clasificación LMA (ICC/OMS) y linfomas',kw:'clasificacion lma leucemia mieloide aguda icc oms who 2022 linfomas npm1 tp53 mielodisplasia relacionada cariotipo molecular blastos categorias entidades',new:'2026-06-04'},
 {id:'g_citodiag',name:'Guías clínicas',kw:'guias clinicas citodiagnostico citogenetica inmunofenotipo fish biologia molecular ngs protocolo pdf'}
@@ -3693,7 +3698,7 @@ function _mxPdf(p,pg,txt){ return '<a href="#" onclick="event.stopPropagation();
 function _mxProtoL25(){ return MX_PROTOS.find(function(x){return x.id==='lal25';}); }
 const MX_ARW='<svg class="mx-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-VIEWS.mxenvio=function(){ try{ window._mxAcc.show=false; window._mxAcc.edit=false; }catch(e){}
+VIEWS.mxenvio=function(){ try{ window._mxAcc.show=false; window._mxAcc.edit=false; window._mxDocs.items=null; }catch(e){}
   _mxLoad();
   return '<div class="card"><h2>Envío de muestras · leucemias agudas</h2><div id="mx_body"></div></div>';
 };
@@ -3703,6 +3708,73 @@ function mxSetP(id){ window._mx.p=id; window._mx.m=null; var p=_mxP(); window._m
 function mxSetS(id){ window._mx.s=id; var p=_mxP(), m=p&&p.m.find(function(x){return x.id===window._mx.m;}); if(m&&!_mxOk(m)) window._mx.m=null; _mxSave(); mxRender(); }
 function mxSetM(id){ window._mx.m=(window._mx.m===id?null:id); _mxSave(); mxRender(); if(window._mx.m){ var r=document.getElementById('mx_row_'+id); if(r&&r.scrollIntoView) try{ r.scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){} } }
 function _mxChip(on,label,fn){ return '<button type="button" class="btn btn-sm'+(on?'':' btn-out')+'" onclick="'+fn+'" style="margin:0 6px 6px 0">'+label+'</button>'; }
+
+// === Documentos para el envío de muestras ===
+// Hojas de solicitud, consentimientos, volantes… Se suben como las guías (apartado «mxdocs» de la sección
+// Citodiagnóstico: mismo almacenamiento, sincronización y uso sin conexión) y aquí se abren en el visor,
+// se descargan o se imprimen directamente.
+var MX_DOCS_SEC='citodiag', MX_DOCS_SUB='mxdocs', MX_DOCS_NAME='Documentos para el envío de muestras';
+window._mxDocs=window._mxDocs||{items:null,loading:false};
+function _mxDocsK(){ return MX_DOCS_SEC+'_'+MX_DOCS_SUB; }
+function mxDocsHtml(){
+  var d=window._mxDocs, k=_mxDocsK(), h='<div class="mx-sec">Documentos para el envío</div>';
+  if(hpEditUISec(MX_DOCS_SEC)){
+    // Modo edición: la lista de gestión de las guías (ordenar, renombrar, eliminar) y el botón de subida.
+    d.items=null;
+    return h+'<div class="btns" style="margin:0 0 6px"><button type="button" class="btn btn-out btn-sm" onclick="mxDocsUpload()">Subir documento (PDF)</button></div>'
+      +'<div class="mx-mut" style="font-size:12px">Se publican como las guías, para todo el equipo. No subir documentos con datos de pacientes.</div>'
+      +'<div id="pdfs_'+k+'" class="pdf-list" style="margin-top:6px"></div>';
+  }
+  var hint=(window.HemoCloud&&HemoCloud.canEdit&&HemoCloud.canEdit(MX_DOCS_SEC))?'<div class="mx-mut" style="font-size:12px;margin-top:2px">Para añadir, cambiar o quitar documentos, activa el modo edición (lápiz de la barra superior).</div>':'';
+  if(d.items===null) return h+'<div class="mx-mut" style="font-size:12.5px">Buscando documentos…</div>'+hint;
+  if(!d.items.length) return h+'<div class="mx-mut" style="font-size:12.5px">Sin documentos todavía.</div>'+hint;
+  var b=function(txt,fn){ return '<button type="button" class="btn btn-out btn-sm" onclick="'+fn+'">'+txt+'</button>'; };
+  return h+d.items.map(function(it,i){
+    return '<div class="mx-doc"><button type="button" class="mx-docn" onclick="mxDocOpen('+i+')">'+_hpEsc(it.name)+'</button>'
+      +'<span class="mx-docb">'+b('Ver','mxDocOpen('+i+')')+b('Descargar','mxDocDown('+i+')')+b('Imprimir','mxDocPrint('+i+')')+'</span></div>';
+  }).join('')+hint;
+}
+// Tras pintar la herramienta: carga la lista (una vez) o, en modo edición, la lista de gestión.
+function _mxDocsAfter(){
+  var d=window._mxDocs, k=_mxDocsK();
+  if(hpEditUISec(MX_DOCS_SEC)){ try{ loadPDFs(k,MX_DOCS_SEC); }catch(e){} return; }
+  if(d.items===null&&!d.loading) _mxDocsLoad().then(function(){ if(S.view==='mxenvio') mxRender(); });
+}
+async function _mxDocsLoad(){
+  var d=window._mxDocs; d.loading=true;
+  try{
+    var k=_mxDocsK(), keys=(await idb.keys()).filter(function(x){ return typeof x==='string'&&x.indexOf(k+'|')===0; });
+    var st=(getSubtypes(MX_DOCS_SEC)||[]).find(function(s){ return s.id===MX_DOCS_SUB; })||{};
+    var hidden=Array.isArray(st.hidden)?st.hidden:[], names=(st.names&&typeof st.names==='object')?st.names:{}, vis=(st.vis&&typeof st.vis==='object')?st.vis:{};
+    keys=keys.filter(function(x){ var id=_guideIdent(x); return hidden.indexOf(id)===-1&&hpVisiblePriv({vis:vis[id]}); });
+    var items=(await Promise.all(keys.map(async function(x){ var r=await idb.get(x), id=_guideIdent(x); return r?{key:x,ident:id,name:names[id]||r.name||'Documento'}:null; }))).filter(Boolean);
+    d.items=_sortGuides(items,st.order);
+  }catch(e){ d.items=[]; }
+  d.loading=false;
+}
+async function _mxDocBlob(i){
+  var it=(window._mxDocs.items||[])[i]; if(!it) return null;
+  var r=null; try{ r=await idb.get(it.key); }catch(e){}
+  if(!r||!r.blob){ toast('Este documento no está descargado en el dispositivo: pulsa «Actualizar» con conexión'); return null; }
+  return {blob:new Blob([r.blob],{type:'application/pdf'}),name:it.name};
+}
+function mxDocOpen(i){ var it=(window._mxDocs.items||[])[i]; if(it) openPDF(encodeURIComponent(it.key)); }
+async function mxDocDown(i){ var x=await _mxDocBlob(i); if(x){ hpDownloadBlob(x.blob,x.name); toast('Descargado'); } }
+async function mxDocPrint(i){ var x=await _mxDocBlob(i); if(x) hpPrintBlob(x.blob,x.name); }
+// El apartado debe existir en la sección para poder ordenar, renombrar u ocultar sus documentos.
+async function _mxDocsEnsureSub(){
+  try{
+    var subs=(getSubtypes(MX_DOCS_SEC)||[]).slice();
+    if(subs.some(function(s){ return s.id===MX_DOCS_SUB; })) return;
+    subs.push({id:MX_DOCS_SUB,name:MX_DOCS_NAME}); setSubtypes(MX_DOCS_SEC,subs);
+    await _hpPropagaSubtipos(MX_DOCS_SEC,subs,'Apartado de documentos creado');
+  }catch(e){}
+}
+function mxDocsUpload(){
+  if(!hpEditUISec(MX_DOCS_SEC)){ toast('Activa el modo edición'); return; }
+  _mxDocsEnsureSub();              // en segundo plano: el selector de archivo debe abrirse en el mismo gesto
+  hcUpload(MX_DOCS_SEC,MX_DOCS_SUB);
+}
 
 // Enlace a la plataforma PLATAFO-LMA (se abre en otra pestaña).
 var MX_PLAT_LINK='<a class="mx-url" href="https://www.platafolma.org" target="_blank" rel="noopener noreferrer">www.platafolma.org<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></a>';
@@ -3794,10 +3866,11 @@ function mxRender(){
   if(p&&p.subs&&!p.subs.some(function(s){return s.id===st.s;})) st.s=p.subs[0].id;
   if(p&&!p.subs) st.s=null;
   var h=mxDxHtml();
+  h+=mxDocsHtml();
   h+='<div class="mx-sec">Seguimiento, según el protocolo</div>';
   h+='<div class="mx-tabs">'+MX_TIPOS.map(function(x){ return '<button type="button" class="mx-tab'+(x[0]===st.t?' on':'')+'" onclick="mxSetT(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div>';
   h+='<div style="margin-top:8px">'+MX_PROTOS.filter(function(x){return x.g===st.t;}).map(function(x){ return _mxChip(p&&x.id===p.id,_hpEsc(x.n),"mxSetP('"+x.id+"')"); }).join('')+'</div>';
-  if(!p){ box.innerHTML=h+'<div class="mx-hint">Elige el protocolo.</div>'; return; }
+  if(!p){ box.innerHTML=h+'<div class="mx-hint">Elige el protocolo.</div>'; _mxDocsAfter(); return; }
   var usesSal=p.m.some(function(m){ return (m.it||[]).some(function(i){ return i.lab==='salCmf'; }); });
   var usesPlat=p.m.some(function(m){ return (m.it||[]).some(function(i){ return i.lab==='plata'||i.lab==='negrin'; }); });
   h+='<div class="mx-pc"><div><b>'+_hpEsc(p.n)+'</b> <span class="mx-mut">· '+_hpEsc(p.v)+'</span></div>'
@@ -3821,7 +3894,7 @@ function mxRender(){
   });
   h+='</div>';
   h+='<div style="margin-top:12px"><button type="button" class="btn btn-sm btn-out" onclick="openPDFurl(\''+p.pdf+'\',\''+p.n.replace(/'/g,'')+'\',1)">Abrir el protocolo completo · '+_hpEsc(p.n)+'</button></div>';
-  box.innerHTML=h;
+  box.innerHTML=h; _mxDocsAfter();
   var mm=p.m.find(function(x){return x.id===st.m;}); if(mm&&mm.asp) mxObs();
 }
 function _mxTubes(tb){ return (tb||[]).map(function(t){ var T=MX_TUBE[t[0]]||MX_TUBE.nc; return '<span class="mx-tb"><i style="background:'+T.c+'"></i><b>'+_hpEsc(T.n)+'</b>'+(t[1]?' '+_hpEsc(t[1]):'')+'</span>'; }).join(''); }
@@ -3896,6 +3969,16 @@ VIEWS.citomol=()=>`<div class="card">
 </div>`;
 
 // === CITODIAGNÓSTICO · Clasificación LMA (ICC/OMS) y linfomas ===
+// === Orientación de leucemia aguda: AI-PAL (herramienta web externa) ===
+const HP_AIPAL_URL='https://alcazerv.shinyapps.io/AIPAL/';
+VIEWS.aipal=()=>`<div class="card">
+<h2>Orientación de leucemia aguda (AI-PAL)</h2>
+<p class="intro">Clasificador de leucemia según la analítica. <strong>Aplicar SÓLO ante sospecha de LMA.</strong></p>
+<div class="btns"><a class="btn" href="${HP_AIPAL_URL}" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Abrir AI-PAL ↗</a></div>
+<p style="font-size:12.5px;color:var(--mut);margin:8px 0 0">Herramienta web externa (requiere conexión): <a href="${HP_AIPAL_URL}" target="_blank" rel="noopener noreferrer" style="color:inherit">alcazerv.shinyapps.io/AIPAL</a></p>
+<div class="alert b" style="margin-top:12px;font-size:13px">Predice <strong>LMA, LPA o LLA</strong> con parámetros analíticos de rutina. Desarrollado y validado en <strong>adultos</strong>. Es orientativo: no sustituye a la morfología, la citometría ni la genética.</div>
+<div class="ref">Fuente: Alcazer V, et al. Lancet Digit Health. 2024;6(5):e323-e333. <a href="https://www.thelancet.com/journals/landig/article/PIIS2589-7500(24)00044-X/fulltext" target="_blank" rel="noopener noreferrer">Artículo</a></div>
+</div>`;
 VIEWS.citoclas=()=>`<div class="card">
 <h2>🗂️ Clasificación LMA (OMS / ICC) y linfomas</h2>
 <p class="intro">Clasificaciones vigentes (2022): <strong>OMS 5.ª ed. (WHO-HAEM5)</strong> e <strong>ICC 2022</strong>, ambas basadas sobre todo en la genética. No hay todavía una edición posterior publicada; la <strong>6.ª ed. de la OMS (WHO6)</strong> está en desarrollo (proyecto de unificación OMS/ICC iniciado en 2024-2025).</p>
@@ -6765,8 +6848,8 @@ VIEWS.info=()=>{
   const x=_infoState; if(!x) return '<div class="card"><h2>Información</h2><div class="alert y">No se pudo cargar.</div></div>';
   let h='<div class="card"><h2>'+_hpEsc(x.titulo||'Información')+'</h2>';
   if(x.preview) h+='<div class="alert b" style="margin-bottom:10px">Vista previa. <a onclick="go(\'infoedit\')" style="cursor:pointer;text-decoration:underline">← Volver a editar</a></div>';
-  h+='<div style="white-space:pre-wrap;line-height:1.55">'+_hpEsc(x.cuerpo||'')+'</div>';
-  if(x.fuente) h+='<p style="font-size:11px;color:var(--mut);margin-top:12px">Fuente: '+_hpEsc(x.fuente)+'</p>';
+  h+='<div style="white-space:pre-wrap;line-height:1.55">'+_hpEscLink(x.cuerpo||'')+'</div>';
+  if(x.fuente) h+='<p style="font-size:11px;color:var(--mut);margin-top:12px">Fuente: '+_hpEscLink(x.fuente)+'</p>';
   h+='</div>'; return h;
 };
 function infoOpen(id){ const x=hpInfos()[id]; if(!x){toast('No encontrada');return;} _infoState=JSON.parse(JSON.stringify(x)); _hpNav.sid=id; go('info'); }
@@ -7349,6 +7432,8 @@ return `<div class="card">
 VIEWS.reportes_post=()=>{ if(window.hpRenderReportes) window.hpRenderReportes(); };
 
 function _hpEsc(s){return (s||'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+// Escapa el texto y convierte las direcciones web (http://, https:// o www.) en enlaces que se abren en otra pestaña.
+function _hpEscLink(s){return _hpEsc(s).replace(/\b(https?:\/\/|www\.)[^\s<>"]+/gi,function(u){var t=u.replace(/[.,;:!?)]+$/,''),r=u.slice(t.length),h=/^www\./i.test(t)?'https://'+t:t;return '<a href="'+h+'" target="_blank" rel="noopener noreferrer">'+t+'</a>'+r;});}
 function repCard(r){
 let fecha='';
 try{ if(r.createdAt&&r.createdAt.seconds) fecha=new Date(r.createdAt.seconds*1000).toLocaleString('es-ES'); }catch(e){}
@@ -8167,6 +8252,39 @@ _pdfjsLoadPromise=null;
 if(_viewerParams)VIEWS.viewer_post(_viewerParams);
 }
 
+// Descargar un PDF (Blob) con su nombre.
+function hpDownloadBlob(blob,name){
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=/\.pdf$/i.test(name||'')?name:((name||'documento')+'.pdf');
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} },60000);
+}
+// Imprimir un PDF (Blob). En ordenador abre directamente el diálogo de impresión; en móvil o tableta
+// (donde el navegador no deja imprimir un PDF incrustado) lo abre en el visor del sistema, que tiene
+// su propia opción de imprimir o compartir.
+function hpPrintBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const movil=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/i.test(navigator.platform||''));
+  const abrir=function(){
+    const w=window.open(url,'_blank');
+    if(w) toast('Se abre el PDF: usa «Imprimir» del visor');
+    else{ hpDownloadBlob(blob,name); toast('Descargado: ábrelo e imprímelo desde tu visor de PDF'); }
+  };
+  setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} },10*60*1000);
+  if(movil){ abrir(); return; }
+  try{
+    const f=document.createElement('iframe');
+    f.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0';
+    f.onload=function(){ setTimeout(function(){ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ abrir(); } },400); };
+    f.src=url; document.body.appendChild(f);
+    setTimeout(function(){ try{ f.remove(); }catch(e){} },10*60*1000);
+  }catch(e){ abrir(); }
+}
+function printCurrentPDF(){
+  const cur=window._currentPDF;
+  if(!cur||!cur.blob){ toast('Sin PDF para imprimir'); return; }
+  hpPrintBlob(cur.blob,cur.name);
+}
 function downloadCurrentPDF(){
 const cur=window._currentPDF;
 if(!cur){toast('Sin PDF para descargar');return}
@@ -8199,6 +8317,7 @@ VIEWS.viewer=()=>`<div class="card viewer-card">
 <span class="title" id="vw_title">Cargando...</span>
 <button class="btn btn-out btn-sm" onclick="vwToggleSearch()" title="Buscar en el PDF">🔍</button>
 <button class="btn btn-out btn-sm" onclick="downloadCurrentPDF()" title="Descargar PDF">⬇️</button>
+<button class="btn btn-out btn-sm" onclick="printCurrentPDF()" title="Imprimir PDF">🖨️</button>
 </div>
 <div class="viewer-toolbar">
 <span class="vw-pg">Pág. <input id="vw_page" type="text" inputmode="numeric" value="1" onkeydown="if(event.key==='Enter'){event.preventDefault();vwGoInput();this.blur();}" onfocus="this.select()" aria-label="Ir a página"> / <span id="vw_total">–</span></span>
@@ -9090,8 +9209,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 408;
-const APP_BUILD = '2026.11.11 (build ' + HP_BUILD + ')';
+const HP_BUILD = 409;
+const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -12027,6 +12146,8 @@ const CHAT_FAQ=[
    a:'Según el <strong>protocolo PETHEMA</strong> y el <strong>momento de la reevaluación</strong>: qué muestra, en qué <strong>tubo</strong> y a qué laboratorio enviarla (Salamanca, Dr. Negrín, PLATAFO-LMA…). Incluye los <strong>niveles de asparaginasa</strong> de la LLA (a Reference, código 0567).'},
   {v:'citomol',t:'Seguimiento molecular / EMR (LMC, mieloma, LLC)',rx:/enfermedad minima residual|\bemr\b|seguimiento molecular|monitorizacion molecular/,
    a:'Seguimiento molecular y <strong>EMR</strong> en <strong>LMC</strong> (BCR::ABL1 en escala internacional), <strong>mieloma</strong> (NGF/NGS) y <strong>LLC</strong>. Para leucemias agudas, ver <strong>Envío de muestras</strong>.'},
+  {v:'aipal',t:'Orientación de leucemia aguda (AI-PAL)',rx:/ai ?-?pal|orientacion.*leucemia|clasificador.*leucemia|leucemia.*(analitica|inteligencia artificial)|(lma|lla|lpa).*(o|vs) *(lma|lla|lpa)/,
+   a:'<strong>AI-PAL</strong> orienta el subtipo de leucemia aguda (LMA, LPA o LLA) a partir de la analítica de rutina. Herramienta web externa; orientativa.'},
   {v:'citoclas',t:'Clasificación LMA (ICC/OMS)',rx:/clasificacion.*lma|icc.*oms|who 2022.*lma|oms 2022.*lma/,
    a:'Consulta la <strong>clasificación de la LMA</strong> (ICC y OMS 2022) por alteraciones genéticas definitorias y el umbral de blastos.'},
   // — Ingreso —
