@@ -9464,7 +9464,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 417;
+const HP_BUILD = 418;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9772,10 +9772,10 @@ const HOSP_DIR=[["ADMISIÓN",[["Corporativo","","","431893"]]],["ALERGIA",[["Con
 const QT_RITUX_VEL='Velocidad de infusión de rituximab: iniciar a 25 ml/h y subir hasta 100 ml/h.';
 // Corticoides de los esquemas: en el ciclo 1 con rituximab separado NO se desplazan (siguen desde el día 1).
 const QT_CORT_RX=/predniso|prednisolo|dexametaso|metilpredniso|hidrocortiso/i;
-// Corticoides cuya dosis del día del rituximab ES su premedicación (prednisona/prednisolona → ese día
-// metilprednisolona IV a la misma dosis; metilprednisolona del esquema). Con dexametasona NO: la
-// premedicación de rituximab lleva su metilprednisolona aparte.
-const QT_CORT_PM_RX=/predniso|prednisolo/i;
+// Corticoides cuya dosis del día del rituximab ES su premedicación, para no dar más corticoide del
+// que lleva el esquema (prednisona/prednisolona → ese día metilprednisolona IV a la misma dosis;
+// metilprednisolona y dexametasona del esquema, IV ese día).
+const QT_CORT_PM_RX=/predniso|prednisolo|dexametaso/i;
 // R-DA-EPOCH: ajuste de dosis por nadir. Paradigma del NCI (Wilson, Blood 2002; Dunleavy, NEJM 2013),
 // con la misma disposición que la tabla de HemOnc.org: fármacos en filas, niveles de dosis en columnas.
 // Se pinta desde el código (no desde las notas del esquema) para que aparezca aunque el esquema
@@ -12781,7 +12781,8 @@ function _cortInfo(drug){
   const calc=bsa>0?qtCalcDose(drug.dose,bsa,peso):null;
   const mgTxt=calc?calc.mg.toFixed(2)+' mg':drug.dose;
   const ivName=isPred?'metilprednisolona':drug.name.split(/[\s(]/)[0].toLowerCase();
-  const restRoute=/VO/i.test(drug.route||'')?'VO':(drug.route||'');
+  // Prednisona/prednisolona: el resto de días VO. Dexametasona/metilprednisolona: la vía del esquema.
+  const restRoute=isPred?(/VO/i.test(drug.route||'')?'VO':(drug.route||'')):(drug.route||'');
   return {co:co,rest:rest,isPred:isPred,calc:calc,mgTxt:mgTxt,ivTxt:ivName+' '+mgTxt,restRoute:restRoute};
 }
 if(scheme.conditioning){
