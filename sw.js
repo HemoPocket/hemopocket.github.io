@@ -3,10 +3,11 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v412';
+const CACHE = 'hemopocket-v413';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 // pdf.min.js se auto-aloja y se precachea para que el visor de PDF funcione sin conexión.
-const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html', '/vendor/pdfjs/pdf.min.js', '/vendor/pdfjs/pdf.worker.min.js'];
+// pdf-lib (MIT) extrae las páginas que se quieren imprimir; también se precachea.
+const APP_SHELL = ['/HemoPocket_app.html', '/manifest.json', '/', '/index.html', '/vendor/pdfjs/pdf.min.js', '/vendor/pdfjs/pdf.worker.min.js', '/vendor/pdflib/pdf-lib.min.js'];
 
 // Caché DURABLE: NO se borra al subir de versión. Conserva offline los assets que conviene
 // mantener aunque cambie la versión de la app: PDFs vistos, iconos y el SDK de Firebase (login).

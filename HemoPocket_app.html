@@ -850,6 +850,8 @@ body{font-size:13px}
 .ios-install-box{background:var(--card);color:var(--txt);border-radius:18px;max-width:340px;width:100%;padding:22px 20px 18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .ios-install-box h3{margin:0 0 6px;font-size:17px;color:var(--c2);display:flex;align-items:center;gap:8px}
 .ios-install-box p{margin:0 0 12px;font-size:13px;color:var(--mut)}
+.vw-pr-opt{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px;flex-wrap:wrap}
+.vw-pr-opt input[type=number]{width:64px;padding:5px 6px;border:1px solid var(--bd,#ccd);border-radius:8px;font:inherit;background:var(--card);color:var(--txt)}
 .ios-install-box ol{margin:0;padding-left:20px;font-size:14px;line-height:1.75}
 .ios-install-box ol b{color:var(--c1)}
 .ios-share-ic{display:inline-block;vertical-align:-3px;width:16px;height:16px;margin:0 1px}
@@ -3386,7 +3388,7 @@ function _mxI(e,m,tb,lab,o,p,inf){ return {e:e,m:m,tb:tb||[['nc','']],lab:lab,o:
 function _mxS(item,s){ return Object.assign({},item,{s:s}); } // solo para ciertos subtipos (LAL-2025)
 // LAL-2025: ER de seguimiento (igual en todos los puntos) y seguimiento LLA-T en el IJC.
 const MX_L25_ER=[
-  _mxI('ER por citometría (EuroFlow 8 colores)','MO',[['edta','5 ml']],'salCmf','Priorizar los primeros ml del aspirado.',89),
+  _mxI('ER por citometría (EuroFlow 8 colores)','MO',[['edta','2 × 10 ml']],'salCmf','Priorizar los primeros ml del aspirado.',72),
   _mxI('Sangre periférica de seguimiento','SP',[['edta','3 × 10 ml']],'salCmf','Según la hoja de solicitud; la ER se mide en la MO.',89)];
 const MX_L25_IJC=_mxS(_mxI('Seguimiento LLA-T en el IJC','MO / SP',null,'ijc','Contactar antes con el laboratorio del IJC para organizar el envío.',93),['Tm','Ti']);
 const MX_L25_MORF=_mxI('Aspirado de MO: morfología','MO',[['ext',''],['edta','1 tubo']],'local');
@@ -3598,8 +3600,11 @@ const MX_PROTOS=[
    {id:'fin_m1',n:'Fin de mantenimiento-1',w:'Al terminar el año de mantenimiento con reinducciones.',p:{B:30,T:43},it:_mxL25()},
    {id:'fin_m2',n:'Fin de mantenimiento-2',w:'Al terminar los 6 meses de mantenimiento sin reinducciones (fin del tratamiento).',p:{B:30,T:43},it:_mxL25()},
    {id:'fin_1a',n:'+1 año del fin del tratamiento',w:'Al año de terminar el tratamiento.',p:72,it:_mxL25()},
-   {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central; los rescates y recaídas posteriores se estudian en el centro.',p:90,it:_mxL25sinIJC([
-     _mxS(_mxI('Estudios genéticos de LLA-T en la recaída','MO y/o SP',[['edta','MO 4-5 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])])},
+   {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central (mismos tubos que al diagnóstico); los rescates y recaídas posteriores se estudian en el centro.',p:90,it:[
+     MX_L25_MORF,
+     _mxI('Caracterización central de la recaída (inmunofenotipo, ER y genética)','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Mismos tubos que al diagnóstico; priorizar los primeros ml. Hoja (Anexo 2) + hemograma.',89),
+     _mxI('Ídem (complemento en SP)','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',89),
+     _mxS(_mxI('Estudios genéticos de LLA-T en la recaída','MO y/o SP',[['edta','MO 4-5 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])]},
    {id:'asp',n:'Niveles de asparaginasa (todas las fases)',asp:[
      {s:['B'],f:'Inducción-1 · PEG-ASP días 16 y 29',w:'Día 29 (antes de la 2.ª dosis) y día 43 o antes del blinatumomab 1',p:94},
      {s:['B'],f:'Consolidación C1-C4 · PEG-ASP día 3',w:'Día 17 de cada bloque (14 días tras la dosis)',p:94},
@@ -3618,34 +3623,34 @@ const MX_PROTOS=[
    {id:'dx',n:'Diagnóstico',w:'Al diagnóstico (durante la prefase).',p:38,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],MX_LOCAL_DX[2],
      _mxI('BCR::ABL1 por RT-qPCR (isoforma) y ratio basal','MO y SP',[['edta','1 tubo de cada']],'local','',10),
-     _mxI('Envío central: inmunofenotipo/ERM basal por CMF, índice de ADN y estudios genéticos centralizados (FISH, NGS, IKZF1plus)','MO',[['hep','4-5 ml'],['edta','4-5 ml']],'salCmf','Salamanca reparte a Genética HUS/IBSAL, IJC y 12 de Octubre.',38),
-     _mxI('Envío central (ídem)','SP',[['hep','5 ml'],['edta','2 × 10 ml'],['sst','8,5 ml']],'salCmf','El SST solo figura en la tabla de la p. 38 (sin finalidad indicada).',38),
+     _mxI('Envío central: inmunofenotipo/ERM basal por CMF, índice de ADN y estudios genéticos centralizados (FISH, NGS, IKZF1plus)','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Hoja de solicitud común LAL-2025 / LAL Ph-2022 (Anexo 2 del LAL-2025). Salamanca reparte a Genética HUS/IBSAL, IJC y 12 de Octubre.',38),
+     _mxI('Envío central (ídem)','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',38),
      _mxI('LCR: citología y citometría','LCR',null,'local','Con la IT triple de la prefase.',10)]},
    {id:'d14',n:'Día +14 de inducción',w:'Día +14.',p:13,it:[
      _mxI('Morfología de MO (respuesta precoz, sin repercusión terapéutica)','MO',[['ext',''],['edta','1 tubo']],'local','',13)]},
    {id:'fin_ind',n:'Fin de inducción',w:'Días 28-35 o con la recuperación hemoperiférica.',p:37,it:[
      _mxI('Ratio BCR::ABL1/ABL1 (define RMC y el ITK de consolidación)','MO y SP',[['edta','1 tubo de cada']],'local','Decisiones con MO.',14),
      _mxI('ERM por CMF de nueva generación','MO',[['edta','5 ml']],'salCmf','Adjuntar el hemograma de la SP extraída. Observacional.',38),
-     _mxI('ERM por CMF de nueva generación','SP',[['edta','2 × 10 ml']],'salCmf','',38)]},
+     _mxI('ERM por CMF de nueva generación','SP',[['edta','3 × 10 ml']],'salCmf','',38)]},
    {id:'cons_par',n:'Tras ciclos 2 y 4 de consolidación',w:'Después del 2.º y del 4.º ciclo.',p:15,it:[
      _mxI('Ratio BCR::ABL1/ABL1','MO y SP',[['edta','1 tubo de cada']],'local','Pérdida de RMC: repetir en 15 días y, si se confirma, cambiar ITK o alo-TPH. Sin CMF central.',15)]},
    {id:'fin_cons',n:'Fin de consolidación (tras el 6.º ciclo)',w:'Al terminar la consolidación, antes del mantenimiento.',p:37,it:[
      _mxI('Mielograma + ratio BCR::ABL1/ABL1','MO y SP',[['edta','1 tubo de cada']],'local','',29),
      _mxI('ERM por CMF de nueva generación','MO',[['edta','5 ml']],'salCmf','',38),
-     _mxI('ERM por CMF de nueva generación','SP',[['edta','2 × 10 ml']],'salCmf','',38)]},
+     _mxI('ERM por CMF de nueva generación','SP',[['edta','3 × 10 ml']],'salCmf','',38)]},
    {id:'pre_tph',n:'Pre-TPH',w:'Solo si han pasado > 30 días desde la muestra post-consolidación.',p:29,it:[
      _mxI('Ratio BCR::ABL1/ABL1','MO y SP',[['edta','1 tubo de cada']],'local','',29)]},
    {id:'post_tph',n:'Post-alo-TPH',w:'BCR::ABL1: mensual meses 1-4, bimensual hasta el 2.º año, luego cada 4 meses. CMF: meses 1, 4, 12, 24, 36, 48 y 60.',p:37,it:[
      _mxI('Ratio BCR::ABL1/ABL1','MO (meses 1 y 3) / SP (2 y 4) / después ambas',[['edta','1 tubo']],'local','Ponatinib pre-emptive si se pierde la RMC en 2 determinaciones separadas 15 días.',29),
      _mxI('ERM por CMF (meses 1, 4, 12, 24, 36, 48, 60)','MO',[['edta','5 ml']],'salCmf','',37),
-     _mxI('ERM por CMF (mismos meses)','SP',[['edta','2 × 10 ml']],'salCmf','',38)]},
+     _mxI('ERM por CMF (mismos meses)','SP',[['edta','3 × 10 ml']],'salCmf','',38)]},
    {id:'mant',n:'Mantenimiento sin TPH',w:'BCR::ABL1 cada 2 meses el 1.er año y cada 3 meses después; CMF al final de cada año (1.º a 5.º).',p:37,it:[
      _mxI('Ratio BCR::ABL1/ABL1','MO y SP',[['edta','1 tubo de cada']],'local','',29),
      _mxI('ERM por CMF (fin de cada año)','MO',[['edta','5 ml']],'salCmf','',37),
-     _mxI('ERM por CMF (fin de cada año)','SP',[['edta','2 × 10 ml']],'salCmf','',38)]},
-   {id:'rec',n:'Recaída',w:'Recaída clínica; también tras el 1.er, 2.º y 3.er rescate.',p:53,it:[
-     _mxI('Caracterización genética e inmunofenotípica / CMF de la recaída','MO',[['edta','4-5 ml']],'salCmf','',38),
-     _mxI('Ídem','SP',[['edta','2 × 10 ml']],'salCmf','',38),
+     _mxI('ERM por CMF (fin de cada año)','SP',[['edta','3 × 10 ml']],'salCmf','',38)]},
+   {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central (mismos tubos que al diagnóstico); los rescates y recaídas posteriores se estudian en el centro.',p:53,it:[
+     _mxI('Caracterización genética e inmunofenotípica / CMF de la recaída','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Hoja de solicitud del Anexo 2 del LAL-2025.',38),
+     _mxI('Ídem','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',38),
      _mxI('Ratio BCR::ABL1 + estudio de mutaciones','MO',[['edta','1 tubo']],'local','',29)]}
   ]},
  {id:'lalr',g:'LLA',n:'LAL en recaída (Ph−)',v:'guía sin fecha',pdf:'guias/LALR.pdf',d:'LAL Ph− del adulto refractaria o en primera recaída. Solo la recaída va al central (Salamanca).',
@@ -3753,7 +3758,7 @@ const MX_WS={
   rron:{dx:'Antes del rescate',resp:'FLAG-IDA: día 28-35 · gilteritinib: días 28 y 56',seg_rc:'Cada 3 meses/ciclos el primer año',pre_alo:'Antes del alo-TPH',post_alo:'+30 a +60 días del alo-TPH',nueva_rr:'Cada nueva recaída'},
   lpa:{dx:'Antes de tratar',fin_ind:'≥ 30 días desde el fin de la QT o el inicio del ATO',fin_cons:'Fin de la consolidación',seg:'MO cada 3-12 meses, 2 años',conf:'≤ 2 semanas tras una PCR positiva',rec:'Recaída'},
   lal25:{dx:'Durante la prefase',d14:'Día 14 de la inducción-1',fin_ind1:'Fin de la inducción-1',fin_ind2:'Fin de la inducción-2',fin_blin1:'Días 29-42 del Blin1: decide la rama',fin_c1:'Recuperación tras la C1 (MTX): decide el TPH',conf:'1-2 semanas tras una ER local en aumento',fin_blin4:'Fin del Blin4',fin_reind:'Fin de la reinducción',fin_ctard:'Fin de la consolidación tardía',pre_tph:'Antes del TPH',tph3:'+3 meses del TPH',tph6:'+6 meses del TPH (solo IJC)',fin_m1:'Fin del mantenimiento-1',fin_m2:'Fin del mantenimiento-2',fin_1a:'+1 año del fin del tratamiento',rec:'1.ª recaída',asp:'Según la fase de tratamiento'},
-  lalph:{dx:'Durante la prefase',d14:'Día +14 de la inducción',fin_ind:'Días 28-35 de la inducción',cons_par:'Tras los ciclos 2 y 4',fin_cons:'Tras el 6.º ciclo',pre_tph:'Antes del TPH (si > 30 días)',post_tph:'Calendario tras el alo-TPH',mant:'Calendario sin TPH',rec:'Recaída'},
+  lalph:{dx:'Durante la prefase',d14:'Día +14 de la inducción',fin_ind:'Días 28-35 de la inducción',cons_par:'Tras los ciclos 2 y 4',fin_cons:'Tras el 6.º ciclo',pre_tph:'Antes del TPH (si > 30 días)',post_tph:'Calendario tras el alo-TPH',mant:'Calendario sin TPH',rec:'Solo la 1.ª recaída'},
   lalr:{rec:'Antes de tratar la recaída',reev:'Tras cada ciclo de inotuzumab o tras CAR-T'},
   burki:{dx:'Antes de la prefase',post_a1:'Tras el ciclo A1',reev:'Tras 2 y 6 ciclos'},
   ped13:{dx:'Antes de la prefase',d8:'Día 8 (día 1 = 1.º de prednisona)',d15:'Día 15 de la inducción',d33:'Día 33: fin de la inducción',d52:'Día 52 (si no RC el día 33)',d78:'Día 78: antes de la consolidación o del AR-1',pre_ar2:'Antes del AR-2 (si ERM ≥ 0,01 %)',post_ar3:'Recuperación tras el AR-3',rec:'Sospecha de recaída'},
@@ -8417,10 +8422,81 @@ function hpPrintBlob(blob,name){
     setTimeout(function(){ try{ f.remove(); }catch(e){} },10*60*1000);
   }catch(e){ abrir(); }
 }
+// pdf-lib (auto-alojada, MIT): extrae páginas para imprimir solo lo que se pide.
+let _pdflibP=null;
+function ensurePDFLib(){
+  if(window.PDFLib) return Promise.resolve(true);
+  if(_pdflibP) return _pdflibP;
+  _pdflibP=new Promise(function(res){ const s=document.createElement('script'); s.src='vendor/pdflib/pdf-lib.min.js';
+    s.onload=function(){ res(!!window.PDFLib); }; s.onerror=function(){ _pdflibP=null; res(false); }; document.head.appendChild(s); });
+  return _pdflibP;
+}
+// Devuelve un PDF nuevo solo con las páginas desde..hasta (1-based, inclusive).
+async function hpPdfPages(blob,from,to){
+  if(!await ensurePDFLib()) throw new Error('pdf-lib no disponible');
+  const src=await PDFLib.PDFDocument.load(await blob.arrayBuffer(),{ignoreEncryption:true});
+  if(src.isEncrypted) throw new Error('PDF cifrado');
+  const n=src.getPageCount(); from=Math.max(1,Math.min(n,from)); to=Math.max(from,Math.min(n,to));
+  const out=await PDFLib.PDFDocument.create(), idx=[];
+  for(let i=from-1;i<to;i++) idx.push(i);
+  (await out.copyPages(src,idx)).forEach(function(pg){ out.addPage(pg); });
+  return new Blob([await out.save()],{type:'application/pdf'});
+}
+// Alternativa si pdf-lib falla (p. ej., PDF cifrado): imprime las páginas rasterizadas con pdf.js.
+async function _hpPrintRaster(from,to){
+  const pdf=window._vwPDF; if(!pdf) throw new Error('sin PDF');
+  let html='<!doctype html><html><head><meta charset="utf-8"><style>@page{margin:0}html,body{margin:0}img{display:block;width:100%;page-break-after:always;break-after:page}img:last-child{page-break-after:auto;break-after:auto}</style></head><body>';
+  for(let i=from;i<=to;i++){
+    const page=await pdf.getPage(i), v1=page.getViewport({scale:1});
+    let sc=200/72; if(v1.width*v1.height*sc*sc>12e6) sc=Math.sqrt(12e6/(v1.width*v1.height));
+    const vp=page.getViewport({scale:sc}), cv=document.createElement('canvas');
+    cv.width=Math.floor(vp.width); cv.height=Math.floor(vp.height);
+    await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+    html+='<img src="'+cv.toDataURL('image/jpeg',0.92)+'">';
+  }
+  html+='</body></html>';
+  const f=document.createElement('iframe');
+  f.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0';
+  document.body.appendChild(f);
+  f.contentDocument.open(); f.contentDocument.write(html); f.contentDocument.close();
+  setTimeout(function(){ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ toast('No se pudo imprimir'); } },500);
+  setTimeout(function(){ try{ f.remove(); }catch(e){} },10*60*1000);
+}
+function _vwCurPage(){ const el=$('vw_page'); const n=parseInt(el&&el.value,10); return n>0?n:1; }
 function printCurrentPDF(){
   const cur=window._currentPDF;
   if(!cur||!cur.blob){ toast('Sin PDF para imprimir'); return; }
-  hpPrintBlob(cur.blob,cur.name);
+  const total=(window._vwPDF&&window._vwPDF.numPages)||0;
+  if(total<=1){ hpPrintBlob(cur.blob,cur.name); return; }
+  const pg=Math.min(_vwCurPage(),total);
+  let bg=$('vw_printdlg'); if(bg) bg.remove();
+  bg=document.createElement('div'); bg.id='vw_printdlg'; bg.className='ios-install-bg';
+  bg.innerHTML='<div class="ios-install-box" role="dialog" aria-modal="true" aria-label="Imprimir">'
+    +'<h3>Imprimir</h3>'
+    +'<label class="vw-pr-opt"><input type="radio" name="vw_pr" value="cur" checked> Esta página (p. '+pg+')</label>'
+    +'<label class="vw-pr-opt"><input type="radio" name="vw_pr" value="rng"> Páginas <input id="vw_pr_a" type="number" min="1" max="'+total+'" value="'+pg+'" inputmode="numeric" onfocus="document.querySelector(\'input[name=vw_pr][value=rng]\').checked=true"> a <input id="vw_pr_b" type="number" min="1" max="'+total+'" value="'+Math.min(pg+1,total)+'" inputmode="numeric" onfocus="document.querySelector(\'input[name=vw_pr][value=rng]\').checked=true"></label>'
+    +'<label class="vw-pr-opt"><input type="radio" name="vw_pr" value="all"> Documento completo ('+total+' págs.)</label>'
+    +'<div class="btns" style="margin-top:12px;justify-content:flex-end"><button class="btn btn-out btn-sm" onclick="document.getElementById(\'vw_printdlg\').remove()">Cancelar</button><button class="btn btn-sm" onclick="vwPrintGo()">Imprimir</button></div></div>';
+  bg.addEventListener('click',function(e){ if(e.target===bg) bg.remove(); });
+  document.body.appendChild(bg);
+}
+async function vwPrintGo(){
+  const cur=window._currentPDF, bg=$('vw_printdlg'); if(!cur){ if(bg) bg.remove(); return; }
+  const total=(window._vwPDF&&window._vwPDF.numPages)||1;
+  const sel=(document.querySelector('input[name=vw_pr]:checked')||{}).value||'cur';
+  let a=1,b=total;
+  if(sel==='cur'){ a=b=Math.min(_vwCurPage(),total); }
+  else if(sel==='rng'){
+    a=parseInt(($('vw_pr_a')||{}).value,10); b=parseInt(($('vw_pr_b')||{}).value,10);
+    if(!(a>=1&&a<=total)||!(b>=1&&b<=total)){ toast('Páginas entre 1 y '+total); return; }
+    if(b<a){ const t=a; a=b; b=t; }
+  }
+  if(bg) bg.remove();
+  if(a===1&&b===total){ hpPrintBlob(cur.blob,cur.name); return; }
+  const nm=(cur.name||'documento').replace(/\.pdf$/i,'')+(a===b?' (p. '+a+')':' (p. '+a+'-'+b+')')+'.pdf';
+  toast('Preparando '+(a===b?'la página '+a:'las páginas '+a+'-'+b)+'…');
+  try{ hpPrintBlob(await hpPdfPages(cur.blob,a,b),nm); }
+  catch(e){ try{ await _hpPrintRaster(a,b); }catch(e2){ toast('No se pudo preparar la impresión'); } }
 }
 function downloadCurrentPDF(){
 const cur=window._currentPDF;
@@ -9346,7 +9422,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 412;
+const HP_BUILD = 413;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10298,7 +10374,7 @@ const QT_SCHEMES = {
       'G-CSF 5 µg/kg/día SC días 1-4; después, 1 vial/día SC desde 7 días tras acabar la quimioterapia hasta neutrófilos > 1 × 10⁹/L.',
       'LA-MIX: si BCR::ABL1 positivo, asociar imatinib según protocolo. Intratecal (ARA-C + MTX + corticoide) solo si se hace punción lumbar por sospecha de afectación del SNC.',
       'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
-      'Hidratación: suero glucosalino 2 L/día + suero bicarbonatado 1/6 M 1 L/día. Profilaxis hiperuricémica: alopurinol 300 mg/día VO. Protección gástrica: omeprazol 20 mg/día.',
+      'Hidratación ≥ 2 L/m²/día (1-2 L/m²/día si insuficiencia renal o cardiaca). Profilaxis del SLT según puntuación (LMA-FLOW 2026): 0-1 puntos, alopurinol 300 mg/12-24 h VO ± bicarbonato 1/6 M; 2-3, rasburicasa 0,2 mg/kg dosis única 4 h antes de la QT; 4-6, rasburicasa 0,2 mg/kg 2-4 días. Protección gástrica: omeprazol 20 mg/día.',
       'Profilaxis (libro azul): por la fludarabina, cotrimoxazol frente a Pneumocystis hasta 3-4 meses después de la última dosis; aciclovir 800 mg/12 h en seropositivos para VHS-1 o VVZ.'
     ]
   },
@@ -10373,7 +10449,7 @@ const QT_SCHEMES = {
       {name:'Midostaurin',   dose:'50 mg/12h', route:'VO', days:[8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
     ],
     notes: [
-      'Midostaurin desde el día 8 (es razonable iniciarlo hasta el día 11; en ese caso se finaliza el día 24).',
+      'Midostaurina días 8-21 (14 días en total). Se puede iniciar hasta el día 14 (terminando el día 28); más tarde no se recomienda (LMA-FLOW 2026).',
       'Ajustar midostaurin al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (p. ej. voriconazol, posaconazol).',
       'Midostaurina: ECG con QTcF antes de cada ciclo, a las 24-48 h y a los 5-7 días de empezarla y al añadir fármacos que alarguen el QTc; controlar Ca, Mg y K. No usar si QTcF > 470 ms (libro azul).'
     ]
@@ -10395,11 +10471,11 @@ const QT_SCHEMES = {
     label: 'ARA-C AD + Midostaurin – consolidación LMA FLT3+ (1-4 ciclos)',
     drugs: [
       {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3], adj:'≥ 60 años: 1500 mg/m²/12 h'},
-      {name:'Midostaurin', dose:'50 mg/12h', route:'VO', days:[8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+      {name:'Midostaurin', dose:'50 mg/12h', route:'VO', days:[4,5,6,7,8,9,10,11,12,13,14,15,16,17]}
     ],
     notes: [
       'En pacientes ≥60 años, reducir ARA-C a 1500 mg/m²/12 h con la misma pauta.',
-      'Continuar midostaurin en consolidación solo si se utilizó en la inducción (FLT3+). Ajustar al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (voriconazol, posaconazol).',
+      'Midostaurina desde el día 4, 14 días en total (LMA-FLOW 2026: «desde el día 4 hasta el día 18. En total se administrará 14 días»). Continuarla en consolidación solo si se utilizó en la inducción (FLT3+). Ajustar al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (voriconazol, posaconazol).',
       'Soporte: hidratación, profilaxis de SLT, antiemético, protección gástrica, profilaxis antifúngica anti-Aspergillus y descontaminación intestinal (ciprofloxacino 500 mg/12 h).',
       'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
       'Midostaurina: ECG con QTcF antes de cada ciclo, a las 24-48 h y a los 5-7 días de empezarla y al añadir fármacos que alarguen el QTc; controlar Ca, Mg y K. No usar si QTcF > 470 ms (libro azul).'
@@ -10444,7 +10520,7 @@ const QT_SCHEMES = {
     drugs: [
       {name:'ATRA (tretinoína) — desde el día 1 hasta la RC; 25 mg/m² si <20 años', dose:'45 mg/m²/día (en 2 tomas)', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
       {name:'Idarubicina (60-69 años: solo días 1,3,5)', dose:'12 mg/m²', route:'IV 10 min', days:[1,3,5,7]},
-      {name:'Prednisona (profilaxis del síndrome de diferenciación)', dose:'0,5 mg/kg/día', route:'IV', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
+      {name:'Prednisona (profilaxis del síndrome de diferenciación)', dose:'0,5 mg/kg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
     ],
     notes: [
       'Indicación: LPA de alto riesgo (leucocitos >10×10⁹/L) y edad <70 años, o contraindicación al ATO (p. ej. QTc >500 ms).',
@@ -10697,21 +10773,23 @@ const QT_SCHEMES = {
   'VEN-AZA': {
     label: 'Ven-Aza – Venetoclax + Azacitidina – LMA no candidato a QT intensiva (cada 28 días)',
     drugs: [
-      {name:'Azacitidina',     dose:'75 mg/m²',             route:'SC', days:[1,2,3,4,5,6,7]},
+      {name:'Azacitidina',     dose:'75 mg/m²',             route:'SC/IV', days:[1,2,3,4,5,6,7]},
       {name:'Venetoclax (ramp-up C1: 100 mg D1 → 200 mg D2 → 400 mg D3-21)', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
     ],
     cycles: [
-      {from:2, label:'ciclos 2+ (venetoclax 400 mg sin escalada)', drugs:[
-        {name:'Azacitidina', dose:'75 mg/m²', route:'SC', days:[1,2,3,4,5,6,7]},
-        {name:'Venetoclax', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]}
+      {from:2, label:'ciclos 2 y sucesivos (venetoclax 400 mg días 1-14, sin escalada)', drugs:[
+        {name:'Azacitidina', dose:'75 mg/m²', route:'SC/IV', days:[1,2,3,4,5,6,7]},
+        {name:'Venetoclax', dose:'400 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
       ]}
     ],
     notes: [
-      'Venetoclax: PETHEMA recomienda 14-21 días/ciclo; la ficha técnica contempla 28 días de administración continua. En un 2.º ciclo de inducción no se repite la escalada de dosis.',
-      'Venetoclax con inhibidores del CYP3A (ficha técnica): con posaconazol, 70 mg/día; con otro inhibidor potente (p. ej., voriconazol), 100 mg/día; con un inhibidor moderado del CYP3A o de la gp-P, reducir la dosis al menos un 50 %. Al retirar el inhibidor, volver a la dosis previa a los 2-3 días.',
-      'Aspirado de médula ósea el día 14; si MLFS (morphologic leukemia-free state), RC o RCi, se aconseja retirar el venetoclax.',
-      'Azacitidina: 7 días seguidos o pauta 5-0-2. Ciclos cada ≥28 días (hasta 42-56 días si mala tolerancia o neutropenia prolongada); administrar hasta progresión mientras haya buena tolerancia.',
-      'Pacientes NO frágiles (ECOG <3, sin deterioro por la LMA). Ingreso inicial 7-14 días en el 1.er ciclo, o control en hospital de día/domiciliario cada 48-72 h las 2 primeras semanas. Requiere disponer de UCI.'
+      'Esquema del protocolo de LMA no candidata a QT intensiva del HUNSC (PETHEMA). Ficha técnica: venetoclax 28 días continuos por ciclo.',
+      'Ciclos 2 y sucesivos: venetoclax días 1-14; solo días 1-7 si hubo neutropenia prolongada (neutropenia el día +28 de cualquier ciclo previo) o mala tolerancia.',
+      'Inhibidores del CYP3A: reducir venetoclax un 50 % con inhibidor moderado (400 → 200 mg) y un 75 % con inhibidor potente (400 → 100 mg; máximo 100 mg con posaconazol). Ramp-up con inhibidor potente: 10 mg D1, 20 mg D2, 50 mg D3 y 100 mg desde el D4.',
+      'Aspirado de MO opcional hacia el día 14 (o 21) del ciclo 1: si MLFS, RC o RCi, se puede retirar el venetoclax hasta el ciclo 2. Aspirado obligado al final del ciclo 1 y/o 2 (con la recuperación o antes del día 35-42), y después al final de los ciclos 4 y 6.',
+      'RC con neutropenia o trombopenia grado 3-4 después del día 29: retrasar 14-21 días y reducir el venetoclax a 14 días (1.ª vez; 7 días si ya llevaba ≤ 14), a 7 días (2.ª vez) y, la 3.ª vez, además azacitidina al 50 %.',
+      'Azacitidina: 7 días seguidos o pauta 5-0-2. Ciclos cada ≥ 28 días (cada 42-56 días si mala tolerancia o neutropenia prolongada); no iniciar el siguiente ciclo en RC/RCi hasta neutrófilos > 1 × 10⁹/L y plaquetas > 50 × 10⁹/L. Mantener hasta recaída o progresión mientras haya buena tolerancia.',
+      'Pacientes NO frágiles (ECOG < 3, sin deterioro por la LMA). Ingreso inicial 7-14 días en el 1.er ciclo, o control en hospital de día cada 48-72 h las 2 primeras semanas. Requiere disponer de UCI.'
     ]
   },
   'VYXEOS': {
@@ -11196,24 +11274,24 @@ const QT_SCHEMES = {
     label: 'Melfalán 200 – TASPE mieloma',
     conditioning: true,
     drugs: [
-      {name:'Melfalán',                              dose:'200 mg/m²', route:'IV', days:[1]},
+      {name:'Melfalán',                              dose:'200 mg/m²', route:'IV 1h', days:[1]},
       {name:'Infusión de progenitores hematopoyéticos', dose:'—',      route:'IV', days:[2]}
     ],
     notes: [
-      'Melfalán en bolo, sin diluir (viales de 50 mg). Hidratación ese día: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
-      'Crioterapia oral (hielo) durante el melfalán para prevenir la mucositis.'
+      'Melfalán IV en 1 h el día −1 (protocolo de TASPE del HUNSC); en obesidad, dosis con el peso ajustado al 20 % (ABW20). Hidratación ese día: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
+      'Crioterapia oral (hielo) desde 30 min antes hasta 30 min después del melfalán para prevenir la mucositis.'
     ]
   },
   'MELFALAN-140': {
     label: 'Melfalán 140 – TASPE mieloma elderly/IR',
     conditioning: true,
     drugs: [
-      {name:'Melfalán',                              dose:'140 mg/m²', route:'IV', days:[1]},
+      {name:'Melfalán',                              dose:'140 mg/m²', route:'IV 1h', days:[1]},
       {name:'Infusión de progenitores hematopoyéticos', dose:'—',      route:'IV', days:[2]}
     ],
     notes: [
-      'Melfalán en bolo, sin diluir (viales de 50 mg). Hidratación ese día: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
-      'Crioterapia oral (hielo) durante el melfalán para prevenir la mucositis.'
+      'Melfalán IV en 1 h el día −1 (protocolo de TASPE del HUNSC); en obesidad, dosis con el peso ajustado al 20 % (ABW20). Hidratación ese día: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
+      'Crioterapia oral (hielo) desde 30 min antes hasta 30 min después del melfalán para prevenir la mucositis.'
     ]
   },
   'MELFALAN-200-AMI': {
@@ -11226,7 +11304,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Melfalán en bolo, sin diluir (viales de 50 mg). Hidratación ese día: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
-      'Crioterapia oral (hielo) durante el melfalán para prevenir la mucositis.'
+      'Crioterapia oral (hielo) desde 30 min antes hasta 30 min después del melfalán para prevenir la mucositis.'
     ]
   },
   'BEAM': {
@@ -11241,7 +11319,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Pauta del protocolo de TASPE del HUNSC y de la guía de acondicionamiento GETH-TC 2024: etopósido 100 mg/m²/12 h y citarabina 200 mg/m²/12 h, días −5 a −2. El libro azul da la misma dosis total de etopósido (200 mg/m²/día) en una sola dosis diaria.',
-      'Crioterapia oral (hielo) durante el melfalán para prevenir la mucositis.',
+      'Crioterapia oral (hielo) desde 30 min antes hasta 30 min después del melfalán para prevenir la mucositis.',
       'Ajuste renal (GETH-TC): carmustina 80 % si ClCr 46-60 ml/min y 75 % si 30-45 (< 30: decisión clínica); etopósido 75 % si ClCr 15-50 y 50 % si < 15; melfalán 75 % si ClCr 30-50 (< 30: decisión clínica). La citarabina no precisa ajuste.'
     ]
   },
@@ -11263,7 +11341,7 @@ const QT_SCHEMES = {
     conditioning: true,
     drugs: [
       {name:'Filgrastim (G-CSF, priming)',           dose:'10 µg/kg',      route:'SC', days:[1,2,3,4,5,6,7,8]},
-      {name:'Busulfán',                              dose:'3,2 mg/kg',     route:'IV 3h', days:[2,3,4,5]},
+      {name:'Busulfán',                              dose:'3,2 mg/kg',     route:'IV 2h', days:[2,3,4,5]},
       {name:'Etopósido (1ª de 3 subdosis seguidas, sin pausa)', dose:'7 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
       {name:'Etopósido (2ª de 3 subdosis seguidas)',            dose:'7 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
       {name:'Etopósido (3ª de 3 subdosis seguidas)',            dose:'6 mg/kg', route:'IV 2h · 1000 mL SF', days:[6,7]},
