@@ -3388,7 +3388,8 @@ const MX_L25_ER=[
 const MX_L25_IJC=_mxS(_mxI('Seguimiento LLA-T en el IJC','MO / SP',null,'ijc','Contactar antes con el laboratorio del IJC para organizar el envío.',93),['Tm','Ti']);
 const MX_L25_MORF=_mxI('Aspirado de MO: morfología','MO',[['ext',''],['edta','1 tubo']],'local');
 function _mxL25(extra){ return [MX_L25_MORF].concat(MX_L25_ER,[MX_L25_IJC],extra||[]); }
-function _mxAspIt(txt,subs){ return _mxS(_mxI('Niveles de asparaginasa','SP',[['sst','suero: 2 alícuotas de 0,5 ml']],'ref',txt+' Texto de la petición en «Niveles de asparaginasa».',94),subs); }
+function _mxL25sinIJC(extra){ return [MX_L25_MORF].concat(MX_L25_ER,extra||[]); }
+function _mxAspIt(txt,subs){ var pg=(subs&&subs.length&&subs.indexOf('B')<0)?95:94; return _mxS(_mxI('Niveles de asparaginasa','SP',[['sst','suero: 2 alícuotas de 0,5 ml']],'ref',txt+' Texto de la petición en «Niveles de asparaginasa».',pg),subs); }
 // Pruebas locales habituales (tubos del laboratorio del hospital).
 const MX_LOCAL_DX=[
   _mxI('Morfología (aspirado)','MO',[['ext',''],['edta','1 tubo']],'local'),
@@ -3396,14 +3397,16 @@ const MX_LOCAL_DX=[
   _mxI('Cariotipo (cultivo 24 y 48 h)','MO',[['hepli','1 tubo']],'local'),
   _mxI('FISH según orientación','MO',[['hepli','o EDTA']],'local')
 ];
+// LCR al diagnóstico: solo si hay sospecha clínica de afectación del SNC (recuento y citospin).
+function _mxLCR(p){ return _mxI('LCR: recuento y citología (citospin)','LCR',null,'local','Solo si sospecha clínica de afectación del SNC.',p); }
 const MX_PROTOS=[
  {id:'flow',g:'LMA',n:'LMA-FLOW 2026',v:'v3 · 07/01/2026',pdf:'guias/FLOW.pdf',d:'LMA no promielocítica (no NPM1, no CBF, no MPAL), candidata a QT intensiva.',
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento. El cribado genético tarda 3-7 días (FLT3 en 3-5 días desde el envío).',p:25,it:MX_LOCAL_DX.concat([
      _mxI('Biología molecular rápida: FLT3-ITD/TKD, NPM1, IDH','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','FLT3 local no imprescindible si el central informa en < 72 h.',26,MX_INF_MO),
      _mxI('PCR/NGS centralizada (reordenamientos, CEBPA, BCR::ABL1, TP53, genes MDS) + panel ampliado','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','',27,MX_INF_MO),
-     _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','Requiere CI PLATAFO-LMA.',55,MX_INF_MO),
-     _mxI('LCR: recuento y citología (citospin)','LCR',null,'local','Solo si sospecha clínica de afectación del SNC. No se recomienda CMF ni PCR en LCR.',56)])},
+     _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','Requiere CI PLATAFO-LMA.',25,MX_INF_MO),
+     _mxI('LCR: recuento y citología (citospin)','LCR',null,'local','Solo si sospecha clínica de afectación del SNC. No se recomienda CMF ni PCR en LCR.',57)])},
    {id:'post_ind',n:'Tras inducción',w:'Desde el día 28 si hay recuperación y no más tarde del día 35 (también tras la inducción 2 si RP).',p:35,it:[
      _mxI('Morfología (respuesta)','MO y SP',[['ext',''],['edta','1 tubo']],'local','',35),
      _mxI('EMR por citometría','MO',[['edta','1 tubo']],'local','Opcional, a criterio del médico. Sin envío central en este momento.',27)]},
@@ -3412,21 +3415,21 @@ const MX_PROTOS=[
      _mxI('EMR PCR cuantitativa BCR::ABL1 (si BCR::ABL1+)','MO',[['edta','3-6 ml']],'plata','Solo informativa.',37,MX_INF_MO)]},
    {id:'post_ult',n:'Tras la última consolidación',w:'Aspirado de control al terminar las consolidaciones.',p:58,it:[
      _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','',58)]},
-   {id:'pre_tph',n:'Pre-TPH (ATSP o alo)',w:'Antes del acondicionamiento (vale la MO post-consolidación si quedan < 2-4 semanas).',p:58,it:[
+   {id:'pre_tph',n:'Pre-TPH (ATSP o alo)',w:'Antes del acondicionamiento (vale la MO post-consolidación si quedan < 2-4 semanas). Si el alo-TPH se retrasa, repetir la MO (morfología) durante la espera.',p:58,it:[
      _mxI('EMR por citometría','MO',[['edta','3 ml']],'negrin','En todos los pacientes, también alo-TPH directo tras Vyxeos.',38,MX_INF_MO)]},
    {id:'post_tph',n:'Post-TPH',w:'A los 60-90 días del trasplante.',p:58,it:[
-     _mxI('EMR por citometría (única EMR central de seguimiento)','MO (y SP)',[['edta','MO 3 ml'],['edta','SP']],'negrin','',57,MX_INF_MO)]},
+     _mxI('EMR por citometría (única EMR central de seguimiento)','MO (y SP)',[['edta','MO 3 ml'],['edta','SP']],'negrin','',58,MX_INF_MO)]},
    {id:'seg',n:'Seguimiento',w:'MO a los 3-6, 12 y 24 meses de la recuperación tras el último ciclo/TPH.',p:58,it:[
-     _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','El protocolo no pide EMR central en el seguimiento (salvo la post-TPH).',57)]},
+     _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','El protocolo no pide EMR central en el seguimiento (salvo la post-TPH).',58)]},
    {id:'rec',n:'Recaída',w:'Ante sospecha de recaída.',p:58,it:[
      _mxI('Aspirado de MO','MO',[['ext',''],['edta','1 tubo']],'local','El paciente pasa a LMA-RR-On (ver ese protocolo para los envíos).',42)]}
   ]},
  {id:'cbf',g:'LMA',n:'LMA-CBF 2016',v:'enmienda 23/07/2019',pdf:'guias/CBF.pdf',d:'LMA CBF [t(8;21) RUNX1::RUNX1T1 o inv(16) CBFB::MYH11], 14-70 años, QT intensiva + GO.',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento. Cribado rápido de CBF (< 4 días) para decidir el GO de los días 4 y/o 7.',p:17,it:[
-     MX_LOCAL_DX[0],MX_LOCAL_DX[2],
+   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento. Cribado rápido de CBF (< 4 días) para decidir el GO de los días 4 y/o 7.',p:17,it:MX_LOCAL_DX.concat([
      _mxI('Reordenamientos RUNX1::RUNX1T1 / CBFB::MYH11 (RT-PCR) + panel NGS + inmunofenotipo central','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','Sin el resultado de CBF el día 4, GO solo el día 7. El inmunofenotipo se hace en local y en central.',18,MX_INF_MO),
-     _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO)]},
+     _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO),
+     _mxLCR(17)])},
    {id:'post_ind',n:'Tras inducción',w:'Con la recuperación medular (días 35-42 del inicio).',p:23,it:[
      _mxI('EMR RT-PCR (decisiones con SP)','SP',[['edta','5 ml']],'plata','',38,MX_INF_SP),
      _mxI('EMR RT-PCR en MO (investigacional)','MO',[['edta','3 ml']],'plata','',37,MX_INF_MO),
@@ -3440,6 +3443,8 @@ const MX_PROTOS=[
      _mxI('EMR RT-PCR en MO (investigacional)','MO',[['edta','3 ml']],'plata','',25,MX_INF_MO)]},
    {id:'conf',n:'Confirmar SP positiva',w:'Nueva SP separada 4 semanas de la primera positiva.',p:38,it:[
      _mxI('EMR RT-PCR','SP',[['edta','5 ml']],'plata','No es positiva hasta confirmarla.',38,MX_INF_SP)]},
+   {id:'mol',n:'Recaída molecular confirmada',w:'Seguimiento estrecho en SP y MO hasta la intensificación (ATSP o alo-TPH). El protocolo no fija la frecuencia.',p:27,it:[
+     _mxI('EMR RT-PCR','SP y MO',[['edta','SP 5 ml'],['edta','MO 3 ml']],'plata','',27,MX_INF_SP)]},
    {id:'pre_tph',n:'Pre-TPH',w:'Antes del ATSP o alo-TPH.',p:15,it:[
      _mxI('EMR RT-PCR','MO y SP',[['edta','MO 3 ml'],['edta','SP 5 ml']],'plata','',15,MX_INF_MO)]},
    {id:'post_tph',n:'Post-TPH',w:'SP cada 3 meses desde la infusión hasta los 2 años.',p:38,it:[
@@ -3452,21 +3457,25 @@ const MX_PROTOS=[
   ]},
  {id:'npm1',g:'LMA',n:'LMA-NPM1 2017',v:'enmienda 23/07/2019',pdf:'guias/NPM1.pdf',d:'LMA con NPM1 mutado, 14-70 años, QT intensiva (± midostaurina si FLT3+).',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento; FLT3 en < 72 h para iniciar midostaurina el día 8.',p:13,it:[
-     MX_LOCAL_DX[0],MX_LOCAL_DX[2],
+   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento; FLT3 en < 72 h para iniciar midostaurina el día 8.',p:13,it:MX_LOCAL_DX.concat([
      _mxI('FLT3-ITD/TKD, NPM1, CEBPA, DNMT3A, TP53, RUNX1, ASXL1, IDH1/2 + panel NGS + inmunofenotipo central','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','',14,MX_INF_MO),
-     _mxI('Muestras para biobanco (saliva, SP y MO)','MO, SP y saliva',[['edta','MO y SP'],['nc','saliva']],'plata','CI (Anexo 4).',13,MX_INF_MO)]},
-   {id:'post_ind',n:'Tras inducción',w:'Con la recuperación medular (días 35-42 del inicio).',p:20,it:[
+     _mxI('Muestras para biobanco (saliva, SP y MO)','MO, SP y saliva',[['edta','MO y SP'],['nc','saliva']],'plata','CI (Anexo 4).',13,MX_INF_MO),
+     _mxLCR(13)])},
+   {id:'post_ind',n:'Tras inducción',w:'Con la recuperación medular (días 35-42 del inicio). También tras la 2.ª inducción si hubo remisión parcial.',p:20,it:[
      _mxI('EMR qRT-PCR NPM1','SP',[['edta','5 ml']],'plata','',39,MX_INF_SP),
      _mxI('EMR qRT-PCR NPM1 en MO (siempre junto con SP)','MO',[['edta','3 ml']],'plata','Investigacional.',38,MX_INF_MO),
      _mxI('Morfología (RC)','MO',[['ext',''],['edta','1 tubo']],'local','',19)]},
-   {id:'post_c1',n:'Tras consolidación 1',w:'Recuperación medular (días 28-42).',p:21,it:[
+   {id:'post_c1',n:'Tras consolidación 1',w:'Recuperación medular (días 35-42 del inicio de la C1).',p:21,it:[
      _mxI('EMR qRT-PCR NPM1','SP y MO',[['edta','SP 5 ml'],['edta','MO 3 ml']],'plata','PCR+ en SP tras la C1 → iniciar búsqueda de donante no emparentado.',21,MX_INF_SP)]},
    {id:'post_c2',n:'Tras consolidación 2 (decide el TPH)',w:'Con hemograma normalizado y no más tarde del día +60 tras la última dosis de ARA-C.',p:15,it:[
      _mxI('EMR qRT-PCR NPM1 (decisión terapéutica)','SP',[['edta','5 ml']],'plata','Positiva: NPM1/gen control ×10⁴ ≥ 1 → alo-TPH en ≤ 2 meses. Negativa → ATSP-BEA.',15,MX_INF_SP),
      _mxI('EMR en MO (investigacional)','MO',[['edta','3 ml']],'plata','',22,MX_INF_MO)]},
+   {id:'extra',n:'Tras ciclos adicionales',w:'Tras cada ciclo extra (3.º-4.º ARAC-AD si no se hace el ATSP), con la recuperación medular (días 28-42 del inicio del ciclo).',p:21,it:[
+     _mxI('EMR qRT-PCR NPM1','SP y MO',[['edta','SP 5 ml'],['edta','MO 3 ml']],'plata','«Envío de muestras de SP y MO al laboratorio central tras cada ciclo».',21,MX_INF_SP)]},
    {id:'conf',n:'Confirmar SP positiva',w:'Nueva SP a las 2-4 semanas, SIEMPRE con MO concomitante.',p:15,it:[
      _mxI('EMR qRT-PCR NPM1','SP + MO',[['edta','SP 5 ml'],['edta','MO 3 ml']],'plata','',15,MX_INF_SP)]},
+   {id:'mol',n:'Recaída molecular: búsqueda de donante',w:'Sin hermano HLA-idéntico, mientras se busca donante no emparentado: al menos cada mes.',p:26,it:[
+     _mxI('EMR qRT-PCR NPM1 (descartar recaída franca)','SP y MO',[['edta','SP 5 ml'],['edta','MO 3 ml']],'plata','Si la cinética es rápida o no hay donante 10/10 en 2-3 meses: alo-TPH de donante alternativo.',26,MX_INF_SP)]},
    {id:'pre_tph',n:'Pre-TPH',w:'Antes del TPH (siempre antes del alo-TPH).',p:20,it:[
      _mxI('MO (descartar recaída) + EMR','MO y SP',[['edta','MO 3 ml'],['edta','SP 5 ml']],'plata','',20,MX_INF_MO)]},
    {id:'post_alo',n:'Post-alo-TPH',w:'SP cada 2-3 meses hasta los 2 años.',p:25,it:[
@@ -3481,16 +3490,21 @@ const MX_PROTOS=[
   m:[
    {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento.',p:16,it:MX_LOCAL_DX.concat([
      _mxI('PCR + NGS centralizada (FLT3, NPM1, CEBPA, BCR::ABL1, TP53, RUNX1, ASXL1, IDH1/2…)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','Resultado en 2-3 semanas. El informe local de citometría del diagnóstico se adjunta al primer envío de EMR.',17,MX_INF_MO),
-     _mxI('Biobanco','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO)])},
+     _mxI('Biobanco','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO),
+     _mxLCR(16)])},
    {id:'post_ind',n:'Tras inducción',w:'Desde el día 28 si hay recuperación y no más tarde del día 35.',p:22,it:[
      _mxI('Morfología (respuesta)','MO y SP',[['ext',''],['edta','1 tubo']],'local','',22)]},
    {id:'post_c1',n:'Tras consolidación 1',w:'Recuperación medular (días 21-42), no más tarde del día 60 tras el último ARA-C.',p:25,it:[
      _mxI('EMR por citometría (BCR::ABL1 negativos; positiva si > 0,05%)','MO y SP',[['edta','MO 3 ml'],['edta','SP']],'negrin','Con este primer envío de EMR, adjuntar el informe local de citometría del diagnóstico.',19,MX_INF_MO),
      _mxI('PCR cuantitativa BCR::ABL1 (solo BCR::ABL1+)','MO',[['edta','1 tubo']],'local','Laboratorio habitual de referencia del centro.',20)]},
-   {id:'pre_tph',n:'Pre-TPH',w:'Antes del acondicionamiento.',p:19,it:[
-     _mxI('EMR por citometría (o PCR si BCR::ABL1+)','MO y SP',[['edta','MO 3 ml'],['edta','SP']],'negrin','',19,MX_INF_MO)]},
+   {id:'post_ult',n:'Tras la última consolidación',w:'Aspirado de control al terminar las consolidaciones (puede servir de pre-TPH).',p:38,it:[
+     _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','',38)]},
+   {id:'pre_tph',n:'Pre-TPH',w:'Antes del acondicionamiento (vale la MO post-consolidación si quedan < 2-4 semanas). Si el alo-TPH se retrasa, repetir la MO durante la espera.',p:19,it:[
+     _mxI('EMR por citometría (BCR::ABL1 negativos)','MO y SP',[['edta','MO 3 ml'],['edta','SP']],'negrin','',19,MX_INF_MO),
+     _mxI('PCR cuantitativa BCR::ABL1 (solo BCR::ABL1+)','MO',[['edta','1 tubo']],'local','Laboratorio habitual de referencia del centro; sin citometría central.',20)]},
    {id:'post_tph',n:'Post-TPH',w:'60-90 días (o a los 3 meses).',p:19,it:[
-     _mxI('EMR por citometría (o PCR si BCR::ABL1+)','MO y SP',[['edta','MO 3 ml'],['edta','SP']],'negrin','',19,MX_INF_MO)]},
+     _mxI('EMR por citometría (BCR::ABL1 negativos)','MO y SP',[['edta','MO 3 ml'],['edta','SP']],'negrin','',19,MX_INF_MO),
+     _mxI('PCR cuantitativa BCR::ABL1 (solo BCR::ABL1+)','MO',[['edta','1 tubo']],'local','Laboratorio habitual de referencia del centro; sin citometría central.',20)]},
    {id:'seg',n:'Seguimiento',w:'MO a los 3, 6, 12 y 24 meses.',p:38,it:[
      _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','',38)]},
    {id:'rec',n:'Recaída',w:'Ante sospecha.',p:38,it:[
@@ -3523,9 +3537,12 @@ const MX_PROTOS=[
      _mxI('Biología molecular rápida (FLT3-ITD/TKD, NPM1, IDH) + NGS centralizada','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','Obligado. FLT3 en 7 días desde el envío.',21,'El volumen de 3-6 ml en EDTA lo da el protocolo para cada episodio de R/R (p. 43).'),
      _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','CI PLATAFO-LMA si no se firmó al diagnóstico.',20),
      _mxI('Cariotipo (opcional, recomendable si recaída tardía)','MO',[['hepli','1 tubo']],'local','',22),
-     _mxI('Inmunofenotipo (opcional)','MO',[['edta','1 tubo']],'local','',22)]},
-   {id:'resp',n:'Respuesta al rescate',w:'FLAG-IDA: desde el día 28 (≤ día 35). Gilteritinib: días 28 y 56, tras ciclos 4 y 6.',p:28,it:[
-     _mxI('Morfología (respuesta)','MO y SP',[['ext',''],['edta','1 tubo']],'local','',28)]},
+     _mxI('Inmunofenotipo (opcional)','MO',[['edta','1 tubo']],'local','',22),
+     _mxLCR(21)]},
+   {id:'resp',n:'Respuesta al rescate',w:'FLAG-IDA: desde el día 28 (≤ día 35). Gilteritinib: días 28 y 56, tras ciclos 4 y 6.',p:30,it:[
+     _mxI('Morfología (respuesta)','MO y SP',[['ext',''],['edta','1 tubo']],'local','',30)]},
+   {id:'seg_rc',n:'En RC/RCi',w:'MO de control cada 3 meses/ciclos el primer año; después según hemograma o clínica.',p:30,it:[
+     _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','',30)]},
    {id:'pre_alo',n:'Pre-alo-TPH',w:'Antes del alo-TPH (primer episodio de R/R).',p:43,it:[
      _mxI('EMR por citometría (informativa)','MO',[['edta','3 ml']],'negrin','',43)]},
    {id:'post_alo',n:'Post-alo-TPH',w:'A los 30-60 días del alo-TPH.',p:43,it:[
@@ -3538,7 +3555,8 @@ const MX_PROTOS=[
    {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento (ATRA ante la mínima sospecha).',p:11,it:[
      _mxI('Frotis para inmunotinción anti-PML (PG-M3) y archivo','MO y SP',[['frotis','3-4 de MO y 3-4 de SP']],'local','Temperatura ambiente, sin refrigerar. Nunca sustituye a la RT-PCR.',11),
      _mxI('RT-PCR PML::RARA: confirmación del diagnóstico (define la isoforma para la EMR)','MO y SP',[['edta','MO 1-2 ml'],['edta','SP 5-20 ml']],'lpaRef','Preferible EDTA (vale citrato). Enviar a 4 °C.',11),
-     _mxI('Cariotipo y FISH PML::RARA','MO',[['rpmi','1-2 ml de aspirado']],'local','Temperatura ambiente.',11)]},
+     _mxI('Cariotipo y FISH PML::RARA','MO',[['rpmi','1-2 ml de aspirado']],'local','Temperatura ambiente.',11),
+     _mxI('Inmunofenotipo por citometría','MO',[['edta','1 tubo']],'local','Obligado antes del tratamiento.',30)]},
    {id:'fin_ind',n:'Fin de inducción',w:'Nunca antes de 30 días (fin de QT o inicio de ATO); diferenciación hasta 40-50 días: no cambiar el tratamiento.',p:30,it:[
      _mxI('Aspirado de MO (RC morfológica)','MO',[['ext',''],['edta','1 tubo']],'local','La EMR precoz es solo investigacional: no tomar decisiones con ella.',30)]},
    {id:'fin_cons',n:'Fin de consolidación',w:'ATRA+QT: al final del 3.er ciclo. ATO+ATRA: con la recuperación tras el ciclo 4.',p:31,it:[
@@ -3567,17 +3585,17 @@ const MX_PROTOS=[
    {id:'fin_ind2',n:'Fin de inducción-2',s:['B','Tm'],w:'Solo si no hubo RC con la inducción-1.',p:{B:21,T:34},it:_mxL25()},
    {id:'fin_blin1',n:'Fin de blinatumomab 1 (decisoria)',s:['B'],w:'Entre el D29 y el D42 del 1.er ciclo. Con la genética asigna riesgo estándar (ER < 0,01% sin genética desfavorable) o alto riesgo / TPH. Si no es valorable, repetir en 7 días.',p:24,it:_mxL25()},
    {id:'fin_c1',n:'Fin de consolidación 1 · MTX (decisoria)',s:['Tm','Ti'],w:'Tras el 1.er bloque (MTX a dosis altas), con la recuperación. Decide TPH precoz frente a consolidación + reinducción.',p:37,it:_mxL25([_mxAspIt('Día 17 del bloque (14 días tras la PEG-ASP del día 3).',['Tm','Ti'])])},
-   {id:'conf',n:'Confirmatoria (ER local en aumento)',w:'Si la ER local sube o se positiviza durante la consolidación: ER central a las 1-2 semanas.',p:{B:24,T:72},it:_mxL25()},
+   {id:'conf',n:'Confirmatoria (ER local en aumento)',w:'Si la ER local sube o se positiviza durante la consolidación: ER central a las 1-2 semanas.',p:{B:24,T:72},it:_mxL25sinIJC()},
    {id:'fin_blin4',n:'Fin de blinatumomab 4',s:['B'],w:'Al terminar la consolidación (riesgo estándar). ER < 0,001% → consolidación tardía y mantenimiento; ≥ 0,001% → alo-TPH tardío.',p:28,it:_mxL25()},
    {id:'fin_reind',n:'Fin de reinducción',s:['Tm'],w:'Tras la consolidación precoz (3 bloques) y la reinducción. ER < 0,001% → consolidación tardía; ≥ 0,001% → alo-TPH tardío.',p:41,it:_mxL25([_mxAspIt('Día 30 de la reinducción (14 días tras la PEG-ASP del día 16).',['Tm'])])},
    {id:'fin_ctard',n:'Fin de consolidación tardía',s:['Tm'],w:'Al terminar la consolidación tardía.',p:42,it:_mxL25()},
    {id:'pre_tph',n:'Pre-TPH',w:'LAL-B: antes del TPH precoz (alto riesgo). LLA-T: antes de cualquier TPH.',p:{B:72,T:38},it:_mxL25()},
    {id:'tph3',n:'+3 meses post-TPH',w:'A los 3 meses del trasplante.',p:72,it:_mxL25()},
    {id:'tph6',n:'+6 meses post-TPH',s:['Tm','Ti'],w:'A los 6 meses del trasplante (solo seguimiento en el IJC).',p:93,it:[MX_L25_IJC]},
-   {id:'fin_m1',n:'Fin de mantenimiento-1',w:'Al terminar el año de mantenimiento con reinducciones.',p:30,it:_mxL25()},
-   {id:'fin_m2',n:'Fin de mantenimiento-2',w:'Al terminar los 6 meses de mantenimiento sin reinducciones (fin del tratamiento).',p:30,it:_mxL25()},
+   {id:'fin_m1',n:'Fin de mantenimiento-1',w:'Al terminar el año de mantenimiento con reinducciones.',p:{B:30,T:43},it:_mxL25()},
+   {id:'fin_m2',n:'Fin de mantenimiento-2',w:'Al terminar los 6 meses de mantenimiento sin reinducciones (fin del tratamiento).',p:{B:30,T:43},it:_mxL25()},
    {id:'fin_1a',n:'+1 año del fin del tratamiento',w:'Al año de terminar el tratamiento.',p:72,it:_mxL25()},
-   {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central; los rescates y recaídas posteriores se estudian en el centro.',p:90,it:_mxL25([
+   {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central; los rescates y recaídas posteriores se estudian en el centro.',p:90,it:_mxL25sinIJC([
      _mxS(_mxI('Estudios genéticos de LLA-T en la recaída','MO y/o SP',[['edta','MO 4-5 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])])},
    {id:'asp',n:'Niveles de asparaginasa (todas las fases)',asp:[
      {s:['B'],f:'Inducción-1 · PEG-ASP días 16 y 29',w:'Día 29 (antes de la 2.ª dosis) y día 43 o antes del blinatumomab 1',p:94},
@@ -3636,7 +3654,8 @@ const MX_PROTOS=[
      _mxI('Citometría / Biobanco de Salamanca','MO',[['hep','4-5 ml'],['edta','4-5 ml']],'salCmf','',8),
      _mxI('Citometría / Biobanco de Salamanca','SP',[['hep','5 ml'],['edta','2 × 10 ml']],'salCmf','',8)]},
    {id:'reev',n:'Reevaluación (inotuzumab / CAR-T)',w:'Tras cada ciclo de inotuzumab (alo-TPH si EMR < 0,1%); tras CAR-T si EMR > 0,1%.',p:13,it:[
-     _mxI('EMR por citometría','MO',[['edta','1 tubo']],'local','La guía no dice si es local o central.',13)]}
+     _mxI('EMR por citometría tras cada ciclo de inotuzumab','MO',[['edta','1 tubo']],'local','Alo-TPH si EMR < 0,1 %. La guía no dice si es local o central.',13),
+     _mxI('EMR por citometría tras CAR-T','MO',[['edta','1 tubo']],'local','Si RC con EMR > 0,1 %: repetir la MO con EMR y, si se confirma, valorar alo-TPH.',15)]}
   ]},
  {id:'burki',g:'LLA',n:'BURKIMAB-14',v:'09/05/2017',pdf:'guias/BURKIMAB.pdf',d:'LLA-B madura (Burkitt) y linfoma de Burkitt del adulto.',
   m:[
@@ -3655,12 +3674,12 @@ const MX_PROTOS=[
 // ── Presentación: cuándo (en corto), casilla de la hoja de LLA y qué se sigue (EMR) ──
 const MX_WS={
   flow:{dx:'Antes de tratar',post_ind:'Día +28 a +35 de la inducción',post_c1:'Recuperación tras la consolidación 1',post_ult:'Fin de las consolidaciones',pre_tph:'Antes del acondicionamiento',post_tph:'+60 a +90 días del TPH',seg:'Meses 3-6, 12 y 24',rec:'Sospecha de recaída'},
-  cbf:{dx:'Antes de tratar',post_ind:'Días 35-42 de la inducción',post_c1:'Días 28-42 de la consolidación 1',post_c2:'Días 28-42 de la consolidación 2',post_c3:'Día +28 a +90 tras la consolidación 3',conf:'4 semanas tras una SP positiva',pre_tph:'Antes del TPH',post_tph:'SP cada 3 meses, 2 años',seg:'SP cada 3 meses · MO a los 3, 12 y 24 meses',rec:'Sospecha de recaída'},
-  npm1:{dx:'Antes de tratar',post_ind:'Días 35-42 de la inducción',post_c1:'Días 28-42 de la consolidación 1',post_c2:'Tras la consolidación 2 (≤ día +60): decide el TPH',conf:'2-4 semanas tras una SP positiva',pre_tph:'Antes del TPH',post_alo:'SP cada 2-3 meses, 2 años',seg:'SP cada 3 meses · MO a los 3, 12 y 24 meses',rec:'Sospecha de recaída'},
-  mix:{dx:'Antes de tratar',post_ind:'Día +28 a +35 de la inducción',post_c1:'Días 21-42 de la consolidación 1',pre_tph:'Antes del acondicionamiento',post_tph:'+60 a +90 días del TPH',seg:'MO a los 3, 6, 12 y 24 meses',rec:'Sospecha de recaída'},
+  cbf:{dx:'Antes de tratar',post_ind:'Días 35-42 de la inducción',post_c1:'Días 28-42 de la consolidación 1',post_c2:'Días 28-42 de la consolidación 2',post_c3:'Día +28 a +90 tras la consolidación 3',conf:'4 semanas tras una SP positiva',mol:'Seguimiento estrecho hasta intensificar',pre_tph:'Antes del TPH',post_tph:'SP cada 3 meses, 2 años',seg:'SP cada 3 meses · MO a los 3, 12 y 24 meses',rec:'Sospecha de recaída'},
+  npm1:{dx:'Antes de tratar',post_ind:'Días 35-42 de la inducción',post_c1:'Días 35-42 de la consolidación 1',post_c2:'Tras la consolidación 2 (≤ día +60): decide el TPH',extra:'Tras cada ciclo adicional',conf:'2-4 semanas tras una SP positiva',mol:'Al menos cada mes mientras se busca donante',pre_tph:'Antes del TPH',post_alo:'SP cada 2-3 meses, 2 años',seg:'SP cada 3 meses · MO a los 3, 12 y 24 meses',rec:'Sospecha de recaída'},
+  mix:{dx:'Antes de tratar',post_ind:'Día +28 a +35 de la inducción',post_c1:'Días 21-42 de la consolidación 1',post_ult:'Fin de las consolidaciones',pre_tph:'Antes del acondicionamiento',post_tph:'+60 a +90 días del TPH',seg:'MO a los 3, 6, 12 y 24 meses',rec:'Sospecha de recaída'},
   papu:{dx:'Al diagnóstico',d14:'Día 14 del ciclo 1 (VEN+AZA)',c1c2:'Fin del ciclo 1-2, con recuperación',c4:'Fin del ciclo 4',c6:'Fin del ciclo 6',rec:'Recaída o progresión'},
-  rron:{dx:'Antes del rescate',resp:'FLAG-IDA: día 28-35 · gilteritinib: días 28 y 56',pre_alo:'Antes del alo-TPH',post_alo:'+30 a +60 días del alo-TPH',nueva_rr:'Cada nueva recaída'},
-  lpa:{dx:'Antes de tratar',fin_ind:'Día ≥ 30 de la inducción',fin_cons:'Fin de la consolidación',seg:'MO cada 3-12 meses, 2 años',conf:'≤ 2 semanas tras una PCR positiva',rec:'Recaída'},
+  rron:{dx:'Antes del rescate',resp:'FLAG-IDA: día 28-35 · gilteritinib: días 28 y 56',seg_rc:'Cada 3 meses/ciclos el primer año',pre_alo:'Antes del alo-TPH',post_alo:'+30 a +60 días del alo-TPH',nueva_rr:'Cada nueva recaída'},
+  lpa:{dx:'Antes de tratar',fin_ind:'≥ 30 días desde el fin de la QT o el inicio del ATO',fin_cons:'Fin de la consolidación',seg:'MO cada 3-12 meses, 2 años',conf:'≤ 2 semanas tras una PCR positiva',rec:'Recaída'},
   lal25:{dx:'Durante la prefase',d14:'Día 14 de la inducción-1',fin_ind1:'Fin de la inducción-1',fin_ind2:'Fin de la inducción-2',fin_blin1:'Días 29-42 del Blin1: decide la rama',fin_c1:'Recuperación tras la C1 (MTX): decide el TPH',conf:'1-2 semanas tras una ER local en aumento',fin_blin4:'Fin del Blin4',fin_reind:'Fin de la reinducción',fin_ctard:'Fin de la consolidación tardía',pre_tph:'Antes del TPH',tph3:'+3 meses del TPH',tph6:'+6 meses del TPH (solo IJC)',fin_m1:'Fin del mantenimiento-1',fin_m2:'Fin del mantenimiento-2',fin_1a:'+1 año del fin del tratamiento',rec:'1.ª recaída',asp:'Según la fase de tratamiento'},
   lalph:{dx:'Durante la prefase',d14:'Día +14 de la inducción',fin_ind:'Días 28-35 de la inducción',cons_par:'Tras los ciclos 2 y 4',fin_cons:'Tras el 6.º ciclo',pre_tph:'Antes del TPH (si > 30 días)',post_tph:'Calendario tras el alo-TPH',mant:'Calendario sin TPH',rec:'Recaída'},
   lalr:{rec:'Antes de tratar la recaída',reev:'Tras cada ciclo de inotuzumab o tras CAR-T'},
@@ -9216,7 +9235,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 410;
+const HP_BUILD = 411;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -9765,6 +9784,7 @@ const QT_SCHEMES = {
     ]
   },
   'POLA-R-ICE': {
+    r1split:true,
     label: 'Pola-R-ICE – Polatuzumab + R-ICE · LBDCG en recaída/refractario (cada 21 días)',
     kw: 'linfoma rescate recaida refractario salvage segunda linea polatuzumab pola rice ifosfamida carboplatino etoposido rituximab lbdcg',
     drugs: [
@@ -9861,6 +9881,7 @@ const QT_SCHEMES = {
       ]}
     ],
     notes: [
+      'Ciclo 1: alopurinol 300 mg/día VO.',
       'Esquema mostrado: ciclo 1. Rituximab 375 mg/m² los días 1, 8, 15 y 22.',
       'Ciclos 2 a 5: rituximab 375 mg/m² el día 1 (no se administra rituximab en los ciclos 6–12).',
       'Lenalidomida 20 mg/día por vía oral los días 1–21 de ciclos de 28 días, hasta un máximo de 12 ciclos.',
@@ -10033,8 +10054,13 @@ const QT_SCHEMES = {
         {name:'Lenalidomida', dose:'25 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,22,23,24,25,26,27,28,29,30,31,32,33,34,35]},
         {name:'Dexametasona', dose:'20 mg', route:'IV/VO', days:[1,2,4,5,8,9,11,12,15,22,23,25,26,29,30,32,33]}
       ]},
-      {from:5, label:'ciclos 5+ (continuación, 28 días; sin bortezomib)', drugs:[
+      {from:5, to:17, label:'ciclos 5–17 (continuación, 28 días; sin bortezomib)', drugs:[
         {name:'Isatuximab',   dose:'10 mg/kg', route:'IV', days:[1,15]},
+        {name:'Lenalidomida', dose:'25 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
+        {name:'Dexametasona', dose:'20 mg', route:'IV/VO', days:[1,8,15,22]}
+      ]},
+      {from:18, label:'ciclos 18+ (continuación, 28 días; isatuximab solo el día 1)', drugs:[
+        {name:'Isatuximab',   dose:'10 mg/kg', route:'IV', days:[1]},
         {name:'Lenalidomida', dose:'25 mg', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]},
         {name:'Dexametasona', dose:'20 mg', route:'IV/VO', days:[1,8,15,22]}
       ]}
@@ -10058,14 +10084,14 @@ const QT_SCHEMES = {
     label: 'IsaKd – Isatuximab + Carfilzomib + Dexametasona · MM en recaída (IKEMA) (cada 28 días)',
     drugs: [
       {name:'Isatuximab', dose:'10 mg/kg', route:'IV', days:[1,8,15,22]},
-      {name:'Carfilzomib (escalada)', dose:'20 mg/m²', route:'IV', days:[1,2]},
-      {name:'Carfilzomib', dose:'56 mg/m²', route:'IV', days:[8,9,15,16]},
+      {name:'Carfilzomib (escalada)', dose:'20 mg/m² (máx 44 mg)', route:'IV', days:[1,2]},
+      {name:'Carfilzomib', dose:'56 mg/m² (máx 123,2 mg)', route:'IV', days:[8,9,15,16]},
       {name:'Dexametasona (20 mg; 10 mg si >70 años)', dose:'20 mg', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
     ],
     cycles: [
       {from:2, label:'ciclos siguientes (isatuximab días 1 y 15)', drugs:[
         {name:'Isatuximab', dose:'10 mg/kg', route:'IV', days:[1,15]},
-        {name:'Carfilzomib', dose:'56 mg/m²', route:'IV', days:[1,2,8,9,15,16]},
+        {name:'Carfilzomib', dose:'56 mg/m² (máx 123,2 mg)', route:'IV', days:[1,2,8,9,15,16]},
         {name:'Dexametasona (20 mg; 10 mg si >70 años)', dose:'20 mg', route:'IV/VO', days:[1,2,8,9,15,16,22,23]}
       ]}
     ],
@@ -10074,6 +10100,7 @@ const QT_SCHEMES = {
       'Premedicación de isatuximab (1 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV) + paracetamol 650-1000 mg VO; valorar montelukast 10 mg VO; intensificar si enfermedad pulmonar previa (libro azul). La dexametasona del esquema se da ese día antes del isatuximab.'
     ],
     notes: [
+      'Carfilzomib: con SC > 2,2 m², calcular la dosis con 2,2 m² (ficha técnica): máx 44 mg a 20 mg/m² y 123,2 mg a 56 mg/m².',
       'Fenotipar hematíes antes de iniciar el tratamiento con isatuximab.',
       'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.',
       'Previo al inicio de carfilzomib: valoración cardiológica (ECG, ecocardiograma). Confirmar el buen control de la tensión arterial antes y durante las primeras semanas de tratamiento.',
@@ -10172,10 +10199,12 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Idarubicina',               dose:'12 mg/m²',              route:'IV', days:[1,2,3]},
       {name:'Citarabina',                dose:'200 mg/m²',             route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]},
-      {name:'Gemtuzumab ozogamicin (GO)', dose:'3 mg/m² (máx 4,5 mg)', route:'IV 2h', days:[4,7]},
-      {name:'G-CSF (desde D+9 hasta recuperación)', dose:'5 µg/kg/día', route:'SC', days:[9]}
+      {name:'Gemtuzumab ozogamicin (GO)', dose:'3 mg/m² (máx 5 mg)', route:'IV 2h', days:[4,7]}
+
     ],
     notes: [
+      'Gemtuzumab: 3 mg/m² hasta un máximo de un vial de 5 mg (ficha técnica).',
+      'G-CSF en la inducción solo si hay infección grave; si se usa de forma profiláctica, 5 µg/kg/día SC solo desde el día 14 tras la QT (CBF-2016, pág. 31).',
       'Gemtuzumab: si no se dispone del resultado de CBF en el día 4, administrarlo solo el día 7.',
       'Gemtuzumab puede asociar mayor riesgo hemorrágico y trombopenia más prolongada: vigilancia estrecha, soporte transfusional adecuado y premedicación de la infusión.',
       'No se recomienda punción lumbar de despistaje al diagnóstico, salvo signos o síntomas de infiltración meníngea.'
@@ -10187,11 +10216,13 @@ const QT_SCHEMES = {
       'Premedicación de gemtuzumab (la recomienda el libro azul; pauta de ficha técnica): 1 h antes, corticoide (p. ej., metilprednisolona) + antihistamínico + paracetamol.'
     ],
     drugs: [
-      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,2,3], adj:'≥ 60 años: 1500 mg/m²/12 h'},
-      {name:'Gemtuzumab ozogamicin', dose:'3 mg/m² (máx 4,5 mg)', route:'IV 2h', days:[1]}
+      {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,3,5], adj:'≥ 60 años: 1500 mg/m²/12 h'},
+      {name:'Gemtuzumab ozogamicin', dose:'3 mg/m² (máx 5 mg)', route:'IV 2h', days:[1]}
     ],
     notes: [
-      'ARA-C en días 1,2,3 o 1,3,5 según el ciclo. En pacientes ≥60 años, reducir ARA-C a 1500 mg/m²/12 h.',
+      'ARA-C 3 g/m²/12 h los días 1, 3 y 5 en los 3 ciclos (CBF-2016, pág. 24-25). En pacientes ≥ 60 años, 1500 mg/m²/12 h.',
+      'Gemtuzumab: 3 mg/m² hasta un máximo de un vial de 5 mg (ficha técnica).',
+      'Ciclos 2 y 3: G-CSF 5 µg/kg/día SC desde el día 7 tras la QT (CBF-2016, pág. 25).',
       'Gemtuzumab puede asociar mayor riesgo hemorrágico y trombopenia más prolongada: vigilancia estrecha y soporte transfusional.',
       'La consolidación puede administrarse de forma ambulatoria según la política del centro.',
       'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.'
@@ -10201,11 +10232,13 @@ const QT_SCHEMES = {
     label: 'FLAG-Ida – recaída/refractario (1 ciclo)',
     drugs: [
       {name:'Fludarabina', dose:'30 mg/m²', route:'IV 30 min', days:[1,2,3,4]},
-      {name:'Citarabina (ARA-C) — 4 h tras fludarabina', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4], adj:'≥ 60 años: 1000 mg/m²'},
-      {name:'Idarubicina — 4 h tras ARA-C', dose:'10 mg/m²', route:'IV 15 min', days:[1,2,3], adj:'≥ 60 años: 8 mg/m²'},
-      {name:'G-CSF (días 1-4; solo d1 si leucocitos >10.000/µL; no administrar si >25.000/µL)', dose:'5 µg/kg/día', route:'SC', days:[1,2,3,4]}
+      {name:'Citarabina (ARA-C) — 4 h tras fludarabina', dose:'2000 mg/m²', route:'IV 4h', days:[1,2,3,4], adj:'≥ 60 años o comorbilidad significativa: 1000 mg/m²'},
+      {name:'Idarubicina — 4 h tras ARA-C', dose:'10 mg/m²', route:'IV 15 min', days:[1,2,3], adj:'≥ 60 años o comorbilidad significativa: 8 mg/m²'},
+      {name:'G-CSF (día −1 a +3; omitir el día −1 si leucocitos > 10.000/µL)', dose:'5 µg/kg/día', route:'SC', days:[0,1,2,3]}
     ],
     notes: [
+      'Omitir la idarubicina si FEVI < 45 %, insuficiencia cardiaca moderada/grave o antraciclinas previas > 360 mg/m² (equivalentes de daunorrubicina) (LMA-RR-On, pág. 28).',
+      'Tras la QT: G-CSF 1 vial/día SC desde 7 días después de terminarla hasta neutrófilos > 1 × 10⁹/L (LMA-RR-On, pág. 28).',
       'Orden de administración: fludarabina primero; la citarabina 4 h tras finalizar la fludarabina; la idarubicina 4 h tras finalizar la citarabina.',
       'En pacientes ≥60 años: reducir ARA-C a 1000 mg/m² e idarubicina a 8 mg/m², con la misma pauta.',
       'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.'
@@ -10279,17 +10312,18 @@ const QT_SCHEMES = {
     kw: 'leucemia promielocitica aguda lpa apl m3 lma promielocitica tretinoina trioxido arsenico riesgo bajo intermedio',
     drugs: [
       {name:'ATRA (tretinoína) — 25 mg/m² si <20 años', dose:'45 mg/m²/día (en 2 tomas)', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
-      {name:'Trióxido de arsénico (ATO)', dose:'0,15 mg/kg', route:'IV 2h', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
+      {name:'Trióxido de arsénico (ATO)', dose:'0,15 mg/kg (máx 20 mg)', route:'IV 2h', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]},
       {name:'Prednisona (profilaxis del síndrome de diferenciación)', dose:'0,5 mg/kg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14]}
     ],
     notes: [
+      'ATO: sin superar nunca 20 mg/día; entre 67 y 80 kg puede darse una dosis fija de 10 mg/día (1 vial) (LPA 2017).',
       'Indicación: LPA de riesgo bajo-intermedio (leucocitos ≤10×10⁹/L), edad ≥70 años o cardiopatía (FEVI <50%)/contraindicación a antraciclinas.',
       'Mantener ATRA y ATO hasta la RC (mínimo recomendable 28 días) o hasta un máximo de 60 días si persisten promielocitos atípicos en médula; descartar toxicidad medular antes de prolongar.',
       'ATO: vigilar QTc (contraindicado/evitar si QTc >500 ms) e iones (K, Mg). Hidratación no excesiva (máx 1,5 L/m²/día). Bajo riesgo de SLT: considerar alopurinol 300 mg/día en citorreducción (días 1-8).',
       'Síndrome de diferenciación: ante la mera sospecha, dexametasona 10 mg/12 h IV hasta su resolución completa; si es grave, suspender temporalmente el ATO y/o el ATRA. Suspender también ATO y ATRA en hepatotoxicidad de grado 3-4 hasta < 4 veces el límite normal.',
       'Soporte: plaquetas para mantener >30×10⁹/L (>50×10⁹/L si riesgo de hemorragia grave) y Hb >9 g/dL; corregir coagulopatía (fibrinógeno >150 mg/dL, Quick >60%). No usar heparina ni antifibrinolíticos como profilaxis. QT triple intratecal solo si infiltración del SNC.',
       'Hidroxiurea VO (2 g/día al inicio, ajustar hasta 6 g/día) si leucocitos > 10 × 10⁹/L al diagnóstico o durante las primeras semanas.',
-      'QTc: si > 460 ms, monitorizar el ECG y corregir K, Mg y Ca con urgencia. Si > 500 ms, interrumpir el ATO (y los fármacos que alarguen el QTc); al normalizarse, reanudar a 0,075 mg/kg/día (50 %) 7 días y, si no vuelve a alargarse, dosis completa. Suplementar magnesio IV (1,5 g cada 12-24 h) y potasio (40-80 mEq/día).',
+      'QTc: si > 460 ms, monitorizar el ECG y corregir K, Mg y Ca con urgencia. Si > 500 ms, interrumpir el ATO (y los fármacos que alarguen el QTc); al normalizarse, reanudar a 0,075 mg/kg/día (50 %) 7 días, después 0,10 mg/kg/día otra semana y, si no vuelve a alargarse, dosis completa. Suplementar magnesio IV (1,5 g cada 12-24 h) y potasio (40-80 mEq/día).',
       'Profilaxis: ciprofloxacino 500 mg/12 h + fluconazol 100 mg/24 h VO desde el inicio del ATO hasta neutrófilos > 0,5-1 × 10⁹/L.'
     ]
   },
@@ -10356,7 +10390,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'De 3 a 8 ciclos.',
-      'G-CSF a partir del día 8.',
+      'G-CSF desde el día 8 hasta neutrófilos > 1 × 10⁹/L.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -10376,9 +10410,10 @@ const QT_SCHEMES = {
     ],
     premed: [
       'Premedicación para reducir el síndrome de liberación de citocinas (SLC), al menos 1 h antes de cada infusión de glofitamab: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV).',
-      'Obligatoria con todas las dosis del ciclo 1 (escaladas y 1ª dosis de 30 mg). En ciclos posteriores mantener antipirético y antihistamínico; el corticoide puede omitirse si no hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
+      'Corticoide obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3 (ficha técnica). Después mantener antipirético y antihistamínico; el corticoide solo si hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
     ],
     notes: [
+      'Hospitalizar durante la 1.ª dosis escalonada (2,5 mg) y las 24 h siguientes (ficha técnica).',
       'Ciclos de 21 días. Ciclo 1: obinutuzumab 1000 mg (D1) y escalada de glofitamab 2,5 mg (D8) y 10 mg (D15).',
       'La 1ª dosis plena de 30 mg se administra el día 1 del ciclo 2 (mostrada aquí como día 22); se mantienen 30 mg el día 1 de los ciclos 3–12.'
     ]
@@ -10489,10 +10524,11 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación del glofitamab para reducir el SLC, al menos 1 h antes de la infusión: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV). Obligatoria en las dosis escaladas y la 1ª dosis plena.',
+      'Premedicación del glofitamab para reducir el SLC, al menos 1 h antes de la infusión: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV). Corticoide obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3 (ficha técnica); después, solo si hubo SLC con la dosis previa.',
       'Profilaxis antiemética los días de GemOx (gemcitabina + oxaliplatino): antagonista 5-HT3 (ondansetrón/granisetrón) + dexametasona.'
     ],
     notes: [
+      'Hospitalizar durante la 1.ª dosis escalonada (2,5 mg) y las 24 h siguientes (ficha técnica).',
       'Esquema STARGLO en ciclos de 21 días, hasta 12 ciclos: 8 de glofitamab + GemOx y 4 de glofitamab en monoterapia.',
       'Ciclo 1 (mostrado): obinutuzumab 1000 mg D1 (pretratamiento) · GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el día 2 · escalada de glofitamab 2,5 mg D8 y 10 mg D15.',
       'Ciclos 2–8: glofitamab 30 mg + GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el día 1.',
@@ -10506,12 +10542,23 @@ const QT_SCHEMES = {
       {name:'Ciclofosfamida', dose:'300 mg/m²/12h × 6 dosis', route:'IV (1 h)', days:[1,2,3]},
       {name:'Doxorubicina (Adriamicina)', dose:'25 mg/m²/día', route:'IV infusión continua 24h', days:[4,5]},
       {name:'Vincristina',    dose:'2 mg (dosis total)',       route:'IV', days:[4,11]},
-      {name:'Dexametasona',   dose:'40 mg/día',                route:'IV/VO/IM', days:[1,2,3,4,11,12,13,14]}
+      {name:'Dexametasona',   dose:'40 mg/día',                route:'IV/VO/IM', days:[1,2,3,4,11,12,13,14]},
+      {name:'Filgrastim (G-CSF) desde el día 6 hasta neutrófilos > 0,5 × 10⁹/L', dose:'300 µg/día (< 75 kg) o 480 µg/día (> 75 kg)', route:'SC', days:[6]}
+    ],
+    cycles: [
+      {from:1, to:1, label:'ciclo 1 (sin rituximab)', drugs:[
+        {name:'Ciclofosfamida', dose:'300 mg/m²/12h × 6 dosis', route:'IV (1 h)', days:[1,2,3]},
+        {name:'Doxorubicina (Adriamicina)', dose:'25 mg/m²/día', route:'IV infusión continua 24h', days:[4,5]},
+        {name:'Vincristina',    dose:'2 mg (dosis total)',       route:'IV', days:[4,11]},
+        {name:'Dexametasona',   dose:'40 mg/día',                route:'IV/VO/IM', days:[1,2,3,4,11,12,13,14]},
+        {name:'Filgrastim (G-CSF) desde el día 6 hasta neutrófilos > 0,5 × 10⁹/L', dose:'300 µg/día (< 75 kg) o 480 µg/día (> 75 kg)', route:'SC', days:[6]}
+      ]}
     ],
     premed: [
     ],
     notes: [
-      'En el primer ciclo de quimioterapia NO se administra rituximab.',
+      'Hidratación: suero glucosalino 2 L/día + suero bicarbonatado 1/6 M 1 L/día.',
+      'En el primer ciclo de quimioterapia NO se administra rituximab (la orden del ciclo 1 ya lo excluye).',
       'Las dos pautas (A y B) se alternan cada 21 días.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
@@ -10523,11 +10570,11 @@ const QT_SCHEMES = {
       {name:'Rituximab',          dose:'375 mg/m²',                                                  route:'IV', days:[1]},
       {name:'Metotrexato',        dose:'1000 mg/m² IC 24h (200 mg/m² bolus 2h + 800 mg/m² en 22h)', route:'IV', days:[1]},
       {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h × 4 dosis',                                  route:'IV 2h', days:[2,3]},
-      {name:'Ácido folínico — 1.ª dosis de rescate (a las 12 h de acabar el MTX)', dose:'75 mg/m²', route:'IV', days:[2]}
+      {name:'Ácido folínico — 1.ª dosis de rescate (a las 12 h de acabar el MTX)', dose:'75 mg/m²', route:'IV', days:[2]},
+      {name:'Filgrastim (G-CSF) desde el día 6 hasta neutrófilos > 0,5 × 10⁹/L', dose:'300 µg/día (< 75 kg) o 480 µg/día (> 75 kg)', route:'SC', days:[6]}
     ],
     notes: [
-      'En el primer ciclo de quimioterapia NO se administra rituximab.',
-      'Rescate con ácido folínico (libro azul): 75 mg/m² IV a las 12 h de acabar el MTX; a las 3 h, 30 mg/m²; después 30 mg cada 6 h IV hasta MTX < 0,2 µmol/L y, entonces, 2 dosis más.',
+            'Rescate con ácido folínico (libro azul): 75 mg/m² IV a las 12 h de acabar el MTX; a las 3 h, 30 mg/m²; después 30 mg cada 6 h IV hasta MTX < 0,2 µmol/L y, entonces, 2 dosis más.',
       'Hidratación: suero glucosalino 3 L/día + suero bicarbonatado 1/6 M 1 L/día.',
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
       'Las dos pautas (A y B) se alternan cada 21 días.',
@@ -10561,6 +10608,11 @@ const QT_SCHEMES = {
     drugs: [
       {name:'Daunorrubicina/Citarabina liposomal (CPX-351)', dose:'44/100 mg/m² (= 100 U/m²)', route:'IV 90 min', days:[1,3,5]}
     ],
+    cycles: [
+      {from:2, to:2, label:'2.ª inducción (días 1 y 3)', drugs:[
+        {name:'Daunorrubicina/Citarabina liposomal (CPX-351)', dose:'44/100 mg/m² (= 100 U/m²)', route:'IV 90 min', days:[1,3]}
+      ]}
+    ],
     notes: [
       'Indicado en LMA secundaria a SMD/SMD-NMP o tras radio/quimio/agentes biológicos, o LMA de novo con alteraciones genéticas tipo SMD (WHO 2016) y edad ≥60 años. Excluir si mutación FLT3 (recibirían 3+7 + midostaurin).',
       'Hidratación vigorosa (suero glucosalino/fisiológico ≥2 L/m²/día); cautela con el balance hídrico en insuficiencia renal o cardiaca (1–2 L/m²/día, valorar furosemida 20 mg/8 h).',
@@ -10590,7 +10642,7 @@ const QT_SCHEMES = {
       'Indicación: MM en recaída/refractario tras ≥3 líneas (incluido inmunomodulador, inhibidor del proteasoma y anti-CD38). Mantener hasta progresión o toxicidad inaceptable.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
-      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 1 comprimido cada 12 h, 3 días a la semana, y aciclovir 800 mg/día. Si fiebre, iniciar pronto levofloxacino 500 mg/día (y antivírico si procede).'
     ]
   },
   'TALQUETAMAB': {
@@ -10617,7 +10669,7 @@ const QT_SCHEMES = {
       'Cada escalada puede administrarse 2-4 días después de la anterior (hasta 7 días para permitir la resolución de reacciones). Dosis según peso actual.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
-      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 1 comprimido cada 12 h, 3 días a la semana, y aciclovir 800 mg/día. Si fiebre, iniciar pronto levofloxacino 500 mg/día (y antivírico si procede).'
     ]
   },
   'ELRANATAMAB': {
@@ -10644,7 +10696,7 @@ const QT_SCHEMES = {
       'Tras la escalada, 76 mg semanal hasta el ciclo 6. Desde el ciclo 7 (≥ 24 semanas de tratamiento), pasar a 76 mg cada 2 semanas solo si además hay respuesta (≥ respuesta parcial) mantenida ≥ 2 meses: hacen falta las dos condiciones (ficha técnica). Ciclos de 28 días.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
-      'Profilaxis infecciosa (libro azul): valorar cotrimoxazol (Septrin Forte® c/12 h sábados y domingos) y aciclovir 800 mg/día.'
+      'Profilaxis infecciosa (libro azul): cotrimoxazol 1 comprimido cada 12 h, 3 días a la semana, y aciclovir 800 mg/día. Si fiebre, iniciar pronto levofloxacino 500 mg/día (y antivírico si procede).'
     ]
   },
   // ── LEUCEMIA LINFOBLÁSTICA AGUDA · PETHEMA LAL-2025 (Ph−) ───────────
@@ -12366,19 +12418,21 @@ function qtCalcDose(doseStr,bsa,weightKg){
   if(m){
     const perM2=parseFloat(m[1]);
     let total=perM2*bsa;
-    const mx=doseStr.match(/m[áa]x\s*([\d]+)\s*mg/i);
-    const capped=mx&&total>parseFloat(mx[1]);
-    if(capped) total=parseFloat(mx[1]);
-    return {mg:qtRoundDose(total),capped:capped?parseFloat(mx[1]):null};
+    const cap=qtDoseCap(doseStr);
+    const capped=cap!=null&&total>cap;
+    if(capped) total=cap;
+    return {mg:qtRoundDose(total),capped:capped?cap:null};
   }
   m=s.match(/^([\d.]+)\s*ui\/m/);
   if(m) return {mg:qtRoundDose(parseFloat(m[1])*bsa),u:'UI'};
   m=s.match(/^([\d.]+)\s*(?:µg|ug|mcg)\/kg/);
   if(m) return {mg:qtRoundDose(parseFloat(m[1])*weightKg/1000)};
   m=s.match(/^([\d.]+)\s*mg\/kg/);
-  if(m) return {mg:qtRoundDose(parseFloat(m[1])*weightKg)};
+  if(m){ let t=parseFloat(m[1])*weightKg; const cap=qtDoseCap(doseStr); const capped=cap!=null&&t>cap; if(capped) t=cap; return {mg:qtRoundDose(t),capped:capped?cap:null}; }
   return null;
 }
+// Tope de dosis escrito en el texto, p. ej. «(máx 2 mg)» o «(máx 4,5 mg)».
+function qtDoseCap(doseStr){ const mx=String(doseStr||'').match(/m[áa]x\.?\s*(\d+(?:[.,]\d+)?)\s*mg/i); return mx?parseFloat(mx[1].replace(',','.')):null; }
 function qtUpdateBSA(){
   const p=parseFloat($('qt_peso')?.value)||0;
   const t=parseFloat($('qt_talla')?.value)||0;
@@ -17080,24 +17134,38 @@ async function ghGetSha(token, path){
   if(r.ok){ const j = await r.json(); return j.sha; }
   return undefined;
 }
+// GitHub responde 409 («is at … but expected …») si otro cambio entra en el repositorio mientras se sube
+// (p. ej., dos guías subidas casi a la vez o una publicación de la app): se reintenta solo, con espera.
+function _ghConflict(status, txt){ return status===409 || (status===422 && /sha/i.test(txt||'')); }
+function _ghWait(i){ return new Promise(r=>setTimeout(r, 1200*(i+1) + Math.floor(Math.random()*900))); }
 async function ghPutFile(token, path, base64, message){
-  const sha = await ghGetSha(token, path); // si existe, hace falta para sobrescribir
-  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
-    method:'PUT',
-    headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
-    body: JSON.stringify({ message, content: base64, branch:'main', sha })
-  });
-  if(!r.ok){ const t = await r.text(); throw new Error('GitHub '+r.status+': '+t.slice(0,150)); }
-  return await r.json();
+  for(let i=0;;i++){
+    const sha = await ghGetSha(token, path); // si existe, hace falta para sobrescribir
+    const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+      method:'PUT',
+      headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
+      body: JSON.stringify({ message, content: base64, branch:'main', sha })
+    });
+    if(r.ok) return await r.json();
+    const t = await r.text();
+    if(_ghConflict(r.status, t) && i<5){ await _ghWait(i); continue; }
+    throw new Error('GitHub '+r.status+': '+t.slice(0,150));
+  }
 }
 async function ghDeleteFile(token, path, message){
-  const sha = await ghGetSha(token, path);
-  if(!sha) return; // ya no existe
-  await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
-    method:'DELETE',
-    headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
-    body: JSON.stringify({ message, sha, branch:'main' })
-  });
+  for(let i=0;;i++){
+    const sha = await ghGetSha(token, path);
+    if(!sha) return; // ya no existe
+    const r = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+      method:'DELETE',
+      headers:{ Authorization:`Bearer ${token}`, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
+      body: JSON.stringify({ message, sha, branch:'main' })
+    });
+    if(r.ok || r.status===404) return;
+    const t = await r.text();
+    if(_ghConflict(r.status, t) && i<5){ await _ghWait(i); continue; }
+    throw new Error('GitHub '+r.status+': '+t.slice(0,150));
+  }
 }
 
 // ── HemoCloud: roles (Firestore) + gestión de guías (PDF en GitHub, índice en Firestore) ──
