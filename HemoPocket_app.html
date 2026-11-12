@@ -3166,10 +3166,11 @@ ref:'Bendapudi PK, et al. Derivation and external validation of the PLASMIC scor
 
 VIEWS.cid=()=>pointCalc({
 id:'cid',title:'CID – Score ISTH',
-intro:'Score ISTH para CID overt (descompensada). Requiere trastorno subyacente compatible.',
+intro:'Score ISTH para CID overt (descompensada). Requiere trastorno subyacente compatible. Dímero D con los puntos de corte de la actualización ISTH 2025 (múltiplos del límite superior de la normalidad del laboratorio, LSN).'
++'<div class="fld" style="margin-top:10px"><label class="lbl">Calcular el múltiplo del LSN (opcional)</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px">Dímero D <input id="cid_dd" type="text" inputmode="decimal" placeholder="p. ej. 2,4" oninput="cidDD()" style="width:80px"> ÷ LSN <input id="cid_uln" type="text" inputmode="decimal" value="0,5" oninput="cidDD()" style="width:64px"> <span>(mismas unidades; el LSN habitual es 0,5 mg/L FEU = 500 ng/mL FEU: usa el de tu laboratorio)</span></div><div id="cid_ddres" class="res-s" style="margin-top:6px"></div></div>',
 items:[
 {q:'Plaquetas (×10⁹/L)',opts:[{l:'>100',p:0},{l:'50-100',p:1},{l:'<50',p:2}]},
-{q:'D-dímero / PDF',opts:[{l:'No elevado',p:0},{l:'Moderadamente elevado',p:2},{l:'Muy elevado',p:3}]},
+{q:'Dímero D (× LSN del laboratorio)',opts:[{l:'≤ 3 × LSN',p:0},{l:'> 3 y ≤ 7 × LSN (aumento moderado)',p:2},{l:'> 7 × LSN (aumento intenso)',p:3}]},
 {q:'Prolongación del TP (segundos)',opts:[{l:'<3 seg',p:0},{l:'3-6 seg',p:1},{l:'>6 seg',p:2}]},
 {q:'Fibrinógeno (g/L)',opts:[{l:'>1',p:0},{l:'<1',p:1}]}
 ],
@@ -3177,8 +3178,19 @@ ranges:[
 {min:0,max:4,cls:'lo',label:'No CID overt',info:'<div class="res-s">Repetir en 24-48h si sospecha clínica</div>'},
 {min:5,max:8,cls:'hi',label:'CID overt (compatible)',info:'<div class="res-s">Tratar enfermedad de base. Soporte hemostático según sangrado/trombosis.</div>'}
 ],
-ref:'Taylor FB Jr, et al. Towards definition, clinical and laboratory criteria, and a scoring system for disseminated intravascular coagulation. Thromb Haemost. 2001;86(5):1327-1330.'
+ref:'Taylor FB Jr, et al. Towards definition, clinical and laboratory criteria, and a scoring system for disseminated intravascular coagulation. Thromb Haemost. 2001;86(5):1327-1330. Iba T, et al. Updated definition and scoring of disseminated intravascular coagulation in 2025: communication from the ISTH SSC Subcommittee on DIC. J Thromb Haemost. 2025;23(7):2356-2362.'
 });
+// Dímero D: calcula el múltiplo del LSN y marca la opción del score ISTH 2025.
+function cidDD(){
+  const n=v=>parseFloat(String(v||'').replace(',','.'));
+  const dd=n(($('cid_dd')||{}).value), uln=n(($('cid_uln')||{}).value), out=$('cid_ddres');
+  if(!out) return;
+  if(!(dd>=0)||!(uln>0)){ out.textContent=''; return; }
+  const x=dd/uln, pts=x>7?3:(x>3?2:0);
+  out.innerHTML='= <b>'+(Math.round(x*10)/10).toString().replace('.',',')+' × LSN</b> → '+pts+' puntos';
+  const r=document.querySelector('#content input[name="cid_1"][value="'+pts+'"]');
+  if(r){ r.checked=true; document.querySelectorAll('#content input[name="cid_1"]').forEach(function(e){ e.parentElement.classList.toggle('checked',e.checked); }); pcCalc('cid'); }
+}
 
 VIEWS.tt=()=>pointCalc({
 id:'tt',title:'4T Score – HIT',
@@ -9428,7 +9440,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 414;
+const HP_BUILD = 415;
 const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
