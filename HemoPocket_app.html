@@ -2715,7 +2715,7 @@ VIEWS.bleyer=function(){
   h+='• <strong>Infusión corta, de 3-4 h</strong> (MATRIX, MTX-R-CHOP): <strong>nomograma de Bleyer</strong> del servicio (o la pauta fija del libro azul).<br>';
   h+='• <strong>Infusión de 24 h o más</strong>: el rescate de <strong>su protocolo</strong> (LAL-2025, LAL Ph-2022, BURKIMAB, pediatría) o, en R-Hyper-CVAD, la pauta del libro azul. <strong>El nomograma de Bleyer no sirve</strong>: empieza a las 20 h, cuando la infusión aún no ha terminado.</div>';
   // 1 · Bleyer
-  var b='<div class="alert y" style="font-size:12.5px"><strong>Solo para infusiones de 3-4 h</strong> (MATRIX: 0,5 g/m² en 15 min + 3 g/m² en 3 h; MTX-R-CHOP: 3-3,5 g/m² en 4 h). No usar con infusiones de 24 h o más.</div>';
+  var b=_mtxSrc('bly')+'<div class="alert y" style="font-size:12.5px"><strong>Solo para infusiones de 3-4 h.</strong> El protocolo del servicio infunde el MTX (3-8 g/m²) en 4 h; así se usa en MATRIX (0,5 g/m² en 15 min + 3 g/m² en 3 h) y MTX-R-CHOP (3-3,5 g/m² en 4 h). No usar con infusiones de 24 h o más.</div>';
   b+='<div class="alert b" style="font-size:12.5px"><strong>Dosis inicial:</strong> Lederfolín <strong>35 mg/m²</strong> a las <strong>20 h</strong> del inicio de la infusión, antes de conocer los niveles de MTX<span id="bly_ini"></span>.</div>';
   b+='<div class="lbl" style="margin:12px 0 6px">Horas desde el inicio de la infusión</div><div id="bly_hrs" style="display:flex;flex-wrap:wrap;gap:6px">';
   BLY_H.forEach(function(x){ b+='<button type="button" class="btn btn-out btn-sm" data-h="'+x+'" onclick="blySetH('+x+')" style="min-width:58px">'+x+' h</button>'; });
@@ -2737,6 +2737,7 @@ VIEWS.bleyer=function(){
   b+='<li><strong>Hiperhidratación</strong> IV 3 L/m² y <strong>alcalinización</strong> con bicarbonato 1 M 250 ml/12 h desde al menos 12 h antes de la infusión.</li>';
   b+='<li><strong>No iniciar</strong> la infusión si la creatinina sérica ha aumentado o la diuresis es &lt; 125 ml/m²/h. Valorar sondaje uretral y asociar furosemida, acetazolamida o manitol 20 % si se precisa.</li>';
   b+='<li>Mantener el <strong>pH urinario &gt; 7,5</strong> antes, durante y después de la infusión, las primeras 24 h.</li>';
+  b+='<li>Reconstituir el MTX (<strong>3-8 g/m²</strong> según protocolo) con SF hasta 500 ml e <strong>infundir en 4 h</strong>.</li>';
   b+='<li>Si se combina con un bolo de <strong>vincristina</strong>, administrarla 1 h antes de la infusión de MTX.</li>';
   b+='<li>Niveles a las <strong>20, 48 y 72 h</strong> como mínimo, manteniendo la hiperhidratación y la alcalinización hasta MTX &lt; 0,5 µM. En rango tóxico, niveles <strong>cada 12 h</strong> modificando el rescate según los mismos.</li>';
   b+='<li>Se <strong>suspende el Lederfolín</strong> cuando MTX &lt; 0,01 µM.</li>';
@@ -2824,15 +2825,26 @@ const MTX_T={
 };
 function _mtxBand(t,lv){ for(var i=0;i<t.length;i++){ if(lv<t[i][0]) return t[i]; } return null; }
 function _mtxD(band){ return band?{m2:band[1],q:band[2],via:band[3]||'IV'}:null; }
-const MTX_PDF={
-  l25:['guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf','LAL-2025',61],
-  lph:['guias/LALPh.pdf','LAL Ph-2022',22],
-  bkm:['guias/BURKIMAB.pdf','BURKIMAB-14',32],
-  p13:['guias/subidas/ped/1794469409349_LAL_SEHOP_PETHEMA_2013._Versi_n_final_9.10.2014_1_.pdf','LAL SEHOP-PETHEMA 2013',93],
-  p15:['guias/subidas/ped/1794469353845_Gu_a_Reca_da_LAL_v1.0_SEHOP-PETHEMA_2015._Recaida.pdf','Recaída LAL SEHOP-PETHEMA 2015',68],
-  lba:['guias/LibroAzul_QT.pdf','Pautas de QT SEHH',21]
+// Páginas del original donde sale cada rescate (índice del PDF = página impresa en todos estos PDF).
+const MTX_F={bly:'guias/Bleyer.pdf',la:'guias/LibroAzul_QT.pdf',l25:'guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf',lph:'guias/LALPh.pdf',bkm:'guias/BURKIMAB.pdf',p13:'guias/subidas/ped/1794469409349_LAL_SEHOP_PETHEMA_2013._Versi_n_final_9.10.2014_1_.pdf',p15:'guias/subidas/ped/1794469353845_Gu_a_Reca_da_LAL_v1.0_SEHOP-PETHEMA_2015._Recaida.pdf'};
+const MTX_FN={bly:'Rescate MTX · protocolo del servicio',la:'Pautas de QT SEHH (libro azul)',l25:'LAL-2025',lph:'LAL Ph-2022',bkm:'BURKIMAB-14',p13:'LAL SEHOP-PETHEMA 2013',p15:'Recaída LAL SEHOP-PETHEMA 2015'};
+const MTX_SRC={
+  bly:[['bly',1,'Tabla del servicio «Dosificación de MTX y rescate con ác. folínico» (1 página)']],
+  lba:[['la',21,'Nota del rescate con ácido folínico (primer esquema con MTX), p. 21'],['la',206,'R-Hiper-CVAD, ciclo con MTX (parte B), p. 206'],['la',208,'MATRIX: esquema, p. 208'],['la',209,'MATRIX: rescate, p. 209']],
+  l25:[['l25',61,'Rescate con leucovorin, p. 61'],['l25',62,'Muestras de las 12, 23 y 36 h, p. 62'],['l25',63,'Tabla I (42 h) y glucarpidasa, p. 63'],['l25',64,'Tabla II (60 h) y otras consideraciones, p. 64'],['l25',65,'Eliminación retardada e intoxicación, p. 65']],
+  lph:[['lph',22,'Rescate adaptado a los niveles, p. 22'],['lph',23,'500 mg/m², advertencias e intoxicación, p. 23'],['lph',55,'Anexo 3 · algoritmo I, p. 55'],['lph',56,'Anexo 3 · algoritmo II y tablas I y II, p. 56']],
+  bkm:[['bkm',30,'Rescate con leucovorin, p. 30-31'],['bkm',32,'Tablas I (42 h) y II (60 h), p. 32'],['bkm',33,'Dosis de 500 mg/m² y otras consideraciones, p. 33'],['bkm',34,'Intoxicación severa, p. 34'],['bkm',45,'Anexo V · algoritmos, p. 45']],
+  p13:[['p13',93,'Niveles de MTX y rescate: texto, p. 93'],['p13',94,'Tablas 15.1 (niveles esperados) y 15.2 (dosis según el nivel), p. 94'],['p13',90,'Síndrome de Down, p. 90']],
+  p15:[['p15',68,'Retraso de la eliminación y tabla 7, p. 68']],
+  glu:[['l25',63,'LAL-2025: criterios de glucarpidasa, p. 63'],['lph',23,'LAL Ph-2022: intoxicación y glucarpidasa, p. 23'],['bkm',32,'BURKIMAB-14: tabla I (&gt; 100 µM), p. 32'],['p15',68,'Recaída 2015: carboxipeptidasa, p. 68']]
 };
-function _mtxPdf(k){ var x=MTX_PDF[k]; return x?'<div style="margin-top:10px"><a onclick="openPDFurl(\''+x[0]+'\',\''+x[1]+'\','+x[2]+')" style="color:var(--c2);cursor:pointer;text-decoration:underline;font-size:12.5px">Abrir el protocolo en esta página ↗</a></div>':''; }
+const MTX_EXT={glu:[['https://doi.org/10.1634/theoncologist.2017-0243','Consenso de glucarpidasa (Ramsey, Oncologist 2018)'],['https://doi.org/10.1634/theoncologist.2015-0164','Toxicidad del MTX a dosis altas (Howard, Oncologist 2016)']]};
+function _mtxSrc(k){
+  var L=(MTX_SRC[k]||[]).map(function(x){ return '<li><a onclick="openPDFurl(\''+MTX_F[x[0]]+'\',\''+MTX_FN[x[0]]+'\','+x[1]+')" style="color:var(--c2);cursor:pointer;text-decoration:underline">'+x[2]+'</a></li>'; })
+    .concat((MTX_EXT[k]||[]).map(function(x){ return '<li><a href="'+x[0]+'" target="_blank" rel="noopener noreferrer" style="color:var(--c2);text-decoration:underline">'+x[1]+' ↗</a></li>'; }));
+  if(!L.length) return '';
+  return '<div style="margin:0 0 10px;padding:8px 12px;border:1px dashed var(--bd);border-radius:10px;font-size:12.5px"><div style="font-weight:700;margin-bottom:2px">📄 Comprobar en el original'+(MTX_FN[(MTX_SRC[k]||[[k]])[0][0]]&&k!=='glu'?' · '+MTX_FN[MTX_SRC[k][0][0]]:'')+'</div><ul style="margin:2px 0 0;padding-left:18px;line-height:1.6">'+L.join('')+'</ul></div>';
+}
 // Sección desplegable (se recuerda cuáles están abiertas en este dispositivo).
 function _mtxOpen(){ try{ var v=JSON.parse(localStorage.getItem('hp_mtx_open')||'null'); return Array.isArray(v)?v:['bly']; }catch(e){ return ['bly']; } }
 function mtxToggle(el,k){ var c=el.parentElement; c.classList.toggle('open'); try{ var o=_mtxOpen().filter(function(x){return x!==k;}); if(c.classList.contains('open')) o.push(k); localStorage.setItem('hp_mtx_open',JSON.stringify(o)); }catch(e){} }
@@ -2959,7 +2971,7 @@ const MTX_P={
 };
 window._mtx={};
 function _mtxCalcHtml(k,inS){
-  var c=MTX_P[k], h=c.info();
+  var c=MTX_P[k], h=_mtxSrc(k)+c.info();
   h+='<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">Calculadora</div>';
   if(c.doses) h+='<div class="fld"><label class="lbl">Dosis de MTX</label><select id="mtx_'+k+'_d" onchange="mtxRun(\''+k+'\')" style="'+inS+'">'+c.doses.map(function(d){return '<option value="'+d[0]+'">'+d[1]+'</option>';}).join('')+'</select></div>';
   if(c.vih) h+='<label class="chk-card" style="margin-top:4px"><input type="checkbox" id="mtx_'+k+'_vih" onchange="this.parentElement.classList.toggle(\'checked\',this.checked);mtxRun(\''+k+'\')"><span>Paciente VIH positivo</span></label>';
@@ -2967,7 +2979,6 @@ function _mtxCalcHtml(k,inS){
   h+='<div class="row" style="margin-top:10px"><div class="fld"><label class="lbl" id="mtx_'+k+'_lvl">Nivel de MTX (µM)</label><input id="mtx_'+k+'_lv" type="number" step="any" inputmode="decimal" oninput="mtxRun(\''+k+'\')" style="'+inS+'"></div>';
   h+='<div class="fld" id="mtx_'+k+'_lv2w" style="display:none"><label class="lbl">Nivel a las 36 h (µM)</label><input id="mtx_'+k+'_lv2" type="number" step="any" inputmode="decimal" oninput="mtxRun(\''+k+'\')" style="'+inS+'"></div></div>';
   h+='<div id="mtx_'+k+'_res"></div><div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="mtxCopy(\''+k+'\')">Copiar</button></div></div>';
-  h+=_mtxPdf(k);
   return h;
 }
 function mtxSet(k,h){ window._mtx[k]=h; mtxRun(k); }
@@ -3005,12 +3016,11 @@ function mtxCopy(k){ var t=window._mtx[k+'_res']; if(!t){ toast('Elige la hora y
 function mtxAll(){ blyCalc(); Object.keys(MTX_P).forEach(function(k){ if(window._mtx[k]) mtxRun(k); }); lbaCalc(); }
 // ---- Libro azul: pauta fija desde el fin de la infusión ----
 function _mtxLbaHtml(inS){
-  var h=_mtxUl(['Primera dosis: <strong>75 mg/m² IV a las 12 h de terminar la infusión de MTX</strong>.','A las 3 h: <strong>30 mg/m²</strong>.','Después: <strong>30 mg IV cada 6 h</strong> hasta MTX &lt; 0,2 µM; entonces, <strong>2 dosis más</strong>.','La dosis no se ajusta por niveles (el nivel solo sirve para saber cuándo parar). Si los niveles no bajan como deben, el libro no indica cómo subir la dosis: usar el nomograma de Bleyer (infusión corta) o la tabla del protocolo del paciente.','Es la pauta que el libro da para todos sus esquemas con MTX a dosis altas (MATRIX, R-Hiper-CVAD, bloques de LAL y Burkitt).']);
+  var h=_mtxSrc('lba')+_mtxUl(['Primera dosis: <strong>75 mg/m² IV a las 12 h de terminar la infusión de MTX</strong>.','A las 3 h: <strong>30 mg/m²</strong>.','Después: <strong>30 mg IV cada 6 h</strong> hasta MTX &lt; 0,2 µM; entonces, <strong>2 dosis más</strong>.','La dosis no se ajusta por niveles (el nivel solo sirve para saber cuándo parar). Si los niveles no bajan como deben, el libro no indica cómo subir la dosis: usar el nomograma de Bleyer (infusión corta) o la tabla del protocolo del paciente.','Es la pauta que el libro da para todos sus esquemas con MTX a dosis altas (MATRIX, R-Hiper-CVAD, bloques de LAL y Burkitt).']);
   h+='<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">Calculadora: horario del rescate</div>';
   h+='<div class="row"><div class="fld"><label class="lbl">Inicio del MTX</label><input id="lba_t0" type="datetime-local" onchange="lbaCalc()" oninput="lbaCalc()" style="'+inS+'"></div>';
   h+='<div class="fld"><label class="lbl">Duración de la infusión</label><select id="lba_dur" onchange="lbaCalc()" style="'+inS+'"><option value="3.25">MATRIX · 3 h 15 min</option><option value="4">MTX-R-CHOP · 4 h</option><option value="24">R-Hiper-CVAD B · 24 h</option><option value="2">2 h</option><option value="6">6 h</option></select></div></div>';
   h+='<div id="lba_res"></div></div>';
-  h+=_mtxPdf('lba');
   return h;
 }
 function _lbaFmt(dt){ var p=function(n){return (n<10?'0':'')+n;}; return p(dt.getDate())+'/'+p(dt.getMonth()+1)+' '+p(dt.getHours())+':'+p(dt.getMinutes()); }
@@ -3027,13 +3037,13 @@ function lbaCalc(){
 }
 // ---- Glucarpidasa y bibliografía ----
 function _mtxGluHtml(){
-  return _mtxUl(['Indicada cuando la eliminación del MTX está retardada <strong>y la creatinina sube</strong> (daño renal). No usarla si el MTX baja como se espera.','<strong>Dosis</strong>: 50 U/kg IV en 5 min; reduce el MTX plasmático &gt; 95 % en 15 min. Si no hay la dosis completa, dar la disponible: dosis menores pueden ser eficaces.','<strong>Cuándo</strong>: idealmente antes de las 48-60 h desde el inicio del MTX; después la toxicidad grave puede no evitarse.','<strong>Folinato</strong>: no darlo en las 2 h antes ni después de la glucarpidasa (también lo destruye). Reiniciarlo a las 2 h, a la dosis del nivel previo a la glucarpidasa, y mantenerlo al menos 48 h (puede haber rebote del MTX).','<strong>Niveles</strong>: durante 48 h el inmunoensayo sobrestima el MTX (detecta su metabolito DAMPA); solo es fiable la HPLC.','Mantener la hidratación y la alcalinización.'])
+  return _mtxSrc('glu')+_mtxUl(['Indicada cuando la eliminación del MTX está retardada <strong>y la creatinina sube</strong> (daño renal). No usarla si el MTX baja como se espera.','<strong>Dosis</strong>: 50 U/kg IV en 5 min; reduce el MTX plasmático &gt; 95 % en 15 min. Si no hay la dosis completa, dar la disponible: dosis menores pueden ser eficaces.','<strong>Cuándo</strong>: idealmente antes de las 48-60 h desde el inicio del MTX; después la toxicidad grave puede no evitarse.','<strong>Folinato</strong>: no darlo en las 2 h antes ni después de la glucarpidasa (también lo destruye). Reiniciarlo a las 2 h, a la dosis del nivel previo a la glucarpidasa, y mantenerlo al menos 48 h (puede haber rebote del MTX).','<strong>Niveles</strong>: durante 48 h el inmunoensayo sobrestima el MTX (detecta su metabolito DAMPA); solo es fiable la HPLC.','Mantener la hidratación y la alcalinización.'])
    +_mtxTbl([['Consenso (Ramsey 2018) · MTX en 24 h','36 h &gt; 30 µM · 42 h &gt; 10 µM · 48 h &gt; 5 µM (con creatinina elevada)'],['Consenso · infusión de ≤ 6 h','24 h &gt; 50 µM · 36 h &gt; 30 µM · 42 h &gt; 10 µM · 48 h &gt; 5 µM (con creatinina elevada)'],['LAL-2025','24 h &gt; 50 µM · 36 h &gt; 30 µM · 42 h &gt; 10 µM · 48 h &gt; 5 µM'],['LAL Ph-2022','36 h &gt; 100 µM (darla antes de las 42-48 h); &gt; 100 µM a las 42 h'],['BURKIMAB-14','&gt; 100 µM a las 42 h'],['Recaída SEHOP 2015','48 h &gt; 5 µM o toxicidad marcada (contactar con el coordinador)']],['Fuente','Valorar glucarpidasa si…']);
 }
 function _mtxRefHtml(){
   return '<div class="ref" style="margin-top:0">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101 (tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio).<br>'
-   +'Howard SC, et al. Preventing and managing toxicities of high-dose methotrexate. Oncologist. 2016;21(12):1471-1482. https://doi.org/10.1634/theoncologist.2015-0164<br>'
-   +'Ramsey LB, et al. Consensus guideline for use of glucarpidase in patients with high-dose methotrexate induced acute kidney injury and delayed methotrexate clearance. Oncologist. 2018;23(1):52-61. https://doi.org/10.1634/theoncologist.2017-0243<br>'
+   +'Howard SC, et al. Preventing and managing toxicities of high-dose methotrexate. Oncologist. 2016;21(12):1471-1482. <a href="https://doi.org/10.1634/theoncologist.2015-0164" target="_blank" rel="noopener noreferrer">doi:10.1634/theoncologist.2015-0164</a><br>'
+   +'Ramsey LB, et al. Consensus guideline for use of glucarpidase in patients with high-dose methotrexate induced acute kidney injury and delayed methotrexate clearance. Oncologist. 2018;23(1):52-61. <a href="https://doi.org/10.1634/theoncologist.2017-0243" target="_blank" rel="noopener noreferrer">doi:10.1634/theoncologist.2017-0243</a><br>'
    +'PETHEMA LAL-2025 (rescate con leucovorin, tablas I y II) · PETHEMA LAL Ph-2022 (anexo 3) · BURKIMAB-14 (anexo V) · LAL SEHOP-PETHEMA 2013 (tablas 15.1 y 15.2) · Recaída LAL SEHOP-PETHEMA 2015 (tabla 7) · Pautas de quimioterapia y nuevos agentes en hemopatías malignas, 9.ª ed. (libro azul).<br>'
    +'Taylor ZL, et al. MTXPK.org: a clinical decision support tool evaluating high-dose methotrexate pharmacokinetics to inform post-infusion care and use of glucarpidase. Clin Pharmacol Ther. 2020;108(3):635-643.</div>';
 }
@@ -9700,7 +9710,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 421;
+const HP_BUILD = 422;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
