@@ -1227,7 +1227,7 @@ const MENU=[
 {id:'bsa',name:'Superficie corporal',kw:'bsa mosteller superficie corporal'},
 {id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
 {id:'rasburicasa',name:'Rasburicasa / hiperuricemia',kw:'rasburicasa hiperuricemia acido urico urato lisis tumoral g6pd fasturtec alopurinol urato oxidasa dosis contraindicacion',new:'2026-06-12'},
-{id:'bleyer',name:'Rescate MTX (nomograma de Bleyer)',kw:'bleyer nomograma normograma metotrexato mtx rescate acido folinico lederfolin leucovorina folinato calcico niveles horas altas dosis dosis rescate mtxpk farmacocinetica glucarpidasa aclaramiento retardado',new:'2026-11-10'},
+{id:'bleyer',name:'Rescate MTX (Bleyer y protocolos)',kw:'bleyer nomograma normograma metotrexato mtx rescate acido folinico lederfolin leucovorina folinato calcico niveles horas altas dosis dosis rescate mtxpk farmacocinetica glucarpidasa aclaramiento retardado lal-2025 lal ph burkimab burkitt sehop pethema pediatria libro azul matrix hyper-cvad',new:'2026-11-13'},
 {id:'light',name:'Líquido pleural (Light)',kw:'liquido pleural light exudado trasudado derrame proteinas ldh criterios toracocentesis',new:'2026-05-29'}
 ]},
 {h:'ESCALAS DE VALORACIÓN',items:[
@@ -2702,57 +2702,66 @@ window._bly={h:null,res:null};
 VIEWS.bleyer=function(){
   var p=(S.p&&S.p.weight)||'', t=(S.p&&S.p.height)||'';
   var inS='width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--inp,#fff);color:var(--txt);font-family:inherit;font-size:15px';
-  var h='<div class="card"><h2>💊 Rescate con ácido folínico · Nomograma de Bleyer</h2>';
-  h+='<p class="intro">Elige las <strong>horas desde el inicio</strong> de la infusión de MTX y escribe el <strong>nivel</strong>: la dosis de Lederfolín (ácido folínico) sale al instante, en mg/m² y en mg si indicas la superficie corporal.</p>';
-  h+='<div class="alert b" style="font-size:12.5px"><strong>Dosis inicial:</strong> Lederfolín <strong>35 mg/m²</strong> a las <strong>20 h</strong> del inicio de la infusión, antes de conocer los niveles de MTX<span id="bly_ini"></span>.</div>';
-  h+='<div class="lbl" style="margin:12px 0 6px">Horas desde el inicio de la infusión</div><div id="bly_hrs" style="display:flex;flex-wrap:wrap;gap:6px">';
-  BLY_H.forEach(function(x){ h+='<button type="button" class="btn btn-out btn-sm" data-h="'+x+'" onclick="blySetH('+x+')" style="min-width:58px">'+x+' h</button>'; });
-  h+='</div>';
-  h+='<div class="row" style="margin-top:12px">';
-  h+='<div class="fld"><label class="lbl">Nivel de MTX (µM = µmol/L)</label><input id="bly_lv" type="number" step="any" inputmode="decimal" placeholder="p. ej. 0,8" oninput="blyCalc()" style="'+inS+'"></div>';
-  h+='<div class="fld"><label class="lbl">Superficie corporal (m²)</label><input id="bly_sc" type="number" step="any" inputmode="decimal" placeholder="opcional" oninput="blyCalc()" style="'+inS+'"></div>';
-  h+='</div>';
-  h+='<div class="row"><div class="fld"><label class="lbl">Peso (kg) · calcula la SC</label><input id="bly_p" type="number" step="any" inputmode="decimal" value="'+p+'" oninput="blyFromPT()" style="'+inS+'"></div>';
-  h+='<div class="fld"><label class="lbl">Talla (cm) · calcula la SC</label><input id="bly_t" type="number" step="any" inputmode="decimal" value="'+t+'" oninput="blyFromPT()" style="'+inS+'"></div></div>';
-  h+='<div id="bly_pt" style="font-size:12px;color:var(--mut);margin:-2px 2px 6px;min-height:15px"></div>';
-  h+='<div id="bly_res" style="margin-top:6px"></div>';
-  h+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="blyReset()">Limpiar</button><button class="btn btn-out btn-sm" onclick="copyBleyer()">Copiar</button></div>';
-  h+='<h3 style="margin-top:16px">Nomograma</h3><div style="font-size:11.5px;color:var(--mut);margin-bottom:6px">Dosis de Lederfolín en mg/m² y su intervalo (cada 6 h o cada 3 h). Se resalta la casilla que corresponde.</div>';
-  h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="bly_tbl" style="border-collapse:collapse;font-size:11.5px;min-width:620px;width:100%">';
-  h+='<tr><th style="padding:6px;border:1px solid var(--bd);background:var(--bg2);text-align:left">Horas / MTX (µM)</th>'+BLY_COLS.map(function(c,i){return '<th data-c="'+i+'" style="padding:6px 4px;border:1px solid var(--bd);background:var(--bg2);white-space:nowrap">'+c.t+'</th>';}).join('')+'</tr>';
+  var h='<div class="card"><h2>💊 Rescate con ácido folínico tras MTX a dosis altas</h2>';
+  h+='<p class="intro">Nomograma de Bleyer del servicio y rescate de cada protocolo, cada uno con su calculadora. Las <strong>horas</strong> se cuentan siempre desde el <strong>inicio</strong> de la infusión de MTX. Ácido folínico = folinato cálcico (Lederfolín), forma racémica; el levofolinato va a la mitad de dosis.</p>';
+  // Datos del paciente (comunes a todas las calculadoras)
+  h+='<div style="padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2);margin-bottom:12px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">Datos del paciente (para todas las calculadoras)</div>';
+  h+='<div class="row"><div class="fld"><label class="lbl">Peso (kg)</label><input id="bly_p" type="number" step="any" inputmode="decimal" value="'+p+'" oninput="blyFromPT()" style="'+inS+'"></div>';
+  h+='<div class="fld"><label class="lbl">Talla (cm)</label><input id="bly_t" type="number" step="any" inputmode="decimal" value="'+t+'" oninput="blyFromPT()" style="'+inS+'"></div></div>';
+  h+='<div class="fld"><label class="lbl">Superficie corporal (m²)</label><input id="bly_sc" type="number" step="any" inputmode="decimal" placeholder="se calcula con peso y talla" oninput="mtxAll()" style="'+inS+'"></div>';
+  h+='<div id="bly_pt" style="font-size:12px;color:var(--mut);margin:-2px 2px 0;min-height:15px"></div></div>';
+  // Qué apartado usar
+  h+='<div class="alert b" style="font-size:12.5px;line-height:1.55"><strong>¿Qué rescate uso?</strong><br>';
+  h+='• <strong>Infusión corta, de 3-4 h</strong> (MATRIX, MTX-R-CHOP): <strong>nomograma de Bleyer</strong> del servicio (o la pauta fija del libro azul).<br>';
+  h+='• <strong>Infusión de 24 h o más</strong>: el rescate de <strong>su protocolo</strong> (LAL-2025, LAL Ph-2022, BURKIMAB, pediatría) o, en R-Hyper-CVAD, la pauta del libro azul. <strong>El nomograma de Bleyer no sirve</strong>: empieza a las 20 h, cuando la infusión aún no ha terminado.</div>';
+  // 1 · Bleyer
+  var b='<div class="alert y" style="font-size:12.5px"><strong>Solo para infusiones de 3-4 h</strong> (MATRIX: 0,5 g/m² en 15 min + 3 g/m² en 3 h; MTX-R-CHOP: 3-3,5 g/m² en 4 h). No usar con infusiones de 24 h o más.</div>';
+  b+='<div class="alert b" style="font-size:12.5px"><strong>Dosis inicial:</strong> Lederfolín <strong>35 mg/m²</strong> a las <strong>20 h</strong> del inicio de la infusión, antes de conocer los niveles de MTX<span id="bly_ini"></span>.</div>';
+  b+='<div class="lbl" style="margin:12px 0 6px">Horas desde el inicio de la infusión</div><div id="bly_hrs" style="display:flex;flex-wrap:wrap;gap:6px">';
+  BLY_H.forEach(function(x){ b+='<button type="button" class="btn btn-out btn-sm" data-h="'+x+'" onclick="blySetH('+x+')" style="min-width:58px">'+x+' h</button>'; });
+  b+='</div>';
+  b+='<div class="fld" style="margin-top:12px"><label class="lbl">Nivel de MTX (µM = µmol/L)</label><input id="bly_lv" type="number" step="any" inputmode="decimal" placeholder="p. ej. 0,8" oninput="blyCalc()" style="'+inS+'"></div>';
+  b+='<div id="bly_res" style="margin-top:6px"></div>';
+  b+='<div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="blyReset()">Limpiar</button><button class="btn btn-out btn-sm" onclick="copyBleyer()">Copiar</button></div>';
+  b+='<h3 style="margin-top:16px">Nomograma</h3><div style="font-size:11.5px;color:var(--mut);margin-bottom:6px">Dosis de Lederfolín en mg/m² y su intervalo (cada 6 h o cada 3 h). Se resalta la casilla que corresponde.</div>';
+  b+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="bly_tbl" style="border-collapse:collapse;font-size:11.5px;min-width:620px;width:100%">';
+  b+='<tr><th style="padding:6px;border:1px solid var(--bd);background:var(--bg2);text-align:left">Horas / MTX (µM)</th>'+BLY_COLS.map(function(c,i){return '<th data-c="'+i+'" style="padding:6px 4px;border:1px solid var(--bd);background:var(--bg2);white-space:nowrap">'+c.t+'</th>';}).join('')+'</tr>';
   BLY_H.forEach(function(x){
-    h+='<tr><th data-h="'+x+'" onclick="blySetH('+x+')" style="cursor:pointer;padding:6px;border:1px solid var(--bd);background:var(--bg2);text-align:left;white-space:nowrap">'+x+' h</th>';
-    BLY_T[x].forEach(function(cell,i){ var q3=cell[1]===3; h+='<td data-h="'+x+'" data-c="'+i+'" style="padding:6px 4px;border:1px solid var(--bd);text-align:center;white-space:nowrap;'+(q3?'color:#a3121f;font-weight:600':'')+'">'+cell[0].toLocaleString('es-ES')+'<span style="opacity:.7">/'+cell[1]+'h</span></td>'; });
-    h+='</tr>';
+    b+='<tr><th data-h="'+x+'" onclick="blySetH('+x+')" style="cursor:pointer;padding:6px;border:1px solid var(--bd);background:var(--bg2);text-align:left;white-space:nowrap">'+x+' h</th>';
+    BLY_T[x].forEach(function(cell,i){ var q3=cell[1]===3; b+='<td data-h="'+x+'" data-c="'+i+'" style="padding:6px 4px;border:1px solid var(--bd);text-align:center;white-space:nowrap;'+(q3?'color:#a3121f;font-weight:600':'')+'">'+cell[0].toLocaleString('es-ES')+'<span style="opacity:.7">/'+cell[1]+'h</span></td>'; });
+    b+='</tr>';
   });
-  h+='</table></div>';
-  h+='<div style="font-size:11.5px;color:var(--mut);margin-top:6px">En rojo, rescate <strong>cada 3 h</strong>. En un valor límite (p. ej. exactamente 1 µM) se aplica la columna superior.</div>';
-  h+='<div class="coll" style="margin-top:14px"><div class="coll-h" onclick="this.parentElement.classList.toggle(\'open\')"><span>📋 Pauta del protocolo (hidratación, alcalinización, niveles)</span><span class="ar">▶</span></div><div class="coll-c"><ul style="font-size:13px;line-height:1.6;padding-left:18px">';
-  h+='<li><strong>Hiperhidratación</strong> IV 3 L/m² y <strong>alcalinización</strong> con bicarbonato 1 M 250 ml/12 h desde al menos 12 h antes de la infusión.</li>';
-  h+='<li><strong>No iniciar</strong> la infusión si la creatinina sérica ha aumentado o la diuresis es &lt; 125 ml/m²/h. Valorar sondaje uretral y asociar furosemida, acetazolamida o manitol 20 % si se precisa.</li>';
-  h+='<li>Mantener el <strong>pH urinario &gt; 7,5</strong> antes, durante y después de la infusión, las primeras 24 h.</li>';
-  h+='<li>Si se combina con un bolo de <strong>vincristina</strong>, administrarla 1 h antes de la infusión de MTX.</li>';
-  h+='<li>Niveles a las <strong>20, 48 y 72 h</strong> como mínimo, manteniendo la hiperhidratación y la alcalinización hasta MTX &lt; 0,5 µM. En rango tóxico, niveles <strong>cada 12 h</strong> modificando el rescate según los mismos.</li>';
-  h+='<li>Se <strong>suspende el Lederfolín</strong> cuando MTX &lt; 0,01 µM.</li>';
-  h+='<li>Si se precisan &lt; 25 mg/m²/6 h y el paciente no vomita, puede completarse el rescate con Lederfolín <strong>por vía oral</strong>.</li>';
-  h+='<li><strong>Ritmo máximo IV del Lederfolín: 160 mg por minuto.</strong> El Lederfolín es folinato <strong>cálcico</strong> y lleva calcio; pasarlo más rápido aporta demasiado calcio de golpe (ficha técnica). Hasta 160 mg puede pasarse en 1 minuto; las dosis mayores, más despacio: por ejemplo, 1.000 mg en al menos 7 minutos.</li>';
-  h+='</ul></div></div>';
-  h+='<div style="margin-top:14px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2)">';
-  h+='<div style="font-weight:700;font-size:14px;margin-bottom:4px">📊 MTXPK.org · farmacocinética del MTX</div>';
-  h+='<div style="font-size:12.5px;line-height:1.5;margin-bottom:8px">Herramienta web gratuita (modelo bayesiano) que, con los datos del paciente, la creatinina y los niveles de MTX, estima su curva de eliminación y ayuda a decidir el soporte y el uso de <strong>glucarpidasa</strong> ante un aclaramiento retardado.</div>';
-  h+='<a class="btn btn-sm" href="https://mtxpk.org" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Abrir MTXPK.org ↗</a>';
-  h+='</div>';
-  h+='<div class="ref">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101. Tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio. · Taylor ZL, et al. MTXPK.org: a clinical decision support tool evaluating high-dose methotrexate pharmacokinetics to inform post-infusion care and use of glucarpidase. Clin Pharmacol Ther. 2020;108(3):635-643.</div>';
+  b+='</table></div>';
+  b+='<div style="font-size:11.5px;color:var(--mut);margin-top:6px">En rojo, rescate <strong>cada 3 h</strong>. En un valor límite (p. ej. exactamente 1 µM) se aplica la columna superior.</div>';
+  b+='<h3 style="margin-top:14px">Pauta del protocolo del servicio</h3><ul style="font-size:13px;line-height:1.6;padding-left:18px">';
+  b+='<li><strong>Hiperhidratación</strong> IV 3 L/m² y <strong>alcalinización</strong> con bicarbonato 1 M 250 ml/12 h desde al menos 12 h antes de la infusión.</li>';
+  b+='<li><strong>No iniciar</strong> la infusión si la creatinina sérica ha aumentado o la diuresis es &lt; 125 ml/m²/h. Valorar sondaje uretral y asociar furosemida, acetazolamida o manitol 20 % si se precisa.</li>';
+  b+='<li>Mantener el <strong>pH urinario &gt; 7,5</strong> antes, durante y después de la infusión, las primeras 24 h.</li>';
+  b+='<li>Si se combina con un bolo de <strong>vincristina</strong>, administrarla 1 h antes de la infusión de MTX.</li>';
+  b+='<li>Niveles a las <strong>20, 48 y 72 h</strong> como mínimo, manteniendo la hiperhidratación y la alcalinización hasta MTX &lt; 0,5 µM. En rango tóxico, niveles <strong>cada 12 h</strong> modificando el rescate según los mismos.</li>';
+  b+='<li>Se <strong>suspende el Lederfolín</strong> cuando MTX &lt; 0,01 µM.</li>';
+  b+='<li>Si se precisan &lt; 25 mg/m²/6 h y el paciente no vomita, puede completarse el rescate con Lederfolín <strong>por vía oral</strong>.</li>';
+  b+='<li><strong>Ritmo máximo IV del Lederfolín: 160 mg por minuto</strong> (lleva calcio).</li></ul>';
+  b+='<div style="margin-top:10px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2)"><div style="font-weight:700;font-size:14px;margin-bottom:4px">📊 MTXPK.org · farmacocinética del MTX</div><div style="font-size:12.5px;line-height:1.5;margin-bottom:8px">Herramienta web gratuita (modelo bayesiano) que, con los datos del paciente, la creatinina y los niveles de MTX, estima su curva de eliminación y ayuda a decidir el soporte y el uso de <strong>glucarpidasa</strong> ante un aclaramiento retardado.</div><a class="btn btn-sm" href="https://mtxpk.org" target="_blank" rel="noopener noreferrer" style="text-decoration:none">Abrir MTXPK.org ↗</a></div>';
+  h+=_mtxSec('bly','Nomograma de Bleyer · protocolo del servicio','Infusiones de 3-4 h (MATRIX, MTX-R-CHOP)',b);
+  // 2 · Libro azul
+  h+=_mtxSec('lba','Libro azul (Pautas de QT SEHH) · pauta fija','Cualquier duración · no se ajusta por niveles',_mtxLbaHtml(inS));
+  // 3-7 · Protocolos con rescate ajustado a niveles
+  ['l25','lph','bkm','p13','p15'].forEach(function(k){ var c=MTX_P[k]; h+=_mtxSec(k,c.n,c.sub,_mtxCalcHtml(k,inS)); });
+  // 8 · Glucarpidasa
+  h+=_mtxSec('glu','Glucarpidasa: cuándo valorarla','Eliminación retardada con daño renal',_mtxGluHtml());
+  // 9 · Bibliografía
+  h+=_mtxSec('ref','Bibliografía','',_mtxRefHtml());
   h+='</div>';
   return h;
 };
-VIEWS.bleyer_post=function(){ if(_ctNum(($('bly_p')||{}).value)&&_ctNum(($('bly_t')||{}).value)) blyFromPT(); else blyCalc(); };
+VIEWS.bleyer_post=function(){ if(_ctNum(($('bly_p')||{}).value)&&_ctNum(($('bly_t')||{}).value)) blyFromPT(); else mtxAll(); };
 function blySetH(x){ window._bly.h=x; blyCalc(); }
 function blyFromPT(){
   var p=_ctNum(($('bly_p')||{}).value), t=_ctNum(($('bly_t')||{}).value), info=$('bly_pt');
   if(p>0&&t>0){ var sc=qtBSA(p,t), imc=hpIMC(p,t); var e=$('bly_sc'); if(e) e.value=sc.toFixed(3); if(info) info.innerHTML='SC (DuBois): <strong>'+_blyF(sc,3)+' m²</strong> · IMC: <strong>'+_blyF(imc.v,2)+' kg/m²</strong> ('+imc.cat+')'; }
   else if(info) info.innerHTML='';
-  blyCalc();
+  mtxAll();
 }
 function blyCalc(){
   var H=window._bly.h, lv=_ctNum(($('bly_lv')||{}).value), sc=_ctNum(($('bly_sc')||{}).value);
@@ -2795,12 +2804,238 @@ function blyCalc(){
   r+='<ul style="margin:8px 0 0;padding-left:18px;font-size:12.5px">'+notas.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>';
   box.innerHTML=r;
 }
-function blyReset(){ ['bly_lv','bly_sc','bly_p','bly_t'].forEach(function(id){ var e=$(id); if(e) e.value=''; }); var i=$('bly_pt'); if(i) i.innerHTML=''; window._bly.h=null; blyCalc(); }
+function blyReset(){ var e=$('bly_lv'); if(e) e.value=''; window._bly.h=null; blyCalc(); }
 function copyBleyer(){
   var r=window._bly.res; if(!r){ toast('Elige la hora y el nivel'); return; }
   var lvT=_blyLv(r.lv);
   if(r.stop){ copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM (< 0,01 µM) → se suspende el Lederfolín.'); return; }
   copy('Niveles de MTX a las '+r.H+' h del inicio de la infusión: '+lvT+' µM → Lederfolín (ácido folínico) '+r.dm2+' mg/m² cada '+r.q+' h'+(r.mg!=null?(' = '+_blyF(r.mg,2)+' mg cada '+r.q+' h (SC '+_blyF(r.sc,3)+' m²)'):'')+'. Según nomograma de Bleyer.'+(r.mg!=null&&r.mg>160?(' Pasar en al menos '+Math.ceil(r.mg/160)+' minutos (ritmo máximo 160 mg/min, lleva calcio).'):''));
+}
+
+// === Rescate de cada protocolo (secciones desplegables + calculadoras) ===
+// Bandas de dosis: [límite superior (µM, excluido), mg/m², cada h, vía]. En un valor límite se toma la
+// banda superior (dosis más alta). dosis 0 = suspender; null = el protocolo no da dosis para ese rango.
+const MTX_T={
+  t42:[[1,15,6],[2,30,6],[3,45,6],[4,60,6],[5,75,6],[10,100,6],[20,200,6],[50,500,6],[100,500,3]],
+  l25_60:[[0.2,0],[0.5,15,12,'IV/VO'],[1,15,6,'IV/VO'],[2,30,6],[4,50,6],[5,75,6],[10,100,6]],
+  lph_60:[[0.1,0],[0.2,5,12,'IV/VO'],[0.5,15,12,'IV/VO'],[1,15,6,'IV/VO'],[2,30,6],[4,50,6],[5,75,6],[10,100,6],[20,200,6],[50,null],[100,500,6]],
+  bkm_60:[[0.1,0],[0.2,5,12,'VO'],[0.5,15,6,'IV/VO'],[1,30,6],[3,50,6],[5,75,6],[10,100,6]],
+  ped:[[1,15,6],[2,30,6],[3,45,6],[4,60,6],[5,75,6]]
+};
+function _mtxBand(t,lv){ for(var i=0;i<t.length;i++){ if(lv<t[i][0]) return t[i]; } return null; }
+function _mtxD(band){ return band?{m2:band[1],q:band[2],via:band[3]||'IV'}:null; }
+const MTX_PDF={
+  l25:['guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf','LAL-2025',61],
+  lph:['guias/LALPh.pdf','LAL Ph-2022',22],
+  bkm:['guias/BURKIMAB.pdf','BURKIMAB-14',32],
+  p13:['guias/subidas/ped/1794469409349_LAL_SEHOP_PETHEMA_2013._Versi_n_final_9.10.2014_1_.pdf','LAL SEHOP-PETHEMA 2013',93],
+  p15:['guias/subidas/ped/1794469353845_Gu_a_Reca_da_LAL_v1.0_SEHOP-PETHEMA_2015._Recaida.pdf','Recaída LAL SEHOP-PETHEMA 2015',68],
+  lba:['guias/LibroAzul_QT.pdf','Pautas de QT SEHH',21]
+};
+function _mtxPdf(k){ var x=MTX_PDF[k]; return x?'<div style="margin-top:10px"><a onclick="openPDFurl(\''+x[0]+'\',\''+x[1]+'\','+x[2]+')" style="color:var(--c2);cursor:pointer;text-decoration:underline;font-size:12.5px">Abrir el protocolo en esta página ↗</a></div>':''; }
+// Sección desplegable (se recuerda cuáles están abiertas en este dispositivo).
+function _mtxOpen(){ try{ var v=JSON.parse(localStorage.getItem('hp_mtx_open')||'null'); return Array.isArray(v)?v:['bly']; }catch(e){ return ['bly']; } }
+function mtxToggle(el,k){ var c=el.parentElement; c.classList.toggle('open'); try{ var o=_mtxOpen().filter(function(x){return x!==k;}); if(c.classList.contains('open')) o.push(k); localStorage.setItem('hp_mtx_open',JSON.stringify(o)); }catch(e){} }
+function _mtxSec(k,tit,sub,body){
+  var op=_mtxOpen().indexOf(k)>=0;
+  return '<div class="coll'+(op?' open':'')+'" id="mtx_sec_'+k+'"><div class="coll-h" onclick="mtxToggle(this,\''+k+'\')" style="align-items:flex-start"><span><span style="font-weight:700;font-size:14px">'+tit+'</span>'+(sub?'<br><span style="font-size:12px;color:var(--mut);font-weight:400">'+sub+'</span>':'')+'</span><span class="ar" style="margin-top:3px">▶</span></div><div class="coll-c">'+body+'</div></div>';
+}
+function _mtxUl(a){ return '<ul style="font-size:13px;line-height:1.55;padding-left:18px;margin:6px 0">'+a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'; }
+function _mtxTbl(rows,head){ return '<div style="overflow-x:auto"><table class="tbl" style="font-size:12px;margin:6px 0"><tr>'+head.map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr>'+rows.map(function(r){return '<tr>'+r.map(function(x){return '<td>'+x+'</td>';}).join('')+'</tr>';}).join('')+'</table></div>'; }
+function _mtxBandRows(t,unit){ var lo=0; return t.map(function(b){ var r=[(lo===0?'&lt; ':_mtxN(lo)+'-')+_mtxN(b[0])+' µM', b[1]===0?'Suspender':(b[1]==null?'No figura (individualizar)':b[1]+' mg/m² cada '+b[2]+' h'+(b[3]?' '+b[3]:''))]; lo=b[0]; return r; }); }
+function _mtxN(x){ return (+x).toLocaleString('es-ES',{maximumFractionDigits:2}); }
+// ---- Configuración de cada protocolo ----
+const MTX_P={
+  l25:{n:'PETHEMA LAL-2025 (LAL Ph−)',sub:'MTX 1-5 g/m² en 24 h · rescate desde las 42 h, ajustado a niveles',
+    doses:[['5','5 g/m²'],['3','3 g/m²'],['1.5','1,5 g/m²'],['1','1 g/m²']],
+    pts:[['12','12 h'],['2336','23 y 36 h'],['42','42 h'],['60','60 h'],['84','84 h o más']],
+    info:function(){ return _mtxUl(['Rescate estándar: <strong>15 mg/m² cada 6 h IV desde las 42 h</strong>, hasta MTX &lt; 0,2 µM (mínimo 3 dosis).','Niveles a las <strong>12, 23, 36, 42 y 60 h</strong> y después cada 24 h. Empezar el MTX a las 18:00 facilita el horario.','Alerta a las 12 h: &gt; 100 µM (5 g/m²), &gt; 75 µM (3 g/m²), &gt; 50 µM (1,5 g/m²), &gt; 30 µM (1 g/m²).','Eliminación retardada: ≥ 1 µM a las 42-48 h o ≥ 0,3 µM a las 72 h. En ese caso no suspender hasta &lt; 0,1 µM.','Si la dosis de folinato es &gt; 20 mg/kg, pasarla en 1 h (lleva calcio).'])+'<div style="font-weight:600;font-size:12.5px;margin-top:6px">Tabla a las 42 h</div>'+_mtxTbl([['&lt; 1 µM','15 mg/m² cada 6 h (estándar)']].concat(_mtxBandRows(MTX_T.t42).slice(1)),['MTX','Folinato'])+'<div style="font-weight:600;font-size:12.5px">Tabla a las 60 h y después</div>'+_mtxTbl(_mtxBandRows(MTX_T.l25_60).concat([['≥ 10 µM','Individualizado']]),['MTX','Folinato']); },
+    run:function(o){
+      var d=o.d||'5', h=o.h, lv=o.lv, R={lines:[]};
+      if(h==='12'){ var al={'5':100,'3':75,'1.5':50,'1':30}[d]; if(lv>al){ R.cls='r'; R.head='Por encima del criterio de alerta (&gt; '+al+' µM con '+_mtxN(d)+' g/m²)'; R.lines=['Aumentar la hidratación al máximo (hasta 4,5 L/m²/día).','Si baja la diuresis o sube la creatinina, valorar detener la infusión de MTX.','Niveles a las 23 y 36 h.']; } else { R.cls='g'; R.head='Por debajo del criterio de alerta ('+al+' µM con '+_mtxN(d)+' g/m²)'; R.lines=['Mantener la hidratación y el pH urinario &gt; 7.','Niveles a las 23 y 36 h.']; } return R; }
+      if(h==='2336'){ var slow=(lv!=null&&lv>100)||(o.lv2!=null&&o.lv2>3);
+        if(slow){ R.cls='y'; R.head='Retraso en la eliminación'; R.dose={m2:30,q:6,via:'IV'}; R.lines=['Empezar a las 42 h con 30 mg/m² cada 6 h hasta conocer el nivel de las 42 h, y corregir entonces con la tabla de las 42 h.']; }
+        else { R.cls='g'; R.head='Descenso normal'; R.dose={m2:15,q:6,via:'IV'}; R.lines=['Rescate estándar desde las 42 h.']; }
+        if(o.lv2!=null&&o.lv2>30) R.glu='MTX &gt; 30 µM a las 36 h: valorar glucarpidasa.';
+        R.lines.push('Algoritmo II del protocolo (23 h &lt; 100 µM y 36 h &lt; 3 µM = normal). Si hay unidad de farmacocinética, el protocolo prefiere predecir el nivel de las 42 h (algoritmo I).'); return R; }
+      if(h==='42'){
+        if(lv<0.2){ R.cls='g'; R.head='MTX &lt; 0,2 µM'; R.dose={m2:15,q:6,via:'IV'}; R.lines=['Seguir hasta las 54 h (mínimo 3 dosis) y finalizar el rescate. No hacen falta más niveles.']; return R; }
+        if(lv<=1){ R.cls='g'; R.head='MTX 0,2-1 µM'; R.dose={m2:15,q:6,via:'IV'}; R.lines=['Continuar con el rescate estándar.','Nivel a las 60 h.']; return R; }
+        var b=_mtxBand(MTX_T.t42,lv); R.cls='r'; R.head='MTX &gt; 1 µM a las 42 h: eliminación retardada';
+        if(!b){ R.lines=['MTX ≥ 100 µM: fuera de la tabla. Individualizar el rescate.']; R.glu='Valorar glucarpidasa de inmediato.'; return R; }
+        R.dose=_mtxD(b); R.lines=['Dar ya una dosis suplementaria que complete la que corresponde y seguir desde las 48 h con la dosis corregida.','Nivel a las 60 h.'];
+        if(lv>=10) R.glu='MTX &gt; 10 µM a las 42 h: valorar glucarpidasa, sobre todo si empeora la función renal.'; return R; }
+      if(h==='60'||h==='84'){
+        var lim=h==='60'?0.2:0.1;
+        if(lv<lim){ R.cls='g'; R.head='Suspender el rescate'; R.lines=[h==='60'?'MTX &lt; 0,2 µM a las 60 h.':'MTX &lt; 0,1 µM.']; return R; }
+        if(h==='84'&&lv<0.2){ R.cls='y'; R.head='No suspender todavía (0,1-0,2 µM)'; R.dose={m2:15,q:12,via:'IV/VO'}; R.lines=['Con eliminación retardada el rescate no se suspende hasta &lt; 0,1 µM.','La tabla no tiene fila para este rango: se muestra su dosis más baja.','Nuevo nivel en 24 h.']; return R; }
+        var b2=_mtxBand(MTX_T.l25_60,lv); R.cls=lv>=1?'r':'y'; R.head='Eliminación retardada: rescate según la tabla de las 60 h';
+        if(!b2){ R.lines=['MTX ≥ 10 µM: rescate individualizado.']; R.glu='Valorar glucarpidasa.'; return R; }
+        R.dose=_mtxD(b2); R.lines=['Nuevo nivel en 24 h (84, 108, 132 h…) y reajustar con esta tabla hasta &lt; 0,1 µM.']; return R; }
+      return null; }
+  },
+  lph:{n:'PETHEMA LAL Ph-2022',sub:'MTX 0,5-1 g/m² en 24 h · rescate desde las 42 h, ajustado a niveles',
+    doses:[['1','1 g/m²'],['0.5','0,5 g/m²']],
+    pts:[['12','12 h'],['2336','23 y 36 h'],['42','42 h'],['60','60 h'],['84','84 h o más']],
+    info:function(){ return _mtxUl(['Rescate estándar: <strong>15 mg/m² cada 6 h IV desde las 42 h</strong> (no retrasar la primera dosis), hasta MTX &lt; 0,2 µM; mínimo 3 dosis.','Niveles a las <strong>12, 23, 36, 42 y 60 h</strong> y después cada 24 h.','Alerta a las 12 h: ≥ 30 µM (1 g/m²) o ≥ 20 µM (0,5 g/m²) → hidratación hasta 4,5 L/m²/día.','Con 0,5 g/m² suelen bastar 3 dosis (42, 48 y 54 h): nivel a las 36 h (&lt; 1 µM = estándar) y a las 54 h (&lt; 0,2 µM = suspender).','Antes de suspender: comprobar MTX &lt; 0,05 µM en las 12 h siguientes a la última dosis.','Glucarpidasa: valorarla si MTX &gt; 100 µM a las 36 h; darla antes de las 42-48 h.'])+'<div style="font-weight:600;font-size:12.5px;margin-top:6px">Tabla I (42 h)</div>'+_mtxTbl(_mtxBandRows(MTX_T.t42).slice(1).concat([['&gt; 100 µM','Valorar glucarpidasa']]),['MTX','Folinato'])+'<div style="font-weight:600;font-size:12.5px">Tabla II (60 h y después)</div>'+_mtxTbl(_mtxBandRows(MTX_T.lph_60),['MTX','Folinato']); },
+    run:function(o){
+      var d=o.d||'1', h=o.h, lv=o.lv, R={lines:[]};
+      if(h==='12'){ var al={'1':30,'0.5':20}[d]; if(lv>=al){ R.cls='r'; R.head='Por encima del límite (≥ '+al+' µM con '+_mtxN(d)+' g/m²)'; R.lines=['Aumentar la hidratación (hasta 4,5 L/m²/día) y mantener el pH urinario ≥ 7.','Niveles a las 23 y 36 h.']; } else { R.cls='g'; R.head='Normal (&lt; '+al+' µM)'; R.lines=['Mantener la hidratación a 4 L/día y el pH urinario ≥ 7.','Niveles a las 23 y 36 h.']; } return R; }
+      if(h==='2336'){ var slow=d==='0.5'?(o.lv2!=null&&o.lv2>=1):((lv!=null&&lv>=30)||(o.lv2!=null&&o.lv2>=2));
+        if(slow){ R.cls='y'; R.head='Alto riesgo de toxicidad'; R.dose={m2:30,q:6,via:'IV'}; R.lines=['Empezar a las 42 h con 30 mg/m² cada 6 h.']; }
+        else { R.cls='g'; R.head='Rescate estándar'; R.dose={m2:15,q:6,via:'IV'}; R.lines=['Empezar a las 42 h.']; }
+        R.lines.push(d==='0.5'?'Con 0,5 g/m² basta el nivel de las 36 h (&lt; 1 µM = estándar).':'Algoritmo II: 23 h &lt; 30 µM y 36 h &lt; 2 µM = estándar.');
+        if(o.lv2!=null&&o.lv2>100) R.glu='MTX &gt; 100 µM a las 36 h: valorar glucarpidasa (darla antes de las 42-48 h).'; return R; }
+      if(h==='42'){
+        if(lv<0.2){ R.cls='g'; R.head='MTX &lt; 0,2 µM'; R.dose={m2:15,q:6,via:'IV'}; R.lines=['Dar las dosis de las 48 y 54 h y finalizar.']; return R; }
+        if(lv<=1){ R.cls='g'; R.head='MTX 0,2-1 µM'; R.dose={m2:15,q:6,via:'IV'}; R.lines=['Continuar con el rescate estándar.','Nivel a las 60 h.']; return R; }
+        var b=_mtxBand(MTX_T.t42,lv); R.cls='r'; R.head='MTX &gt; 1 µM a las 42 h';
+        if(!b){ R.lines=['MTX &gt; 100 µM: fuera de la tabla.']; R.glu='Evaluar el uso de glucarpidasa.'; return R; }
+        R.dose=_mtxD(b); R.lines=['Si es necesario, dar ya una dosis extra que complete la dosis adecuada.','Nivel a las 60 h.']; return R; }
+      if(h==='60'||h==='84'){
+        var lim=h==='60'?0.2:0.1;
+        if(lv<lim){ R.cls='g'; R.head='Suspender el rescate'; R.lines=['Antes de suspender, comprobar MTX &lt; 0,05 µM en las 12 h siguientes a la última dosis.']; return R; }
+        var b2=_mtxBand(MTX_T.lph_60,lv); R.cls=lv>=1?'r':'y'; R.head='Riesgo de toxicidad: continuar el rescate (tabla II)';
+        if(!b2){ R.lines=['MTX ≥ 100 µM: fuera de la tabla.']; R.glu='Valorar glucarpidasa.'; return R; }
+        if(b2[1]==null){ R.lines=['La tabla II del protocolo no tiene fila para 20-50 µM: individualizar.']; R.glu='Valorar glucarpidasa.'; return R; }
+        R.dose=_mtxD(b2); R.lines=['Nuevos niveles cada 24 h (84, 108, 132 h…) hasta &lt; 0,1 µM.']; return R; }
+      return null; }
+  },
+  bkm:{n:'BURKIMAB-14 (Burkitt)',sub:'MTX 1,5 g/m² (o 500 mg/m²) en 24 h · rescate desde las 42 h',
+    doses:[['1.5','1,5 g/m²'],['0.5','500 mg/m²']], vih:true,
+    pts:[['12','12 h'],['2336','23 y 36 h'],['42','42 h'],['60','60 h'],['84','84 h o más']],
+    info:function(){ return _mtxUl(['Rescate estándar: <strong>15 mg/m² cada 6 h desde las 42 h</strong>, hasta MTX &lt; 0,1 µM (mínimo 5 dosis; 3 con 500 mg/m²).','VIH positivo: 30 mg/m² a las 42 h y después 15 mg/m² cada 6 h desde las 48 h.','Niveles a las 12, 23, 36, 42 y 60 h y después cada 24 h (con 500 mg/m² pueden empezar a las 36 h; eliminación lenta si &gt; 1,5 µM a las 36 h).','Alerta a las 12 h (1,5 g/m²): &gt; 60 µM; si &gt; 100 µM, hidratación hasta 4,5 L/m²/día.','Con ≥ 10 µM a las 42 h, alternativa: folinato (mg/24 h) = MTX (µM) × peso (kg), en perfusión continua o en 4 tomas. &gt; 100 µM: valorar glucarpidasa.'])+'<div style="font-weight:600;font-size:12.5px;margin-top:6px">Tabla I (42 h)</div>'+_mtxTbl(_mtxBandRows(MTX_T.t42).slice(1).concat([['&gt; 100 µM','Valorar glucarpidasa']]),['MTX','Folinato'])+'<div style="font-weight:600;font-size:12.5px">Tabla II (60 h y después)</div>'+_mtxTbl(_mtxBandRows(MTX_T.bkm_60).concat([['≥ 10 µM','Individualizado']]),['MTX','Folinato']); },
+    run:function(o){
+      var d=o.d||'1.5', h=o.h, lv=o.lv, R={lines:[]}, std=o.vih?{m2:30,q:6,via:'IV',note:'VIH: 30 mg/m² a las 42 h; después 15 mg/m² cada 6 h desde las 48 h.'}:{m2:15,q:6,via:'IV'};
+      if(h==='12'){ if(d==='0.5'){ R.cls='b'; R.head='Con 500 mg/m² los niveles pueden empezar a las 36 h'; return R; }
+        if(lv>60){ R.cls='r'; R.head='Nivel alto a las 12 h (&gt; 60 µM)'; R.dose=std; R.lines=['Aumentar la hidratación al máximo'+(lv>100?' (hasta 4,5 L/m²/día)':'')+' y, de momento, rescate estándar.','Si baja la diuresis o sube la creatinina, valorar detener la infusión y adelantar el rescate.']; }
+        else { R.cls='g'; R.head='Normal (≤ 60 µM)'; R.dose=std; R.lines=['Pautar el rescate estándar desde las 42 h.']; } return R; }
+      if(h==='2336'){
+        if(d==='0.5'){ var sl=o.lv2!=null&&o.lv2>1.5; R.cls=sl?'y':'g'; R.head=sl?'Eliminación lenta (36 h &gt; 1,5 µM)':'Descenso normal'; R.dose=std; R.lines=[sl?'Seguir el algoritmo IV del protocolo (anexo V) y ajustar con el nivel de las 42 h.':'Rescate estándar desde las 42 h.']; return R; }
+        var slow=(lv!=null&&lv>100)||(o.lv2!=null&&o.lv2>2);
+        if(slow){ R.cls='y'; R.head='Retraso en la eliminación'; R.dose={m2:30,q:6,via:'IV'}; R.lines=['Subir el folinato a 30 mg/m² hasta conocer el nivel de las 42 h.']; }
+        else { R.cls='g'; R.head='Descenso normal'; R.dose=std; R.lines=['Rescate estándar desde las 42 h.']; }
+        R.lines.push('Algoritmo II: 23 h &lt; 100 µM y 36 h &lt; 2 µM = normal.'); return R; }
+      if(h==='42'){
+        if(lv<0.1){ R.cls='g'; R.head='MTX &lt; 0,1 µM'; R.dose=std; R.lines=[d==='0.5'?'Solo 3 dosis (42, 48 y 54 h) y finalizar.':'Seguir con 15 mg/m² cada 6 h hasta las 66 h (mínimo 5 dosis) y finalizar. No hacen falta más niveles.']; return R; }
+        if(lv<=1){ R.cls='g'; R.head='MTX 0,1-1 µM'; R.dose=std; R.lines=['Continuar con el rescate estándar.','Nivel a las 60 h.']; return R; }
+        var b=_mtxBand(MTX_T.t42,lv); R.cls='r'; R.head='MTX &gt; 1 µM a las 42 h';
+        if(!b){ R.lines=['MTX ≥ 100 µM: fuera de la tabla.']; R.glu='Valorar glucarpidasa.'; return R; }
+        R.dose=_mtxD(b); if(lv>=10) R.form24=true;
+        R.lines=['Dar ya una dosis suplementaria que complete la que corresponde y seguir con la dosis corregida.','Nivel a las 60 h.']; return R; }
+      if(h==='60'||h==='84'){
+        if(lv<0.1){ R.cls='g'; R.head=h==='60'?'Última dosis a las 66 h y fin':'Suspender el rescate'; R.lines=[h==='60'?'MTX &lt; 0,1 µM: dar la última dosis de 15 mg/m² a las 66 h y finalizar.':'MTX &lt; 0,1 µM.']; return R; }
+        var b2=_mtxBand(MTX_T.bkm_60,lv); R.cls=lv>=1?'r':'y'; R.head='Continuar el rescate según la tabla II';
+        if(!b2){ R.lines=['MTX ≥ 10 µM: rescate individualizado.']; R.glu='Valorar glucarpidasa.'; return R; }
+        R.dose=_mtxD(b2); R.lines=['Nuevos niveles cada 24 h (84, 108, 132 h…) hasta &lt; 0,1 µM.']; return R; }
+      return null; }
+  },
+  p13:{n:'LAL SEHOP-PETHEMA 2013 (pediatría)',sub:'MTX 5 g/m² en 24 h · 15 mg/m² a las 42, 48 y 54 h',
+    pts:[['24','24 h'],['36','36 h'],['42','42 h'],['48','48 h'],['54','54 h'],['60','60 h o más']],
+    info:function(){ return _mtxUl(['MTX 5 g/m² en 24 h (consolidación de riesgo estándar e intermedio; bloques AR-1 y AR-2).','Folinato <strong>15 mg/m² IV a las 42, 48 y 54 h</strong> si los niveles son los esperados.','Si un nivel está por encima: folinato cada 6 h según la tabla hasta MTX &lt; 0,25 µM. Con ≥ 5 µM: folinato (mg) = MTX (µM) × peso (kg); si &gt; 20 mg/kg, en 1 h.','Síndrome de Down: MTX de 0,5 g/m² en el primer ciclo (después 1-3 g/m²) y rescate desde las 36 h con 30 mg/m² cada 6 h.'])+_mtxTbl([['24 h','≤ 150 µM','—'],['36 h','≤ 3 µM','—'],['42 h','≤ 1 µM','15 mg/m²'],['48 h','≤ 0,4 µM','15 mg/m²'],['54 h','≤ 0,4 µM','15 mg/m²']],['Hora','Nivel esperado','Folinato'])+_mtxTbl([['0,25-1 µM','15 mg/m² cada 6 h'],['1-2 µM','30 mg/m² cada 6 h'],['2-3 µM','45 mg/m² cada 6 h'],['3-4 µM','60 mg/m² cada 6 h'],['4-5 µM','75 mg/m² cada 6 h'],['≥ 5 µM','mg = MTX (µM) × peso (kg)'],['&lt; 0,25 µM','Sin rescate']],['MTX','Folinato si el nivel está alto']); },
+    run:function(o){
+      var h=o.h, lv=o.lv, R={lines:[]}, exp={'24':150,'36':3,'42':1,'48':0.4,'54':0.4}[h];
+      function byLevel(){ if(lv>=5){ R.form=true; return null; } return _mtxD(_mtxBand(MTX_T.ped,lv)); }
+      if(h==='24'){ if(lv>150){ R.cls='r'; R.head='Nivel alto (&gt; 150 µM)'; R.lines=['Forzar la diuresis, seguir alcalinizando, vigilar constantes y balance hídrico estricto.','Medir el nivel de las 36 h sin demora.']; } else { R.cls='g'; R.head='Nivel esperado (≤ 150 µM)'; R.lines=['Siguiente nivel a las 42 h (folinato 15 mg/m² a las 42 h).']; } return R; }
+      if(h==='36'){ if(lv>3){ R.cls='r'; R.head='&gt; 3 µM: empezar el rescate ya'; R.dose=byLevel(); R.lines=['La dosis de las 42 h se da según este nivel; ajustarla al conocer el de las 42 h.','Seguir cada 6 h hasta MTX &lt; 0,25 µM.']; } else { R.cls='g'; R.head='Nivel esperado (≤ 3 µM)'; R.lines=['Folinato 15 mg/m² a las 42 h.']; } return R; }
+      if(h==='60'){ if(lv<0.25){ R.cls='g'; R.head='Fin del rescate (&lt; 0,25 µM)'; return R; } R.cls='r'; R.head='Rescate prolongado'; R.dose=byLevel(); R.lines=['Seguir cada 6 h hasta MTX &lt; 0,25 µM.']; return R; }
+      if(lv<=exp){ R.cls='g'; R.head='Nivel esperado (≤ '+_mtxN(exp)+' µM)'; R.dose={m2:15,q:null,via:'IV',note:'Dosis programada de las '+h+' h.'}; if(h==='54') R.lines=['Tras la dosis de las 54 h, fin del rescate.']; return R; }
+      R.cls='r'; R.head='Nivel por encima del esperado (&gt; '+_mtxN(exp)+' µM)'; R.dose=byLevel(); R.lines=['Folinato cada 6 h según el nivel, hasta MTX &lt; 0,25 µM.','Mantener diuresis forzada, alcalinización y balance estricto.']; return R; }
+  },
+  p15:{n:'Recaída LAL SEHOP-PETHEMA 2015 (pediatría)',sub:'MTX 1 g/m² en 36 h · 15 mg/m² a las 48 y 54 h',
+    pts:[['36','36 h'],['42','42 h'],['48','48 h'],['54','54 h o más']],
+    info:function(){ return _mtxUl(['MTX 1 g/m² en 36 h (10 % en 30 min y 90 % en 35,5 h) con hidratación alcalina 3 L/m²/día.','Niveles a las <strong>36 y 48 h</strong> (la muestra de las 36 h, por otra vía distinta a la de la infusión).','Folinato <strong>15 mg/m² a las 48 y 54 h</strong>.','Si &gt; 10 µM a las 36 h: repetir a las 42 h y adelantar el rescate a las 42 h. Si ≥ 0,5 µM a las 48 h: seguir cada 6 h según la tabla hasta &lt; 0,25 µM, con niveles cada 6 h.','48 h &gt; 2 µM: diuresis alcalina forzada 3-4,5 L/m². 48 h &gt; 5 µM o toxicidad marcada: considerar carboxipeptidasa (contactar con el coordinador nacional).'])+_mtxTbl([['0,25-1 µM','15 mg/m² cada 6 h'],['1-2 µM','30 mg/m² cada 6 h'],['2-3 µM','45 mg/m² cada 6 h'],['3-4 µM','60 mg/m² cada 6 h'],['4-5 µM','75 mg/m² cada 6 h'],['&gt; 5 µM','mg = MTX (µM) × peso (kg); considerar carboxipeptidasa']],['MTX','Folinato (tabla 7)']); },
+    run:function(o){
+      var h=o.h, lv=o.lv, R={lines:[]};
+      function byLevel(){ if(lv>=5){ R.form=true; return null; } return _mtxD(_mtxBand(MTX_T.ped,lv)); }
+      if(h==='36'){ if(lv>10){ R.cls='r'; R.head='Retraso de la eliminación (&gt; 10 µM)'; R.lines=['Repetir el nivel a las 42 h y adelantar el rescate a las 42 h con la dosis de la tabla según ese nivel.','Niveles cada 6 h hasta &lt; 0,25 µM.']; } else { R.cls='g'; R.head='Normal (≤ 10 µM)'; R.lines=['Folinato 15 mg/m² a las 48 y 54 h; nivel a las 48 h.']; } return R; }
+      if(h==='42'){ if(lv<0.25){ R.cls='g'; R.head='&lt; 0,25 µM'; R.lines=['Sin dosis adicional: seguir con las de las 48 y 54 h.']; return R; } R.cls='r'; R.head='Adelantar el rescate a las 42 h'; R.dose=byLevel(); R.lines=['Seguir cada 6 h según el nivel hasta &lt; 0,25 µM.']; if(lv>=5) R.glu='MTX &gt; 5 µM: considerar carboxipeptidasa (contactar con el coordinador nacional).'; return R; }
+      if(h==='48'){ if(lv<0.5){ R.cls='g'; R.head='Normal (&lt; 0,5 µM)'; R.dose={m2:15,q:null,via:'IV',note:'Dosis de las 48 h; después la de las 54 h y fin.'}; return R; }
+        R.cls='r'; R.head='≥ 0,5 µM a las 48 h: prolongar el rescate'; R.dose=byLevel(); R.lines=['Seguir cada 6 h según el nivel hasta &lt; 0,25 µM, con niveles cada 6 h.'];
+        if(lv>2) R.lines.push('Diuresis alcalina forzada con 3-4,5 L/m².'); if(lv>5) R.glu='MTX &gt; 5 µM a las 48 h: considerar carboxipeptidasa (contactar con el coordinador nacional).'; return R; }
+      if(lv<0.25){ R.cls='g'; R.head='Fin del rescate (&lt; 0,25 µM)'; return R; }
+      R.cls='r'; R.head='Seguir el rescate'; R.dose=byLevel(); R.lines=['Cada 6 h según el nivel hasta &lt; 0,25 µM.']; return R; }
+  }
+};
+window._mtx={};
+function _mtxCalcHtml(k,inS){
+  var c=MTX_P[k], h=c.info();
+  h+='<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">Calculadora</div>';
+  if(c.doses) h+='<div class="fld"><label class="lbl">Dosis de MTX</label><select id="mtx_'+k+'_d" onchange="mtxRun(\''+k+'\')" style="'+inS+'">'+c.doses.map(function(d){return '<option value="'+d[0]+'">'+d[1]+'</option>';}).join('')+'</select></div>';
+  if(c.vih) h+='<label class="chk-card" style="margin-top:4px"><input type="checkbox" id="mtx_'+k+'_vih" onchange="this.parentElement.classList.toggle(\'checked\',this.checked);mtxRun(\''+k+'\')"><span>Paciente VIH positivo</span></label>';
+  h+='<div class="lbl" style="margin:8px 0 6px">Horas desde el inicio de la infusión</div><div id="mtx_'+k+'_hrs" style="display:flex;flex-wrap:wrap;gap:6px">'+c.pts.map(function(p){return '<button type="button" class="btn btn-out btn-sm" data-h="'+p[0]+'" onclick="mtxSet(\''+k+'\',\''+p[0]+'\')" style="min-width:58px">'+p[1]+'</button>';}).join('')+'</div>';
+  h+='<div class="row" style="margin-top:10px"><div class="fld"><label class="lbl" id="mtx_'+k+'_lvl">Nivel de MTX (µM)</label><input id="mtx_'+k+'_lv" type="number" step="any" inputmode="decimal" oninput="mtxRun(\''+k+'\')" style="'+inS+'"></div>';
+  h+='<div class="fld" id="mtx_'+k+'_lv2w" style="display:none"><label class="lbl">Nivel a las 36 h (µM)</label><input id="mtx_'+k+'_lv2" type="number" step="any" inputmode="decimal" oninput="mtxRun(\''+k+'\')" style="'+inS+'"></div></div>';
+  h+='<div id="mtx_'+k+'_res"></div><div class="btns" style="margin-top:8px"><button class="btn btn-out btn-sm" onclick="mtxCopy(\''+k+'\')">Copiar</button></div></div>';
+  h+=_mtxPdf(k);
+  return h;
+}
+function mtxSet(k,h){ window._mtx[k]=h; mtxRun(k); }
+function _mtxPat(){ var sc=_ctNum(($('bly_sc')||{}).value), kg=_ctNum(($('bly_p')||{}).value); return {sc:sc>0?sc:null,kg:kg>0?kg:null}; }
+function mtxRun(k){
+  var c=MTX_P[k], H=window._mtx[k]||null, box=$('mtx_'+k+'_res'); if(!c||!box) return;
+  document.querySelectorAll('#mtx_'+k+'_hrs button').forEach(function(b){ var on=b.getAttribute('data-h')===H; b.style.background=on?'var(--c1)':''; b.style.color=on?'#fff':''; b.style.borderColor=on?'var(--c1)':''; });
+  var two=H==='2336', w2=$('mtx_'+k+'_lv2w'), l1=$('mtx_'+k+'_lvl'); if(w2) w2.style.display=two?'':'none'; if(l1) l1.textContent=two?'Nivel a las 23 h (µM)':'Nivel de MTX (µM)';
+  var lv=_ctNum(($('mtx_'+k+'_lv')||{}).value), lv2=_ctNum(($('mtx_'+k+'_lv2')||{}).value), d=($('mtx_'+k+'_d')||{}).value, vih=!!($('mtx_'+k+'_vih')||{}).checked, P=_mtxPat();
+  window._mtx[k+'_res']=null;
+  var noLv=(H==='12'&&k==='bkm'&&d==='0.5');
+  if(!H||(!two&&lv==null&&!noLv)||(two&&lv==null&&lv2==null)){ box.innerHTML='<div class="alert b" style="font-size:12.5px;margin-top:8px">'+(!H?'Elige las <strong>horas</strong> desde el inicio de la infusión':'Escribe el <strong>nivel de MTX</strong>')+'.</div>'; return; }
+  if((lv!=null&&lv<0)||(lv2!=null&&lv2<0)){ box.innerHTML='<div class="alert y" style="margin-top:8px">Nivel no válido.</div>'; return; }
+  var R=c.run({h:H,lv:lv,lv2:lv2,d:d,vih:vih}); if(!R){ box.innerHTML=''; return; }
+  var r='<div class="alert '+(R.cls||'b')+'" style="margin-top:8px"><div style="font-size:16px;font-weight:700;line-height:1.3">'+R.head+'</div>', txt=[c.n+' · '+_mtxLabel(c,H)+(lv!=null?' · MTX '+_mtxN(lv)+' µM':'')+(two&&lv2!=null?' · 36 h '+_mtxN(lv2)+' µM':'')+': '+stripHTML(R.head)];
+  var mg=null;
+  if(R.dose&&R.dose.m2){ var q=R.dose.q?' cada '+R.dose.q+' h':''; mg=P.sc?R.dose.m2*P.sc:null;
+    r+='<div style="font-size:18px;font-weight:700;margin-top:4px">Folinato '+R.dose.m2+' mg/m²'+q+' '+(R.dose.via||'IV')+'</div>';
+    if(mg!=null) r+='<div style="font-size:15px;font-weight:600">= '+_blyF(mg,1)+' mg'+q+' <span style="font-weight:400;font-size:12px">(SC '+_blyF(P.sc,3)+' m²)</span></div>'; else r+='<div style="font-size:12px">Indica la SC (o peso y talla) arriba para la dosis en mg.</div>';
+    if(R.dose.note) r+='<div style="font-size:12.5px;margin-top:2px">'+R.dose.note+'</div>';
+    txt.push('Folinato '+R.dose.m2+' mg/m²'+q+(mg!=null?' = '+_blyF(mg,1)+' mg'+q:'')+'.'); }
+  if(R.form){ mg=P.kg?lv*P.kg:null; r+='<div style="font-size:18px;font-weight:700;margin-top:4px">Folinato (mg) = MTX × peso'+(mg!=null?' = '+_blyF(mg,0)+' mg cada 6 h':'')+'</div>'+(mg==null?'<div style="font-size:12px">Indica el peso arriba.</div>':''); txt.push('Folinato = MTX (µM) × peso (kg)'+(mg!=null?' = '+_blyF(mg,0)+' mg cada 6 h':'')+'.'); }
+  if(R.form24&&P.kg){ var m24=lv*P.kg; r+='<div style="font-size:12.5px;margin-top:4px">Alternativa del protocolo: '+_blyF(m24,0)+' mg/24 h (MTX × peso), en perfusión continua o en 4 tomas de '+_blyF(m24/4,0)+' mg.</div>'; }
+  var notes=R.lines.slice();
+  if(mg!=null&&P.kg&&mg/P.kg>20) notes.push('<strong>Dosis &gt; 20 mg/kg: pasarla en 1 h</strong> (1 g de folinato lleva 4 mEq de calcio).');
+  else if(mg!=null&&mg>160) notes.push('Pasar en al menos '+Math.ceil(mg/160)+' minutos (ritmo máximo IV 160 mg/min, lleva calcio).');
+  if(notes.length) r+=_mtxUl(notes);
+  if(R.glu) r+='<div style="margin-top:6px;font-size:13px"><strong>⚠ '+R.glu+'</strong> Ver «Glucarpidasa».</div>';
+  r+='</div>'; box.innerHTML=r;
+  txt=txt.concat(R.lines.map(stripHTML)); if(R.glu) txt.push(stripHTML(R.glu));
+  window._mtx[k+'_res']=txt.join(' ');
+}
+function _mtxLabel(c,H){ var p=c.pts.find(function(x){return x[0]===H;}); return p?p[1]:H; }
+function mtxCopy(k){ var t=window._mtx[k+'_res']; if(!t){ toast('Elige la hora y el nivel'); return; } copy(t); }
+function mtxAll(){ blyCalc(); Object.keys(MTX_P).forEach(function(k){ if(window._mtx[k]) mtxRun(k); }); lbaCalc(); }
+// ---- Libro azul: pauta fija desde el fin de la infusión ----
+function _mtxLbaHtml(inS){
+  var h=_mtxUl(['Primera dosis: <strong>75 mg/m² IV a las 12 h de terminar la infusión de MTX</strong>.','A las 3 h: <strong>30 mg/m²</strong>.','Después: <strong>30 mg IV cada 6 h</strong> hasta MTX &lt; 0,2 µM; entonces, <strong>2 dosis más</strong>.','La dosis no se ajusta por niveles (el nivel solo sirve para saber cuándo parar). Si los niveles no bajan como deben, el libro no indica cómo subir la dosis: usar el nomograma de Bleyer (infusión corta) o la tabla del protocolo del paciente.','Es la pauta que el libro da para todos sus esquemas con MTX a dosis altas (MATRIX, R-Hiper-CVAD, bloques de LAL y Burkitt).']);
+  h+='<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">Calculadora: horario del rescate</div>';
+  h+='<div class="row"><div class="fld"><label class="lbl">Inicio del MTX</label><input id="lba_t0" type="datetime-local" onchange="lbaCalc()" oninput="lbaCalc()" style="'+inS+'"></div>';
+  h+='<div class="fld"><label class="lbl">Duración de la infusión</label><select id="lba_dur" onchange="lbaCalc()" style="'+inS+'"><option value="3.25">MATRIX · 3 h 15 min</option><option value="4">MTX-R-CHOP · 4 h</option><option value="24">R-Hiper-CVAD B · 24 h</option><option value="2">2 h</option><option value="6">6 h</option></select></div></div>';
+  h+='<div id="lba_res"></div></div>';
+  h+=_mtxPdf('lba');
+  return h;
+}
+function _lbaFmt(dt){ var p=function(n){return (n<10?'0':'')+n;}; return p(dt.getDate())+'/'+p(dt.getMonth()+1)+' '+p(dt.getHours())+':'+p(dt.getMinutes()); }
+function lbaCalc(){
+  var box=$('lba_res'); if(!box) return; var P=_mtxPat(), v=($('lba_t0')||{}).value, dur=parseFloat(($('lba_dur')||{}).value||'4');
+  var mg=function(m2){ return P.sc?' = <strong>'+_blyF(m2*P.sc,1)+' mg</strong>':''; };
+  var rows=[], t0=v?new Date(v):null, at=function(hh){ return t0?_lbaFmt(new Date(t0.getTime()+hh*3600000)):''; };
+  var e=dur;
+  rows.push(['Fin de la infusión',(t0?at(e)+' · ':'')+'hora '+_mtxN(e),'—']);
+  rows.push(['1.ª dosis',(t0?at(e+12)+' · ':'')+'hora '+_mtxN(e+12),'75 mg/m²'+mg(75)]);
+  rows.push(['2.ª dosis (a las 3 h)',(t0?at(e+15)+' · ':'')+'hora '+_mtxN(e+15),'30 mg/m²'+mg(30)]);
+  for(var i=0;i<6;i++) rows.push([(i+3)+'.ª dosis',(t0?at(e+21+6*i)+' · ':'')+'hora '+_mtxN(e+21+6*i),'30 mg']);
+  box.innerHTML=_mtxTbl(rows,['','Cuándo (hora desde el inicio)','Dosis'])+'<div style="font-size:12.5px">Seguir cada 6 h hasta MTX &lt; 0,2 µM y dar entonces 2 dosis más.'+(t0?'':' Indica la hora de inicio para ver la fecha y la hora de cada dosis.')+'</div>';
+}
+// ---- Glucarpidasa y bibliografía ----
+function _mtxGluHtml(){
+  return _mtxUl(['Indicada cuando la eliminación del MTX está retardada <strong>y la creatinina sube</strong> (daño renal). No usarla si el MTX baja como se espera.','<strong>Dosis</strong>: 50 U/kg IV en 5 min; reduce el MTX plasmático &gt; 95 % en 15 min. Si no hay la dosis completa, dar la disponible: dosis menores pueden ser eficaces.','<strong>Cuándo</strong>: idealmente antes de las 48-60 h desde el inicio del MTX; después la toxicidad grave puede no evitarse.','<strong>Folinato</strong>: no darlo en las 2 h antes ni después de la glucarpidasa (también lo destruye). Reiniciarlo a las 2 h, a la dosis del nivel previo a la glucarpidasa, y mantenerlo al menos 48 h (puede haber rebote del MTX).','<strong>Niveles</strong>: durante 48 h el inmunoensayo sobrestima el MTX (detecta su metabolito DAMPA); solo es fiable la HPLC.','Mantener la hidratación y la alcalinización.'])
+   +_mtxTbl([['Consenso (Ramsey 2018) · MTX en 24 h','36 h &gt; 30 µM · 42 h &gt; 10 µM · 48 h &gt; 5 µM (con creatinina elevada)'],['Consenso · infusión de ≤ 6 h','24 h &gt; 50 µM · 36 h &gt; 30 µM · 42 h &gt; 10 µM · 48 h &gt; 5 µM (con creatinina elevada)'],['LAL-2025','24 h &gt; 50 µM · 36 h &gt; 30 µM · 42 h &gt; 10 µM · 48 h &gt; 5 µM'],['LAL Ph-2022','36 h &gt; 100 µM (darla antes de las 42-48 h); &gt; 100 µM a las 42 h'],['BURKIMAB-14','&gt; 100 µM a las 42 h'],['Recaída SEHOP 2015','48 h &gt; 5 µM o toxicidad marcada (contactar con el coordinador)']],['Fuente','Valorar glucarpidasa si…']);
+}
+function _mtxRefHtml(){
+  return '<div class="ref" style="margin-top:0">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101 (tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio).<br>'
+   +'Howard SC, et al. Preventing and managing toxicities of high-dose methotrexate. Oncologist. 2016;21(12):1471-1482. https://doi.org/10.1634/theoncologist.2015-0164<br>'
+   +'Ramsey LB, et al. Consensus guideline for use of glucarpidase in patients with high-dose methotrexate induced acute kidney injury and delayed methotrexate clearance. Oncologist. 2018;23(1):52-61. https://doi.org/10.1634/theoncologist.2017-0243<br>'
+   +'PETHEMA LAL-2025 (rescate con leucovorin, tablas I y II) · PETHEMA LAL Ph-2022 (anexo 3) · BURKIMAB-14 (anexo V) · LAL SEHOP-PETHEMA 2013 (tablas 15.1 y 15.2) · Recaída LAL SEHOP-PETHEMA 2015 (tabla 7) · Pautas de quimioterapia y nuevos agentes en hemopatías malignas, 9.ª ed. (libro azul).<br>'
+   +'Taylor ZL, et al. MTXPK.org: a clinical decision support tool evaluating high-dose methotrexate pharmacokinetics to inform post-infusion care and use of glucarpidase. Clin Pharmacol Ther. 2020;108(3):635-643.</div>';
 }
 
 // === LLC ===
@@ -9465,8 +9700,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 420;
-const APP_BUILD = '2026.11.12 (build ' + HP_BUILD + ')';
+const HP_BUILD = 421;
+const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
@@ -12307,7 +12542,7 @@ function chatNfIntent(q){
 function chatMtxIntent(q){
   const nq=chatNorm(q);
   if(!/metotrexat|metrotexat|\bmtx\b|folinic|leucovorin|glucarpidasa|voraxaze|carboxipeptidasa/.test(nq))return null;
-  return chatRouteCard('bleyer','💊','Rescate MTX · nomograma de Bleyer','Dosis de <strong>Lederfolín</strong> según el nivel de MTX y las horas desde el inicio de la infusión (protocolo del servicio), con enlace a <strong>MTXPK.org</strong> para la farmacocinética y la glucarpidasa.',[]);
+  return chatRouteCard('bleyer','💊','Rescate MTX · Bleyer y protocolos','Dosis de <strong>folinato</strong> según el nivel de MTX y las horas desde el inicio de la infusión: nomograma de Bleyer del servicio (infusiones de 3-4 h) y rescate de cada protocolo (libro azul, LAL-2025, LAL Ph-2022, BURKIMAB, pediatría), con glucarpidasa y <strong>MTXPK.org</strong>.',[]);
 }
 // ¿La consulta pide una ACTITUD terapéutica / manejo de caso / diagnóstico? → Eri remite a la guía SIN emitir juicio (lead neutro, nunca "claro/sí").
 const THERAPY_RX=/\b(puedo|podria|podriamos|debo|debe|debemos|deberia|deberiamos|podemos|conviene|procede|toca|hay que|se puede)\b[^?]{0,40}\b(transfund\w*|trasfund\w*|trasfu\w*|anticoagul\w*|dar(le|les)?|administr\w*|pautar|poner|ponerle|iniciar|empezar|comenzar|suspender|retirar|parar|tratar|profilax\w*|premedic\w*)\b|\b(esta|estaria) indicad|indicacion de (transfu|trasfu|anticoagul|tratar|dar|poner|profilax)|\b(transfundo|trasfundo|le doy|le pongo|le pauto|le administro)\b|\b(tratamiento|tratar|diagnostico|diagnosticar|que actitud|actitud a seguir|actitud terapeutica|conducta a seguir|que hago|que hacer)\b|como (lo |la |le )?(trato|tratar|manejo|manejar|trataria|manejaria)/;
