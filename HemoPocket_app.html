@@ -3661,7 +3661,8 @@ const MX_LABS={
   ijc:{n:'Barcelona · Institut Josep Carreras (LLA-T)',how:'Diagnóstico y 1.ª recaída: hoja del Anexo 3. Seguimiento: contactar antes con el laboratorio.'},
   ref:{n:'Reference Laboratory (código 0567)',how:'En observaciones: diagnóstico, asparaginasa administrada, día de administración y código 0567.'},
   humi:{n:'Las Palmas · Hospital Universitario Materno-Infantil (centro de referencia de Canarias)',how:'Temperatura ambiente; que llegue en < 24 h en día laborable que no sea víspera de festivo (si no, estabilizador para citometría tipo Transfix®).'},
-  hnj:{n:'Madrid · Hospital Niño Jesús (estudios biológicos de la recaída)',how:'Adjuntar copia del consentimiento para el almacenamiento de muestras.'}
+  hnj:{n:'Madrid · Hospital Niño Jesús (estudios biológicos de la recaída)',how:'Adjuntar copia del consentimiento para el almacenamiento de muestras.'},
+  hla:{n:'HLA (histocompatibilidad) · petición en Drago; se envía desde Citodiagnóstico',how:'Al día siguiente, otro tubo de EDTA. Si se precisa criopreservación, se gestiona con el HUC (se hace allí).'}
 };
 // Tubos de la red PLATAFO-LMA indicados en LMA-RR-On / PAPU, para los protocolos de LMA que no los detallan.
 const MX_INF_MO='Tubo no indicado en este protocolo: es el de la red PLATAFO-LMA (LMA-RR-On 2024).';
@@ -3670,13 +3671,15 @@ function _mxI(e,m,tb,lab,o,p,inf){ return {e:e,m:m,tb:tb||[['nc','']],lab:lab,o:
 function _mxS(item,s){ return Object.assign({},item,{s:s}); } // solo para ciertos subtipos (LAL-2025)
 // LAL-2025: ER de seguimiento (igual en todos los puntos) y seguimiento LLA-T en el IJC.
 const MX_L25_ER=[
-  _mxI('ER por citometría (EuroFlow 8 colores)','MO',[['edta','4 ml (1 tubo)']],'salCmf','Un solo tubo (la hoja pide 5 ml; en el HUNSC, tubo de EDTA de 4 ml). Priorizar los primeros ml del aspirado.',89),
+  _mxI('ER por citometría (EuroFlow 8 colores)','MO',[['edta','4 ml (1 tubo)']],'salCmf','Un solo tubo. Priorizar los primeros ml del aspirado.',89),
   _mxI('Sangre periférica de seguimiento','SP',[['edta','3 × 10 ml']],'salCmf','Según la hoja de solicitud; la ER se mide en la MO.',89)];
 const MX_L25_IJC=_mxS(_mxI('Seguimiento LLA-T en el IJC','MO / SP',null,'ijc','Contactar antes con el laboratorio del IJC para organizar el envío.',93),['Tm','Ti']);
 const MX_L25_MORF=_mxI('Aspirado de MO: morfología','MO',[['ext',''],['edta','1 tubo']],'local');
 function _mxL25(extra){ return [MX_L25_MORF].concat(MX_L25_ER,[MX_L25_IJC],extra||[]); }
 function _mxL25sinIJC(extra){ return [MX_L25_MORF].concat(MX_L25_ER,extra||[]); }
 function _mxAspIt(txt,subs){ var pg=(subs&&subs.length&&subs.indexOf('B')<0)?95:94; return _mxS(_mxI('Niveles de asparaginasa','SP',[['sst','suero: 2 alícuotas de 0,5 ml']],'ref',txt+' Texto de la petición en «Niveles de asparaginasa».',pg),subs); }
+// LMA al diagnóstico en un paciente candidato a alo-TPH: tipaje HLA (práctica del HUNSC).
+const MX_HLA=_mxI('Tipaje HLA (si es candidato a alo-TPH)','SP',[['edta','1 tubo'],['sst','1 tubo'],['edta','1 tubo al día siguiente']],'hla','Valorar si se precisa criopreservación: se gestiona con el HUC.',0);
 // Pruebas locales habituales (tubos del laboratorio del hospital).
 const MX_LOCAL_DX=[
   _mxI('Morfología (aspirado)','MO',[['ext',''],['edta','1 tubo']],'local'),
@@ -3689,7 +3692,7 @@ function _mxLCR(p){ return _mxI('LCR: recuento y citología (citospin)','LCR',nu
 const MX_PROTOS=[
  {id:'flow',g:'LMA',n:'LMA-FLOW 2026',v:'v3 · 07/01/2026',pdf:'guias/FLOW.pdf',d:'LMA no promielocítica (no NPM1, no CBF, no MPAL), candidata a QT intensiva.',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento. El cribado genético tarda 3-7 días (FLT3 en 3-5 días desde el envío).',p:25,it:MX_LOCAL_DX.concat([
+   {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento. El cribado genético tarda 3-7 días (FLT3 en 3-5 días desde el envío).',p:25,it:MX_LOCAL_DX.concat([MX_HLA,
      _mxI('Biología molecular rápida: FLT3-ITD/TKD, NPM1, IDH','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','FLT3 local no imprescindible si el central informa en < 72 h.',26,MX_INF_MO),
      _mxI('PCR/NGS centralizada (reordenamientos, CEBPA, BCR::ABL1, TP53, genes MDS) + panel ampliado','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','',27,MX_INF_MO),
      _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','Requiere CI PLATAFO-LMA.',25,MX_INF_MO),
@@ -3713,9 +3716,9 @@ const MX_PROTOS=[
   ]},
  {id:'cbf',g:'LMA',n:'LMA-CBF 2016',v:'enmienda 23/07/2019',pdf:'guias/CBF.pdf',d:'LMA CBF [t(8;21) RUNX1::RUNX1T1 o inv(16) CBFB::MYH11], 14-70 años, QT intensiva + GO.',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento. Cribado rápido de CBF (< 4 días) para decidir el GO de los días 4 y/o 7.',p:17,it:MX_LOCAL_DX.concat([
-     _mxI('Reordenamientos RUNX1::RUNX1T1 / CBFB::MYH11 (RT-PCR) + panel NGS + inmunofenotipo central','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','Sin el resultado de CBF el día 4, GO solo el día 7. El inmunofenotipo se hace en local y en central.',18,MX_INF_MO),
-     _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO),
+   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento. Cribado rápido de CBF (< 4 días) para decidir el GO de los días 4 y/o 7.',p:17,it:MX_LOCAL_DX.concat([MX_HLA,
+     _mxI('Reordenamientos RUNX1::RUNX1T1 / CBFB::MYH11 (RT-PCR) + panel NGS + inmunofenotipo central','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 4 ml']],'plata','Sin el resultado de CBF el día 4, GO solo el día 7. El inmunofenotipo se hace en local y en central.',18,MX_INF_MO),
+     _mxI('Biobanco (ADN, ARN, células)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 4 ml']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO),
      _mxLCR(17)])},
    {id:'post_ind',n:'Tras inducción',w:'Con la recuperación medular (días 35-42 del inicio).',p:23,it:[
      _mxI('EMR RT-PCR (decisiones con SP)','SP',[['edta','4 ml']],'plata','',38,MX_INF_SP),
@@ -3740,12 +3743,12 @@ const MX_PROTOS=[
      _mxI('EMR RT-PCR (vigilancia de recaída molecular)','SP',[['edta','4 ml']],'plata','',38,MX_INF_SP),
      _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','La PCR en MO es solo investigacional.',37)]},
    {id:'rec',n:'Recaída',w:'Ante sospecha de recaída hematológica.',p:38,it:[
-     _mxI('Estudio de recaída','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','«Siempre enviar MO y SP al laboratorio central».',38,MX_INF_MO)]}
+     _mxI('Estudio de recaída','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 4 ml']],'plata','«Siempre enviar MO y SP al laboratorio central».',38,MX_INF_MO)]}
   ]},
  {id:'npm1',g:'LMA',n:'LMA-NPM1 2017',v:'enmienda 23/07/2019',pdf:'guias/NPM1.pdf',d:'LMA con NPM1 mutado, 14-70 años, QT intensiva (± midostaurina si FLT3+).',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento; FLT3 en < 72 h para iniciar midostaurina el día 8.',p:13,it:MX_LOCAL_DX.concat([
-     _mxI('FLT3-ITD/TKD, NPM1, CEBPA, DNMT3A, TP53, RUNX1, ASXL1, IDH1/2 + panel NGS + inmunofenotipo central','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','',14,MX_INF_MO),
+   {id:'dx',n:'Diagnóstico',w:'Antes del tratamiento; FLT3 en < 72 h para iniciar midostaurina el día 8.',p:13,it:MX_LOCAL_DX.concat([MX_HLA,
+     _mxI('FLT3-ITD/TKD, NPM1, CEBPA, DNMT3A, TP53, RUNX1, ASXL1, IDH1/2 + panel NGS + inmunofenotipo central','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 4 ml']],'plata','',14,MX_INF_MO),
      _mxI('Muestras para biobanco (saliva, SP y MO)','MO, SP y saliva',[['edta','MO y SP'],['nc','saliva']],'plata','CI (Anexo 4).',13,MX_INF_MO),
      _mxLCR(13)])},
    {id:'post_ind',n:'Tras inducción',w:'Con la recuperación medular (días 35-42 del inicio). También tras la 2.ª inducción si hubo remisión parcial.',p:20,it:[
@@ -3771,11 +3774,11 @@ const MX_PROTOS=[
      _mxI('EMR qRT-PCR NPM1','SP',[['edta','4 ml']],'plata','Recaída molecular confirmada → alo-TPH si es candidato.',23,MX_INF_SP),
      _mxI('Aspirado de MO de control','MO',[['ext',''],['edta','1 tubo']],'local','',38)]},
    {id:'rec',n:'Recaída',w:'Ante sospecha de recaída morfológica.',p:39,it:[
-     _mxI('Estudio de recaída','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 5 ml']],'plata','«Siempre enviar MO y SP al laboratorio central».',39,MX_INF_MO)]}
+     _mxI('Estudio de recaída','MO y SP',[['edta','MO 3-6 ml'],['edta','SP 4 ml']],'plata','«Siempre enviar MO y SP al laboratorio central».',39,MX_INF_MO)]}
   ]},
  {id:'mix',g:'LMA',n:'LA-MIX 2021',v:'v1 · 2021',pdf:'guias/MIX.pdf',d:'Leucemia aguda de fenotipo mixto (MPAL), candidata a QT intensiva (FLAG-IDA ± imatinib si BCR::ABL1+).',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento.',p:16,it:MX_LOCAL_DX.concat([
+   {id:'dx',n:'Diagnóstico',w:'Antes de iniciar el tratamiento.',p:16,it:MX_LOCAL_DX.concat([MX_HLA,
      _mxI('PCR + NGS centralizada (FLT3, NPM1, CEBPA, BCR::ABL1, TP53, RUNX1, ASXL1, IDH1/2…)','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','Resultado en 2-3 semanas. El informe local de citometría del diagnóstico se adjunta al primer envío de EMR.',17,MX_INF_MO),
      _mxI('Biobanco','MO y SP',[['edta','MO 3-6 ml'],['edta','SP']],'plata','CI PLATAFO-LMA.',36,MX_INF_MO),
      _mxLCR(16)])},
@@ -3799,7 +3802,7 @@ const MX_PROTOS=[
   ]},
  {id:'papu',g:'LMA',n:'PAPU-70+ 2025',v:'v1 · 01/08/2025',pdf:'guias/PAPU.pdf',d:'LMA en ancianos (≥ 70) o unfit, tratamiento de baja intensidad (AZA, DEC, LDAC, VEN+AZA, IVO+AZA, FLUGA).',
   m:[
-   {id:'dx',n:'Diagnóstico',w:'Al diagnóstico, con el CI PLATAFO-LMA.',p:20,it:MX_LOCAL_DX.concat([
+   {id:'dx',n:'Diagnóstico',w:'Al diagnóstico, con el CI PLATAFO-LMA.',p:20,it:MX_LOCAL_DX.concat([MX_HLA,
      _mxI('Estudio molecular (NGS + PCR: IDH1/2, NPM1, FLT3, TP53, KMT2Ar, CBF…)','MO (o SP)',[['edta','MO 3-6 ml']],'plata','«Los estudios moleculares son obligados.»',20,MX_INF_MO),
      _mxI('Biobanco (células, ADN, ARN)','MO (o SP)',[['edta','MO 3-6 ml']],'plata','Recomendable.',53,MX_INF_MO)])},
    {id:'d14',n:'Día 14 del ciclo 1 (VEN+AZA)',w:'Hacia el día 14 del ciclo 1 (opcional).',p:42,it:[
@@ -3863,10 +3866,10 @@ const MX_PROTOS=[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],MX_LOCAL_DX[2],
      _mxI('BCR::ABL1, ETV6::RUNX1, E2A::PBX1 (línea B); KMT2A (marcadores mieloides o 11q23) por PCR y/o FISH','MO',[['edta','1 tubo']],'local','',11),
      _mxI('LCR: citología tras citocentrifugación (citometría opcional)','LCR',null,'local','El LCR no entra en el circuito centralizado.',11),
-     _mxI('Inmunofenotipo central, índice de ADN y genética de estratificación (SNP arrays, NGS, Ph-like)','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Repartir ~15 ml de aspirado en 3 tubos de 5 ml: 2 centralizados (heparina de litio y EDTA) y 1 para el centro; priorizar los primeros ml. Primer envío: consentimiento (Anexo 1) + hoja (Anexo 2) + hemograma.',89),
+     _mxI('Inmunofenotipo central, índice de ADN y genética de estratificación (SNP arrays, NGS, Ph-like)','MO',[['hepli','4-5 ml'],['edta','4 ml']],'salCmf','Repartir ~15 ml de aspirado en 3 tubos: 2 centralizados (heparina de litio y EDTA; el de EDTA del HUNSC es de 4 ml) y 1 para el centro; priorizar los primeros ml. Primer envío: consentimiento (Anexo 1) + hoja (Anexo 2) + hemograma.',89),
      _mxI('Ídem (complemento en SP)','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',89),
      _mxI('Si aspirado seco, < 5% de blastos o linfoma linfoblástico','SP',[['hepli','10-15 ml'],['edta','30-40 ml']],'salCmf','Sustituye o amplía la SP diagnóstica. Sin infiltración medular: otra muestra infiltrada (líquido, PAAF, tejido): contactar antes con el laboratorio.',90),
-     _mxS(_mxI('Estudios genéticos complementarios de LLA-T (muestra fresca)','MO y/o SP',[['edta','MO 4-5 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])]},
+     _mxS(_mxI('Estudios genéticos complementarios de LLA-T (muestra fresca)','MO y/o SP',[['edta','MO 4 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])]},
    {id:'d14',n:'Día 14 de inducción',w:'Día 14 de la inducción-1 (no decisorio).',p:{B:20,T:33},it:_mxL25()},
    {id:'fin_ind1',n:'Fin de inducción-1',w:'LAL-B: al final de la inducción-1. LLA-T madura: día 35 o con la recuperación. LLA-T inmadura: tras FLAG-Ida.',p:{B:20,Tm:33,Ti:72},it:_mxL25([_mxAspIt('Día 29 (antes de la 2.ª dosis de PEG-ASP) y día 43 (o antes del blinatumomab 1).',['B']),_mxAspIt('Día 29 (antes de la 2.ª dosis de PEG-ASP) y día 43.',['Tm'])])},
    {id:'fin_ind2',n:'Fin de inducción-2',s:['B','Tm'],w:'Solo si no hubo RC con la inducción-1.',p:{B:21,T:34},it:_mxL25()},
@@ -3884,9 +3887,9 @@ const MX_PROTOS=[
    {id:'fin_1a',n:'+1 año del fin del tratamiento',w:'Al año de terminar el tratamiento.',p:72,it:_mxL25()},
    {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central (mismos tubos que al diagnóstico); los rescates y recaídas posteriores se estudian en el centro.',p:90,it:[
      MX_L25_MORF,
-     _mxI('Caracterización central de la recaída (inmunofenotipo, ER y genética)','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Mismos tubos que al diagnóstico; priorizar los primeros ml. Hoja (Anexo 2) + hemograma.',89),
+     _mxI('Caracterización central de la recaída (inmunofenotipo, ER y genética)','MO',[['hepli','4-5 ml'],['edta','4 ml']],'salCmf','Mismos tubos que al diagnóstico; priorizar los primeros ml. Hoja (Anexo 2) + hemograma.',89),
      _mxI('Ídem (complemento en SP)','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',89),
-     _mxS(_mxI('Estudios genéticos de LLA-T en la recaída','MO y/o SP',[['edta','MO 4-5 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])]},
+     _mxS(_mxI('Estudios genéticos de LLA-T en la recaída','MO y/o SP',[['edta','MO 4 ml'],['edta','SP 2 × 10 ml']],'ijc','Hoja del Anexo 3.',92),['Tm','Ti'])]},
    {id:'asp',n:'Niveles de asparaginasa (todas las fases)',asp:[
      {s:['B'],f:'Inducción-1 · PEG-ASP días 16 y 29',w:'Día 29 (antes de la 2.ª dosis) y día 43 o antes del blinatumomab 1',p:94},
      {s:['B'],f:'Consolidación C1-C4 · PEG-ASP día 3',w:'Día 17 de cada bloque (14 días tras la dosis)',p:94},
@@ -3905,7 +3908,7 @@ const MX_PROTOS=[
    {id:'dx',n:'Diagnóstico',w:'Al diagnóstico (durante la prefase).',p:38,it:[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],MX_LOCAL_DX[2],
      _mxI('BCR::ABL1 por RT-qPCR (isoforma) y ratio basal','MO y SP',[['edta','1 tubo de cada']],'local','',10),
-     _mxI('Envío central: inmunofenotipo/ERM basal por CMF, índice de ADN y estudios genéticos centralizados (FISH, NGS, IKZF1plus)','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Hoja de solicitud común LAL-2025 / LAL Ph-2022 (Anexo 2 del LAL-2025). Salamanca reparte a Genética HUS/IBSAL, IJC y 12 de Octubre.',38),
+     _mxI('Envío central: inmunofenotipo/ERM basal por CMF, índice de ADN y estudios genéticos centralizados (FISH, NGS, IKZF1plus)','MO',[['hepli','4-5 ml'],['edta','4 ml']],'salCmf','Hoja de solicitud común LAL-2025 / LAL Ph-2022 (Anexo 2 del LAL-2025). Salamanca reparte a Genética HUS/IBSAL, IJC y 12 de Octubre.',38),
      _mxI('Envío central (ídem)','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',38),
      _mxI('LCR: citología y citometría','LCR',null,'local','Con la IT triple de la prefase.',10)]},
    {id:'d14',n:'Día +14 de inducción',w:'Día +14.',p:13,it:[
@@ -3931,7 +3934,7 @@ const MX_PROTOS=[
      _mxI('ERM por CMF (fin de cada año)','MO',[['edta','4 ml']],'salCmf','',37),
      _mxI('ERM por CMF (fin de cada año)','SP',[['edta','3 × 10 ml']],'salCmf','',38)]},
    {id:'rec',n:'1.ª recaída',w:'Solo la 1.ª recaída va al circuito central (mismos tubos que al diagnóstico); los rescates y recaídas posteriores se estudian en el centro.',p:53,it:[
-     _mxI('Caracterización genética e inmunofenotípica / CMF de la recaída','MO',[['hepli','4-5 ml'],['edta','4-5 ml']],'salCmf','Hoja de solicitud del Anexo 2 del LAL-2025.',38),
+     _mxI('Caracterización genética e inmunofenotípica / CMF de la recaída','MO',[['hepli','4-5 ml'],['edta','4 ml']],'salCmf','Hoja de solicitud del Anexo 2 del LAL-2025.',38),
      _mxI('Ídem','SP',[['hepli','5 ml'],['edta','2 × 10 ml']],'salCmf','',38),
      _mxI('Ratio BCR::ABL1 + estudio de mutaciones','MO',[['edta','1 tubo']],'local','',29)]}
   ]},
@@ -3941,7 +3944,7 @@ const MX_PROTOS=[
      MX_LOCAL_DX[0],MX_LOCAL_DX[1],MX_LOCAL_DX[2],
      _mxI('BCR::ABL1 (LAL-B) y KMT2A (si marcadores mieloides) por PCR o FISH','MO',[['edta','1 tubo']],'local','',7),
      _mxI('LCR: citología tras citocentrifugación','LCR',null,'local','',7),
-     _mxI('Citometría / Biobanco de Salamanca','MO',[['hep','4-5 ml'],['edta','4-5 ml']],'salCmf','',8),
+     _mxI('Citometría / Biobanco de Salamanca','MO',[['hep','4-5 ml'],['edta','4 ml']],'salCmf','',8),
      _mxI('Citometría / Biobanco de Salamanca','SP',[['hep','5 ml'],['edta','2 × 10 ml']],'salCmf','',8)]},
    {id:'reev',n:'Reevaluación (inotuzumab / CAR-T)',w:'Tras cada ciclo de inotuzumab (alo-TPH si EMR < 0,1%); tras CAR-T si EMR > 0,1%.',p:13,it:[
      _mxI('EMR por citometría tras cada ciclo de inotuzumab','MO',[['edta','1 tubo']],'local','Alo-TPH si EMR < 0,1 %. La guía no dice si es local o central.',13),
@@ -4072,7 +4075,7 @@ const MX_EMR={
   ped13:'ERM por citometría de flujo en MO, centralizada en el Materno-Infantil de Las Palmas. Estratifica: día +15 (RE: < 5 % de blastos y ERM < 0,1 %, también al final de la I’A; AR: > 25 % de blastos y ERM > 10 %), día +33 (> 1 % → AR) y día +78 (> 0,1 % → AR). Ph+: además qRT-PCR de BCR-ABL1 (Anexo 3), que decide el TPH al final de IB (reducción < 3 log; si no es valorable, CMF ≥ 0,05 %).',
   pedr15:'ERM por citometría en MO (centro de referencia). En el riesgo estándar, la del día +29 decide el TPH (≥ 0,1 %). Las muestras de la recaída se centralizan además en el Hospital Niño Jesús (Madrid).'
 };
-const MX_LAB_SHORT={local:'HUNSC',negrin:'HUDNGC citometría',plata:'HUDNGC PCR/NGS',lpaRef:'HUDNGC PML::RARA',salCmf:'Salamanca',ijc:'IJC',ref:'Reference',humi:'Materno-Infantil',hnj:'Niño Jesús'};
+const MX_LAB_SHORT={hla:'Tipaje HLA',local:'HUNSC',negrin:'HUDNGC citometría',plata:'HUDNGC PCR/NGS',lpaRef:'HUDNGC PML::RARA',salCmf:'Salamanca',ijc:'IJC',ref:'Reference',humi:'Materno-Infantil',hnj:'Niño Jesús'};
 const MX_TIPOS=[['LMA','Mieloide (LMA)'],['LPA','Promielocítica (LPA)'],['LLA','Linfoblástica (LLA)']];
 const MX_TIPOS_PED=[['PLLA','Linfoblástica (LLA)']];
 // Dos apartados con el mismo motor: LA adultos y LA pediátrica (estado guardado aparte para cada uno).
@@ -9710,7 +9713,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 423;
+const HP_BUILD = 424;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
