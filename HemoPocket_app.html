@@ -2715,7 +2715,7 @@ VIEWS.rasburicasa=()=>`<div class="card">
 <div class="ref">Coiffier B, et al. Guidelines for the management of pediatric and adult tumor lysis syndrome. J Clin Oncol. 2008;26(16):2767-2778. https://ascopubs.org/doi/10.1200/JCO.2007.15.0177 · Howard SC, Jones DP, Pui CH. The tumor lysis syndrome. N Engl J Med. 2011;364(19):1844-1854. https://www.nejm.org/doi/full/10.1056/NEJMra0904569 · Ficha técnica Fasturtec® (rasburicasa), AEMPS/EMA.</div>
 </div>`;
 
-// === RESCATE CON ÁCIDO FOLÍNICO · NOMOGRAMA DE BLEYER (protocolo del servicio) ===
+// === RESCATE CON ÁCIDO FOLÍNICO · NOMOGRAMA DE BLEYER ===
 // Tabla «Dosificación de MTX y rescate con ác. folínico» (Bleyer WA, Cancer Treat Rev 1977;4:87-101).
 // Filas: horas desde el INICIO de la infusión. Columnas: nivel sérico de MTX (µM = µmol/L).
 // Cada celda: [dosis de Lederfolín en mg/m², intervalo en horas]. Las celdas combinadas de la tabla
@@ -2772,7 +2772,7 @@ VIEWS.bleyer=function(){
   });
   nt+='</table></div>';
   b+=_mtxDet('Nomograma completo',nt);
-  b+=_mtxDet('Pauta del protocolo del servicio',_mtxUl([
+  b+=_mtxDet('Pauta de administración y niveles',_mtxUl([
     '<strong>Hiperhidratación</strong> IV 3 L/m² y <strong>alcalinización</strong> con bicarbonato 1 M 250 ml/12 h desde al menos 12 h antes.',
     '<strong>No iniciar</strong> si la creatinina ha aumentado o la diuresis es &lt; 125 ml/m²/h. Valorar sondaje y furosemida, acetazolamida o manitol 20 %.',
     '<strong>pH urinario &gt; 7,5</strong> antes, durante y después de la infusión, las primeras 24 h.',
@@ -2865,9 +2865,9 @@ function _mtxBand(t,lv){ for(var i=0;i<t.length;i++){ if(lv<t[i][0]) return t[i]
 function _mtxD(band){ return band?{m2:band[1],q:band[2],via:band[3]||'IV'}:null; }
 // Páginas del original donde sale cada rescate (índice del PDF = página impresa en todos estos PDF).
 const MTX_F={bly:'guias/Bleyer.pdf',la:'guias/LibroAzul_QT.pdf',l25:'guias/subidas/leuc_ag/1792056921457_PROTOCOLO_LAL-2025_final_septiembre_26.pdf',lph:'guias/LALPh.pdf',bkm:'guias/BURKIMAB.pdf',p13:'guias/subidas/ped/1794469409349_LAL_SEHOP_PETHEMA_2013._Versi_n_final_9.10.2014_1_.pdf',p15:'guias/subidas/ped/1794469353845_Gu_a_Reca_da_LAL_v1.0_SEHOP-PETHEMA_2015._Recaida.pdf'};
-const MTX_FN={bly:'Rescate MTX · protocolo del servicio',la:'Pautas de QT SEHH (libro azul)',l25:'LAL-2025',lph:'LAL Ph-2022',bkm:'BURKIMAB-14',p13:'LAL SEHOP-PETHEMA 2013',p15:'Recaída LAL SEHOP-PETHEMA 2015'};
+const MTX_FN={bly:'Nomograma de Bleyer',la:'Pautas de QT SEHH (libro azul)',l25:'LAL-2025',lph:'LAL Ph-2022',bkm:'BURKIMAB-14',p13:'LAL SEHOP-PETHEMA 2013',p15:'Recaída LAL SEHOP-PETHEMA 2015'};
 const MTX_SRC={
-  bly:[['bly',1,'Tabla del servicio «Dosificación de MTX y rescate con ác. folínico» (1 página)']],
+  bly:[['bly',1,'Tabla «Dosificación de MTX y rescate con ác. folínico» (1 página)']],
   lba:[['la',206,'R-Hiper-CVAD, ciclo con MTX (parte B), p. 206'],['la',208,'MATRIX: esquema, p. 208'],['la',209,'MATRIX: rescate, p. 209']],
   l25:[['l25',61,'Rescate con leucovorin, p. 61'],['l25',62,'Muestras de las 12, 23 y 36 h, p. 62'],['l25',63,'Tabla I (42 h) y glucarpidasa, p. 63'],['l25',64,'Tabla II (60 h) y otras consideraciones, p. 64'],['l25',65,'Eliminación retardada e intoxicación, p. 65']],
   lph:[['lph',22,'Rescate adaptado a los niveles, p. 22'],['lph',23,'500 mg/m², advertencias e intoxicación, p. 23'],['lph',55,'Anexo 3 · algoritmo I, p. 55'],['lph',56,'Anexo 3 · algoritmo II y tablas I y II, p. 56']],
@@ -3087,7 +3087,7 @@ function _mtxGluHtml(){
    +_mtxSrc('glu');
 }
 function _mtxRefHtml(){
-  return '<div class="ref" style="margin-top:0">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101 (tabla «Dosificación de MTX y rescate con ác. folínico» del protocolo del servicio).<br>'
+  return '<div class="ref" style="margin-top:0">Bleyer WA. Methotrexate: clinical pharmacology, current status and therapeutic guidelines. Cancer Treat Rev. 1977;4(2):87-101 (tabla «Dosificación de MTX y rescate con ác. folínico»).<br>'
    +'Howard SC, et al. Preventing and managing toxicities of high-dose methotrexate. Oncologist. 2016;21(12):1471-1482. <a href="https://doi.org/10.1634/theoncologist.2015-0164" target="_blank" rel="noopener noreferrer">doi:10.1634/theoncologist.2015-0164</a><br>'
    +'Ramsey LB, et al. Consensus guideline for use of glucarpidase in patients with high-dose methotrexate induced acute kidney injury and delayed methotrexate clearance. Oncologist. 2018;23(1):52-61. <a href="https://doi.org/10.1634/theoncologist.2017-0243" target="_blank" rel="noopener noreferrer">doi:10.1634/theoncologist.2017-0243</a><br>'
    +'PETHEMA LAL-2025 (rescate con leucovorin, tablas I y II) · PETHEMA LAL Ph-2022 (anexo 3) · BURKIMAB-14 (anexo V) · LAL SEHOP-PETHEMA 2013 (tablas 15.1 y 15.2) · Recaída LAL SEHOP-PETHEMA 2015 (tabla 7) · Pautas de quimioterapia y nuevos agentes en hemopatías malignas, 9.ª ed. (libro azul).<br>'
@@ -9911,7 +9911,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 430;
+const HP_BUILD = 431;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
