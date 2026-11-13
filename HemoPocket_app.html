@@ -1262,7 +1262,7 @@ const MENU=[
 {id:'crcl',name:'Aclaramiento Cr',kw:'crcl cockcroft gault aclaramiento creatinina filtrado'},
 {id:'cacorr',name:'Calcio corregido',kw:'calcio corregido payne albumina proteinas totales hipocalcemia hipercalcemia mieloma paraproteina hipoalbuminemia',new:'2026-05-12'},
 {id:'obw',name:'Ajuste obesidad',kw:'ibw abw obesidad ajuste peso ideal'},
-{id:'bsa',name:'Superficie corporal',kw:'bsa mosteller superficie corporal'},
+{id:'bsa',name:'Superficie corporal e IMC',kw:'bsa mosteller dubois superficie corporal imc indice de masa corporal'},
 {id:'cb',name:'Lisis tumoral',kw:'cairo bishop lisis tumoral sld'},
 {id:'rasburicasa',name:'Rasburicasa / hiperuricemia',kw:'rasburicasa hiperuricemia acido urico urato lisis tumoral g6pd fasturtec alopurinol urato oxidasa dosis contraindicacion',new:'2026-06-12'},
 {id:'bleyer',name:'Rescate MTX (Bleyer y protocolos)',kw:'bleyer nomograma normograma metotrexato mtx rescate acido folinico lederfolin leucovorina folinato calcico niveles horas altas dosis dosis rescate mtxpk farmacocinetica glucarpidasa aclaramiento retardado lal-2025 lal ph burkimab burkitt sehop pethema pediatria libro azul matrix hyper-cvad',new:'2026-11-13'},
@@ -5080,7 +5080,7 @@ window._obData={s,h,w,ibw,abw40,abw25,abw20,lbw,bmi,cat};
 function copyOB(){const d=window._obData;if(!d){toast('Calcula primero');return}copy('Peso ideal {ibw} kg · ajustado ABW40 {abw40} kg · masa magra {lbw} kg (IMC {imc})',null,{ibw:d.ibw.toFixed(1).replace('.',','),abw40:d.abw40.toFixed(1).replace('.',','),lbw:d.lbw.toFixed(1).replace('.',','),imc:d.bmi.toFixed(1).replace('.',',')});}
 
 VIEWS.bsa=()=>`<div class="card">
-<h2>Superficie corporal — paciente oncohematológico</h2>
+<h2>Superficie corporal e IMC</h2>
 <p class="intro">Superficie corporal por la fórmula de <strong>DuBois &amp; DuBois</strong>, de referencia en la dosificación de quimioterapia (3 decimales, la misma que usa el asistente de QT), con el <strong>IMC</strong>.</p>
 <div class="row">
 <div class="fld"><label class="lbl">Talla (cm)</label><input type="number" id="bs_h" value="${S.p.height||''}" oninput="calcBSA()"></div>
@@ -9911,7 +9911,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 428;
+const HP_BUILD = 429;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12554,9 +12554,9 @@ function bsaInline(s,toks){
   if(h==null)h=_hpNearLabel(toks,t=>/^(talla|altura|estatura|mide)/.test(t),3,'kg');
   if(w==null)w=_hpNearLabel(toks,t=>/^(peso|pesa)/.test(t),3,'cm');
   if(h==null||w==null){const nums=toks.map(_hpVal).filter(v=>v!=null);if(nums.length===2){const big=Math.max(nums[0],nums[1]),small=Math.min(nums[0],nums[1]);if(big>=120&&big<=230&&small>=2&&small<=300){h=big;w=small;}}}
-  if(h==null||w==null||h<50||h>250||w<2||w>400)return chatCalcRouter('bsa','📐','Superficie corporal','Dame la <strong>talla</strong> (cm) y el <strong>peso</strong> (kg) y te doy la BSA. Te abro la calculadora.');
+  if(h==null||w==null||h<50||h>250||w<2||w>400)return chatCalcRouter('bsa','📐','Superficie corporal e IMC','Dame la <strong>talla</strong> (cm) y el <strong>peso</strong> (kg) y te doy la BSA. Te abro la calculadora.');
   const most=Math.sqrt((h*w)/3600),du=0.007184*Math.pow(w,0.425)*Math.pow(h,0.725),imc=hpIMC(w,h);
-  return chatCalcCard('📐','Superficie corporal','bsa',`Talla ${_hpFmt(h,0)} cm y peso ${_hpFmt(w,1)} kg → <strong style="color:var(--c1)">${du.toFixed(3)} m²</strong> (DuBois) · IMC ${imc.v.toFixed(2)} kg/m² (${imc.cat}).`,`Mosteller: ${most.toFixed(3)} m². DuBois es la fórmula de referencia para dosificar quimioterapia.`);
+  return chatCalcCard('📐','Superficie corporal e IMC','bsa',`Talla ${_hpFmt(h,0)} cm y peso ${_hpFmt(w,1)} kg → <strong style="color:var(--c1)">${du.toFixed(3)} m²</strong> (DuBois) · IMC ${imc.v.toFixed(2)} kg/m² (${imc.cat}).`,`Mosteller: ${most.toFixed(3)} m². DuBois es la fórmula de referencia para dosificar quimioterapia.`);
 }
 function pesoInline(s,toks){
   if(!/(peso ideal|peso ajustad\w*|\bibw\b|\babw\b|\blbw\b|peso magro|masa magra|ajust\w* de peso|ajustar peso|peso a usar|peso corporal ideal)/.test(s))return null;
@@ -12899,8 +12899,8 @@ const CHAT_FAQ=[
    a:'La calculadora usa <strong>Cockcroft-Gault</strong>: (140−edad)×peso×(0,85 si mujer)/(72×creatinina). Útil para ajustar dosis de fármacos.'},
   {v:'cacorr',t:'Calcio corregido',rx:/calcio corregido|corregir.*calcio|\bpayne\b/,
    a:'<strong>Calcio corregido</strong> = Ca medido + 0,8 × (4 − albúmina g/dL). Corrige el efecto de la hipoalbuminemia (frecuente en mieloma).'},
-  {v:'bsa',t:'Superficie corporal',rx:/superficie corporal|mosteller|\bbsa\b/,
-   a:'La <strong>superficie corporal</strong> (Mosteller) = √(talla[cm] × peso[kg] / 3600), en m². Base para dosificar muchos citostáticos.'},
+  {v:'bsa',t:'Superficie corporal e IMC',rx:/superficie corporal|mosteller|dubois|\bbsa\b|\bimc\b|masa corporal/,
+   a:'La <strong>superficie corporal</strong> de referencia en la app es la de <strong>DuBois</strong> = 0,007184 × peso[kg]<sup>0,425</sup> × talla[cm]<sup>0,725</sup>, en m² (la que usa el asistente de QT). El <strong>IMC</strong> = peso[kg] / talla[m]², en kg/m².'},
   {v:'cb',neu:1,t:'Síndrome de lisis tumoral',rx:/lisis tumoral|cairo ?bishop|sindrome.*lisis/,
    a:'El <strong>síndrome de lisis tumoral</strong> se clasifica por los criterios de <strong>Cairo-Bishop</strong> (laboratorio y clínico). El manejo incluye hidratación y control del urato; revisa el riesgo y la profilaxis.'},
   {v:'rasburicasa',neu:1,t:'Rasburicasa / hiperuricemia',rx:/rasburicasa|hiperuricemia|acido urico|\burato\b|fasturtec/,
