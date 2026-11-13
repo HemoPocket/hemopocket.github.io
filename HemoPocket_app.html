@@ -550,6 +550,7 @@ body{font-size:13px}
 .dx-host .docx-wrapper{background:transparent!important;padding:0!important;display:block!important}
 .dx-host section.docx{box-shadow:0 2px 10px rgba(0,0,0,.18);margin:0 auto 14px!important;color:#000;background:#fff}
 .dx-host section.docx[contenteditable=true]:focus{outline:2px solid rgba(26,58,108,.35);outline-offset:2px}
+.dx-warn{max-width:640px;margin:0 auto 10px;padding:8px 12px;border-radius:10px;background:#fff7e0;color:#6b4a00;font-size:12.5px;border:1px solid #f0d58a}
 .dx-note{font-size:12px;color:var(--mut);padding:6px 12px;border-bottom:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between}
 .dx-zoom{display:flex;gap:4px;flex-shrink:0}.dx-zoom .btn{min-width:38px;padding:4px 8px}
 #hp-print-doc{display:none}
@@ -9055,15 +9056,63 @@ VIEWS.docedit_post=async function(params){
   $('dx_title').textContent=window._dx.name;
   await _dxRender();
 };
+// docx-preview no aplica la sangría de las tablas (w:tblInd w:w=…); muchas hojas la usan negativa para
+// aprovechar el margen y, sin ella, la tabla se sale de la página. Se pasa al formato que sí lee (solo en memoria).
+async function _dxFix(buf){
+  const zip=await JSZip.loadAsync(buf), files=Object.keys(zip.files), warn=[]; let ch=false;
+  const edit=async function(n,fn){ const f=zip.file(n); if(!f) return; const x=await f.async('string'), y=fn(x); if(y!==x){ zip.file(n,y); ch=true; } };
+  for(const n of ['word/document.xml','word/styles.xml']) await edit(n,function(x){ return x.replace(/<w:tblInd\b([^>]*?)\/>/g,function(m,at){ const w=/w:w="(-?\d+)"/.exec(at), t=/w:type="(\w+)"/.exec(at); if(!w||(t&&t[1]!=='dxa')) return m; return '<w:tblInd w:left="'+w[1]+'"/>'; }); });
+  // Imágenes WMF (logotipos y cabeceras antiguas): el navegador no las muestra; se pasan a PNG en el dispositivo.
+  const wmfs=files.filter(function(n){ return /^word\/media\/[^/]+\.wmf$/i.test(n); }), map={};
+  if(wmfs.length&&await _dxWmfLib()){
+    for(const n of wmfs){ try{ const png=await _dxWmfToPng(await zip.file(n).async('uint8array')); if(png){ const nn=n.replace(/\.wmf$/i,'.png'); zip.file(nn,png); map[n.slice(5)]=nn.slice(5); ch=true; } }catch(e){ console.warn('[hp] wmf',n,e); } }
+    for(const r of files.filter(function(n){ return /^word\/_rels\/[^/]+\.rels$/.test(n); })) await edit(r,function(x){ for(const k in map) x=x.split('"'+k+'"').join('"'+map[k]+'"'); return x; });
+  }
+  if(wmfs.length>Object.keys(map).length||files.some(function(n){ return /^word\/media\/[^/]+\.emf$/i.test(n); })) warn.push('img');
+  // Objetos incrustados (w:object, p. ej. «Imagen de Word»): se muestra su imagen de vista previa.
+  for(const n of files.filter(function(n){ return /^word\/(document|header\d*|footer\d*)\.xml$/.test(n); })) await edit(n,function(x){ return x.replace(/<w:object\b[^>]*>([\s\S]*?)<\/w:object>/g,function(m,inner){ const sh=/<v:shape\b[\s\S]*?<\/v:shape>/.exec(inner); return sh?'<w:pict>'+sh[0]+'</w:pict>':m; }); });
+  return {buf:ch?await zip.generateAsync({type:'arraybuffer'}):buf,warn:warn};
+}
+let _dxWmfP=null;
+function _dxWmfLib(){
+  if(window.WMFJS&&window.WMFJS.Renderer) return Promise.resolve(true);
+  if(_dxWmfP) return _dxWmfP;
+  _dxWmfP=new Promise(function(res){ const s=document.createElement('script'); s.src='vendor/docx/wmfjs.min.js'; s.onload=function(){ try{ WMFJS.loggingEnabled(false); }catch(e){} res(!!(window.WMFJS&&WMFJS.Renderer)); }; s.onerror=function(){ _dxWmfP=null; res(false); }; document.head.appendChild(s); });
+  return _dxWmfP;
+}
+// Tamaño lógico del WMF: rectángulo del encabezado «placeable» o, si no lo tiene, el registro SetWindowExt.
+function _dxWmfExt(u8){
+  const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  if(dv.getUint32(0,true)===0x9AC6CDD7) return {w:Math.abs(dv.getInt16(10,true)-dv.getInt16(6,true)),h:Math.abs(dv.getInt16(12,true)-dv.getInt16(8,true))};
+  let off=dv.getUint16(2,true)*2;
+  while(off+6<=u8.length){ const sz=dv.getUint32(off,true), fn=dv.getUint16(off+4,true); if(!sz||!fn) break; if(fn===0x020C) return {h:Math.abs(dv.getInt16(off+6,true)),w:Math.abs(dv.getInt16(off+8,true))}; off+=sz*2; }
+  return null;
+}
+async function _dxWmfToPng(u8){
+  const e=_dxWmfExt(u8); if(!e||!e.w||!e.h) return null;
+  const cw=Math.round(Math.min(2400,Math.max(800,e.w))), chh=Math.max(1,Math.round(cw*e.h/e.w));
+  const ab=u8.buffer.slice(u8.byteOffset,u8.byteOffset+u8.byteLength);
+  const svg=new WMFJS.Renderer(ab).render({width:cw+'px',height:chh+'px',xExt:e.w,yExt:e.h,mapMode:8});
+  svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  svg.querySelectorAll('text').forEach(function(t){ const f=t.getAttribute('font-family')||''; t.setAttribute('font-family',(f?"'"+f.replace(/'/g,'')+"', ":'')+'Arial, Helvetica, sans-serif'); if(/bold|black|heavy/i.test(f)) t.setAttribute('font-weight','bold'); t.setAttribute('xml:space','preserve'); });
+  const img=new Image();
+  await new Promise(function(res,rej){ img.onload=res; img.onerror=rej; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg)); });
+  const c=document.createElement('canvas'); c.width=cw; c.height=chh; c.getContext('2d').drawImage(img,0,0,cw,chh);
+  const b=await new Promise(function(r){ c.toBlob(r,'image/png'); });
+  return b?new Uint8Array(await b.arrayBuffer()):null;
+}
 async function _dxRender(){
   const host=$('dx_host'); if(!host||!window._dx.blob) return;
   const ok=await ensureDocxLoaded();
   if(!ok){ host.innerHTML='<div class="viewer-error">No se pudo cargar el editor de documentos. Descarga el original (⬇️) para abrirlo con Word.</div>'; return; }
   host.innerHTML='<div id="dx_st"></div><div id="dx_body"></div>';
+  let warn=[];
   try{
-    await docx.renderAsync(await window._dx.blob.arrayBuffer(),$('dx_body'),$('dx_st'),{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,ignoreLastRenderedPageBreak:true,useBase64URL:true,renderHeaders:true,renderFooters:true});
+    let buf=await window._dx.blob.arrayBuffer(); try{ const fx=await _dxFix(buf); buf=fx.buf; warn=fx.warn; }catch(_f){ console.warn('[hp] docx fix',_f); }
+    await docx.renderAsync(buf,$('dx_body'),$('dx_st'),{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,ignoreLastRenderedPageBreak:true,useBase64URL:true,renderHeaders:true,renderFooters:true});
   }catch(e){ host.innerHTML='<div class="viewer-error">No se pudo abrir este Word.<br><small>'+_hpEsc(e.message||'')+'</small><br>Descarga el original (⬇️) para abrirlo con Word.</div>'; return; }
   host.querySelectorAll('section.docx').forEach(function(sec){ sec.setAttribute('contenteditable','true'); sec.setAttribute('spellcheck','false'); });
+  if(warn.indexOf('img')>=0) host.insertAdjacentHTML('afterbegin','<div class="dx-warn">Alguna imagen de este Word está en un formato antiguo (EMF/WMF) que no se puede mostrar. Para que salga, en Word: cópiala, «Pegado especial» como imagen PNG, guarda y vuelve a subirlo.</div>');
   _dxFit();
 }
 // En el móvil la página no cabe: se reduce con zoom (solo en pantalla; al imprimir sale a tamaño real).
@@ -9088,11 +9137,29 @@ function _dxPrintPrep(){
   let pd=$('hp-print-doc'); if(!pd){ pd=document.createElement('div'); pd.id='hp-print-doc'; document.body.appendChild(pd); }
   pd.innerHTML=''; const st=$('dx_st'); if(st) pd.appendChild(st.cloneNode(true));
   const c=w.cloneNode(true); c.style.zoom=''; c.querySelectorAll('[contenteditable]').forEach(function(e){ e.removeAttribute('contenteditable'); }); pd.appendChild(c);
+  _dxPrintFit(pd,c);
   const s0=w.querySelector('section.docx'), W=s0&&s0.style.width, H=s0&&s0.style.minHeight;
   let pg=$('hp-pd-page'); if(!pg){ pg=document.createElement('style'); pg.id='hp-pd-page'; document.head.appendChild(pg); }
   pg.textContent='@page{margin:0'+(W&&H?';size:'+W+' '+H:'')+'}'+(H?'@media print{#hp-print-doc section.docx{min-height:calc('+H+' - 3mm)!important}}':'');
   document.body.classList.add('hp-pd');
   return true;
+}
+// Con las fuentes del dispositivo el texto puede ocupar algo más que en Word y una hoja de una página
+// pasaría a dos (la segunda en blanco). Se quitan los párrafos vacíos del final y, si aun así se pasa
+// poco (≤ 18 %), se reduce esa página para que quepa. Si es mucho más largo, se deja en varias páginas.
+function _dxPrintFit(pd,c){
+  const toPx=function(v){ const m=/^(-?[\d.]+)(pt|px|cm|mm|in)$/.exec(v||''); if(!m) return null; const n=+m[1], u=m[2]; return u==='pt'?n*96/72:u==='px'?n:u==='cm'?n*96/2.54:u==='mm'?n*96/25.4:n*96; };
+  pd.style.cssText='display:block;position:absolute;left:-30000px;top:0;visibility:hidden';
+  try{
+    c.querySelectorAll('section.docx').forEach(function(sec){
+      const art=sec.querySelector(':scope>article')||sec; let last=art.lastElementChild;
+      while(last&&last.tagName==='P'&&!last.textContent.replace(/\u00a0/g,' ').trim()&&!last.querySelector('img,svg,image,table')){ const prev=last.previousElementSibling; last.remove(); last=prev; }
+      const ph=toPx(sec.style.minHeight); if(!ph) return;
+      const mh=sec.style.minHeight; sec.style.minHeight='0'; const h=sec.scrollHeight; sec.style.minHeight=mh;
+      if(h>ph-6&&h<ph*1.18) sec.style.zoom=((ph-16)/h).toFixed(4);
+    });
+  }catch(e){}
+  pd.style.cssText='';
 }
 function _dxPrintClean(){ document.body.classList.remove('hp-pd'); const g=$('hp-pd-page'); if(g) g.remove(); const q=$('hp-print-doc'); if(q) q.innerHTML=''; }
 function dxPrint(){
@@ -9844,7 +9911,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 427;
+const HP_BUILD = 428;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
