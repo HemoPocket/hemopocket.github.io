@@ -525,6 +525,22 @@ body{font-size:13px}
 .pdf-item .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--c2);font-weight:500}
 [data-t="dark"] .pdf-item .name{color:var(--c2l)}
 .viewer-card{padding:0;display:flex;flex-direction:column;height:calc(100vh - 90px);min-height:500px;margin-bottom:0;overflow:hidden}
+/* Editor de documentos Word (envío de muestras): se rellena sobre el propio documento y se imprime. */
+.dx-host{flex:1;overflow:auto;background:#dfe3e8;padding:12px 6px;-webkit-overflow-scrolling:touch}
+.dx-host .docx-wrapper{background:transparent!important;padding:0!important;display:block!important}
+.dx-host section.docx{box-shadow:0 2px 10px rgba(0,0,0,.18);margin:0 auto 14px!important;color:#000;background:#fff}
+.dx-host section.docx[contenteditable=true]:focus{outline:2px solid rgba(26,58,108,.35);outline-offset:2px}
+.dx-note{font-size:12px;color:var(--mut);padding:6px 12px;border-bottom:1px solid var(--bd)}
+#hp-print-doc{display:none}
+@media print{
+  body.hp-pd>*:not(#hp-print-doc){display:none!important}
+  html:has(body.hp-pd),body.hp-pd{background:#fff!important}
+  body.hp-pd::before,body.hp-pd::after{display:none!important}
+  body.hp-pd #hp-print-doc{display:block!important}
+  #hp-print-doc .docx-wrapper{background:#fff!important;padding:0!important;display:block!important}
+  #hp-print-doc section.docx{box-shadow:none!important;margin:0!important;page-break-after:always;break-after:page}
+  #hp-print-doc section.docx:last-of-type{page-break-after:auto;break-after:auto}
+}
 .viewer-header{flex:0 0 auto;padding:8px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;background:var(--card)}
 .viewer-header .title{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
 .viewer-pages{flex:1;overflow-y:auto;overflow-x:auto;background:#525659;padding:14px 8px;-webkit-overflow-scrolling:touch}
@@ -4128,8 +4144,8 @@ function mxDocsHtml(){
   if(hpEditUISec(MX_DOCS_SEC)){
     // Modo edición: la lista de gestión de las guías (ordenar, renombrar, eliminar) y el botón de subida.
     d.items=null;
-    return h+'<div class="btns" style="margin:0 0 6px"><button type="button" class="btn btn-out btn-sm" onclick="mxDocsUpload()">Subir documento (PDF)</button></div>'
-      +'<div class="mx-mut" style="font-size:12px">Se publican como las guías, para todo el equipo. No subir documentos con datos de pacientes.</div>'
+    return h+'<div class="btns" style="margin:0 0 6px"><button type="button" class="btn btn-out btn-sm" onclick="mxDocsUpload()">Subir documento (PDF o Word .docx)</button></div>'
+      +'<div class="mx-mut" style="font-size:12px">Se publican como las guías, para todo el equipo. No subir documentos con datos de pacientes. Los Word (.docx) se abren para rellenarlos e imprimirlos.</div>'
       +'<div id="pdfs_'+k+'" class="pdf-list" style="margin-top:6px"></div>';
   }
   var hint=(window.HemoCloud&&HemoCloud.canEdit&&HemoCloud.canEdit(MX_DOCS_SEC))?'<div class="mx-mut" style="font-size:12px;margin-top:2px">Para añadir, cambiar o quitar documentos, activa el modo edición (lápiz de la barra superior).</div>':'';
@@ -4137,8 +4153,9 @@ function mxDocsHtml(){
   if(!d.items.length) return h+'<div class="mx-mut" style="font-size:12.5px">Sin documentos todavía.</div>'+hint;
   var b=function(txt,fn){ return '<button type="button" class="btn btn-out btn-sm" onclick="'+fn+'">'+txt+'</button>'; };
   return h+d.items.map(function(it,i){
-    return '<div class="mx-doc"><button type="button" class="mx-docn" onclick="mxDocOpen('+i+')">'+_hpEsc(it.name)+'</button>'
-      +'<span class="mx-docb">'+b('Ver','mxDocOpen('+i+')')+b('Descargar','mxDocDown('+i+')')+b('Imprimir','mxDocPrint('+i+')')+'</span></div>';
+    var dx=/\.docx$/i.test(it.key);
+    return '<div class="mx-doc"><button type="button" class="mx-docn" onclick="mxDocOpen('+i+')">'+(dx?'📝 ':'')+_hpEsc(it.name)+'</button>'
+      +'<span class="mx-docb">'+(dx?b('Rellenar e imprimir','mxDocOpen('+i+')')+b('Descargar','mxDocDown('+i+')'):b('Ver','mxDocOpen('+i+')')+b('Descargar','mxDocDown('+i+')')+b('Imprimir','mxDocPrint('+i+')'))+'</span></div>';
   }).join('')+hint;
 }
 // Tras pintar la herramienta: carga la lista (una vez) o, en modo edición, la lista de gestión.
@@ -4163,11 +4180,12 @@ async function _mxDocBlob(i){
   var it=(window._mxDocs.items||[])[i]; if(!it) return null;
   var r=null; try{ r=await idb.get(it.key); }catch(e){}
   if(!r||!r.blob){ toast('Este documento no está descargado en el dispositivo: pulsa «Actualizar» con conexión'); return null; }
-  return {blob:new Blob([r.blob],{type:'application/pdf'}),name:it.name};
+  var isDx=/\.docx$/i.test(it.key);
+  return {blob:new Blob([r.blob],{type:isDx?'application/vnd.openxmlformats-officedocument.wordprocessingml.document':'application/pdf'}),name:it.name+(isDx&&!/\.docx$/i.test(it.name)?'.docx':''),docx:isDx};
 }
-function mxDocOpen(i){ var it=(window._mxDocs.items||[])[i]; if(it) openPDF(encodeURIComponent(it.key)); }
+function mxDocOpen(i){ var it=(window._mxDocs.items||[])[i]; if(!it) return; if(/\.docx$/i.test(it.key)) openDocx(it.key); else openPDF(encodeURIComponent(it.key)); }
 async function mxDocDown(i){ var x=await _mxDocBlob(i); if(x){ hpDownloadBlob(x.blob,x.name); toast('Descargado'); } }
-async function mxDocPrint(i){ var x=await _mxDocBlob(i); if(x) hpPrintBlob(x.blob,x.name); }
+async function mxDocPrint(i){ var it=(window._mxDocs.items||[])[i]; if(it&&/\.docx$/i.test(it.key)){ openDocx(it.key); return; } var x=await _mxDocBlob(i); if(x) hpPrintBlob(x.blob,x.name); }
 // El apartado debe existir en la sección para poder ordenar, renombrar u ocultar sus documentos.
 async function _mxDocsEnsureSub(){
   try{
@@ -4180,7 +4198,7 @@ async function _mxDocsEnsureSub(){
 function mxDocsUpload(){
   if(!hpEditUISec(MX_DOCS_SEC)){ toast('Activa el modo edición'); return; }
   _mxDocsEnsureSub();              // en segundo plano: el selector de archivo debe abrirse en el mismo gesto
-  hcUpload(MX_DOCS_SEC,_mxDocsSub());
+  hcUpload(MX_DOCS_SEC,_mxDocsSub(),{docx:true});
 }
 
 // Enlace a la plataforma PLATAFO-LMA (se abre en otra pestaña).
@@ -4272,13 +4290,12 @@ function mxDxHtml(){
     +'<div class="mx-next"><b>Después,</b> su protocolo: CBF, NPM1, LA-MIX, LMA-FLOW (resto) o PAPU-70+ (≥ 70 años o no candidato).</div></div>';
   h+='<div class="mx-dxc mx-lla"><div class="mx-dxh">Leucemia linfoblástica aguda</div>'
     +'<div class="mx-big">Se registra en <b>papel</b>: no hay plataforma ni página web</div>'
-    +'<ol><li>Rellenar la <b>hoja de solicitud</b> (Anexo 2) con todos sus datos, incluido el <b class="mx-hl">% de blastos en médula ósea</b>. Marcar «Diagnóstico» y los tubos enviados.</li>'
+    +'<ol><li>Rellenar la <b>hoja de solicitud</b> (Anexo 2) con todos sus datos, incluido el <b class="mx-hl">% de blastos en médula ósea</b>. Marcar «Diagnóstico» y los tubos enviados.'+(l25?' '+_mxPdf(l25,89,'Abrir la hoja (Anexo 2)'):'')+'</li>'
     +'<li>Adjuntar <b class="mx-hl">copia del hemograma del día</b> y del <b class="mx-hl">consentimiento informado firmado</b>.</li>'
     +'<li>Enviar a <b>Salamanca</b> (Servicio de Citometría de la Universidad).</li>'
-    +'<li><b>Tubos:</b> MO heparina de litio 4-5 ml + EDTA 4-5 ml · SP heparina de litio 5 ml + EDTA 2 × 10 ml (primeros ml del aspirado; rotular MO / SP). Aspirado seco, &lt; 5 % de blastos o linfoma linfoblástico: SP heparina de litio 10-15 ml + EDTA 30-40 ml.</li></ol>'
+    +'<li><b>Tubos:</b> MO heparina de litio 4-5 ml + EDTA 4 ml · SP heparina de litio 5 ml + EDTA 2 × 10 ml (primeros ml del aspirado; rotular MO / SP). Aspirado seco, &lt; 5 % de blastos o linfoma linfoblástico: SP heparina de litio 10-15 ml + EDTA 30-40 ml.</li></ol>'
     +'<div class="mx-loc"><b>En el HUNSC:</b> morfología, inmunofenotipo, cariotipo, BCR::ABL1 y LCR.</div>'
-    +'<div class="mx-next"><b>Después,</b> su protocolo: LAL-2025 (Ph−), LAL Ph-2022 (Ph+) o BURKIMAB-14 (Burkitt). LLA-T: además, genética en el IJC (Anexo 3).</div>'
-    +(l25?'<div style="margin-top:6px">'+_mxPdf(l25,89,'Ver la hoja de solicitud (Anexo 2)')+'</div>':'')+'</div>';
+    +'<div class="mx-next"><b>Después,</b> su protocolo: LAL-2025 (Ph−), LAL Ph-2022 (Ph+) o BURKIMAB-14 (Burkitt). LLA-T: además, genética en el IJC (Anexo 3).</div></div>';
   h+='</div>';
   return h;
 }
@@ -8597,18 +8614,20 @@ window.hpUpdateSolBadge=async function(){
 };
 
 // Subir una guía a una sección (solo editor de esa sección o admin).
-window.hcUpload=function(section,subtypeId){
+window.hcUpload=function(section,subtypeId,opts){
+const allowDx=!!(opts&&opts.docx);
 if(!window.HemoCloud||!HemoCloud.canEdit(section)){alert('No puedes subir aquí: necesitas ser editor de esta sección o administradora.');return}
 if(!navigator.onLine){alert('Necesitas conexión a internet para subir la guía.');return}
 const inp=document.createElement('input');
-inp.type='file';inp.accept='application/pdf,.pdf';
+inp.type='file';inp.accept=allowDx?'application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document':'application/pdf,.pdf';
 inp.onchange=async()=>{
 const file=inp.files&&inp.files[0];
 if(!file)return;
-if(file.type&&file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){alert('El archivo no parece un PDF. Elige un archivo .pdf.');return}
+const isDx=allowDx&&/\.docx$/i.test(file.name||'');
+if(!isDx&&file.type&&file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name)){alert(allowDx?'Elige un PDF o un Word (.docx). Los .doc antiguos: ábrelos en Word y guárdalos como .docx.':'El archivo no parece un PDF. Elige un archivo .pdf.');return}
 if(file.size>40*1024*1024){alert('El PDF pesa '+(file.size/1048576).toFixed(1)+' MB; el máximo es ~40 MB. Comprímelo e inténtalo de nuevo.');return}
 // Nombre = el del archivo (sin prompt, que en algunos móviles/PWA bloquea la subida). Se puede renombrar luego.
-const finalName=((file.name||'').replace(/\.pdf$/i,'').replace(/[_]+/g,' ').trim())||'Guía';
+const finalName=((file.name||'').replace(/\.(pdf|docx)$/i,'').replace(/[_]+/g,' ').trim())||'Guía';
 toast('⏳ Subiendo «'+finalName+'»…');
 try{
 if(!HemoCloud.token){ try{ await HemoCloud.loadToken(); }catch(_t){} }
@@ -8843,6 +8862,7 @@ VIEWS.viewer=()=>`<div class="card viewer-card">
 </div>`;
 
 VIEWS.viewer_post=async(params)=>{
+if(params&&params.key&&/\.docx$/i.test(params.key)){ go('docedit',{key:params.key}); return; }
 _viewerParams=params;
 if(!params||(!params.key&&!params.url)){
 $('vw_title').textContent='Sin PDF';
@@ -8971,6 +8991,70 @@ for(let i=1;i<placeholders.length;i++)observer.observe(placeholders[i]);
 container.innerHTML=`<div class="viewer-error">No se pudo renderizar el PDF.<br><strong>Error:</strong> <code style="font-size:11px">${e.message}</code><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="retryViewer()">Reintentar</button><button class="btn btn-out" onclick="downloadCurrentPDF()">Descargar PDF</button></div></div>`;
 }
 };
+
+// === Editor de documentos Word (.docx) ===
+// El documento se pinta con docx-preview (auto-alojada, Apache-2.0; usa JSZip, MIT) y se puede escribir encima.
+// Lo que se escribe NO se guarda ni se envía a ningún sitio: solo se imprime (son datos de pacientes).
+let _dxLoadP=null;
+function ensureDocxLoaded(){
+  if(window.docx&&window.docx.renderAsync&&window.JSZip) return Promise.resolve(true);
+  if(_dxLoadP) return _dxLoadP;
+  const add=function(src){ return new Promise(function(res,rej){ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); };
+  _dxLoadP=(window.JSZip?Promise.resolve():add('vendor/docx/jszip.min.js')).then(function(){ return add('vendor/docx/docx-preview.min.js'); }).then(function(){ return !!(window.docx&&window.docx.renderAsync); }).catch(function(){ _dxLoadP=null; return false; });
+  return _dxLoadP;
+}
+function openDocx(key){ _returnView=(S.view&&S.view!=='docedit')?S.view:'home'; go('docedit',{key:key}); }
+VIEWS.docedit=()=>`<div class="card viewer-card">
+<div class="viewer-header">
+<button class="btn btn-out btn-sm" onclick="viewerBack()">← Volver</button>
+<span class="title" id="dx_title">Cargando…</span>
+<button class="btn btn-out btn-sm" onclick="dxReset()" title="Volver al documento en blanco">↺</button>
+<button class="btn btn-out btn-sm" onclick="dxDownload()" title="Descargar el original (.docx)">⬇️</button>
+<button class="btn btn-sm" onclick="dxPrint()" title="Imprimir relleno">🖨️ Imprimir</button>
+</div>
+<div class="dx-note">Toca el documento y escribe los datos. <strong>Lo escrito no se guarda ni se envía</strong>: solo se imprime. ↺ lo deja en blanco.</div>
+<div class="dx-host" id="dx_host"><div class="viewer-loading">⏳ Cargando documento…</div></div>
+</div>`;
+window._dx={key:null,blob:null,name:''};
+VIEWS.docedit_post=async function(params){
+  const host=$('dx_host'); if(!host) return;
+  const key=params&&params.key; window._dx.key=key;
+  let r=null; try{ r=key?await idb.get(key):null; }catch(e){}
+  if(!r||!r.blob){ $('dx_title').textContent='No disponible'; host.innerHTML='<div class="viewer-error">Este documento no está descargado en el dispositivo. Pulsa «Actualizar» con conexión.</div>'; return; }
+  window._dx.blob=r.blob; window._dx.name=r.name||'Documento';
+  $('dx_title').textContent=window._dx.name;
+  await _dxRender();
+};
+async function _dxRender(){
+  const host=$('dx_host'); if(!host||!window._dx.blob) return;
+  const ok=await ensureDocxLoaded();
+  if(!ok){ host.innerHTML='<div class="viewer-error">No se pudo cargar el editor de documentos. Descarga el original (⬇️) para abrirlo con Word.</div>'; return; }
+  host.innerHTML='<div id="dx_st"></div><div id="dx_body"></div>';
+  try{
+    await docx.renderAsync(await window._dx.blob.arrayBuffer(),$('dx_body'),$('dx_st'),{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,ignoreLastRenderedPageBreak:true,useBase64URL:true,renderHeaders:true,renderFooters:true});
+  }catch(e){ host.innerHTML='<div class="viewer-error">No se pudo abrir este Word.<br><small>'+_hpEsc(e.message||'')+'</small><br>Descarga el original (⬇️) para abrirlo con Word.</div>'; return; }
+  host.querySelectorAll('section.docx').forEach(function(sec){ sec.setAttribute('contenteditable','true'); sec.setAttribute('spellcheck','false'); });
+  _dxFit();
+}
+// En el móvil la página no cabe: se reduce con zoom (solo en pantalla; al imprimir sale a tamaño real).
+function _dxFit(){
+  const host=$('dx_host'), w=host&&host.querySelector('.docx-wrapper'), sec=w&&w.querySelector('section.docx'); if(!sec) return;
+  w.style.zoom=''; const z=Math.min(1,(host.clientWidth-12)/sec.offsetWidth); if(z<1) w.style.zoom=z.toFixed(3);
+}
+window.addEventListener('resize',function(){ if(S&&S.view==='docedit') _dxFit(); });
+function dxReset(){ if(!confirm('¿Dejar el documento en blanco? Se borra lo escrito.')) return; _dxRender(); }
+function dxDownload(){ if(window._dx.blob) hpDownloadBlob(new Blob([window._dx.blob],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),window._dx.name.replace(/\.docx$/i,'')+'.docx'); }
+function dxPrint(){
+  const host=$('dx_host'), w=host&&host.querySelector('.docx-wrapper'); if(!w){ toast('El documento aún no se ha cargado'); return; }
+  let pd=$('hp-print-doc'); if(!pd){ pd=document.createElement('div'); pd.id='hp-print-doc'; document.body.appendChild(pd); }
+  pd.innerHTML=''; const st=$('dx_st'); if(st) pd.appendChild(st.cloneNode(true));
+  const c=w.cloneNode(true); c.style.zoom=''; c.querySelectorAll('[contenteditable]').forEach(function(e){ e.removeAttribute('contenteditable'); }); pd.appendChild(c);
+  let pg=$('hp-pd-page'); if(!pg){ pg=document.createElement('style'); pg.id='hp-pd-page'; pg.textContent='@page{margin:0}'; document.head.appendChild(pg); }
+  document.body.classList.add('hp-pd');
+  const done=function(){ document.body.classList.remove('hp-pd'); const g=$('hp-pd-page'); if(g) g.remove(); const q=$('hp-print-doc'); if(q) q.innerHTML=''; window.removeEventListener('afterprint',done); };
+  window.addEventListener('afterprint',done);
+  setTimeout(function(){ try{ window.print(); }catch(e){ done(); toast('No se pudo imprimir'); } },50);
+}
 
 // Zoom del visor PDF (reescala el tamaño CSS sobre el buffer de alta resolución ya renderizado)
 // Escala de rasterizado: 2× los píxeles físicos del dispositivo (supersampling → nitidez HD), con
@@ -9713,7 +9797,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 424;
+const HP_BUILD = 425;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
