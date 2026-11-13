@@ -2750,7 +2750,7 @@ VIEWS.bleyer=function(){
   // Selector de protocolo
   var chip=function(k,txt){ return '<button type="button" class="mtx-chip" data-k="'+k+'" onclick="mtxSel(\''+k+'\')">'+txt+'</button>'; };
   h+='<div class="mtx-sel">';
-  h+='<div class="mtx-grp">Infusión de 3-4 h</div><div class="mtx-chips">'+chip('bly','Bleyer <small>servicio</small>')+'</div>';
+  h+='<div class="mtx-grp">Infusión de 3-4 h</div><div class="mtx-chips">'+chip('bly','Bleyer')+'</div>';
   h+='<div class="mtx-grp">Infusión de 24 h o más <span>· Bleyer no sirve</span></div><div class="mtx-chips">'+['l25','lph','bkm','p13','p15'].map(function(k){ return chip(k,MTX_P[k].short); }).join('')+'</div>';
   h+='<div class="mtx-grp">Otros</div><div class="mtx-chips">'+chip('lba','Libro azul <small>pauta fija</small>')+chip('glu','Glucarpidasa')+chip('ref','Bibliografía')+'</div>';
   h+='</div>';
@@ -2782,7 +2782,7 @@ VIEWS.bleyer=function(){
     'Ritmo máximo IV del Lederfolín: <strong>160 mg/min</strong> (lleva calcio).'])
     +'<div style="font-size:12.5px;margin-top:4px">Farmacocinética individual: <a href="https://mtxpk.org" target="_blank" rel="noopener noreferrer" style="color:var(--c2)">MTXPK.org ↗</a></div>');
   b+=_mtxSrc('bly');
-  h+=_mtxPan('bly','Nomograma de Bleyer · protocolo del servicio','Solo infusiones de 3-4 h (MATRIX, MTX-R-CHOP)',b);
+  h+=_mtxPan('bly','Nomograma de Bleyer','Solo infusiones de 3-4 h (MATRIX, MTX-R-CHOP)',b);
   // 2-6 · Protocolos con rescate ajustado a niveles
   ['l25','lph','bkm','p13','p15'].forEach(function(k){ var c=MTX_P[k]; h+=_mtxPan(k,c.n,c.sub,_mtxCalcHtml(k,inS)); });
   // 7 · Libro azul
@@ -9911,7 +9911,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 429;
+const HP_BUILD = 430;
 const APP_BUILD = '2026.11.13 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12753,7 +12753,7 @@ function chatNfIntent(q){
 function chatMtxIntent(q){
   const nq=chatNorm(q);
   if(!/metotrexat|metrotexat|\bmtx\b|folinic|leucovorin|glucarpidasa|voraxaze|carboxipeptidasa/.test(nq))return null;
-  return chatRouteCard('bleyer','💊','Rescate MTX · Bleyer y protocolos','Dosis de <strong>folinato</strong> según el nivel de MTX y las horas desde el inicio de la infusión: nomograma de Bleyer del servicio (infusiones de 3-4 h) y rescate de cada protocolo (libro azul, LAL-2025, LAL Ph-2022, BURKIMAB, pediatría), con glucarpidasa y <strong>MTXPK.org</strong>.',[]);
+  return chatRouteCard('bleyer','💊','Rescate MTX · Bleyer y protocolos','Dosis de <strong>folinato</strong> según el nivel de MTX y las horas desde el inicio de la infusión: nomograma de Bleyer (infusiones de 3-4 h) y rescate de cada protocolo (libro azul, LAL-2025, LAL Ph-2022, BURKIMAB, pediatría), con glucarpidasa y <strong>MTXPK.org</strong>.',[]);
 }
 // ¿La consulta pide una ACTITUD terapéutica / manejo de caso / diagnóstico? → Eri remite a la guía SIN emitir juicio (lead neutro, nunca "claro/sí").
 const THERAPY_RX=/\b(puedo|podria|podriamos|debo|debe|debemos|deberia|deberiamos|podemos|conviene|procede|toca|hay que|se puede)\b[^?]{0,40}\b(transfund\w*|trasfund\w*|trasfu\w*|anticoagul\w*|dar(le|les)?|administr\w*|pautar|poner|ponerle|iniciar|empezar|comenzar|suspender|retirar|parar|tratar|profilax\w*|premedic\w*)\b|\b(esta|estaria) indicad|indicacion de (transfu|trasfu|anticoagul|tratar|dar|poner|profilax)|\b(transfundo|trasfundo|le doy|le pongo|le pauto|le administro)\b|\b(tratamiento|tratar|diagnostico|diagnosticar|que actitud|actitud a seguir|actitud terapeutica|conducta a seguir|que hago|que hacer)\b|como (lo |la |le )?(trato|tratar|manejo|manejar|trataria|manejaria)/;
