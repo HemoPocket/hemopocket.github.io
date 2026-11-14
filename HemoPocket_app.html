@@ -143,6 +143,8 @@ mark{background:rgba(196,30,58,.16);color:inherit;border-radius:3px;padding:0 1p
 body.view-home .app-footer{padding-bottom:18px}
 .collabs-block{margin:20px 0 0;padding:10px 2px 0;border-top:1px solid var(--bd);font-size:12px;line-height:1.6;color:var(--mut)}
 .collabs-r{color:var(--mut);opacity:.85}
+.collab-add-row{display:flex;flex-wrap:wrap;gap:6px}
+.collab-add-row input{flex:1 1 150px;min-width:0;padding:7px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px}
 .collabs-ed{background:none;border:none;padding:0 0 0 4px;color:var(--c2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
 .collabs-h{font-weight:600;color:var(--txt);opacity:.75}
 .collabs-list{list-style:none;padding:0;margin:0;font-size:13px}
@@ -7594,12 +7596,26 @@ function _hpCollabEditor(id){
   if(!people.length) h+='<div class="alert y" style="font-size:12.5px">No se han podido cargar las personas. Comprueba la conexión.</div>';
   people.forEach(function(x){
     const on=(x.sections||[]).indexOf(id)>=0;
-    const extra=x.yo?' · tú':(x.perfil==='admin'?' · administración':(x.r?' · '+_hpEsc(x.r):''));
+    const extra=x.yo?' · tú':(x.perfil==='admin'?' · administración':(x.r?' · '+_hpEsc(x.r):''))+(x.perfil==='colaborador'?' · sin cuenta':'');
     h+='<label class="chk-card'+(on?' checked':'')+'"><input type="checkbox" data-uid="'+_hpEsc(x.uid)+'"'+(on?' checked':'')+' onchange="this.parentElement.classList.toggle(\'checked\',this.checked)"><span>'+(_hpEsc(x.n)||'(sin nombre de crédito)')+'<span style="font-size:11px;color:var(--mut)">'+extra+'</span></span></label>';
   });
+  h+='<div class="collab-add"><div style="font-size:12px;margin:8px 0 4px">¿Falta alguien? Escribe su nombre (no hace falta que tenga cuenta en la app):</div><div class="collab-add-row"><input id="collab_new_n" type="text" placeholder="Nombre y apellidos" autocomplete="off"><input id="collab_new_r" type="text" placeholder="Especialidad (opcional)" autocomplete="off"><button type="button" class="btn btn-out btn-sm" onclick="hpCollabAdd(\''+id+'\')">Añadir</button></div></div>';
   h+='<div class="btns" style="margin-top:8px"><button class="btn btn-sm" onclick="hpCollabSave(\''+id+'\')">Guardar</button><button class="btn btn-out btn-sm" onclick="hpCollabEditClose(\''+id+'\')">Cancelar</button></div></div>';
   return h;
 }
+window.hpCollabAdd=async function(id){
+  const n=(($('collab_new_n')||{}).value||'').trim(), r=(($('collab_new_r')||{}).value||'').trim();
+  if(!n){ toast('Escribe el nombre'); return; }
+  if(!window.hpAddColabExterno||!navigator.onLine){ toast('Necesitas conexión para añadir colaboradores'); return; }
+  const ya=hpCollabPeople().find(function(x){ return (x.n||'').toLowerCase().replace(/\s+/g,' ')===n.toLowerCase().replace(/\s+/g,' '); });
+  try{
+    if(ya){ const secs=(ya.sections||[]); if(secs.indexOf(id)<0) await window.hpSetColabSecciones(ya.uid, secs.concat([id]), ya.n, ya.perfil, ya.r||''); }
+    else await window.hpAddColabExterno(n, r, [id]);
+  }catch(e){ toast('No se pudo añadir: '+((e&&e.message)||'')); return; }
+  if(window.hpSyncColaboradores){ try{ await window.hpSyncColaboradores(); }catch(e){} }
+  try{ if(typeof hpAudit==='function') hpAudit('añadir colaborador','sección',id,{nombre:n}); }catch(e){}
+  go(S.view); toast(n+' figura ya como colaborador de esta sección');
+};
 window.hpCollabSave=async function(id){
   if(!window.hpSetColabSecciones||!navigator.onLine){ toast('Necesitas conexión para guardar los colaboradores'); return; }
   const people=_hpCollabPeopleEd(); let n=0;
@@ -7609,7 +7625,9 @@ window.hpCollabSave=async function(id){
       const secs=(x.sections||[]).slice(), has=secs.indexOf(id)>=0; if(b.checked===has) continue;
       let nom=x.n;
       if(!nom){ nom=prompt('Nombre con el que figurará como colaborador:',''); if(!nom||!nom.trim()) continue; nom=nom.trim(); }
-      await window.hpSetColabSecciones(x.uid, b.checked?secs.concat([id]):secs.filter(function(q){return q!==id;}), nom, x.perfil||'admin', x.r||'');
+      const ns=b.checked?secs.concat([id]):secs.filter(function(q){return q!==id;});
+      if(x.perfil==='colaborador'&&!ns.length&&window.hpBorrarColab) await window.hpBorrarColab(x.uid);
+      else await window.hpSetColabSecciones(x.uid, ns, nom, x.perfil||'admin', x.r||'');
       n++;
     }
   }catch(e){ toast('No se pudo guardar: '+((e&&e.message)||'')); return; }
@@ -10152,7 +10170,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 445;
+const HP_BUILD = 446;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -17761,6 +17779,9 @@ function poblarRevisoresAviso() {
     var label;
     if (e.perfil === 'admin') {
       label = e.principal ? 'Administradora (autora principal)' : 'Administrador/a';
+    } else if (e.perfil === 'colaborador') {
+      var areasC = (e.sections || []).map(secTitle).filter(Boolean), espC = (e.r || '').trim();
+      label = 'Colaborador/a' + (espC ? (' · ' + espC) : '') + (areasC.length ? (' · ' + areasC.join(', ')) : '');
     } else {
       var areas = (e.sections || []).map(secTitle).filter(Boolean);
       var resp = areas.length ? ('responsable de ' + areas.join(', ')) : '';
@@ -18464,10 +18485,18 @@ window.hpAsignarRol = async function(uid, role, sections, nombre, spec){
 window.hpSetColabSecciones = async function(uid, sections, nombre, perfil, rolEsp){
   const data = { sections: (Array.isArray(sections)?sections:[]), seccionesManual: true, actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() };
   const nom = (nombre||'').toString().trim(); if(nom) data.nombre = nom;
-  if(perfil) data.perfil = (perfil==='admin'?'admin':'editor');
+  if(perfil) data.perfil = (perfil==='admin'?'admin':(perfil==='colaborador'?'colaborador':'editor'));
   if(rolEsp) data.rol = (rolEsp||'').toString().trim();
   await setDoc(doc(fs, 'colaboradores', uid), data, { merge:true });
 };
+// Colaboradores SIN cuenta en la app (los añade un administrador escribiendo su nombre).
+window.hpAddColabExterno = async function(nombre, rolEsp, sections){
+  const nom = (nombre||'').toString().trim(); if(!nom) return null;
+  const id = 'ext_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  await setDoc(doc(fs, 'colaboradores', id), { nombre: nom, perfil:'colaborador', rol: (rolEsp||'').toString().trim(), sections: (Array.isArray(sections)?sections:[]), seccionesManual: true, actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() });
+  return id;
+};
+window.hpBorrarColab = async function(uid){ await deleteDoc(doc(fs, 'colaboradores', uid)); };
 // Acreditación automática: quien sube una guía o publica contenido en una sección pasa a figurar
 // como colaborador de esa sección si aún no figura. Las reglas solo le dejan añadir esa sección.
 window.hpAutoColab = async function(section, nombre, perfil){
@@ -18567,7 +18596,7 @@ window.hpSyncColaboradores = async function(){
       const x = d.data()||{};
       const nom = (x.nombre||'').toString().trim(); if(!nom) return;
       // Docs antiguos sin 'perfil' eran todos editores: se tratan como tal por defecto.
-      const perfil = (x.perfil==='admin') ? 'admin' : 'editor';
+      const perfil = (x.perfil==='admin') ? 'admin' : (x.perfil==='colaborador' ? 'colaborador' : 'editor');
       const rol = (x.rol||'').toString().trim();
       const secs = Array.isArray(x.sections) ? x.sections : [];
       people.push({ uid: d.id, n: nom, perfil: perfil, r: rol, sections: secs });
