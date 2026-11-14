@@ -10214,7 +10214,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 449;
+const HP_BUILD = 450;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11409,7 +11409,7 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – dosis escalonada 1', dose:'0,16 mg', route:'SC', days:[1]},
       {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
       {name:'Epcoritamab – dosis completa', dose:'48 mg', route:'SC', days:[15,22]},
-      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'15 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
+      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'16 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
     ],
     cycles: [
       {from:2,to:3, label:'ciclos 2–3 (48 mg semanal)', drugs:[
@@ -11423,8 +11423,8 @@ const QT_SCHEMES = {
       ]}
     ],
     premed:[
-      '[ciclo 1] Dexametasona 15 mg VO o IV, 30-120 min antes del epcoritamab (y los 3 días siguientes: ver fechas en el esquema).','[ciclo 1] Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab.','[ciclo 1] Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab.',
-      'En los ciclos posteriores, dexametasona 15 mg (30-120 min antes y los 3 días siguientes) solo si hubo SLC de grado 2-3 con la dosis anterior, hasta una dosis sin SLC de grado ≥ 2 (ficha técnica).',
+      '[ciclo 1] Dexametasona 16 mg VO o IV, 30-120 min antes del epcoritamab (y los 3 días siguientes: ver fechas en el esquema).','[ciclo 1] Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab.','[ciclo 1] Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab.',
+      'En los ciclos posteriores, dexametasona 16 mg (30-120 min antes y los 3 días siguientes) solo si hubo SLC de grado 2-3 con la dosis anterior, hasta una dosis sin SLC de grado ≥ 2 (ficha técnica).',
       'Tener disponible al menos 1 dosis de tocilizumab antes de cada dosis del ciclo 1 (ficha técnica).'
     ],
     notes:[
@@ -11443,7 +11443,7 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
       {name:'Epcoritamab – dosis escalonada 3', dose:'3 mg',    route:'SC', days:[15]},
       {name:'Epcoritamab – primera dosis completa', dose:'48 mg', route:'SC', days:[22]},
-      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'15 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
+      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'16 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
     ],
     cycles: [
       {from:2,to:3, label:'ciclos 2–3 (48 mg semanal)', drugs:[
@@ -11457,8 +11457,8 @@ const QT_SCHEMES = {
       ]}
     ],
     premed:[
-      '[ciclo 1] Dexametasona 15 mg VO o IV, 30-120 min antes del epcoritamab (y los 3 días siguientes: ver fechas en el esquema).','[ciclo 1] Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab.','[ciclo 1] Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab.',
-      'En los ciclos posteriores, dexametasona 15 mg (30-120 min antes y los 3 días siguientes) solo si hubo SLC de grado 2-3 con la dosis anterior, hasta una dosis sin SLC de grado ≥ 2 (ficha técnica).',
+      '[ciclo 1] Dexametasona 16 mg VO o IV, 30-120 min antes del epcoritamab (y los 3 días siguientes: ver fechas en el esquema).','[ciclo 1] Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab.','[ciclo 1] Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab.',
+      'En los ciclos posteriores, dexametasona 16 mg (30-120 min antes y los 3 días siguientes) solo si hubo SLC de grado 2-3 con la dosis anterior, hasta una dosis sin SLC de grado ≥ 2 (ficha técnica).',
       'Tener disponible al menos 1 dosis de tocilizumab antes de cada dosis del ciclo 1 (ficha técnica).'
     ],
     notes:[
