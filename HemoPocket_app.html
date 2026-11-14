@@ -1297,8 +1297,8 @@ const MENU=[
 {id:'atb_dur',name:'Duración de antibioterapia',kw:'duracion antibioterapia bacteriemia endocarditis itu meningitis neumonia celulitis candidemia balance shorten pirate',new:'2026-05-13'},
 {id:'g_inf',name:'Guías clínicas',kw:'guias clinicas infecciones ecil ifi profilaxis antifungica antibioterapia paciente hematologico pdf'}
 ]},
-{h:'OTRAS URGENCIAS HEMATOLÓGICAS',items:[
-{id:'g_uh',name:'Guías clínicas',kw:'guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado hiperleucocitosis pdf'}
+{h:'OTRAS GUÍAS',items:[
+{id:'g_uh',name:'Guías clínicas',kw:'otras guias clinicas urgencias hematologicas leucostasis lisis tumoral compresion medular sangrado hiperleucocitosis pdf'}
 ]},
 {h:'TROMBOSIS Y HEMOSTASIA',items:[
 {id:'plasmic',name:'PLASMIC',kw:'plasmic ttp microangiopatia trombotica'},
@@ -6202,7 +6202,7 @@ async clear(){const s=await this._store('readwrite');return new Promise((res,rej
 // === GUÍAS CLÍNICAS ===
 const GUIDES_TITLES={
 'inf':'Neutropenia febril e infecciones',
-'uh':'Otras urgencias hematológicas',
+'uh':'Otras guías',
 'th':'Trombosis y Hemostasia',
 'bs':'Banco de Sangre',
 'cart':'Terapia celular',
@@ -6392,7 +6392,9 @@ function setSubtypes(id,subs){ls.s('subtypes_'+id,subs)}
 window.hpApplySecciones=function(map){ try{ ls.s('secOverrides', map||{}); }catch(e){} try{ Object.keys(map||{}).forEach(function(id){ if(!(id in GUIDES_TITLES) && typeof VIEWS!=='undefined' && !VIEWS['g_'+id]) VIEWS['g_'+id]=function(){return guidesView(id);}; }); }catch(e){} };
 function hpSecMap(){ try{ return ls.g('secOverrides')||{}; }catch(e){ return {}; } }
 // Orden de las CATEGORÍAS del menú (reordenable por admin, efectivo para todos).
-function hpCatOrden(h){ try{ const m=ls.g('catOrden')||{}; return (h in m)?m[h]:null; }catch(e){ return null; } }
+// Categorías renombradas: conservan la posición guardada con su nombre anterior.
+const HP_CAT_ALIAS={'OTRAS GUÍAS':'OTRAS URGENCIAS HEMATOLÓGICAS'};
+function hpCatOrden(h){ try{ const m=ls.g('catOrden')||{}; if(h in m) return m[h]; const a=HP_CAT_ALIAS[h]; return (a&&(a in m))?m[a]:null; }catch(e){ return null; } }
 window.hpApplyCatOrden=function(m){ try{ ls.s('catOrden', m||{}); }catch(e){} try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){} };
 // «Pautas de QT» va la PRIMERA del menú (petición de la autora), aunque exista un orden guardado en la
 // nube anterior a este cambio. En cuanto un admin reordena las categorías, ese orden (que ya parte con
@@ -10004,7 +10006,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 437;
+const HP_BUILD = 438;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
