@@ -15,6 +15,7 @@
 #   - HemoPocket_app.html  : const HP_BUILD = NN            (única fuente de verdad del HTML;
 #                            APP_BUILD se deriva de HP_BUILD, así que no hay que tocarlo)
 #   - HemoPocket_app.html  : fecha dentro de APP_BUILD       (se pone la de hoy)
+#   - HemoPocket_app.html  : HP_UPD_AUTO (fecha «Actualizado» de los apartados que han cambiado)
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -33,6 +34,11 @@ sed -i -E "s/const HP_BUILD = [0-9]+;/const HP_BUILD = ${next};/" "$HTML"
 
 # 3) Fecha mostrada en APP_BUILD (el número se deriva de HP_BUILD, no se toca aquí)
 sed -i -E "s/(const APP_BUILD = ')[0-9]{4}\.[0-9]{2}\.[0-9]{2}( \(build )/\1${today}\2/" "$HTML"
+
+# 4) Fecha de «Actualizado» de cada apartado que haya cambiado (se calcula sola comparando contenidos).
+if command -v node >/dev/null 2>&1; then
+  node scripts/upd-dates.mjs || echo "Aviso: no se pudieron recalcular las fechas de actualización (se mantienen las anteriores)."
+fi
 
 echo "HemoPocket: build ${cur} -> ${next}  (fecha ${today})"
 echo "Sincronizado: sw.js (hemopocket-v${next}) y HemoPocket_app.html (HP_BUILD=${next})."

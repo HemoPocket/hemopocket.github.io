@@ -19,3 +19,4 @@ No dejar cambios "pendientes de merge": el objetivo es que la app en producción
 - El número de build vive en dos sitios y **debe ir siempre sincronizado**: usar `./bump.sh` (nunca editar a mano).
 - Listín telefónico: datos base en `const HOSP_DIR` (línea larga única) + ediciones en la nube (Firestore `directorio`). Se muestra en formato «Título» y solo la extensión interna.
 - Despliegue: GitHub Pages sirve `main`. Los workflows (`.github/workflows/`) corren al hacer push/merge a `main`.
+- Fecha «Actualizado» de cada apartado: `./bump.sh` ejecuta `scripts/upd-dates.mjs`, que compara una huella del contenido de cada apartado (texto, código propio y datos) con `scripts/upd-fingerprints.json` y escribe en la app la línea `const HP_UPD_AUTO=…` con la fecha de hoy en los que cambiaron. No editar esa línea a mano; hay que commitear también `scripts/upd-fingerprints.json`. Las ediciones hechas desde la app (QT, textos, páginas) aportan su propia fecha desde la nube.
