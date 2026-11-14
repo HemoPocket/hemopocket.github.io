@@ -7430,17 +7430,67 @@ window.hpStoreCollabPeople=function(list){ try{ ls.s('collabPeople', Array.isArr
 function hpCollabPeople(){ try{ return ls.g('collabPeople')||[]; }catch(e){ return []; } }
 function renderCollaboratorsBlock(id){
 const list=getCollaborators(id);
-if(!list.length)return '';
+const canEd=(typeof hpEditUIAdmin==='function')&&hpEditUIAdmin();
+if(!list.length&&!canEd)return '';
 const items=list.map(c=>{
-const name=c.n||c.name||'';
-const role=c.r||c.role||'';
+const name=_hpEsc(c.n||c.name||'');
+const role=_hpEsc(c.r||c.role||'');
 return role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;
 }).join('');
-return `<div class="collabs-block">
-<div class="collabs-h">Colaboradores de esta sección</div>
-<ul class="collabs-list">${items}</ul>
-</div>`;
+let h=`<div class="collabs-block">
+<div class="collabs-h">Colaboradores de esta sección</div>`+(list.length?`<ul class="collabs-list">${items}</ul>`:'<div style="font-size:12.5px;color:var(--mut)">Todavía no figura nadie.</div>');
+if(canEd) h+=(window._collabEdit===id)?_hpCollabEditor(id):`<div class="btns" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="hpCollabEditOpen('${id}')">✏️ Editar colaboradores</button></div>`;
+return h+'</div>';
 }
+// Edición de los colaboradores de una sección (solo administradores, en modo edición). Es independiente
+// del permiso de edición: marca quién figura como colaborador aquí, sin dar ni quitar permisos.
+window._collabEdit=null;
+window.hpCollabEditOpen=async function(id){
+  window._collabEdit=id; go('g_'+id);
+  if(window.hpSyncColaboradores){ try{ await window.hpSyncColaboradores(); }catch(e){} if(window._collabEdit===id&&S.view==='g_'+id) go('g_'+id); }
+};
+window.hpCollabEditClose=function(id){ window._collabEdit=null; go('g_'+id); };
+function _hpCollabPeopleEd(){
+  const people=hpCollabPeople().slice();
+  const me=window.__hpUid;
+  if(me&&!people.some(function(x){return x.uid===me;})){
+    const pin=(HP_PINNED_COLLABS.leuc_ag||[])[0];
+    people.push({uid:me,n:(me===HP_PRINCIPAL_UID&&pin)?pin.n:'',perfil:'admin',r:'',sections:[],yo:true});
+  }
+  return people.sort(function(a,b){ return (a.n||'').localeCompare(b.n||'','es'); });
+}
+function _hpCollabEditor(id){
+  const people=_hpCollabPeopleEd(), pinned=HP_PINNED_COLLABS[id]||[];
+  let h='<div id="collab_ed" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--bd)">';
+  h+='<div style="font-size:12.5px;margin-bottom:6px">Marca quién figura como colaborador de esta sección. No cambia los permisos de edición.</div>';
+  pinned.forEach(function(p){ h+='<label class="chk-card checked" style="opacity:.7"><input type="checkbox" checked disabled><span>'+_hpEsc(p.n)+' <span style="font-size:11px;color:var(--mut)">· fijo en esta sección</span></span></label>'; });
+  if(!people.length) h+='<div class="alert y" style="font-size:12.5px">No se han podido cargar las personas. Comprueba la conexión.</div>';
+  people.forEach(function(x){
+    const on=(x.sections||[]).indexOf(id)>=0;
+    const extra=x.yo?' · tú':(x.perfil==='admin'?' · administración':(x.r?' · '+_hpEsc(x.r):''));
+    h+='<label class="chk-card'+(on?' checked':'')+'"><input type="checkbox" data-uid="'+_hpEsc(x.uid)+'"'+(on?' checked':'')+' onchange="this.parentElement.classList.toggle(\'checked\',this.checked)"><span>'+(_hpEsc(x.n)||'(sin nombre de crédito)')+'<span style="font-size:11px;color:var(--mut)">'+extra+'</span></span></label>';
+  });
+  h+='<div class="btns" style="margin-top:8px"><button class="btn btn-sm" onclick="hpCollabSave(\''+id+'\')">Guardar</button><button class="btn btn-out btn-sm" onclick="hpCollabEditClose(\''+id+'\')">Cancelar</button></div></div>';
+  return h;
+}
+window.hpCollabSave=async function(id){
+  if(!window.hpSetColabSecciones||!navigator.onLine){ toast('Necesitas conexión para guardar los colaboradores'); return; }
+  const people=_hpCollabPeopleEd(); let n=0;
+  try{
+    for(const b of document.querySelectorAll('#collab_ed input[data-uid]')){
+      const x=people.find(function(q){return q.uid===b.dataset.uid;}); if(!x) continue;
+      const secs=(x.sections||[]).slice(), has=secs.indexOf(id)>=0; if(b.checked===has) continue;
+      let nom=x.n;
+      if(!nom){ nom=prompt('Nombre con el que figurará como colaborador:',''); if(!nom||!nom.trim()) continue; nom=nom.trim(); }
+      await window.hpSetColabSecciones(x.uid, b.checked?secs.concat([id]):secs.filter(function(q){return q!==id;}), nom, x.perfil||'admin', x.r||'');
+      n++;
+    }
+  }catch(e){ toast('No se pudo guardar: '+((e&&e.message)||'')); return; }
+  window._collabEdit=null;
+  if(window.hpSyncColaboradores){ try{ await window.hpSyncColaboradores(); }catch(e){} }
+  try{ if(n&&typeof hpAudit==='function') hpAudit('editar colaboradores','sección',id,{cambios:n}); }catch(e){}
+  go('g_'+id); toast(n?'✓ Colaboradores actualizados para todos':'Sin cambios');
+};
 
 // === ACERCA DE ===
 VIEWS.acerca=()=>{
@@ -9954,7 +10004,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 436;
+const HP_BUILD = 437;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -17519,7 +17569,8 @@ function poblarRevisoresAviso() {
   var secTitle = function (id) { return (typeof GUIDES_TITLES !== 'undefined' && GUIDES_TITLES[id]) ? GUIDES_TITLES[id] : id; };
   // Entrada fija: la administradora principal (autora) figura tambien como administradora.
   var entries = [{ n: 'María Teresa Busnego Barreto', perfil: 'admin', r: '', sections: [], principal: true }];
-  people.forEach(function (p) { if (p && p.n) entries.push(p); });
+  // La autora ya figura arriba; su crédito por secciones (si lo tiene) no se repite aquí.
+  people.forEach(function (p) { if (p && p.n && !(typeof HP_PRINCIPAL_UID !== 'undefined' && p.uid === HP_PRINCIPAL_UID)) entries.push(p); });
   // Dedup por nombre normalizado (no repetir a la misma persona, p. ej. la principal).
   var seen = {}, uniq = [];
   entries.forEach(function (e) { var k = _norm(e.n); if (!k || seen[k]) return; seen[k] = 1; uniq.push(e); });
@@ -18202,10 +18253,13 @@ window.hpRechazarCuenta = async function(uid){
 //  - otro     -> se elimina el documento de rol (queda como usuario de consulta)
 window.hpAsignarRol = async function(uid, role, sections, nombre, spec){
   const nom = (nombre||'').toString().trim();
+  // Si un administrador ya editó a mano las secciones de su crédito, se conservan.
+  let prev = null; try { const sn = await getDoc(doc(fs, 'colaboradores', uid)); if(sn.exists()) prev = sn.data(); } catch(e){}
+  const manual = !!(prev && prev.seccionesManual), prevSecs = (prev && Array.isArray(prev.sections)) ? prev.sections : [];
   if(role === 'admin'){
     await setDoc(doc(fs, 'roles', uid), { role:'admin', asignadoPor: curUid || null, fechaAsignacion: serverTimestamp() });
     // Crédito PÚBLICO: el administrador figura como tal en el Aviso Legal de todos.
-    if(nom) await setDoc(doc(fs, 'colaboradores', uid), { nombre: nom, perfil:'admin', rol:'', sections: [], actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() });
+    if(nom) await setDoc(doc(fs, 'colaboradores', uid), { nombre: nom, perfil:'admin', rol:'', sections: (manual?prevSecs:[]), seccionesManual: manual, actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() });
     else { try { await deleteDoc(doc(fs, 'colaboradores', uid)); } catch(e){} }
   } else if(role === 'editor'){
     const secs = Array.isArray(sections) ? sections.filter(Boolean) : [];
@@ -18213,12 +18267,21 @@ window.hpAsignarRol = async function(uid, role, sections, nombre, spec){
     // Crédito PÚBLICO de colaborador por tema (lo refleja el Aviso Legal de todos).
     // Rol/especialidad para los créditos (p. ej. "Farmacéutico"). Vacío = hematólogo/a (se acredita por su área).
     const rol = (spec||'').toString().trim();
-    if(nom) await setDoc(doc(fs, 'colaboradores', uid), { nombre: nom, perfil:'editor', rol: rol, sections: secs, actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() });
+    if(nom) await setDoc(doc(fs, 'colaboradores', uid), { nombre: nom, perfil:'editor', rol: rol, sections: (manual?prevSecs:secs), seccionesManual: manual, actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() });
     else { try { await deleteDoc(doc(fs, 'colaboradores', uid)); } catch(e){} }
   } else {
     await deleteDoc(doc(fs, 'roles', uid));
     try { await deleteDoc(doc(fs, 'colaboradores', uid)); } catch(e){}
   }
+};
+// Secciones en las que figura una persona como colaboradora, editadas a mano por un administrador.
+// Se marcan como «manuales» para que un cambio de perfil posterior no las sustituya.
+window.hpSetColabSecciones = async function(uid, sections, nombre, perfil, rolEsp){
+  const data = { sections: (Array.isArray(sections)?sections:[]), seccionesManual: true, actualizadoPor: curUid || null, fechaActualizacion: serverTimestamp() };
+  const nom = (nombre||'').toString().trim(); if(nom) data.nombre = nom;
+  if(perfil) data.perfil = (perfil==='admin'?'admin':'editor');
+  if(rolEsp) data.rol = (rolEsp||'').toString().trim();
+  await setDoc(doc(fs, 'colaboradores', uid), data, { merge:true });
 };
 // Escritura directa del crédito de colaborador (la usa la reconciliación para acreditar
 // automáticamente a editores/administradores ya existentes que aún no figuran).
