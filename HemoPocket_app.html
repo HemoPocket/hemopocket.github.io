@@ -10214,7 +10214,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 452;
+const HP_BUILD = 453;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10808,13 +10808,12 @@ const QT_SCHEMES = {
       {name:'Bendamustina',    dose:'90 mg/m²',             route:'IV', days:[1,2]}
     ],
     premed: [
-      'Dexclorfeniramina 5 mg IV, 30 min antes del polatuzumab.','Paracetamol 1000 mg, 30 min antes del polatuzumab.',
+      'Dexclorfeniramina 5 mg IV, 30 min antes del polatuzumab.','Paracetamol 1000 mg, 30 min antes del polatuzumab.'
     ],
     notes: [
       'Indicación: LBDCG en recaída o refractario. 6 ciclos de 21 días; bendamustina los días 1 y 2.',
       'No exceder una dosis total de 240 mg de polatuzumab por ciclo (experiencia clínica limitada por encima de esa dosis).',
       'Profilaxis antiemética para la bendamustina y profilaxis de infecciones (PJP, antiviral) según protocolo.',
-      'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).',
       '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -10834,13 +10833,12 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexclorfeniramina 5 mg IV, 30 min antes del polatuzumab.','Paracetamol 1000 mg, 30 min antes del polatuzumab.',
+      'Dexclorfeniramina 5 mg IV, 30 min antes del polatuzumab.','Paracetamol 1000 mg, 30 min antes del polatuzumab.'
     ],
     notes: [
       'Indicación: LBDCG no tratado previamente. 6 ciclos de 21 días; el polatuzumab sustituye a la vincristina del R-CHOP.',
       'La prednisona se administra los días 1-5 de cada ciclo; el día del rituximab va IV como parte de la premedicación, antes del polatuzumab.',
       'En los ciclos 7 y 8 se administra rituximab en monoterapia (375 mg/m² el día 1).',
-      'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).',
       '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
@@ -10864,8 +10862,7 @@ const QT_SCHEMES = {
       'El esquema mostrado corresponde al ciclo 1: rituximab 375 mg/m² los días 1, 8, 15 y 22.',
       'Ciclos 2 a 5: rituximab 375 mg/m² el día 1 (no se administra rituximab en los ciclos 6–12).',
       'Lenalidomida 20 mg/día por vía oral los días 1–21 de ciclos de 28 días, hasta un máximo de 12 ciclos.',
-      'No iniciar lenalidomida si el RAN es < 1 × 10⁹/L y/o las plaquetas < 50 × 10⁹/L, salvo que sea secundario a infiltración de la médula ósea por el linfoma.',
-      'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).'
+      'No iniciar lenalidomida si el RAN es < 1 × 10⁹/L y/o las plaquetas < 50 × 10⁹/L, salvo que sea secundario a infiltración de la médula ósea por el linfoma.'
     ]
   },
   'MATRIX': {
@@ -10905,7 +10902,6 @@ const QT_SCHEMES = {
       'Rescate con folinato cálcico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
       'Hidratación y alcalinización urinaria antes y durante el metotrexato (pH urinario ≥ 7); monitorizar niveles séricos de MTX.',
       'Referencia: Wilson MR, et al. Timing of high-dose methotrexate CNS prophylaxis in DLBCL: a multicenter international analysis of 1384 patients. Blood. 2022;139(16):2499-2511.',
-      'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).',
       '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
@@ -13500,7 +13496,7 @@ function qtAntiemeticLines(scheme,key,drugsList){
 const QT_NOTA_KEY0=/^(G-CSF|Riesgo de s[ií]ndrome de lisis|Profilaxis|S[ií]ndrome de diferenciaci[oó]n|Hidroxiurea|Se recomienda aciclovir|Tener disponible)|tambi[eé]n en pacientes|vigilar QTc/i;
 const QT_NOTA_REC=/^(Indicaci[oó]n|Indicado en|Protocolo PETHEMA|Referencia|Esquema (del|por defecto|STARGLO|GELTAMO|mostrado)|Pauta (del protocolo|de los protocolos|alternativa)|\d+ ciclos|Hasta (un máximo de )?\d+ ciclos|Entre \d+ y \d+ ciclos|De \d+ a \d+ ciclos|Evaluaci[oó]n|Si hay RC|Si no hay RC|AMO |Aspirado|Tras la C1|ER centralizada|Para (linfoma|LBDCG)|R[ée]gimen atenuado|Pacientes NO fr[aá]giles|Prefase com[uú]n|Com[uú]n a|Es como la inducci[oó]n|Solo LLA-T|LLA-T inmaduras|Se inicia tras|Duraci[oó]n:|Inicio:|La consolidaci[oó]n puede|Puede administrarse de forma|MURANO|Las dos pautas|Ciclos de \d+ d[ií]as|Linfoma (B difuso|folicular), ciclos|Ciclos 2[–-]3: 48|Ciclos 2[–-]8|Ciclos 9|Continuaci[oó]n|Inducci[oó]n \(ciclos|Tras la escalada|Venetoclax 400 mg\/d[ií]a se mantiene|Rampa de venetoclax|Midostaurina d[ií]as 8|Mantener ATRA y ATO|Polatuzumab, (rituximab|bendamustina)|Polatuzumab y|La 1\.?[ªa] dosis plena|El esquema mostrado|Ciclo de 42 d[ií]as|Lenalidomida 20 mg|Ciclos 2 a 5|En los ciclos 7 y 8|Metotrexato 3,5 g|Rituximab los d[ií]as|Prednisona 60|Ciclos 1-[68]:|Ciclo 1 \(mostrado\)|No se recomienda punci[oó]n|La metilprednisolona es la premedicaci[oó]n|Si se hace TPH|Dosis seg[uú]n peso actual|Cada escalada puede|En pacientes con respuesta completa|Hipersensibilidad grado|ARA-C AD: suspender|Toxicidad G3|Si la interrupci[oó]n por toxicidad|Si hay una toxicidad que impide|Gemtuzumab: 3 mg|MTX semanal por v[ií]a|Rituximab opcional|PEG-ASP los d[ií]as 16 y 29, separada de la vincristina del d[ií]a 15\.$|Prednisona hasta completar|Etop[oó]sido 20 mg\/kg|Esquema STARGLO)/i;
 const QT_NOTA_ADJ=/(reduc|ajust(ar|e)|disminu|a la mitad|al \d+ ?%|\b\d+ ?% de la dosis|no superar|sin superar|no exceder|m[aá]ximo \d+ mg|calcular la dosis con|ClCr|aclaramiento|bilirrubina|hepatotoxicidad|neuropat|CYP3A|(≥|>|mayores de)\s*\d{2}\s*a[ñn]os|\d{2}-\d{2} a[ñn]os|peso ajustado|Omitir la idarubicina|10 mg \(no 20\)|solo d[ií]as 1-7|dosis fija de 10 mg|valorar dosis menores|toxicidad hematol[oó]gica|no administrar la dosis)/i;
-const QT_NOTA_KEY=/(profilaxis|G-CSF|filgrastim|alopurinol|rasburicasa|hidrataci|l[ií]quidos|colirio|vitamina B6|fol[ií]nic|folinato|glucarpidasa|tromboprofilaxis|HBPM|fenotip|VHB|IGIV|inmunoglobulina|hospitaliz|ingreso|tocilizumab|crioterapia|fenito[ií]na|ducha|irradiad|niveles|no dar azoles|evitar|no prescribir|ECG|QTc|ecocardiograma|valoraci[oó]n cardiol[oó]gica|tensi[oó]n arterial|montelukast|ondansetr|antiem[eé]tic|iniciar el MTX a las|orden de administraci[oó]n|administrar el rituximab en primer lugar|se administra inmediatamente despu[eé]s|antes del rituximab|\bIT\b|intratecal|antitrombina|levofloxacino|aciclovir|cotrimoxazol|suplementaci[oó]n|Hidroxil|requisitos|granulocitos \+ monocitos|no iniciar|separar|vigilancia|monitoriz|controlar|premedicaci[oó]n|interfieren|cambiar la bolsa|soporte|SLT|lisis tumoral|EVO\/SOS|tomar venetoclax|se suspenden|Rituximab SC|en el primer ciclo de quimioterapia NO)/i;
+const QT_NOTA_KEY=/(profilaxis|G-CSF|filgrastim|alopurinol|rasburicasa|hidrataci|l[ií]quidos|colirio|vitamina B6|fol[ií]nic|folinato|glucarpidasa|tromboprofilaxis|HBPM|fenotip|VHB|IGIV|inmunoglobulina|hospitaliz|ingreso|tocilizumab|crioterapia|fenito[ií]na|ducha|irradiad|niveles|no dar azoles|evitar|no prescribir|ECG|QTc|ecocardiograma|valoraci[oó]n cardiol[oó]gica|tensi[oó]n arterial|montelukast|ondansetr|antiem[eé]tic|iniciar el MTX a las|orden de administraci[oó]n|administrar el rituximab en primer lugar|se administra inmediatamente despu[eé]s|antes del rituximab|\bIT\b|intratecal|antitrombina|levofloxacino|aciclovir|cotrimoxazol|suplementaci[oó]n|Hidroxil|requisitos|granulocitos \+ monocitos|no iniciar|separar|vigilancia|monitoriz|controlar|premedicaci[oó]n|interfieren|cambiar la bolsa|soporte|SLT|lisis tumoral|EVO\/SOS|tomar venetoclax|se suspenden|en el primer ciclo de quimioterapia NO)/i;
 function qtNotaTipo(l){ const t=String(l||''); if(QT_NOTA_KEY0.test(t)) return 'key'; if(QT_NOTA_REC.test(t)) return 'rec'; if(QT_NOTA_ADJ.test(t)) return 'adj'; if(QT_NOTA_KEY.test(t)) return 'key'; return 'rec'; }
 // Una nota larga se pliega: se ve su título (lo que va antes de «:») y se despliega el detalle.
 function qtNotaHtml(l){ const t=String(l||''); if(t.length<=200){ const b=t.match(/^(.{4,79}?[^\d]):\s/); return '<li>'+(b?'<strong>'+chatEsc(b[1])+':</strong> '+chatEsc(t.slice(b[0].length)):chatEsc(t))+'</li>'; } const mm=t.match(/^(.{15,79}?[^\d]):\s/); if(!mm) return '<li>'+chatEsc(t)+'</li>'; const i=mm[1].length; const tit=t.slice(0,i); const cuerpo=t.slice(i+1).trim(); return '<li><details class="qt-nd"><summary>'+chatEsc(tit)+'</summary><div>'+chatEsc(cuerpo)+'</div></details></li>'; }
