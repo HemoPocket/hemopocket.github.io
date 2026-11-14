@@ -141,9 +141,10 @@ mark{background:rgba(196,30,58,.16);color:inherit;border-radius:3px;padding:0 1p
 .app-footer .footer-uso{display:block;margin-top:3px}
 .app-footer strong{color:var(--txt)}
 body.view-home .app-footer{padding-bottom:18px}
-.collabs-block{margin:0 0 14px;padding:10px 14px;background:var(--bg2);border-left:3px solid var(--c2);border-radius:var(--rs)}
-[data-t="dark"] .collabs-block{border-left-color:var(--c2l)}
-.collabs-h{font-size:11px;text-transform:uppercase;color:var(--mut);font-weight:600;letter-spacing:.5px;margin-bottom:6px}
+.collabs-block{margin:20px 0 0;padding:10px 2px 0;border-top:1px solid var(--bd);font-size:12px;line-height:1.6;color:var(--mut)}
+.collabs-r{color:var(--mut);opacity:.85}
+.collabs-ed{background:none;border:none;padding:0 0 0 4px;color:var(--c2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
+.collabs-h{font-weight:600;color:var(--txt);opacity:.75}
 .collabs-list{list-style:none;padding:0;margin:0;font-size:13px}
 .collabs-list li{padding:2px 0;line-height:1.5}
 .collabs-list li strong{color:var(--txt);font-weight:600}
@@ -4257,12 +4258,12 @@ const MX_ARW='<svg class="mx-ic" viewBox="0 0 24 24" aria-hidden="true"><path d=
 
 VIEWS.mxenvio=function(){ try{ window._mxAcc.show=false; window._mxAcc.edit=false; window._mxDocs.items=null; }catch(e){}
   _mxUse('adu'); _mxLoad();
-  return '<div class="card"><h2>'+_hpEsc(_mxCfg().title)+'</h2><div id="mx_body"></div></div>';
+  return '<div class="card"><h2>'+_hpEsc(_mxCfg().title)+'</h2><div id="mx_body"></div>'+renderCollaboratorsBlock('citodiag')+'</div>';
 };
 VIEWS.mxenvio_post=function(){ mxRender(); };
 VIEWS.mxped=function(){ try{ window._mxDocs.items=null; }catch(e){}
   _mxUse('ped'); _mxLoad();
-  return '<div class="card"><h2>'+_hpEsc(_mxCfg().title)+'</h2><div id="mx_body"></div></div>';
+  return '<div class="card"><h2>'+_hpEsc(_mxCfg().title)+'</h2><div id="mx_body"></div>'+renderCollaboratorsBlock('citodiag')+'</div>';
 };
 VIEWS.mxped_post=function(){ mxRender(); };
 function mxSetT(t){ window._mx.t=t; var ps=MX_PROTOS.filter(function(x){return x.g===t;}); window._mx.p=ps.length===1?ps[0].id:null; window._mx.s=null; window._mx.m=null; _mxSave(); mxRender(); }
@@ -7545,14 +7546,9 @@ function renderCollaboratorsBlock(id){
 const list=getCollaborators(id);
 const canEd=(typeof hpEditUIAdmin==='function')&&hpEditUIAdmin();
 if(!list.length&&!canEd)return '';
-const items=list.map(c=>{
-const name=_hpEsc(c.n||c.name||'');
-const role=_hpEsc(c.r||c.role||'');
-return role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}</strong></li>`;
-}).join('');
-let h=`<div class="collabs-block">
-<div class="collabs-h">Colaboradores de esta sección</div>`+(list.length?`<ul class="collabs-list">${items}</ul>`:'<div style="font-size:12.5px;color:var(--mut)">Todavía no figura nadie.</div>');
-if(canEd) h+=(window._collabEdit===id)?_hpCollabEditor(id):`<div class="btns" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="hpCollabEditOpen('${id}')">Editar colaboradores</button></div>`;
+const names=list.map(c=>{ const n=_hpEsc(c.n||c.name||''), r=_hpEsc(c.r||c.role||''); return r?n+' <span class="collabs-r">('+r+')</span>':n; }).join(' · ');
+let h='<div class="collabs-block"><span class="collabs-h">Colaboradores</span> '+(list.length?names:'<span class="collabs-r">todavía no figura nadie</span>');
+if(canEd) h+=(window._collabEdit===id)?_hpCollabEditor(id):' <button type="button" class="collabs-ed" onclick="hpCollabEditOpen(\''+id+'\')">Editar</button>';
 return h+'</div>';
 }
 // Acredita a quien aporta contenido en una sección (guía subida o contenido publicado).
@@ -7568,10 +7564,11 @@ function hpAcreditarAporte(sec){
 // del permiso de edición: marca quién figura como colaborador aquí, sin dar ni quitar permisos.
 window._collabEdit=null;
 window.hpCollabEditOpen=async function(id){
-  window._collabEdit=id; go('g_'+id);
-  if(window.hpSyncColaboradores){ try{ await window.hpSyncColaboradores(); }catch(e){} if(window._collabEdit===id&&S.view==='g_'+id) go('g_'+id); }
+  const v=S.view; window._collabEdit=id; go(v);
+  if(window.hpSyncColaboradores){ try{ await window.hpSyncColaboradores(); }catch(e){} if(window._collabEdit===id&&S.view===v) go(v); }
+  setTimeout(function(){ const e=document.getElementById('collab_ed'); if(e&&e.scrollIntoView) try{ e.scrollIntoView({block:'center'}); }catch(_){} },60);
 };
-window.hpCollabEditClose=function(id){ window._collabEdit=null; go('g_'+id); };
+window.hpCollabEditClose=function(id){ window._collabEdit=null; go(S.view); };
 function _hpCollabPeopleEd(){
   const people=hpCollabPeople().slice();
   const me=window.__hpUid;
@@ -7611,7 +7608,7 @@ window.hpCollabSave=async function(id){
   window._collabEdit=null;
   if(window.hpSyncColaboradores){ try{ await window.hpSyncColaboradores(); }catch(e){} }
   try{ if(n&&typeof hpAudit==='function') hpAudit('editar colaboradores','sección',id,{cambios:n}); }catch(e){}
-  go('g_'+id); toast(n?'✓ Colaboradores actualizados para todos':'Sin cambios');
+  go(S.view); toast(n?'Colaboradores actualizados para todo el equipo':'Sin cambios');
 };
 
 // === ACERCA DE ===
@@ -8465,7 +8462,6 @@ const lastUpd=ls.g('lastUpdate');
 // En modo edición apagado se ocultan los controles (la app queda limpia).
 const canManage=hpEditUISec(id);
 let h=`<div class="card"><h2>${_hpEsc(_pageTitle)}</h2>`;
-h+=renderCollaboratorsBlock(id);
 if(!lastUpd){
 h+='<div class="alert y" style="margin-bottom:14px">⚠️ <strong>Todavía no se ha sincronizado.</strong> Ve a <a onclick="go(\'sync\')" style="cursor:pointer;text-decoration:underline">Actualizar</a> cuando tengas Internet.</div>';
 }else{
@@ -8516,6 +8512,7 @@ if(canManage) h+='<div class="g-trash"><button type="button" onclick="hpPapelera
 h+=renderAlgosBlock(id);
 h+=renderCalcsBlock(id);
 h+=renderInfosBlock(id);
+h+=renderCollaboratorsBlock(id);
 h+='</div>';
 return h;
 }
@@ -10147,7 +10144,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 442;
+const HP_BUILD = 443;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:

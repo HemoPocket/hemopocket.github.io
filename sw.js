@@ -3,7 +3,7 @@
 // Estática (CSS/JS/imágenes): cache-first.
 // Versión: bump para forzar actualización de los clientes.
 
-const CACHE = 'hemopocket-v442';
+const CACHE = 'hemopocket-v443';
 // El recurso crítico es HemoPocket_app.html (app autocontenida). El resto son auxiliares.
 // pdf.min.js se auto-aloja y se precachea para que el visor de PDF funcione sin conexión.
 // pdf-lib (MIT) extrae las páginas que se quieren imprimir; también se precachea.
