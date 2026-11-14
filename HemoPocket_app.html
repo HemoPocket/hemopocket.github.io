@@ -520,6 +520,15 @@ body{font-size:13px}
 .st-acts{display:flex;gap:4px}
 .qt-alert{margin:8px 0 2px;padding:9px 12px;border-radius:10px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.55);font-size:13px;line-height:1.5}
 .qt-alert ul{margin:4px 0 0;padding-left:18px}
+.qt-alert li,.qt-key li{margin:2px 0}
+.qt-key{margin:14px 0 2px;padding:9px 12px;border-radius:10px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.35);font-size:13px;line-height:1.5}
+.qt-key ul{margin:4px 0 0;padding-left:18px}
+.qt-nd summary{cursor:pointer;font-weight:600;list-style-position:outside}
+.qt-nd summary::marker{color:var(--mut)}
+.qt-nd div{margin:2px 0 4px;font-weight:400}
+.qt-rec{margin-top:4px;color:var(--mut)}
+.qt-rec>summary{cursor:pointer;font-weight:600;color:var(--txt);padding:4px 0}
+.qt-rec ul{margin:4px 0 0;padding-left:18px}
 .qt-oral{font-size:12.5px;line-height:1.5;color:var(--mut);border-left:3px solid #e0a800;padding:2px 0 2px 10px;margin:8px 0 12px}
 .qt-out{width:100%;min-height:90px;overflow:hidden;resize:none;font-family:inherit;font-size:14px;line-height:1.6;padding:10px 12px}
 .qt-pm{display:flex;flex-direction:column;gap:6px;margin:6px 0 8px}
@@ -10205,7 +10214,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 448;
+const HP_BUILD = 449;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10593,7 +10602,7 @@ const QT_SCHEMES = {
     premed: [
     ],
     notes: [
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'CHOP': {
@@ -10605,7 +10614,7 @@ const QT_SCHEMES = {
       {name:'Prednisona',    dose:'60 mg/m²',  route:'VO', days:[1,2,3,4,5]}
     ],
     notes: [
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R-MINI-CHOP': {
@@ -10623,7 +10632,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Régimen atenuado para pacientes mayores de 80 años con linfoma B difuso de células grandes.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'ICE': {
@@ -10639,7 +10648,7 @@ const QT_SCHEMES = {
       'G-CSF 300 µg/día desde el día +6 hasta neutrófilos > 1.000/µL.',
       'Carboplatino: dosis optimizada para AUC 5 = 5 × (25 + CrCl), máximo 800 mg.',
       'Hasta 3 ciclos cada 21-28 días antes del auto-TPH.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'BV-AVD': {
@@ -10656,7 +10665,7 @@ const QT_SCHEMES = {
       'Premedicación adicional: paracetamol 1 g IV si hubo reacción infusional previa.',
       'Profilaxis con filgrastim (G-CSF) 300 µg desde el primer ciclo, con independencia de la edad.',
       'Ajustar el brentuximab por hepatopatía, insuficiencia renal y neuropatía (tabla del libro azul, p. 182).',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R-EPOCH': {
@@ -10680,7 +10689,7 @@ const QT_SCHEMES = {
       'G-CSF obligatorio: filgrastim 300 µg/día si < 75 kg o 480 µg/día si > 75 kg, desde el día 6 hasta neutrófilos > 0,5 × 10⁹/L (la tabla de ajuste por nadir lo presupone).',
       '6 ciclos.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R-BENDAMUSTINA': {
@@ -10693,7 +10702,7 @@ const QT_SCHEMES = {
     notes: [
       '6 ciclos.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R-CVP': {
@@ -10709,7 +10718,7 @@ const QT_SCHEMES = {
       'Prednisona 60 mg/m² días 1-5 (libro azul).',
       '6 ciclos.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R-DHAP': {
@@ -10730,7 +10739,7 @@ const QT_SCHEMES = {
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
       'Cisplatino 100 mg/m² en 24 h el día 1 (ensayo CORAL y DHAP del propio libro azul). La tabla del R-DHAP del libro indica 50 mg/m², probablemente por errata. Ajustar por función renal.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R-ICE': {
@@ -10750,7 +10759,7 @@ const QT_SCHEMES = {
       'G-CSF 300 µg/día desde el día +6 hasta alcanzar neutrófilos > 1.000/µL.',
       'Carboplatino: dosis optimizada para AUC 5 = 5 × (25 + CrCl), máximo 800 mg.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'POLA-R-ICE': {
@@ -10774,7 +10783,7 @@ const QT_SCHEMES = {
       'Polatuzumab, rituximab y el resto pueden administrarse el día 1; la ifosfamida y el carboplatino, el día 2, y el etopósido, los días 1-3.',
       'G-CSF 300 µg/día desde el día +6 hasta neutrófilos > 1.000/µL.',
       'Carboplatino: dosis optimizada para AUC 5 = 5 × (25 + CrCl), máximo 800 mg.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
 
@@ -10787,7 +10796,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Hasta 6 ciclos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'POLA-BR': {
@@ -10806,7 +10815,7 @@ const QT_SCHEMES = {
       'No exceder una dosis total de 240 mg de polatuzumab por ciclo (experiencia clínica limitada por encima de esa dosis).',
       'Profilaxis antiemética para la bendamustina y profilaxis de infecciones (PJP, antiviral) según protocolo.',
       'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'POLA-R-CHP': {
@@ -10832,7 +10841,7 @@ const QT_SCHEMES = {
       'Polatuzumab, rituximab, ciclofosfamida y doxorrubicina pueden administrarse en cualquier orden el día 1 tras la prednisona; la prednisona se administra los días 1-5 de cada ciclo.',
       'En los ciclos 7 y 8 se administra rituximab en monoterapia (375 mg/m² el día 1).',
       'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'R2': {
@@ -10851,7 +10860,7 @@ const QT_SCHEMES = {
       ]}
     ],
     notes: [
-      'Ciclo 1: alopurinol 300 mg/día VO.',
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO.',
       'El esquema mostrado corresponde al ciclo 1: rituximab 375 mg/m² los días 1, 8, 15 y 22.',
       'Ciclos 2 a 5: rituximab 375 mg/m² el día 1 (no se administra rituximab en los ciclos 6–12).',
       'Lenalidomida 20 mg/día por vía oral los días 1–21 de ciclos de 28 días, hasta un máximo de 12 ciclos.',
@@ -10875,7 +10884,7 @@ const QT_SCHEMES = {
       'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'MTX-RCHOP': {
@@ -10897,7 +10906,7 @@ const QT_SCHEMES = {
       'Hidratación y alcalinización urinaria antes y durante el metotrexato (pH urinario ≥ 7); monitorizar niveles séricos de MTX.',
       'Referencia: Wilson MR, et al. Timing of high-dose methotrexate CNS prophylaxis in DLBCL: a multicenter international analysis of 1384 patients. Blood. 2022;139(16):2499-2511.',
       'Rituximab SC: dosis fija de 1400 mg (no se calcula por superficie corporal), solo desde la 2.ª administración; la 1.ª dosis va siempre IV (375 mg/m²).',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
   'DaraVRD': {
@@ -11075,7 +11084,7 @@ const QT_SCHEMES = {
       'Despistaje de VHB: antígeno de superficie (HBsAg) y anticuerpo anti-CORE. Si es positivo, iniciar profilaxis con entecavir o tenofovir tras consulta con Digestivo.',
       'Antes de iniciar el carfilzomib: valoración cardiológica (ECG, ecocardiograma). Confirmar el buen control de la tensión arterial antes y durante las primeras semanas de tratamiento.',
       'Dexametasona 10 mg (no 20) en > 70 años, también como corticoide de la premedicación.',
-      'Ciclo 1: hidratación IV antes de cada dosis de carfilzomib.',
+      '[ciclo 1] Ciclo 1: hidratación IV antes de cada dosis de carfilzomib.',
       'El daratumumab y el isatuximab interfieren con las pruebas cruzadas: hacer un fenotipo eritrocitario antes de empezar y avisar al banco de sangre (si hace falta transfundir, hematíes Kell negativos).',
       'Aciclovir 800 mg/día; omeprazol 20 mg/día; Hidroxil 1 comprimido/día; valorar cotrimoxazol (Septrin Forte®) c/12 h sábados y domingos.'
     ]
@@ -11177,6 +11186,7 @@ const QT_SCHEMES = {
       'G-CSF en la inducción solo si hay infección grave; si se usa de forma profiláctica, 5 µg/kg/día SC solo desde el día 14 tras la QT (CBF-2016, pág. 31).',
       'Gemtuzumab: si no se dispone del resultado de CBF en el día 4, administrarlo solo el día 7.',
       'El gemtuzumab puede asociarse a un mayor riesgo hemorrágico y a una trombopenia más prolongada: vigilancia estrecha, soporte transfusional adecuado y premedicación de la infusión.',
+      'Prevenir la hiperuricemia por lisis tumoral: hidratación y alopurinol (o rasburicasa) (ficha técnica del gemtuzumab).',
       'No se recomienda punción lumbar de despistaje al diagnóstico, salvo signos o síntomas de infiltración meníngea.'
     ]
   },
@@ -11192,7 +11202,7 @@ const QT_SCHEMES = {
     notes: [
       'ARA-C 3 g/m²/12 h los días 1, 3 y 5 en los 3 ciclos (CBF-2016, pág. 24-25). En pacientes ≥ 60 años, 1500 mg/m²/12 h.',
       'Gemtuzumab: 3 mg/m² hasta un máximo de un vial de 5 mg (ficha técnica).',
-      'Ciclos 2 y 3: G-CSF 5 µg/kg/día SC desde el día 7 tras la QT (CBF-2016, pág. 25).',
+      '[ciclos 2-3] G-CSF 5 µg/kg/día SC desde el día 7 tras la QT (CBF-2016, pág. 25).',
       'El gemtuzumab puede asociarse a un mayor riesgo hemorrágico y a una trombopenia más prolongada: vigilancia estrecha y soporte transfusional.',
       'La consolidación puede administrarse de forma ambulatoria según la política del centro.',
       'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.'
@@ -11344,7 +11354,7 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Entre 2 y 6 ciclos según el estadio de la enfermedad.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'BEACOPP-ESC': {
@@ -11362,7 +11372,7 @@ const QT_SCHEMES = {
     notes: [
       'De 3 a 8 ciclos.',
       'G-CSF desde el día 8 hasta neutrófilos > 1 × 10⁹/L.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   // ── LINFOMA – BIESPECÍFICOS ───────────────────────────────────────────
@@ -11380,13 +11390,16 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexametasona 20 mg IV, al menos 1 h antes del glofitamab.','Paracetamol 1000 mg, al menos 1 h antes del glofitamab.','Dexclorfeniramina 5 mg IV, al menos 1 h antes del glofitamab.',
-      'Corticoide obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3 (ficha técnica). Después, mantener el antipirético y el antihistamínico, y dar el corticoide solo si hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
+      'Dexametasona 20 mg IV, finalizada al menos 1 h antes del obinutuzumab.','Paracetamol 1000 mg VO, al menos 30 min antes del obinutuzumab.','Dexclorfeniramina 5 mg IV, al menos 30 min antes del obinutuzumab.',
+      '[ciclos 1-3] Dexametasona 20 mg IV, finalizada al menos 1 h antes del glofitamab.','Paracetamol 1000 mg VO, al menos 30 min antes del glofitamab.','Dexclorfeniramina 5 mg IV, al menos 30 min antes del glofitamab.',
+      'Corticoide del glofitamab: obligatorio en el ciclo 1 (días 8 y 15) y el día 1 de los ciclos 2 y 3; desde el ciclo 4, solo si hubo SLC con la dosis previa (ficha técnica).'
     ],
     notes: [
       'Hospitalizar durante la 1.ª dosis escalonada (2,5 mg) y las 24 h siguientes (ficha técnica).',
-      'Ciclos de 21 días. Ciclo 1: obinutuzumab 1000 mg (D1) y escalada de glofitamab 2,5 mg (D8) y 10 mg (D15).',
-      'La 1ª dosis plena de 30 mg se administra el día 1 del ciclo 2 (mostrada aquí como día 22); se mantienen 30 mg el día 1 de los ciclos 3–12.'
+      'Tener disponible al menos 1 dosis de tocilizumab antes de cada perfusión de los ciclos 1 y 2 (ficha técnica).',
+      'Profilaxis antiinfecciosa recomendada (ficha técnica): considerar profilaxis frente a virus herpes, Pneumocystis y CMV en pacientes de mayor riesgo.',
+      'Ciclos de 21 días. Ciclo 1: obinutuzumab 1000 mg (D1, pretratamiento para reducir el SLC) y escalada de glofitamab 2,5 mg (D8) y 10 mg (D15).',
+      'La 1.ª dosis plena de 30 mg se administra el día 1 del ciclo 2; se mantienen 30 mg el día 1 de los ciclos 3-12.'
     ]
   },
   'EPCORITAMAB': {
@@ -11396,7 +11409,7 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – dosis escalonada 1', dose:'0,16 mg', route:'SC', days:[1]},
       {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
       {name:'Epcoritamab – dosis completa', dose:'48 mg', route:'SC', days:[15,22]},
-      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'16 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
+      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'15 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
     ],
     cycles: [
       {from:2,to:3, label:'ciclos 2–3 (48 mg semanal)', drugs:[
@@ -11410,10 +11423,13 @@ const QT_SCHEMES = {
       ]}
     ],
     premed:[
-      'Dexametasona 16 mg VO o IV, 30-120 min antes del epcoritamab (ciclo 1).','Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab (ciclo 1).','Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab (ciclo 1).',
-      'Dexametasona 16 mg VO o IV, los 3 días siguientes a cada dosis de epcoritamab (ciclo 1).','En los ciclos posteriores, solo la dosis de premedicación; el antihistamínico y el antipirético, solo si hubo SLC previo.'
+      '[ciclo 1] Dexametasona 15 mg VO o IV, 30-120 min antes del epcoritamab (y los 3 días siguientes: ver fechas en el esquema).','[ciclo 1] Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab.','[ciclo 1] Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab.',
+      'En los ciclos posteriores, dexametasona 15 mg (30-120 min antes y los 3 días siguientes) solo si hubo SLC de grado 2-3 con la dosis anterior, hasta una dosis sin SLC de grado ≥ 2 (ficha técnica).',
+      'Tener disponible al menos 1 dosis de tocilizumab antes de cada dosis del ciclo 1 (ficha técnica).'
     ],
     notes:[
+      'Ciclo 1: ingesta de 2-3 L de líquidos en las 24 h previas a cada dosis, salvo contraindicación (ficha técnica).',
+      'Profilaxis muy recomendable frente a Pneumocystis y virus herpes, sobre todo mientras recibe corticoides (ficha técnica).',
       'Linfoma B difuso de célula grande (LBDCG), ciclos de 28 días. Ciclo 1: 2 dosis escalonadas (0,16 mg D1 y 0,8 mg D8) y dosis completas de 48 mg en D15 y D22.',
       'Ciclos 2–3: 48 mg semanal (D1, 8, 15 y 22). Ciclos 4–9: 48 mg cada 2 semanas (D1 y 15). Ciclos 10+: 48 mg cada 4 semanas (D1).',
       'Para linfoma folicular usar el esquema «Epcoritamab · Linfoma folicular», con 3 dosis escalonadas y dosis completa en D22.'
@@ -11427,7 +11443,7 @@ const QT_SCHEMES = {
       {name:'Epcoritamab – dosis escalonada 2', dose:'0,8 mg',  route:'SC', days:[8]},
       {name:'Epcoritamab – dosis escalonada 3', dose:'3 mg',    route:'SC', days:[15]},
       {name:'Epcoritamab – primera dosis completa', dose:'48 mg', route:'SC', days:[22]},
-      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'16 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
+      {name:'Dexametasona (premed + 3 días post-dosis)', dose:'15 mg', route:'VO/IV', days:[1,2,3,4,8,9,10,11,15,16,17,18,22,23,24,25]}
     ],
     cycles: [
       {from:2,to:3, label:'ciclos 2–3 (48 mg semanal)', drugs:[
@@ -11441,10 +11457,13 @@ const QT_SCHEMES = {
       ]}
     ],
     premed:[
-      'Dexametasona 16 mg VO o IV, 30-120 min antes del epcoritamab (ciclo 1).','Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab (ciclo 1).','Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab (ciclo 1).',
-      'Dexametasona 16 mg VO o IV, los 3 días siguientes a cada dosis de epcoritamab (ciclo 1).','En los ciclos posteriores, solo la dosis de premedicación; el antihistamínico y el antipirético, solo si hubo SLC previo.'
+      '[ciclo 1] Dexametasona 15 mg VO o IV, 30-120 min antes del epcoritamab (y los 3 días siguientes: ver fechas en el esquema).','[ciclo 1] Dexclorfeniramina 5 mg IV, 30-120 min antes del epcoritamab.','[ciclo 1] Paracetamol 1000 mg VO, 30-120 min antes del epcoritamab.',
+      'En los ciclos posteriores, dexametasona 15 mg (30-120 min antes y los 3 días siguientes) solo si hubo SLC de grado 2-3 con la dosis anterior, hasta una dosis sin SLC de grado ≥ 2 (ficha técnica).',
+      'Tener disponible al menos 1 dosis de tocilizumab antes de cada dosis del ciclo 1 (ficha técnica).'
     ],
     notes:[
+      'Ciclo 1: ingesta de 2-3 L de líquidos en las 24 h previas a cada dosis, salvo contraindicación (ficha técnica).',
+      'Profilaxis muy recomendable frente a Pneumocystis y virus herpes, sobre todo mientras recibe corticoides (ficha técnica).',
       'Linfoma folicular, ciclos de 28 días. Ciclo 1: 3 dosis escalonadas (0,16 mg D1, 0,8 mg D8 y 3 mg D15) y primera dosis completa de 48 mg en D22.',
       'Ciclos 2–3: 48 mg semanal (D1, 8, 15 y 22). Ciclos 4–9: 48 mg cada 2 semanas (D1 y 15). Ciclos 10+: 48 mg cada 4 semanas (D1).',
       'Para LBDCG usar el esquema «Epcoritamab · LBDCG».'
@@ -11467,8 +11486,8 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexametasona 20 mg IV, completada al menos 1 h antes del mosunetuzumab.','Dexclorfeniramina 5 mg IV, al menos 30 min antes del mosunetuzumab.','Paracetamol 1000 mg VO, al menos 30 min antes del mosunetuzumab.',
-      'A partir del ciclo 3 la premedicación se mantiene solo en pacientes que presentaron SLC con la dosis previa.'
+      '[ciclos 1-2] Dexametasona 20 mg IV, finalizada al menos 1 h antes del mosunetuzumab.','[ciclos 1-2] Dexclorfeniramina 5 mg IV, al menos 30 min antes del mosunetuzumab.','[ciclos 1-2] Paracetamol 1000 mg VO, al menos 30 min antes del mosunetuzumab.',
+      'A partir del ciclo 3, la premedicación (corticoide, antihistamínico y paracetamol) solo si hubo SLC con la dosis previa (ficha técnica).'
     ],
     notes: [
       'Ciclos de 21 días. Ciclo 1: escalada 1 mg (D1) → 2 mg (D8) → 60 mg (D15). Ciclo 2: 60 mg el día 1. Desde el ciclo 3: 30 mg el día 1 (ficha técnica). Por defecto 8 ciclos; ampliar hasta 17 si no hay respuesta completa.'
@@ -11495,11 +11514,15 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexametasona 20 mg IV, al menos 1 h antes del glofitamab.','Corticoide obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3; después, solo si hubo SLC con la dosis previa.','Paracetamol 1000 mg, al menos 1 h antes del glofitamab.','Dexclorfeniramina 5 mg IV, al menos 1 h antes del glofitamab.',
-      'Ondansetrón 8 mg IV, 30 min antes de la gemcitabina y el oxaliplatino.','Dexametasona 8 mg IV, 30 min antes de la gemcitabina y el oxaliplatino (si ese día no lleva ya la del glofitamab).'
+      'Dexametasona 20 mg IV, finalizada al menos 1 h antes del obinutuzumab.','Paracetamol 1000 mg VO, al menos 30 min antes del obinutuzumab.','Dexclorfeniramina 5 mg IV, al menos 30 min antes del obinutuzumab.',
+      '[ciclos 1-3] Dexametasona 20 mg IV, finalizada al menos 1 h antes del glofitamab.','Paracetamol 1000 mg VO, al menos 30 min antes del glofitamab.','Dexclorfeniramina 5 mg IV, al menos 30 min antes del glofitamab.',
+      'Corticoide del glofitamab: obligatorio en el ciclo 1 (días 8 y 15) y el día 1 de los ciclos 2 y 3; desde el ciclo 4, solo si hubo SLC con la dosis previa (ficha técnica).',
+      'Ondansetrón 8 mg IV, 30 min antes de la gemcitabina y el oxaliplatino.','[ciclos 1,4-8] Dexametasona 8 mg IV, 30 min antes de la gemcitabina y el oxaliplatino.'
     ],
     notes: [
       'Hospitalizar durante la 1.ª dosis escalonada (2,5 mg) y las 24 h siguientes (ficha técnica).',
+      'Tener disponible al menos 1 dosis de tocilizumab antes de cada perfusión de glofitamab de los ciclos 1 y 2 (ficha técnica).',
+      'Profilaxis antiinfecciosa recomendada (ficha técnica): considerar profilaxis frente a virus herpes, Pneumocystis y CMV en pacientes de mayor riesgo.',
       'Esquema STARGLO en ciclos de 21 días, hasta 12 ciclos: 8 de glofitamab + GemOx y 4 de glofitamab en monoterapia.',
       'Ciclo 1 (mostrado): obinutuzumab 1000 mg D1 (pretratamiento) · GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el día 2 · escalada de glofitamab 2,5 mg D8 y 10 mg D15.',
       'Ciclos 2–8: glofitamab 30 mg + GemOx (gemcitabina 1000 mg/m² + oxaliplatino 100 mg/m²) el día 1.',
@@ -11532,7 +11555,7 @@ const QT_SCHEMES = {
       'En el primer ciclo de quimioterapia NO se administra rituximab (la orden del ciclo 1 ya lo excluye).',
       'Las dos pautas (A y B) se alternan cada 21 días.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
   'HYPERCVAD-B': {
@@ -11550,7 +11573,7 @@ const QT_SCHEMES = {
       'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
       'Las dos pautas (A y B) se alternan cada 21 días.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
-      'Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
+      '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
   },
 
@@ -11607,9 +11630,10 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexametasona 16 mg VO o IV, 1-3 h antes de cada dosis de la escalada.','Dexclorfeniramina 5 mg IV, 1-3 h antes de cada dosis de la escalada.','Paracetamol 1000 mg, 1-3 h antes de cada dosis de la escalada.','Considerar la premedicación también si se retrasa una dosis y en pacientes que hayan presentado SLC.'
+      '[ciclo 1] Dexametasona 16 mg VO o IV, 1-3 h antes de las 3 primeras dosis (escaladas 1 y 2 y 1.ª dosis de mantenimiento).','[ciclo 1] Dexclorfeniramina 5 mg IV, 1-3 h antes de las 3 primeras dosis.','[ciclo 1] Paracetamol 1000 mg, 1-3 h antes de las 3 primeras dosis.','Considerar la premedicación también si se repite una dosis de la escalada por retraso y en pacientes que hayan presentado SLC con la dosis anterior (ficha técnica).'
     ],
     notes: [
+      'Antes de empezar, considerar profilaxis antivírica frente al herpes zóster (ficha técnica).',
       'Dosis según peso actual, vía subcutánea. Dejar ≥5 días entre las dosis de mantenimiento semanales.',
       'En pacientes con respuesta completa o mejor durante ≥6 meses, considerar reducir a 1,5 mg/kg cada 2 semanas.',
       'Indicación: MM en recaída/refractario tras ≥3 líneas (incluido inmunomodulador, inhibidor del proteasoma y anti-CD38). Mantener hasta progresión o toxicidad inaceptable.',
@@ -11634,7 +11658,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexametasona 16 mg VO o IV, 1-3 h antes de cada dosis de la escalada.','Dexclorfeniramina 5 mg IV, 1-3 h antes de cada dosis de la escalada.','Paracetamol 1000 mg, 1-3 h antes de cada dosis de la escalada.'
+      '[ciclo 1] Dexametasona 16 mg VO o IV, 1-3 h antes de cada dosis de la escalada (días 1, 3, 5 y 7).','[ciclo 1] Dexclorfeniramina 5 mg IV, 1-3 h antes de cada dosis de la escalada.','[ciclo 1] Paracetamol 1000 mg, 1-3 h antes de cada dosis de la escalada.','Considerar la premedicación también si se repite una dosis de la escalada por retraso y en pacientes que hayan presentado SLC (ficha técnica).'
     ],
     notes: [
       'Esquema por defecto = pauta QUINCENAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 (d5) → 0,8 mg/kg (d7); después 0,8 mg/kg cada 2 semanas (mínimo 12 días entre dosis).',
@@ -11663,9 +11687,10 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Dexametasona 16 mg VO o IV, 1-3 h antes de cada dosis de la escalada.','Dexclorfeniramina 5 mg IV, 1-3 h antes de cada dosis de la escalada.','Paracetamol 1000 mg, 1-3 h antes de cada dosis de la escalada.','Considerar la premedicación también si se retrasa una dosis y en pacientes que hayan presentado SLC.'
+      '[ciclo 1] Dexametasona 20 mg VO o IV, 1 h antes de las 3 primeras dosis (escaladas 1 y 2 y 1.ª dosis completa).','[ciclo 1] Paracetamol 500 mg VO, 1 h antes de las 3 primeras dosis.','[ciclo 1] Dexclorfeniramina 5 mg IV, 1 h antes de las 3 primeras dosis.','Considerar la premedicación también si se repite una dosis por retraso y en pacientes que hayan presentado SLC (ficha técnica).'
     ],
     notes: [
+      'Considerar profilaxis antimicrobiana y antivírica según las recomendaciones locales (ficha técnica).',
       'Tras la escalada, 76 mg semanal hasta el ciclo 6. Desde el ciclo 7 (≥ 24 semanas de tratamiento), pasar a 76 mg cada 2 semanas solo si además hay respuesta (≥ respuesta parcial) mantenida ≥ 2 meses: hacen falta las dos condiciones (ficha técnica). Ciclos de 28 días.',
       'Reponer inmunoglobulina IV (IGIV) si IgG < 400 mg/dL.',
       'G-CSF si hay neutropenia; ante fiebre, descartar a la vez síndrome de liberación de citocinas e infección. Cribado de VHB (y profilaxis si procede).',
@@ -12175,7 +12200,24 @@ function qtGroupIds(){
 }
 function qtGroupLabel(id){ var cfg=qtGroupsCfg(); return (cfg.renames&&cfg.renames[id])||id; }
 function qtGroupHidden(id){ var cfg=qtGroupsCfg(); return !!(cfg.hidden&&cfg.hidden[id]); }
-function qtGroupOf(key){ var sc=qtSchemes()[key]; if(sc&&sc.group&&qtGroupIds().indexOf(sc.group)>=0){ return sc.group; } var f=qtFactoryGroupOf(key); return f||'Personalizados'; }
+// Un esquema creado desde la app sin grupo se coloca con su patología (por su nombre, palabras clave y
+// fármacos), en vez de quedar suelto en «Personalizados», donde nadie lo encuentra.
+function qtAutoGroup(sc){
+  if(!sc) return null;
+  var t=[sc.label||'',sc.short||'',sc.kw||''].concat((sc.drugs||[]).map(function(d){return d.name||'';})).join(' ');
+  var R=[['Amiloidosis AL',/amiloid/i],['Leucemia linfoblástica (LAL)',/\bLAL\b|\bLLA\b|linfobl[aá]stic|blinatumomab|inotuzumab/i],
+    ['Leucemia aguda (LMA)',/\bLMA\b|mieloide aguda|promieloc|\bLPA\b|gemtuzumab|midostaurin|CPX-351|vyxeos|azacitidina/i],
+    ['Linfoma de Hodgkin',/hodgkin|\bABVD\b|BEACOPP|brentuximab/i],
+    ['Acondicionamiento TASPE – Mieloma/Amiloidosis',/acondicionamiento.*(mieloma|melfal)|melfal[aá]n\s*(140|200)/i],
+    ['Acondicionamiento TASPE – Linfoma',/acondicionamiento|\bBEAM\b|\bTASPE\b/i],
+    ['Mieloma múltiple',/mieloma|\bMM\b|daratumumab|isatuximab|carfilzomib|bortezomib|teclistamab|elranatamab|talquetamab|pomalidomida/i],
+    ['Leucemia linfática crónica',/\bLLC\b|linf[aá]tica cr[oó]nica|ibrutinib|acalabrutinib|zanubrutinib|venetoclax/i],
+    ['Aplasia medular',/aplasia|\bATG\b|timoglobulina|eltrombopag/i],
+    ['Linfoma B',/linfoma|LBDCG|folicular|manto|rituximab|obinutuzumab|polatuzumab|glofitamab|epcoritamab|mosunetuzumab|CHOP/i]];
+  for(var i=0;i<R.length;i++){ if(R[i][1].test(t)) return R[i][0]; }
+  return null;
+}
+function qtGroupOf(key){ var sc=qtSchemes()[key]; if(sc&&sc.group&&qtGroupIds().indexOf(sc.group)>=0){ return sc.group; } var f=qtFactoryGroupOf(key); return f||qtAutoGroup(sc)||'Personalizados'; }
 function qtGroupedKeys(){ var _qS=qtSchemes(); var map={}; qtGroupIds().forEach(function(id){ map[id]=[]; }); Object.keys(_qS).forEach(function(k){ var id=qtGroupOf(k); if(!map[id]) map[id]=[]; map[id].push(k); }); return map; }
 
 // ── Asistente de quimioterapia: ESQUEMAS editables (admin) ──
@@ -12188,7 +12230,10 @@ function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {};
 const QT_TRIALS='PERSEUS|STARGLOW?|LYRA|POLARIX|POLARGO|IMROZ|IKEMA|CEPHEUS|CASSIOPEIA|GRIFFIN|MAIA|ALCYONE|CANDOR|ELOQUENT|TOURMALINE|POLLUX|CASTOR|APOLLO|BOSTON|OPTIMISMM|MURANO|CLL1[0-9]|ELEVATE|SEQUOIA|FLAIR|GLOW|CAPTIVATE|AMPLIFY|RATIFY|QUAZAR|VIALE[- ]?[A-C]?|AGILE|LACEWING|ADMIRAL|QUANTUM[- ]?FIRST|ECHELON[- ]?\\d?|HD21|ZUMA[- ]?\\d*|TRANSFORM|BELINDA|LOTIS[- ]?\\d*|EPCORE[- ]?\\w*|MAJESTEC[- ]?\\d*|MONUMENTAL[- ]?\\d*|MAGNETISMM[- ]?\\d*|KARMMA[- ]?\\d*|CARTITUDE[- ]?\\d*|DREAMM[- ]?\\d*|BRUIN|SHINE|TRIANGLE|GALLIUM|PRIMA|RELEVANCE|AUGMENT|GOYA|SMART[- ]?START';
 const QT_TRIAL_RX=[new RegExp('\\s*\\((?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')\\)','gi'), new RegExp('\\((?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')\\s*[,;]\\s*','gi'), new RegExp('\\s*[–—-]\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi'), new RegExp('\\s*·\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi')];
 function qtSinEnsayo(t){ if(!t) return t; let x=''+t; QT_TRIAL_RX.forEach(function(r){ x=x.replace(r,''); }); return x.replace(/\s{2,}/g,' ').trim(); }
-function qtSchemes(){ const o=Object.assign({}, QT_SCHEMES, qtOverride()); Object.keys(o).forEach(function(k){ const sc=o[k]; if(sc&&(sc.label||sc.short)){ const l=qtSinEnsayo(sc.label), sh=qtSinEnsayo(sc.short); if(l!==sc.label||sh!==sc.short) o[k]=Object.assign({},sc,{label:l,short:sh}); } }); return o; }
+// Esquemas de protocolos ya retirados de la app (sustituidos por los vigentes). Si alguien los había editado
+// desde la app, su copia guardada en la nube aparecía suelta en «Personalizados», duplicando el esquema actual.
+const QT_RETIRADOS=['GO-IA','INOTUZUMAB-LAL','LAL-CONSOL-1','LAL-CONSOL-2','LAL-INDUCCION','LAL-PREFASE'];
+function qtSchemes(){ const o=Object.assign({}, QT_SCHEMES, qtOverride()); QT_RETIRADOS.forEach(function(k){ if(!QT_SCHEMES[k]) delete o[k]; }); Object.keys(o).forEach(function(k){ const sc=o[k]; if(sc&&(sc.label||sc.short)){ const l=qtSinEnsayo(sc.label), sh=qtSinEnsayo(sc.short); if(l!==sc.label||sh!==sc.short) o[k]=Object.assign({},sc,{label:l,short:sh}); } }); return o; }
 // Nombre del ciclo tal como debe aparecer AL PAUTAR (respeta mayúsculas/minúsculas).
 // Prioridad: 'short' (editable por el admin) → 'label' sin el paréntesis final tipo
 // «(cada 21 días)» → la clave. Así «R-mini-CHOP» ya no sale como «R-MINI-CHOP».
@@ -12330,6 +12375,7 @@ ${QT_DA_EPOCH_LV.map(l=>`<option value="${l}"${l==='1'?' selected':''}>Nivel ${l
 <div id="qt_premed_list" class="qt-pm"></div><textarea id="qt_premed" hidden></textarea>
 <div class="btns"><button class="btn btn-out btn-sm" onclick="qtCopy('qt_premed')">Copiar toda la premedicación</button></div>
 </div>
+<div id="qt_key"></div>
 <div id="qt_notes" style="display:none;margin-top:14px;font-size:12.5px;line-height:1.5"></div>
 </div>
 <div id="qt_info" style="margin-top:16px"></div>
@@ -13444,6 +13490,25 @@ function qtAntiemeticLines(scheme,key,drugsList){
   if(own) return drugsList.some(d=>!QT_NOEMETO_RX.test(d.name))?[own]:[];
   return scheme.noAntiemetic?[]:['Ondansetrón 8 mg IV, 30 min antes de la quimioterapia.'];
 }
+// ── Clasificación de las notas de cada esquema ──
+// 'adj': ajuste de dosis (edad, función renal o hepática, interacciones, topes, toxicidad) → recuadro ámbar
+//        encima de «Copiar esquema».
+// 'key': algo que hay que pautar, pedir o vigilar al prescribir (G-CSF, profilaxis, hidratación, colirio,
+//        rescate, niveles, fenotipo, VHB…) → recuadro «A tener en cuenta», tras la premedicación.
+// 'rec': contexto (indicación, número de ciclos, evaluación, referencias) → desplegable «Recomendaciones».
+// Funciona también con las notas de los esquemas creados o editados desde la app.
+const QT_NOTA_KEY0=/^(G-CSF|Riesgo de s[ií]ndrome de lisis|Profilaxis|S[ií]ndrome de diferenciaci[oó]n|Hidroxiurea|Se recomienda aciclovir|Tener disponible)|tambi[eé]n en pacientes|vigilar QTc/i;
+const QT_NOTA_REC=/^(Indicaci[oó]n|Indicado en|Protocolo PETHEMA|Referencia|Esquema (del|por defecto|STARGLO|GELTAMO|mostrado)|Pauta (del protocolo|de los protocolos|alternativa)|\d+ ciclos|Hasta (un máximo de )?\d+ ciclos|Entre \d+ y \d+ ciclos|De \d+ a \d+ ciclos|Evaluaci[oó]n|Si hay RC|Si no hay RC|AMO |Aspirado|Tras la C1|ER centralizada|Para (linfoma|LBDCG)|R[ée]gimen atenuado|Pacientes NO fr[aá]giles|Prefase com[uú]n|Com[uú]n a|Es como la inducci[oó]n|Solo LLA-T|LLA-T inmaduras|Se inicia tras|Duraci[oó]n:|Inicio:|La consolidaci[oó]n puede|Puede administrarse de forma|MURANO|Las dos pautas|Ciclos de \d+ d[ií]as|Linfoma (B difuso|folicular), ciclos|Ciclos 2[–-]3: 48|Ciclos 2[–-]8|Ciclos 9|Continuaci[oó]n|Inducci[oó]n \(ciclos|Tras la escalada|Venetoclax 400 mg\/d[ií]a se mantiene|Rampa de venetoclax|Midostaurina d[ií]as 8|Mantener ATRA y ATO|Polatuzumab, (rituximab|bendamustina)|Polatuzumab y|La 1\.?[ªa] dosis plena|El esquema mostrado|Ciclo de 42 d[ií]as|Lenalidomida 20 mg|Ciclos 2 a 5|En los ciclos 7 y 8|Metotrexato 3,5 g|Rituximab los d[ií]as|Prednisona 60|Ciclos 1-[68]:|Ciclo 1 \(mostrado\)|No se recomienda punci[oó]n|La metilprednisolona es la premedicaci[oó]n|Si se hace TPH|Dosis seg[uú]n peso actual|Cada escalada puede|En pacientes con respuesta completa|Hipersensibilidad grado|ARA-C AD: suspender|Toxicidad G3|Si la interrupci[oó]n por toxicidad|Si hay una toxicidad que impide|Gemtuzumab: 3 mg|MTX semanal por v[ií]a|Rituximab opcional|PEG-ASP los d[ií]as 16 y 29, separada de la vincristina del d[ií]a 15\.$|Prednisona hasta completar|Etop[oó]sido 20 mg\/kg|Esquema STARGLO)/i;
+const QT_NOTA_ADJ=/(reduc|ajust(ar|e)|disminu|a la mitad|al \d+ ?%|\b\d+ ?% de la dosis|no superar|sin superar|no exceder|m[aá]ximo \d+ mg|calcular la dosis con|ClCr|aclaramiento|bilirrubina|hepatotoxicidad|neuropat|CYP3A|(≥|>|mayores de)\s*\d{2}\s*a[ñn]os|\d{2}-\d{2} a[ñn]os|peso ajustado|Omitir la idarubicina|10 mg \(no 20\)|solo d[ií]as 1-7|dosis fija de 10 mg|valorar dosis menores|toxicidad hematol[oó]gica|no administrar la dosis)/i;
+const QT_NOTA_KEY=/(profilaxis|G-CSF|filgrastim|alopurinol|rasburicasa|hidrataci|l[ií]quidos|colirio|vitamina B6|fol[ií]nic|folinato|glucarpidasa|tromboprofilaxis|HBPM|fenotip|VHB|IGIV|inmunoglobulina|hospitaliz|ingreso|tocilizumab|crioterapia|fenito[ií]na|ducha|irradiad|niveles|no dar azoles|evitar|no prescribir|ECG|QTc|ecocardiograma|valoraci[oó]n cardiol[oó]gica|tensi[oó]n arterial|montelukast|ondansetr|antiem[eé]tic|iniciar el MTX a las|orden de administraci[oó]n|administrar el rituximab en primer lugar|se administra inmediatamente despu[eé]s|antes del rituximab|\bIT\b|intratecal|antitrombina|levofloxacino|aciclovir|cotrimoxazol|suplementaci[oó]n|Hidroxil|requisitos|granulocitos \+ monocitos|no iniciar|separar|vigilancia|monitoriz|controlar|premedicaci[oó]n|interfieren|cambiar la bolsa|soporte|SLT|lisis tumoral|EVO\/SOS|tomar venetoclax|se suspenden|Rituximab SC|en el primer ciclo de quimioterapia NO)/i;
+function qtNotaTipo(l){ const t=String(l||''); if(QT_NOTA_KEY0.test(t)) return 'key'; if(QT_NOTA_REC.test(t)) return 'rec'; if(QT_NOTA_ADJ.test(t)) return 'adj'; if(QT_NOTA_KEY.test(t)) return 'key'; return 'rec'; }
+// Una nota larga se pliega: se ve su título (lo que va antes de «:») y se despliega el detalle.
+function qtNotaHtml(l){ const t=String(l||''); if(t.length<=200){ const b=t.match(/^(.{4,79}?[^\d]):\s/); return '<li>'+(b?'<strong>'+chatEsc(b[1])+':</strong> '+chatEsc(t.slice(b[0].length)):chatEsc(t))+'</li>'; } const mm=t.match(/^(.{15,79}?[^\d]):\s/); const i=mm?mm[1].length:-1; const conTit=i>0; const tit=conTit?t.slice(0,i):t.slice(0,110).replace(/\s+\S*$/,'')+'…'; const cuerpo=conTit?t.slice(i+1).trim():t; return '<li><details class="qt-nd"><summary>'+chatEsc(tit)+'</summary><div>'+chatEsc(cuerpo)+'</div></details></li>'; }
+// Marcas de ciclo al inicio de una línea de premedicación o de una nota: «[ciclo 1]», «[ciclos 1-3]»,
+// «[ciclos 1,4-8]» o «[ciclos 3+]» → solo se muestra en esos ciclos.
+const QT_CICLO_RX=/^\s*\[ciclos?\s*([\d\s,+\-–]+)\]\s*/i;
+function qtCicloOk(l,cycle){ const m=String(l||'').match(QT_CICLO_RX); if(!m) return true; return m[1].split(',').some(function(r){ r=r.trim(); let mm; if((mm=r.match(/^(\d+)\s*\+$/))) return cycle>=+mm[1]; if((mm=r.match(/^(\d+)\s*[-–]\s*(\d+)$/))) return cycle>=+mm[1]&&cycle<=+mm[2]; return cycle===+r; }); }
+function qtSinCiclo(l){ return String(l||'').replace(QT_CICLO_RX,''); }
 const QT_ANTICD20_VHB='Anti-CD20: cribado de VHB (HBsAg y anti-HBc) antes de empezar; si alguno es positivo, profilaxis con entecavir, tenofovir o lamivudina (libro azul).';
 const QT_COND_PESO='Peso para el cálculo (libro azul): si el peso ideal es mayor que el real, usar el peso real; si el peso real es ≥ 125 % del ideal, usar el peso ideal ajustado.';
 // Devuelve la definición de ciclo aplicable (drugs + label) si el esquema varía por ciclo; si no, null.
@@ -13494,7 +13559,7 @@ function groupDays(days_arr){
 const _adj=[];
 function fmtDrugLine(drug,dateStr){
   // Los avisos de ajuste (edad, función renal…) no van en el texto que se copia: se muestran encima del botón.
-  if(drug.adj){ const n=drug.name.replace(/\s*\([^)]*\)/g,'').replace(/\s+—.*$/,'').trim(); if(!_adj.some(x=>x[0]===n&&x[1]===drug.adj)) _adj.push([n,drug.adj]); }
+  if(drug.adj){ const n=drug.name.replace(/\s*\([^)]*\)/g,'').replace(/\s+—.*$/,'').trim(); if(!_adj.some(x=>x[0]===n&&x[1]===drug.adj)) _adj.push([n,drug.adj,drug.name]); }
   if(bsa>0){
     const calc=qtCalcDose(drug.dose,bsa,peso);
     if(calc){
@@ -13610,8 +13675,13 @@ if(_ritDrugs.length){
 // La velocidad de rituximab la pone siempre la línea estándar de arriba: se descartan las antiguas que
 // traigan los esquemas (de fábrica o editados en la nube) para que no aparezcan velocidades viejas.
 // Solo se copian las líneas que se pautan; las orientativas (valorar, considerar, si se interrumpe…) van a Notas.
-const QT_PM_NOTA=/^(Valorar|Considerar|Intensificar|Tener preparad|A partir del|Posmedicaci|Los d[ií]as que|Los d[ií]as con|Si la infusi|Corticoide obligatorio|Corticoide del|Pueden administrarse|PEG-ASP:|Prednisona: es recomendable|Paracetamol \(u otro antipir|Dexametasona del esquema|En los ciclos posteriores)/i;
-const _peAll=(scheme.premed||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l));
+const QT_PM_NOTA=/^(Valorar|Considerar|Intensificar|Tener preparad|Tener disponible|A partir del|Posmedicaci|Los d[ií]as que|Los d[ií]as con|Si la infusi|Corticoide obligatorio|Corticoide del|Pueden administrarse|PEG-ASP:|Prednisona: es recomendable|Paracetamol \(u otro antipir|Dexametasona del esquema|En los ciclos posteriores)/i;
+// Una línea «… antes del <fármaco>» no se muestra si ese fármaco es del esquema pero no va en este ciclo
+// (p. ej. la premedicación del obinutuzumab solo el ciclo 1, o la del GemOx en los ciclos de glofitamab solo).
+const _allDrugNames=[].concat(scheme.drugs||[],...((scheme.cycles||[]).map(c=>c.drugs||[]))).map(d=>(d.name||'').toLowerCase());
+const _curDrugNames=drugsList.map(d=>(d.name||'').toLowerCase());
+const _farmacoOk=l=>{ const m=String(l).match(/antes (?:de (?:la (?:infusi[oó]n|perfusi[oó]n) de |cada (?:dosis|infusi[oó]n|perfusi[oó]n) de |iniciar el |la |el )?|del )([a-záéíóúñ][\wáéíóúñ-]{3,})/i); if(!m) return true; const w=m[1].toLowerCase(); if(/^(quimioterapia|inicio|cada|escalada|primera|tratamiento|reinicio|infusi|perfusi)/.test(w)) return true; if(!_allDrugNames.some(n=>n.indexOf(w)>=0)) return true; return _curDrugNames.some(n=>n.indexOf(w)>=0); };
+const _peAll=(scheme.premed||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l)).filter(l=>qtCicloOk(l,cycle)).map(qtSinCiclo).filter(_farmacoOk);
 // La dexametasona de premedicación del anti-CD38 no se repite si todos esos días ya llevan dexametasona en el esquema.
 const _cd38Dex=l=>{ const m=l.match(/^Dexametasona .*antes del (daratumumab|isatuximab)/i); if(!m) return false;
   const tgt=drugsList.filter(d=>new RegExp(m[1],'i').test(d.name)).flatMap(d=>d.days||[]);
@@ -13621,7 +13691,11 @@ const _cd38Dex=l=>{ const m=l.match(/^Dexametasona .*antes del (daratumumab|isat
 const _polaDup=l=>{ if(!/antes de la infusi[oó]n de polatuzumab/i.test(l)||!/^(Dexclorfeniramina|Paracetamol)/i.test(l)) return false;
   const pd=drugsList.filter(d=>/polatuzumab/i.test(d.name)).flatMap(d=>d.days||[]);
   return pd.length>0&&pd.every(x=>_ritDays.indexOf(x)>=0); };
-const _pe=_peAll.filter(l=>!QT_PM_NOTA.test(l)&&!_cd38Dex(l)&&!_polaDup(l));
+const _cd38Algun=l=>{ const m=l.match(/^Dexametasona .*antes del (daratumumab|isatuximab)/i); if(!m) return false;
+  const tgt=drugsList.filter(d=>new RegExp(m[1],'i').test(d.name)).flatMap(d=>d.days||[]);
+  const dex=drugsList.filter(d=>/dexametasona/i.test(d.name)).flatMap(d=>d.days||[]);
+  return tgt.some(x=>dex.indexOf(x)>=0); };
+const _pe=_peAll.filter(l=>!QT_PM_NOTA.test(l)&&!_cd38Dex(l)&&!_polaDup(l)).map(l=>_cd38Algun(l)?l.replace(/\.$/,' (los días sin dexametasona en el esquema).'):l);
 window._qtPmNotas=_peAll.filter(l=>QT_PM_NOTA.test(l));
 // Si el esquema ya trae su propio ondansetrón, no se repite el antiemético general.
 if(_pe.some(l=>/^Ondansetr/i.test(l))){ for(let _i=_pmList.length-1;_i>=0;_i--){ if(typeof _pmList[_i]==='string'&&/^Ondansetrón 8 mg IV, 30 min antes de la quimioterapia/.test(_pmList[_i])) _pmList.splice(_i,1); else if(typeof _pmList[_i]==='object'&&_pmList[_i].h==='Antiemético') _pmList.splice(_i,1); } }
@@ -13634,28 +13708,31 @@ if(_pm)_pm.value=window._qtPm.filter(x=>x.t).map(x=>x.t).join('\n');
 const _pml=$('qt_premed_list');
 if(_pml)_pml.innerHTML=window._qtPm.map((x,i)=>x.h?'<div class="qt-pm-h">'+chatEsc(x.h)+'</div>':'<div class="qt-pm-row"><div class="qt-pm-t" id="qt_pm_'+i+'" contenteditable="true" spellcheck="false">'+chatEsc(x.t)+'</div><button type="button" class="qt-pm-c" onclick="qtCopyPm('+i+')">Copiar</button></div>').join('');
 if(_pmw)_pmw.style.display=window._qtPm.length?'':'none';
-// Notas (solo lectura) + esquema en días del ciclo
+// ── Avisos y notas ──
+// Lo importante se ve cerca de la pauta: los ajustes de dosis encima de «Copiar esquema» y lo que hay que
+// pautar o vigilar en «A tener en cuenta», tras la premedicación. El resto queda en «Recomendaciones»
+// (plegado), y ya no se repite el esquema completo al pie.
+const _notes0=(scheme.notes||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l)).filter(l=>qtCicloOk(l,cycle)).map(qtSinCiclo).filter(_farmacoOk);
+const _adjN=[], _keyN=[], _recN=[];
+(window._qtPmNotas||[]).forEach(l=>_keyN.push(l));
+_notes0.forEach(l=>{ const k=qtNotaTipo(l); (k==='adj'?_adjN:(k==='key'?_keyN:_recN)).push(l); });
+if(scheme.r1split&&cycle===1) _keyN.unshift('Ciclo 1: rituximab el día +1 y el resto de la quimioterapia desde el día +2 (la 1.ª infusión de rituximab es lenta); el corticoide mantiene sus días desde el +1. Desde el ciclo 2, todo se administra el día +1.');
+if(!scheme.conditioning&&drugsList.some(d=>/rituximab|obinutuzumab/i.test(d.name))&&!_notes0.concat(_keyN).some(l=>/VHB|hepatitis B/i.test(l))) _keyN.push(QT_ANTICD20_VHB);
+if(scheme.conditioning) _adjN.push(QT_COND_PESO);
+// Un ajuste por edad que ya figura en el aviso del fármaco (mismo fármaco y misma edad) no se repite.
+const _alias=x=>{ const out=[x[0].toLowerCase()]; const m=String(x[2]||'').match(/\(([^)]*)\)/g)||[]; m.forEach(p=>p.replace(/[()]/g,'').split(/[\s,/]+/).forEach(w=>{ if(w.length>=3&&!/^\d/.test(w)) out.push(w.toLowerCase()); })); if(/citarabina/i.test(x[0])) out.push('ara-c','arac'); if(/metotrexato/i.test(x[0])) out.push('mtx'); if(/asparaginasa/i.test(x[0])) out.push('peg-asp','asparaginasa'); return out; };
+for(let _i=_adjN.length-1;_i>=0;_i--){ const _n=_adjN[_i].toLowerCase(); const _ed=(_n.match(/(\d{2})\s*a[ñn]os/)||[])[1]; const _ns=_n.replace(/\s+/g,''); if(_ed&&_adj.some(x=>(x[1].match(/(\d{2})\s*a[ñn]os/)||[])[1]===_ed&&(_alias(x).some(w=>_n.indexOf(w)>=0)||_ns.indexOf((x[1].split(': ').pop()||'@').replace(/\s+/g,'').toLowerCase())>=0))){ _recN.unshift(_adjN[_i]); _adjN.splice(_i,1); } }
+const _al=$('qt_alerts');
+let _alH='';
+if(_isEpo&&cycle===1&&_lvl!=='1') _alH+='<li><strong>Ciclo 1 a nivel '+_lvl+':</strong> el ciclo 1 se administra habitualmente a nivel 1. Compruébalo.</li>';
+_adj.forEach(x=>{ _alH+='<li><strong>'+chatEsc(x[0])+'</strong> — '+chatEsc(x[1])+'</li>'; });
+_adjN.forEach(l=>{ _alH+=qtNotaHtml(l); });
+if(_al) _al.innerHTML=_alH?'<div class="qt-alert"><strong>⚠️ '+(_adj.length?'Revisar ajuste de dosis</strong> <span>(el esquema muestra la dosis plena)</span>':'Ajustes de dosis</strong>')+'<ul>'+_alH+'</ul></div>':'';
+const _ky=$('qt_key');
+if(_ky){ _ky.innerHTML=_keyN.length?'<div class="qt-key"><strong>A tener en cuenta</strong><ul>'+_keyN.map(qtNotaHtml).join('')+'</ul></div>':''; }
 const _nt=$('qt_notes');let _nh='';
-if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1:</strong> rituximab el día +1 y el resto de la quimioterapia desde el día +2 (la 1.ª infusión de rituximab es lenta); el corticoide mantiene sus días desde el +1. Desde el ciclo 2, todo se administra el día +1.</div>';
-const _cyc=(scheme.label||'').match(/(\d+)\s*días/);
-const _cycTxt=_cyc?' · ciclo de '+_cyc[1]+' días':'';
-if(relLines.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Esquema (días del ciclo)'+_cycTxt+'</div><ul style="margin:0 0 10px;padding-left:18px">'+relLines.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
-const _notes0=(scheme.notes||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l)).concat(window._qtPmNotas||[]);
-// Ajustes por edad: el asistente calcula la dosis plena; se sacan a un recuadro para que no pasen desapercibidos.
-const _AGE_RX=/[>≥]\s*\d{2}\s*años|mayores de \d{2} años|de \d{2}-\d{2} años/i;
-const _ageNotes=_notes0.filter(l=>_AGE_RX.test(l)&&!/^Indicaci[oó]n/i.test(l)&&!/tambi[eé]n en (pacientes )?[>≥]/i.test(l));
-const _notes=_notes0.filter(l=>_ageNotes.indexOf(l)<0);
-if(!scheme.conditioning&&drugsList.some(d=>/rituximab|obinutuzumab/i.test(d.name))&&!_notes.some(l=>/VHB|hepatitis B/i.test(l))) _notes.push(QT_ANTICD20_VHB);
-if(scheme.conditioning) _notes.push(QT_COND_PESO);
-// Avisos de ajuste (por fármaco y por edad), justo encima de «Copiar esquema»: llaman la atención y no
-// entran en el texto copiado.
-const _adjDose=_adj.map(x=>(x[1].split(': ').pop()||'').replace(/\s+/g,'').toLowerCase()).filter(Boolean);
-for(let _i=_ageNotes.length-1;_i>=0;_i--){ const _n=_ageNotes[_i].replace(/\s+/g,'').toLowerCase(); if(_adjDose.some(d=>_n.indexOf(d)>=0)){ _notes.unshift(_ageNotes[_i]); _ageNotes.splice(_i,1); } }
-const _al=$('qt_alerts'), _alL=_adj.map(x=>'<strong>'+chatEsc(x[0])+'</strong> — '+chatEsc(x[1])).concat(_ageNotes.map(chatEsc));
-if(_al) _al.innerHTML=_alL.length?'<div class="qt-alert"><strong>⚠️ Revisar ajuste de dosis</strong> <span>(el esquema muestra la dosis plena)</span><ul>'+_alL.map(l=>'<li>'+l+'</li>').join('')+'</ul></div>':'';
-if(_notes.length)_nh+='<div style="font-weight:600;margin-bottom:3px">Notas</div><ul style="margin:0;padding-left:18px;color:var(--mut)">'+_notes.map(l=>'<li>'+chatEsc(l)+'</li>').join('')+'</ul>';
-if(_isEpo&&cycle===1&&_lvl!=='1')_nh='<div class="alert y" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1 a nivel '+_lvl+':</strong> el ciclo 1 se administra habitualmente a nivel 1. Compruébalo.</div>'+_nh;
 if(QT_DA_EPOCH_RX.test(key+' '+(scheme.label||'')))_nh+=qtDaEpochNadirHtml(_lvl);
+if(_recN.length)_nh+='<details class="qt-rec"><summary>Recomendaciones ('+_recN.length+')</summary><ul>'+_recN.map(qtNotaHtml).join('')+'</ul></details>';
 if(_nt){_nt.innerHTML=_nh;_nt.style.display=_nh?'':'none';}
 wrap.style.display='';
 info.innerHTML='';
