@@ -28,6 +28,7 @@ const APP = path.join(root, 'HemoPocket_app.html');
 const FP = path.join(root, 'scripts', 'upd-fingerprints.json');
 const SEED = process.argv.includes('--seed');
 const DRY = process.argv.includes('--dry');
+const REBASE = process.argv.includes('--rebase'); // recalcula las huellas sin cambiar ninguna fecha (tras mejorar el método)
 const EXPLAIN = (process.argv.indexOf('--explain') > 0) ? process.argv[process.argv.indexOf('--explain') + 1] : null;
 const today = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
 
@@ -89,6 +90,7 @@ async function pageFingerprints(explain){
     let text = '', html = '';
     try { go(id); const c = document.getElementById('content'); text = c ? c.innerText : ''; html = c ? c.innerHTML : ''; } catch (e) { text = 'ERR'; }
     text = text.replace(/Actualizado:\s*\d{2}\/\d{2}\/\d{4}\s*$/, '').replace(/\s+/g, ' ').trim();
+    if (/^g_/.test(id)) text = ''; // lista de guías: se carga de forma asíncrona (su fecha la dan las guías subidas)
     const seeds = [String(VIEWS[id] || ''), String(VIEWS[id + '_post'] || '')];
     const re = /\son\w+="([^"]*)"/g; let m; while ((m = re.exec(html))) seeds.push(m[1].replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
     per[id] = { text, seeds };
@@ -201,6 +203,7 @@ async function main(){
   const next = {};
   Object.keys(fp).forEach(id => {
     const p = prev[id];
+    if (REBASE) { next[id] = p ? Object.assign({}, p, { h: fp[id] }) : { h: fp[id] }; return; }
     if (!p) { next[id] = { h: fp[id], d: today }; changed.push(id + ' (nuevo)'); }
     else if (p.h !== fp[id]) { next[id] = { h: fp[id], d: today }; changed.push(id); }
     else next[id] = p;
