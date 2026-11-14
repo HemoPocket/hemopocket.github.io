@@ -7085,7 +7085,7 @@ function _algoValidar(d){
 }
 function algoComprobar(){ const v=_algoValidar(_algoDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, listo para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
 async function algoGuardar(){ const d=_algoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si no se ha podido publicar por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
-async function algoPublicar(){ const d=_algoDraft; const _v=_algoValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } hpAudit('publicar','algoritmo',d.titulo,{ambito:hpItemAmbito(d)}); go('g_'+d.seccion); }
+async function algoPublicar(){ const d=_algoDraft; const _v=_algoValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=hpAlgos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('algos',m);}catch(e){} if(window.hpSaveAlgo){ try{ await window.hpSaveAlgo(d); toast('✅ Publicado · visible para todos'); }catch(e){ toast('Publicado solo en este equipo'); } } hpAudit('publicar','algoritmo',d.titulo,{ambito:hpItemAmbito(d)}); hpAcreditarAporte(d.seccion); go('g_'+d.seccion); }
 async function algoEliminar(id){ const a=hpAlgos()[id]; if(!a)return; if(!hpCanEditAmbito(a,a.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes eliminarlo'); return; } if(!confirm('¿Eliminar el algoritmo "'+(a.titulo||'')+'" para todos?'))return; const sec=a.seccion; const m=hpAlgos(); delete m[id]; try{ls.s('algos',m);}catch(e){} if(window.hpDeleteAlgo){ try{ await window.hpDeleteAlgo(id); toast('✓ Eliminado'); }catch(e){ toast('Eliminado solo en este equipo'); } } hpAudit('eliminar','algoritmo',a.titulo,{ambito:hpItemAmbito(a)}); go('g_'+sec); }
 
 // ════════════════ CONSTRUCTOR DE CALCULADORAS (puntuaciones y fórmulas) ════════════════
@@ -7408,7 +7408,7 @@ function _calcValidar(d){
 }
 function calcComprobar(){ const v=_calcValidar(_calcDraft); if(!v.errs.length&&!v.warns.length){toast('✓ Todo correcto, lista para publicar');return;} alert((v.errs.length?'❌ Errores (impiden publicar):\n• '+v.errs.join('\n• ')+(v.warns.length?'\n\n':''):'')+(v.warns.length?'⚠️ Avisos:\n• '+v.warns.join('\n• '):'')); }
 async function calcGuardar(){ const d=_calcDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si no se ha podido publicar por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
-async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } hpAudit('publicar','calculadora',d.titulo,{ambito:hpItemAmbito(d)}); go('g_'+d.seccion); }
+async function calcPublicar(){ const d=_calcDraft; const _v=_calcValidar(d); if(_v.errs.length){ alert('No se puede publicar todavía:\n\n• '+_v.errs.join('\n• ')); return; } if(_v.warns.length && !confirm('Avisos (puedes publicar igualmente):\n\n• '+_v.warns.join('\n• ')+'\n\n¿Publicar de todos modos?')) return; d.estado='publicado'; const m=_calcsStored(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('calcs',m);}catch(e){} if(window.hpSaveCalc){ try{ await window.hpSaveCalc(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } hpAudit('publicar','calculadora',d.titulo,{ambito:hpItemAmbito(d)}); hpAcreditarAporte(d.seccion); go('g_'+d.seccion); }
 async function calcEliminar(id){ const c=hpCalcs()[id]; if(!c)return; if(!hpCanEditAmbito(c,c.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes eliminarlo'); return; } const _st=_calcsStored(); if(DEFAULT_CALCS[id] && !_st[id]){ toast('Es una calculadora de ejemplo integrada en la app; edítala para personalizarla.'); return; } if(!confirm('¿Eliminar la calculadora "'+(c.titulo||'')+'" para todos?'))return; const sec=c.seccion; const m=_calcsStored(); delete m[id]; try{ls.s('calcs',m);}catch(e){} if(window.hpDeleteCalc){ try{ await window.hpDeleteCalc(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } hpAudit('eliminar','calculadora',c.titulo,{ambito:hpItemAmbito(c)}); go('g_'+sec); }
 
 // ════════════════ CONTENIDO INFORMATIVO (notas / fichas por sección) ════════════════
@@ -7466,7 +7466,7 @@ function infoSetAmbito(a){ if(_infoDraft){ _infoDraft.ambito=a; go('infoedit'); 
 function infoVistaPrevia(){ _infoState=Object.assign({},JSON.parse(JSON.stringify(_infoDraft)),{preview:true}); go('info'); }
 function infoCancelar(){ const s=_infoDraft&&_infoDraft.seccion; _infoDraft=null; if(s) go('g_'+s); else go('home'); }
 async function infoGuardar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('💾 Borrador guardado'); }catch(e){ toast('Guardado. Si no se ha podido publicar por falta de conexión, se publicará para todos al reconectar'); } } else toast('💾 Guardado'); }
-async function infoPublicar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!(d.cuerpo||'').trim() && !confirm('No has escrito contenido. ¿Publicar igualmente?'))return; d.estado='publicado'; const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } hpAudit('publicar','información',d.titulo,{ambito:hpItemAmbito(d)}); go('g_'+d.seccion); }
+async function infoPublicar(){ const d=_infoDraft; if(!d.titulo||!d.titulo.trim()){toast('Ponle un título');return;} if(!(d.cuerpo||'').trim() && !confirm('No has escrito contenido. ¿Publicar igualmente?'))return; d.estado='publicado'; const m=hpInfos(); m[d.id]=JSON.parse(JSON.stringify(d)); try{ls.s('infos',m);}catch(e){} if(window.hpSaveInfo){ try{ await window.hpSaveInfo(d); toast('✅ Publicada · visible para todos'); }catch(e){ toast('Publicada solo en este equipo'); } } hpAudit('publicar','información',d.titulo,{ambito:hpItemAmbito(d)}); hpAcreditarAporte(d.seccion); go('g_'+d.seccion); }
 async function infoEliminar(id){ const x=hpInfos()[id]; if(!x)return; if(!hpCanEditAmbito(x,x.seccion)){ toast('Este contenido pertenece a otro hospital; no puedes eliminarlo'); return; } if(!confirm('¿Eliminar "'+(x.titulo||'')+'" para todos?'))return; const sec=x.seccion; const m=hpInfos(); delete m[id]; try{ls.s('infos',m);}catch(e){} if(window.hpDeleteInfo){ try{ await window.hpDeleteInfo(id); toast('✓ Eliminada'); }catch(e){ toast('Eliminada solo en este equipo'); } } hpAudit('eliminar','información',x.titulo,{ambito:hpItemAmbito(x)}); go('g_'+sec); }
 // Botonera unificada para AÑADIR contenido a una sección (calculadora, algoritmo, información, PDF).
 function _hpAddContenido(sec){
@@ -7554,6 +7554,15 @@ let h=`<div class="collabs-block">
 <div class="collabs-h">Colaboradores de esta sección</div>`+(list.length?`<ul class="collabs-list">${items}</ul>`:'<div style="font-size:12.5px;color:var(--mut)">Todavía no figura nadie.</div>');
 if(canEd) h+=(window._collabEdit===id)?_hpCollabEditor(id):`<div class="btns" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="hpCollabEditOpen('${id}')">Editar colaboradores</button></div>`;
 return h+'</div>';
+}
+// Acredita a quien aporta contenido en una sección (guía subida o contenido publicado).
+function hpAcreditarAporte(sec){
+  try{
+    if(!sec||!window.hpAutoColab) return;
+    const pin=(HP_PINNED_COLLABS.leuc_ag||[])[0], soyPrin=(typeof HP_PRINCIPAL_UID!=='undefined'&&window.__hpUid===HP_PRINCIPAL_UID);
+    const esAdmin=!!(window.HemoCloud&&HemoCloud.isAdmin&&HemoCloud.isAdmin());
+    window.hpAutoColab(sec, soyPrin&&pin?pin.n:'', esAdmin?'admin':'editor').then(function(ok){ if(ok&&typeof toast==='function') setTimeout(function(){ toast('Figuras ya como colaborador de esta sección'); },1800); });
+  }catch(e){}
 }
 // Edición de los colaboradores de una sección (solo administradores, en modo edición). Es independiente
 // del permiso de edición: marca quién figura como colaborador aquí, sin dar ni quitar permisos.
@@ -8889,6 +8898,7 @@ try{
 if(!HemoCloud.token){ try{ await HemoCloud.loadToken(); }catch(_t){} }
 if(!HemoCloud.token){ alert('No se puede subir: falta configurar el token de GitHub (config/github en Firebase). Es un ajuste único que hace quien administra la app.'); return; }
 const {id,path,indexError}=await HemoCloud.uploadGuide(section,subtypeId,file,finalName);
+hpAcreditarAporte(section);
 try{ const key=`${section}_${subtypeId}|cloud:${path}`; await idb.set(key,{name:finalName,size:file.size,blob:file,cloud:true,docId:id,path}); }catch(_i){}
 // Privado por defecto: si lo sube un hospital (no la casa/principal), el PDF nace visible solo para su hospital.
 try{ const vnew=(typeof hpVisNueva==='function')?hpVisNueva():[]; if(vnew&&vnew.length){ const subs=getSubtypes(section);const st=subs.find(s=>s.id===subtypeId); if(st){ st.vis=(st.vis&&typeof st.vis==='object')?st.vis:{}; st.vis['cloud:'+path]=vnew; setSubtypes(section,subs); _hpPropagaSubtipos(section,subs,''); } } }catch(_v){}
@@ -10137,7 +10147,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 441;
+const HP_BUILD = 442;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -18432,6 +18442,24 @@ window.hpSetColabSecciones = async function(uid, sections, nombre, perfil, rolEs
   if(perfil) data.perfil = (perfil==='admin'?'admin':'editor');
   if(rolEsp) data.rol = (rolEsp||'').toString().trim();
   await setDoc(doc(fs, 'colaboradores', uid), data, { merge:true });
+};
+// Acreditación automática: quien sube una guía o publica contenido en una sección pasa a figurar
+// como colaborador de esa sección si aún no figura. Las reglas solo le dejan añadir esa sección.
+window.hpAutoColab = async function(section, nombre, perfil){
+  try{
+    const uid = curUid || (auth.currentUser && auth.currentUser.uid); if(!uid || !section) return false;
+    const ref = doc(fs, 'colaboradores', uid); const sn = await getDoc(ref);
+    if(sn.exists()){
+      const d = sn.data() || {}; const secs = Array.isArray(d.sections) ? d.sections : [];
+      if(secs.indexOf(section) >= 0) return false;
+      await updateDoc(ref, { sections: secs.concat([section]), ultimaSeccion: section, actualizadoPor: uid, fechaActualizacion: serverTimestamp() });
+    } else {
+      const nom = ((nombre || (auth.currentUser && auth.currentUser.displayName) || '') + '').trim(); if(!nom) return false;
+      await setDoc(ref, { nombre: nom, perfil: (perfil === 'admin' ? 'admin' : 'editor'), rol: '', sections: [section], ultimaSeccion: section, actualizadoPor: uid, fechaActualizacion: serverTimestamp() });
+    }
+    if(window.hpSyncColaboradores) window.hpSyncColaboradores();
+    return true;
+  }catch(e){ console.warn('[hp] acreditación automática', e && e.message); return false; }
 };
 // Escritura directa del crédito de colaborador (la usa la reconciliación para acreditar
 // automáticamente a editores/administradores ya existentes que aún no figuran).

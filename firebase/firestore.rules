@@ -152,6 +152,24 @@ service cloud.firestore {
     match /colaboradores/{uid} {
       allow read:   if isApproved();
       allow write:  if isAdmin();
+      // Quien aporta contenido (sube una guía o publica algo) en una sección que puede editar queda
+      // acreditado en ella automáticamente: solo puede AÑADIR esa sección a su propia ficha.
+      allow update: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sections','ultimaSeccion','actualizadoPor','fechaActualizacion'])
+                    && request.resource.data.ultimaSeccion is string
+                    && canEdit(request.resource.data.ultimaSeccion)
+                    && resource.data.sections is list
+                    && request.resource.data.sections.hasAll(resource.data.sections)
+                    && request.resource.data.sections.size() == resource.data.sections.size() + 1
+                    && request.resource.data.sections.hasAny([request.resource.data.ultimaSeccion]);
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.keys().hasOnly(['nombre','perfil','rol','sections','ultimaSeccion','actualizadoPor','fechaActualizacion'])
+                    && request.resource.data.nombre is string
+                    && request.resource.data.nombre.size() > 0 && request.resource.data.nombre.size() <= 80
+                    && request.resource.data.perfil == 'editor'
+                    && request.resource.data.ultimaSeccion is string
+                    && request.resource.data.sections == [request.resource.data.ultimaSeccion]
+                    && canEdit(request.resource.data.ultimaSeccion);
     }
 
     // ── Apartados (subtipos) de las guías clínicas, por sección ──
