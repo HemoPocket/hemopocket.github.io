@@ -516,6 +516,12 @@ body{font-size:13px}
 .btn-er{background:var(--er)}
 .menu-cat{font-weight:600;letter-spacing:.1px;font-size:13px}
 .st-acts{display:flex;gap:4px}
+.qt-pm{display:flex;flex-direction:column;gap:6px;margin:6px 0 8px}
+.qt-pm-h{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin:6px 0 0}
+.qt-pm-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
+.qt-pm-t{flex:1;min-width:0;font-size:13.5px;line-height:1.5;outline:none}
+.qt-pm-t:focus{box-shadow:0 0 0 2px var(--ring);border-radius:4px}
+.qt-pm-c{flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:8px;padding:4px 10px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--c2);cursor:pointer}
 .g-trash{margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--bd)}
 .g-trash>button{background:none;border:none;padding:0;color:var(--mut);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline}
 .g-trash-msg{font-size:12.5px;color:var(--mut);padding:6px 0}
@@ -10144,7 +10150,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 443;
+const HP_BUILD = 444;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10705,7 +10711,7 @@ const QT_SCHEMES = {
       {name:'MESNA',         dose:'5000 mg/m²', route:'IV (con la ifosfamida)', days:[2]}
     ],
     premed: [
-      'Premedicación de polatuzumab vedotina (antes de la infusión, en todos los ciclos): antihistamínico (dexclorfeniramina 5 mg IV o difenhidramina) + antipirético (paracetamol 650-1000 mg).'
+      'Dexclorfeniramina 5 mg IV (o difenhidramina), antes de la infusión de polatuzumab vedotina, en todos los ciclos.','Paracetamol 650-1000 mg, antes de la infusión de polatuzumab vedotina, en todos los ciclos.'
     ],
     notes: [
       'Indicación: LBDCG en recaída/refractario (régimen de rescate, p. ej. antes de TASPE o CAR-T). Ciclos de 21 días.',
@@ -10738,7 +10744,7 @@ const QT_SCHEMES = {
       {name:'Bendamustina',    dose:'90 mg/m²',             route:'IV', days:[1,2]}
     ],
     premed: [
-      'Premedicación de polatuzumab vedotina (antes de la infusión, en todos los ciclos): antihistamínico (dexclorfeniramina 5 mg IV o difenhidramina) + antipirético (paracetamol 650-1000 mg).',
+      'Dexclorfeniramina 5 mg IV (o difenhidramina), antes de la infusión de polatuzumab vedotina, en todos los ciclos.','Paracetamol 650-1000 mg, antes de la infusión de polatuzumab vedotina, en todos los ciclos.',
     ],
     notes: [
       'Indicación: LBDCG en recaída o refractario. 6 ciclos de 21 días. Polatuzumab, bendamustina y rituximab pueden administrarse en cualquier orden el día 1 (bendamustina los días 1 y 2).',
@@ -10750,7 +10756,7 @@ const QT_SCHEMES = {
   },
   'POLA-R-CHP': {
     r1split:true,
-    label: 'Pola-R-CHP – Polatuzumab + R-CHP · LBDCG no tratado previamente (POLARIX) (cada 21 días, 6 ciclos)',
+    label: 'Pola-R-CHP – Polatuzumab + R-CHP · LBDCG no tratado previamente (cada 21 días, 6 ciclos)',
     drugs: [
       {name:'Polatuzumab vedotina', dose:'1,8 mg/kg',       route:'IV', days:[1]},
       {name:'Rituximab',       dose:'375 mg/m²',            route:'IV', days:[1]},
@@ -10764,7 +10770,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación de polatuzumab vedotina (antes de la infusión, en todos los ciclos): antihistamínico (dexclorfeniramina 5 mg IV o difenhidramina) + antipirético (paracetamol 650-1000 mg).',
+      'Dexclorfeniramina 5 mg IV (o difenhidramina), antes de la infusión de polatuzumab vedotina, en todos los ciclos.','Paracetamol 650-1000 mg, antes de la infusión de polatuzumab vedotina, en todos los ciclos.',
     ],
     notes: [
       'Indicación: LBDCG no tratado previamente. 6 ciclos de 21 días; el polatuzumab sustituye a la vincristina del R-CHOP.',
@@ -10840,7 +10846,7 @@ const QT_SCHEMES = {
     ]
   },  // ── MIELOMA ──────────────────────────────────────────────────────────
   'DaraVRD': {
-    label: 'Dara-VRd – Daratumumab + Bortezomib + Lenalidomida + Dexametasona · MM candidato a TPH (PERSEUS) (cada 28 días)',
+    label: 'Dara-VRd – Daratumumab + Bortezomib + Lenalidomida + Dexametasona · MM candidato a TPH (cada 28 días)',
     noAntiemetic: true,
     drugs: [
       {name:'Daratumumab', dose:'1800 mg', route:'SC', days:[1,8,15,22]},
@@ -10857,7 +10863,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación de daratumumab (1-3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV) + paracetamol 650-1000 mg VO; valorar montelukast 10 mg VO; intensificarla si hay enfermedad pulmonar previa. Corticoide antes de cada inyección: dexametasona 20 mg (o equivalente); los días con dexametasona en el esquema, esa dosis sirve de premedicación.',
+      'Dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV), 1-3 h antes del daratumumab.','Paracetamol 650-1000 mg VO, 1-3 h antes del daratumumab.','Dexametasona 20 mg (o equivalente), antes de cada inyección de daratumumab. Los días con dexametasona en el esquema, esa dosis sirve de premedicación.','Valorar montelukast 10 mg VO, 1-3 h antes del daratumumab. Intensificar la premedicación si hay enfermedad pulmonar previa.',
       'Posmedicación de daratumumab: valorar metilprednisolona VO en dosis bajas (≤ 20 mg) o equivalente al día siguiente de la inyección; no hace falta si ese día recibe corticoide del esquema.',
       'Los días que la dexametasona coincide con el daratumumab, repartir esa dosis en 2 días (libro azul): p. ej., con 40 mg, 20 mg el día del daratumumab (antes de la inyección) y 20 mg al día siguiente.'
     ],
@@ -10893,7 +10899,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación de daratumumab (1-3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV) + paracetamol 650-1000 mg VO; valorar montelukast 10 mg VO; intensificarla si hay enfermedad pulmonar previa. Corticoide antes de cada inyección: dexametasona 20 mg (o equivalente); los días con dexametasona en el esquema, esa dosis sirve de premedicación.',
+      'Dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV), 1-3 h antes del daratumumab.','Paracetamol 650-1000 mg VO, 1-3 h antes del daratumumab.','Dexametasona 20 mg (o equivalente), antes de cada inyección de daratumumab. Los días con dexametasona en el esquema, esa dosis sirve de premedicación.','Valorar montelukast 10 mg VO, 1-3 h antes del daratumumab. Intensificar la premedicación si hay enfermedad pulmonar previa.',
       'Posmedicación de daratumumab: valorar metilprednisolona VO en dosis bajas (≤ 20 mg) o equivalente al día siguiente de la inyección; no hace falta si ese día recibe corticoide del esquema.',
       'Los días que la dexametasona coincide con el daratumumab, repartir esa dosis en 2 días (libro azul): p. ej., con 40 mg, 20 mg el día del daratumumab (antes de la inyección) y 20 mg al día siguiente.'
     ],
@@ -10935,7 +10941,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación de daratumumab (1-3 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV) + paracetamol 650-1000 mg VO; valorar montelukast 10 mg VO; intensificarla si hay enfermedad pulmonar previa. Corticoide antes de cada inyección: dexametasona 20 mg (o equivalente); los días con dexametasona en el esquema, esa dosis sirve de premedicación.',
+      'Dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV), 1-3 h antes del daratumumab.','Paracetamol 650-1000 mg VO, 1-3 h antes del daratumumab.','Dexametasona 20 mg (o equivalente), antes de cada inyección de daratumumab. Los días con dexametasona en el esquema, esa dosis sirve de premedicación.','Valorar montelukast 10 mg VO, 1-3 h antes del daratumumab. Intensificar la premedicación si hay enfermedad pulmonar previa.',
       'Posmedicación de daratumumab: valorar metilprednisolona VO en dosis bajas (≤ 20 mg) o equivalente al día siguiente de la inyección; no hace falta si ese día recibe corticoide del esquema.',
       'Los días que la dexametasona coincide con el daratumumab, repartir esa dosis en 2 días (libro azul): p. ej., con 40 mg, 20 mg el día del daratumumab (antes de la inyección) y 20 mg al día siguiente.'
     ],
@@ -10948,7 +10954,7 @@ const QT_SCHEMES = {
     ]
   },
   'ISATUXIMAB-VRD': {
-    label: 'Isa-VRd – Isatuximab + Bortezomib + Lenalidomida + Dexametasona · MM no candidato a TPH (IMROZ) · inducción (ciclos de 42 días)',
+    label: 'Isa-VRd – Isatuximab + Bortezomib + Lenalidomida + Dexametasona · MM no candidato a TPH · inducción (ciclos de 42 días)',
     noAntiemetic: true,
     drugs: [
       {name:'Isatuximab',      dose:'10 mg/kg',             route:'IV', days:[1,8,15,22,29]},
@@ -10975,7 +10981,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación de isatuximab (1 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV) + paracetamol 650-1000 mg VO; valorar montelukast 10 mg VO; intensificarla si hay enfermedad pulmonar previa (libro azul). La dexametasona del esquema se da ese día antes del isatuximab.'
+      'Dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV), 1 h antes del isatuximab.','Paracetamol 650-1000 mg VO, 1 h antes del isatuximab.','Dexametasona del esquema: ese día se da antes del isatuximab.','Valorar montelukast 10 mg VO, 1 h antes del isatuximab. Intensificar la premedicación si hay enfermedad pulmonar previa (libro azul).'
     ],
     notes: [
       'Esquema mostrado: ciclo 1 de inducción (42 días). En el ciclo 1 el isatuximab es semanal (días 1, 8, 15, 22 y 29).',
@@ -10990,7 +10996,7 @@ const QT_SCHEMES = {
     ]
   },
   'ISA-KD': {
-    label: 'IsaKd – Isatuximab + Carfilzomib + Dexametasona · MM en recaída (IKEMA) (cada 28 días)',
+    label: 'IsaKd – Isatuximab + Carfilzomib + Dexametasona · MM en recaída (cada 28 días)',
     drugs: [
       {name:'Isatuximab', dose:'10 mg/kg', route:'IV', days:[1,8,15,22]},
       {name:'Carfilzomib (escalada)', dose:'20 mg/m² (máx 44 mg)', route:'IV', days:[1,2]},
@@ -11006,7 +11012,7 @@ const QT_SCHEMES = {
     ],
     noAntiemetic: true,
     premed: [
-      'Premedicación de isatuximab (1 h antes): dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV) + paracetamol 650-1000 mg VO; valorar montelukast 10 mg VO; intensificarla si hay enfermedad pulmonar previa (libro azul). La dexametasona del esquema se da ese día antes del isatuximab.'
+      'Dexclorfeniramina 5 mg IV (o antihistamínico equivalente, VO o IV), 1 h antes del isatuximab.','Paracetamol 650-1000 mg VO, 1 h antes del isatuximab.','Dexametasona del esquema: ese día se da antes del isatuximab.','Valorar montelukast 10 mg VO, 1 h antes del isatuximab. Intensificar la premedicación si hay enfermedad pulmonar previa (libro azul).'
     ],
     notes: [
       'Carfilzomib: si la superficie corporal es > 2,2 m², calcular la dosis con 2,2 m² (ficha técnica): máximo de 44 mg a 20 mg/m² y de 123,2 mg a 56 mg/m².',
@@ -11021,7 +11027,7 @@ const QT_SCHEMES = {
   },
   // ── LEUCEMIA LINFÁTICA CRÓNICA ────────────────────────────────────────
   'OBJ-VENETOCLAX': {
-    label: 'Obinutuzumab + Venetoclax – CLL14 (cada 28 días, 12 ciclos)',
+    label: 'Obinutuzumab + Venetoclax (cada 28 días, 12 ciclos)',
     drugs: [
       {name:'Obinutuzumab (1.ª dosis)', dose:'100 mg', route:'IV', days:[1]},
       {name:'Obinutuzumab (resto de la 1.ª dosis; puede darse el día 1 o el 2)', dose:'900 mg', route:'IV', days:[2]},
@@ -11045,7 +11051,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación de obinutuzumab: paracetamol 1 g IV + dexclorfeniramina 5 mg IV, 30 min antes de la infusión. Corticoide 1 h antes (prednisona/prednisolona 100 mg, dexametasona 20 mg o metilprednisolona 80 mg IV): obligatorio los días 1 y 2 del ciclo 1; los días 8 y 15 del ciclo 1 y en los ciclos 2-6, solo si hubo una reacción infusional de grado 3 en la infusión anterior o si los linfocitos son > 25 × 10⁹/L.'
+      'Paracetamol 1 g IV, 30 min antes del obinutuzumab.','Dexclorfeniramina 5 mg IV, 30 min antes del obinutuzumab.','Corticoide (prednisona/prednisolona 100 mg, dexametasona 20 mg o metilprednisolona 80 mg IV), 1 h antes del obinutuzumab: obligatorio los días 1 y 2 del ciclo 1; los días 8 y 15 del ciclo 1 y en los ciclos 2-6, solo si hubo una reacción infusional de grado 3 en la infusión anterior o si los linfocitos son > 25 × 10⁹/L.'
     ],
     notes: [
       '12 ciclos de 28 días: 6 con obinutuzumab y 6 de venetoclax en monoterapia.',
@@ -11055,7 +11061,7 @@ const QT_SCHEMES = {
     ]
   },
   'R-VENETOCLAX': {
-    label: 'Rituximab + Venetoclax – MURANO (cada 28 días, 6 ciclos R; venetoclax 24 meses)',
+    label: 'Rituximab + Venetoclax (cada 28 días, 6 ciclos R; venetoclax 24 meses)',
     drugs: [
       {name:'Rituximab', dose:'375 mg/m²', route:'IV', days:[1]},
       {name:'Venetoclax (rampa 5 semanas previa: 20→50→100→200→400 mg/d; luego 400 mg/d continuo)', dose:'400 mg/día', route:'VO', days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}
@@ -11103,7 +11109,7 @@ const QT_SCHEMES = {
   'CBF-AML': {
     label: 'Ida-ARAc-GO – CBF-AML PETHEMA (t(8;21) / inv(16))', short:'Ida-ARAc-GO',
     premed:[
-      'Premedicación de gemtuzumab (la recomienda el libro azul; pauta de ficha técnica): 1 h antes, corticoide (p. ej., metilprednisolona) + antihistamínico + paracetamol.'
+      'Corticoide (p. ej., metilprednisolona), 1 h antes del gemtuzumab (libro azul; pauta de ficha técnica).','Antihistamínico, 1 h antes del gemtuzumab.','Paracetamol, 1 h antes del gemtuzumab.'
     ],
     drugs: [
       {name:'Idarubicina',               dose:'12 mg/m²',              route:'IV', days:[1,2,3]},
@@ -11122,7 +11128,7 @@ const QT_SCHEMES = {
   'CBF-CONSOL': {
     label: 'Consolidación CBF (ARA-C AD + Gemtuzumab) – LMA CBF (3 ciclos)',
     premed:[
-      'Premedicación de gemtuzumab (la recomienda el libro azul; pauta de ficha técnica): 1 h antes, corticoide (p. ej., metilprednisolona) + antihistamínico + paracetamol.'
+      'Corticoide (p. ej., metilprednisolona), 1 h antes del gemtuzumab (libro azul; pauta de ficha técnica).','Antihistamínico, 1 h antes del gemtuzumab.','Paracetamol, 1 h antes del gemtuzumab.'
     ],
     drugs: [
       {name:'Citarabina (ARA-C)', dose:'3000 mg/m²/12h', route:'IV 3h', days:[1,3,5], adj:'≥ 60 años: 1500 mg/m²/12 h'},
@@ -11164,7 +11170,7 @@ const QT_SCHEMES = {
     ]
   },
   'IA-MIDOSTAURIN': {
-    label: 'Ida-ARAc (3+7) + Midostaurin – inducción LMA FLT3+ (RATIFY)', short:'Ida-ARAc-Midostaurin',
+    label: 'Ida-ARAc (3+7) + Midostaurin – inducción LMA FLT3+', short:'Ida-ARAc-Midostaurin',
     drugs: [
       {name:'Idarubicina',   dose:'12 mg/m²',  route:'IV 10 min', days:[1,2,3]},
       {name:'Citarabina',    dose:'200 mg/m²', route:'IV infusión continua 24h', days:[1,2,3,4,5,6,7]},
@@ -11255,7 +11261,7 @@ const QT_SCHEMES = {
   'APLASIA-IST': {
     label: 'Aplasia medular grave — IST (ATG + ciclosporina + eltrombopag)',
     premed:[
-      'Premedicación IV de cada dosis de ATG: paracetamol 1 g + dexclorfeniramina 5 mg + la metilprednisolona del día (dosis del esquema). Tener preparada adrenalina por el riesgo de anafilaxia.'
+      'Paracetamol 1 g IV, antes de cada dosis de ATG.','Dexclorfeniramina 5 mg IV, antes de cada dosis de ATG.','Metilprednisolona del día (dosis del esquema) IV, antes de cada dosis de ATG.','Tener preparada adrenalina por el riesgo de anafilaxia.'
     ],
     drugs: [
       {name:'ATG de conejo (Timoglobulina) — infusión muy lenta (12-18 h)', dose:'3,5-3,75 mg/kg/día', route:'IV', days:[1,2,3,4,5]},
@@ -11318,7 +11324,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación para reducir el síndrome de liberación de citocinas (SLC), al menos 1 h antes de cada infusión de glofitamab: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV).',
+      'Dexametasona 20 mg IV (o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg), al menos 1 h antes de cada infusión de glofitamab, para reducir el SLC.','Paracetamol 500-1000 mg, al menos 1 h antes de cada infusión de glofitamab.','Difenhidramina 50-100 mg VO/IV, al menos 1 h antes de cada infusión de glofitamab.',
       'Corticoide obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3 (ficha técnica). Después, mantener el antipirético y el antihistamínico, y dar el corticoide solo si hubo SLC con la dosis previa. El obinutuzumab (1000 mg, 7 días antes) actúa como pretratamiento citorreductor para reducir el SLC.'
     ],
     notes: [
@@ -11348,7 +11354,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed:[
-      'Premedicación del ciclo 1 para reducir el SLC, 30-120 min antes de cada dosis semanal de epcoritamab: dexametasona 16 mg VO/IV (o prednisolona 100 mg) + antihistamínico (difenhidramina 50 mg VO/IV) + antipirético (paracetamol 650-1000 mg VO).',
+      'Dexametasona 16 mg VO/IV (o prednisolona 100 mg), 30-120 min antes de cada dosis semanal de epcoritamab del ciclo 1, para reducir el SLC.','Difenhidramina 50 mg VO/IV, 30-120 min antes de cada dosis semanal de epcoritamab del ciclo 1.','Paracetamol 650-1000 mg VO, 30-120 min antes de cada dosis semanal de epcoritamab del ciclo 1.',
       'Dexametasona 16 mg VO/IV: el día de cada dosis de epcoritamab y los 3 días siguientes (ciclo 1, ver fechas en el esquema). En los ciclos posteriores, solo la dosis de premedicación; el antihistamínico y el antipirético, solo si hubo SLC previo.'
     ],
     notes:[
@@ -11379,7 +11385,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed:[
-      'Premedicación del ciclo 1 para reducir el SLC, 30-120 min antes de cada dosis semanal de epcoritamab: dexametasona 16 mg VO/IV (o prednisolona 100 mg) + antihistamínico (difenhidramina 50 mg VO/IV) + antipirético (paracetamol 650-1000 mg VO).',
+      'Dexametasona 16 mg VO/IV (o prednisolona 100 mg), 30-120 min antes de cada dosis semanal de epcoritamab del ciclo 1, para reducir el SLC.','Difenhidramina 50 mg VO/IV, 30-120 min antes de cada dosis semanal de epcoritamab del ciclo 1.','Paracetamol 650-1000 mg VO, 30-120 min antes de cada dosis semanal de epcoritamab del ciclo 1.',
       'Dexametasona 16 mg VO/IV: el día de cada dosis de epcoritamab y los 3 días siguientes (ciclo 1, ver fechas en el esquema). En los ciclos posteriores, solo la dosis de premedicación; el antihistamínico y el antipirético, solo si hubo SLC previo.'
     ],
     notes:[
@@ -11405,7 +11411,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación para reducir el SLC, al menos durante los ciclos 1 y 2: corticoide (dexametasona 20 mg IV o metilprednisolona 80 mg IV) completado ≥1 h antes + antihistamínico (difenhidramina 50-100 mg VO/IV ≥30 min antes) + antipirético (paracetamol 500-1000 mg VO ≥30 min antes).',
+      'Dexametasona 20 mg IV o metilprednisolona 80 mg IV, completada ≥1 h antes del mosunetuzumab (al menos en los ciclos 1 y 2), para reducir el SLC.','Difenhidramina 50-100 mg VO/IV, ≥30 min antes del mosunetuzumab (al menos en los ciclos 1 y 2).','Paracetamol 500-1000 mg VO, ≥30 min antes del mosunetuzumab (al menos en los ciclos 1 y 2).',
       'A partir del ciclo 3 la premedicación se mantiene solo en pacientes que presentaron SLC con la dosis previa.'
     ],
     notes: [
@@ -11433,8 +11439,8 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación del glofitamab para reducir el SLC, al menos 1 h antes de la infusión: corticoide (dexametasona 20 mg IV, o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg) + antipirético (paracetamol 500-1000 mg) + antihistamínico (difenhidramina 50-100 mg VO/IV). Corticoide obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3 (ficha técnica); después, solo si hubo SLC con la dosis previa.',
-      'Profilaxis antiemética los días de GemOx (gemcitabina + oxaliplatino): antagonista 5-HT3 (ondansetrón/granisetrón) + dexametasona.'
+      'Dexametasona 20 mg IV (o prednisona/prednisolona 100 mg, o metilprednisolona 80 mg), al menos 1 h antes de la infusión de glofitamab, para reducir el SLC. Obligatorio con las dosis escaladas (días 8 y 15 del ciclo 1) y el día 1 de los ciclos 2 y 3 (ficha técnica); después, solo si hubo SLC con la dosis previa.','Paracetamol 500-1000 mg, al menos 1 h antes de la infusión de glofitamab.','Difenhidramina 50-100 mg VO/IV, al menos 1 h antes de la infusión de glofitamab.',
+      'Ondansetrón o granisetrón (antagonista 5-HT3), los días de GemOx (gemcitabina + oxaliplatino).','Dexametasona, los días de GemOx.'
     ],
     notes: [
       'Hospitalizar durante la 1.ª dosis escalonada (2,5 mg) y las 24 h siguientes (ficha técnica).',
@@ -11545,7 +11551,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación 1-3 h antes de cada dosis de la escalada (para reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente VO/IV) + antipirético (paracetamol 650-1000 mg VO/IV). Considerarla también si se retrasa una dosis y en pacientes que hayan presentado SLC.'
+      'Dexametasona 16 mg VO/IV, 1-3 h antes de cada dosis de la escalada, para reducir el riesgo de SLC.','Difenhidramina 50 mg o equivalente VO/IV, 1-3 h antes de cada dosis de la escalada.','Paracetamol 650-1000 mg VO/IV, 1-3 h antes de cada dosis de la escalada.','Considerar la premedicación también si se retrasa una dosis y en pacientes que hayan presentado SLC.'
     ],
     notes: [
       'Dosis según peso actual, vía subcutánea. Dejar ≥5 días entre las dosis de mantenimiento semanales.',
@@ -11572,7 +11578,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación 1-3 h antes de cada dosis de la escalada (para reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg).'
+      'Dexametasona 16 mg VO/IV, 1-3 h antes de cada dosis de la escalada, para reducir el riesgo de SLC.','Difenhidramina 50 mg o equivalente, 1-3 h antes de cada dosis de la escalada.','Paracetamol 650-1000 mg, 1-3 h antes de cada dosis de la escalada.'
     ],
     notes: [
       'Esquema por defecto = pauta QUINCENAL: escalada 0,01 (d1) → 0,06 (d3) → 0,4 (d5) → 0,8 mg/kg (d7); después 0,8 mg/kg cada 2 semanas (mínimo 12 días entre dosis).',
@@ -11601,7 +11607,7 @@ const QT_SCHEMES = {
       ]}
     ],
     premed: [
-      'Premedicación 1-3 h antes de cada dosis de la escalada (para reducir el riesgo de síndrome de liberación de citocinas): corticoide (dexametasona 16 mg VO/IV) + antihistamínico (difenhidramina 50 mg o equivalente) + antipirético (paracetamol 650-1000 mg). Considerarla también si se retrasa una dosis y en pacientes que hayan presentado SLC.'
+      'Dexametasona 16 mg VO/IV, 1-3 h antes de cada dosis de la escalada, para reducir el riesgo de SLC.','Difenhidramina 50 mg o equivalente, 1-3 h antes de cada dosis de la escalada.','Paracetamol 650-1000 mg, 1-3 h antes de cada dosis de la escalada.','Considerar la premedicación también si se retrasa una dosis y en pacientes que hayan presentado SLC.'
     ],
     notes: [
       'Tras la escalada, 76 mg semanal hasta el ciclo 6. Desde el ciclo 7 (≥ 24 semanas de tratamiento), pasar a 76 mg cada 2 semanas solo si además hay respuesta (≥ respuesta parcial) mantenida ≥ 2 meses: hacen falta las dos condiciones (ficha técnica). Ciclos de 28 días.',
@@ -11723,7 +11729,7 @@ const QT_SCHEMES = {
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[1]}
     ],
     premed: [
-      'Premedicación antes de cada dosis (libro azul; LAL-2025 remite a la ficha técnica): paracetamol 1 g + metilprednisolona 40 mg + dexclorfeniramina 5 mg IV.'
+      'Paracetamol 1 g, antes de cada dosis de inotuzumab (libro azul; LAL-2025 remite a la ficha técnica).','Metilprednisolona 40 mg, antes de cada dosis de inotuzumab.','Dexclorfeniramina 5 mg IV, antes de cada dosis de inotuzumab.'
     ],
     notes: [
       'Indicación: LLA-B sin RC citológica tras inducción-1. Un solo ciclo (dosis total 1,8 mg/m²).',
@@ -12121,7 +12127,12 @@ function qtGroupedKeys(){ var _qS=qtSchemes(); var map={}; qtGroupIds().forEach(
 // clave sustituye al de fábrica; con clave nueva, se añade (grupo «Personalizados»). El calendario
 // (qtCalc) usa la versión fusionada. Todo el texto se escapa. Se guardan en Firestore ('qtschemes').
 function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {}; } }
-function qtSchemes(){ return Object.assign({}, QT_SCHEMES, qtOverride()); }
+// Los nombres de ensayos (PERSEUS, POLARIX, STARGLOW…) no se muestran en el nombre del esquema, tampoco
+// en los esquemas creados o editados desde la app.
+const QT_TRIALS='PERSEUS|STARGLOW|POLARIX|POLARGO|IMROZ|IKEMA|CEPHEUS|CASSIOPEIA|GRIFFIN|MAIA|ALCYONE|CANDOR|ELOQUENT|TOURMALINE|POLLUX|CASTOR|APOLLO|BOSTON|OPTIMISMM|MURANO|CLL1[0-9]|ELEVATE|SEQUOIA|FLAIR|GLOW|CAPTIVATE|AMPLIFY|RATIFY|QUAZAR|VIALE[- ]?[A-C]?|AGILE|LACEWING|ADMIRAL|QUANTUM[- ]?FIRST|ECHELON[- ]?\\d?|HD21|ZUMA[- ]?\\d*|TRANSFORM|BELINDA|LOTIS[- ]?\\d*|EPCORE[- ]?\\w*|MAJESTEC[- ]?\\d*|MONUMENTAL[- ]?\\d*|MAGNETISMM[- ]?\\d*|KARMMA[- ]?\\d*|CARTITUDE[- ]?\\d*|DREAMM[- ]?\\d*|BRUIN|SHINE|TRIANGLE|GALLIUM|PRIMA|RELEVANCE|AUGMENT|GOYA|SMART[- ]?START';
+const QT_TRIAL_RX=[new RegExp('\\s*\\((?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')\\)','gi'), new RegExp('\\s*[–—-]\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi'), new RegExp('\\s*·\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi')];
+function qtSinEnsayo(t){ if(!t) return t; let x=''+t; QT_TRIAL_RX.forEach(function(r){ x=x.replace(r,''); }); return x.replace(/\s{2,}/g,' ').trim(); }
+function qtSchemes(){ const o=Object.assign({}, QT_SCHEMES, qtOverride()); Object.keys(o).forEach(function(k){ const sc=o[k]; if(sc&&(sc.label||sc.short)){ const l=qtSinEnsayo(sc.label), sh=qtSinEnsayo(sc.short); if(l!==sc.label||sh!==sc.short) o[k]=Object.assign({},sc,{label:l,short:sh}); } }); return o; }
 // Nombre del ciclo tal como debe aparecer AL PAUTAR (respeta mayúsculas/minúsculas).
 // Prioridad: 'short' (editable por el admin) → 'label' sin el paréntesis final tipo
 // «(cada 21 días)» → la clave. Así «R-mini-CHOP» ya no sale como «R-MINI-CHOP».
@@ -12129,7 +12140,7 @@ function qtCycleName(scheme,key){
   if(scheme&&scheme.short&&scheme.short.trim()) return scheme.short.trim();
   var lbl=(scheme&&scheme.label)?(''+scheme.label):'';
   lbl=lbl.replace(/\s*\([^)]*\)\s*$/,'').trim();
-  return lbl||key||'';
+  return qtSinEnsayo(lbl||key||'');
 }
 window.hpApplyQt=function(map){ var _ch=true; try{ _ch=(JSON.stringify(ls.g('qtOverride')||{})!==JSON.stringify(map||{})); }catch(e){} try{ ls.s('qtOverride', map||{}); }catch(e){} if(!_ch) return; try{ if(typeof S!=='undefined' && S && S.view==='qt' && typeof go==='function') go('qt'); }catch(e){} };
 let _qtDraft=null;
@@ -12258,9 +12269,9 @@ ${QT_DA_EPOCH_LV.map(l=>`<option value="${l}"${l==='1'?' selected':''}>Nivel ${l
 <textarea id="qt_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7"></textarea></div>
 <div class="btns"><button class="btn btn-g" onclick="qtCopy('qt_out')">📋 Copiar esquema</button></div>
 <div id="qt_premed_wrap" style="display:none">
-<div class="fld" style="margin-top:12px"><label class="lbl">Premedicación (editable)</label>
-<textarea id="qt_premed" style="min-height:80px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7"></textarea></div>
-<div class="btns"><button class="btn btn-g" onclick="qtCopy('qt_premed')">📋 Copiar premedicación</button></div>
+<div class="lbl" style="margin-top:14px">Premedicación <span style="font-weight:400;color:var(--mut)">· cada línea se copia por separado y se puede corregir</span></div>
+<div id="qt_premed_list" class="qt-pm"></div><textarea id="qt_premed" hidden></textarea>
+<div class="btns"><button class="btn btn-out btn-sm" onclick="qtCopy('qt_premed')">Copiar toda la premedicación</button></div>
 </div>
 <div id="qt_notes" style="display:none;margin-top:14px;font-size:12.5px;line-height:1.5"></div>
 </div>
@@ -13374,7 +13385,7 @@ function qtAntiemeticLines(scheme,key,drugsList){
   const fac=QT_SCHEMES[key]||{};
   const own=scheme.antiemetic||fac.antiemetic;
   if(own) return drugsList.some(d=>!QT_NOEMETO_RX.test(d.name))?[own]:[];
-  return scheme.noAntiemetic?[]:['Antiemético: ondansetrón 8 mg IV 30 min antes de la quimioterapia.'];
+  return scheme.noAntiemetic?[]:['Ondansetrón 8 mg IV, 30 min antes de la quimioterapia.'];
 }
 const QT_ANTICD20_VHB='Anti-CD20: cribado de VHB (HBsAg y anti-HBc) antes de empezar; si alguno es positivo, profilaxis con entecavir, tenofovir o lamivudina (libro azul).';
 const QT_COND_PESO='Peso para el cálculo (libro azul): si el peso ideal es mayor que el real, usar el peso real; si el peso real es ≥ 125 % del ideal, usar el peso ideal ajustado.';
@@ -13435,9 +13446,12 @@ function fmtDrugLine(drug,dateStr){
 }
 const lines=[];const relLines=[];
 const _imc=bsa>0?hpIMC(peso,talla):null;
-const bsaNote=bsa>0?' · SC: '+bsa.toFixed(3)+' m²'+(_imc?' · IMC: '+_imc.v.toFixed(2)+' kg/m²':''):'';
 const _ce=scheme.conditioning?null:qtDrugsForCycle(scheme,cycle);
 let drugsList=_ce?_ce.drugs:scheme.drugs;
+// La superficie corporal solo va en el texto copiable de los esquemas con metotrexato sistémico
+// (la necesita el rescate con folinato); en el resto se omite para que el texto sea más limpio.
+const _conMTX=!scheme.conditioning&&drugsList.some(d=>/metotrexato|methotrexate|\bMTX\b/i.test(d.name)&&!/intratecal|triple/i.test(d.name)&&!/^IT$/i.test((d.route||'').trim()));
+const bsaNote=(bsa>0&&_conMTX)?' (SC: '+bsa.toFixed(3)+' m²)':'';
 // Ciclo 1 con rituximab: la 1.ª infusión es lenta → rituximab el día 1 y el resto de la QT desde el día 2.
 // Los corticoides NO se desplazan: siguen desde el día 1 (p. ej. prednisona días 1-5 en R-CHOP).
 if(cycle===1&&scheme.r1split){
@@ -13486,7 +13500,7 @@ if(scheme.conditioning){
     }
   });
 } else {
-  lines.push(cycle+'º ciclo '+qtCycleName(scheme,key)+(_ce&&_ce.label?' · '+_ce.label:'')+(_isEpo?' · nivel de dosis '+_lvl:'')+':'+bsaNote);
+  lines.push(cycle+'º ciclo '+qtCycleName(scheme,key)+(_ce&&_ce.label?' · '+_ce.label:'')+(_isEpo?' · nivel de dosis '+_lvl:'')+bsaNote+':');
   drugsList.forEach(drug=>{
     const ci=_cortInfo(drug);
     if(!ci){ lines.push(fmtDrugLine(drug,qtFmtDates(groupDays(drug.days)))); return; }
@@ -13516,27 +13530,35 @@ if(scheme.conditioning){
   const _qd=scheme.drugs.filter(d=>!/infusi|G-CSF|filgrastim/i.test(d.name)).flatMap(d=>d.days||[]);
   const _q1=_qd.length?Math.min(..._qd):1;
   const _cf=n=>qtFmtDM(qtAddDays(base,_q1-1+n));
-  _pmList.push('Profilaxis antiemética del acondicionamiento:');
-  _pmList.push('– Netupitant/palonosetrón 300/0,5 mg VO (dosis única), el 1.er día del acondicionamiento ('+_cf(0)+').');
-  _pmList.push('– Dexametasona 12 mg IV/VO (dosis única) el 1.er día ('+_cf(0)+'); después 8 mg/día el 2.º y 3.er día ('+_cf(1)+' y '+_cf(2)+').');
-  _pmList.push('– Ondansetrón (antagonista 5-HT3) 8 mg IV/8 h fijo el 2.º y 3.er día ('+_cf(1)+' y '+_cf(2)+'); después si precisa.');
+  _pmList.push({h:'Profilaxis antiemética del acondicionamiento'});
+  _pmList.push('Netupitant/palonosetrón 300/0,5 mg VO (dosis única), el 1.er día del acondicionamiento ('+_cf(0)+').');
+  _pmList.push('Dexametasona 12 mg IV/VO (dosis única) el 1.er día ('+_cf(0)+'); después 8 mg/día el 2.º y 3.er día ('+_cf(1)+' y '+_cf(2)+').');
+  _pmList.push('Ondansetrón (antagonista 5-HT3) 8 mg IV/8 h fijo el 2.º y 3.er día ('+_cf(1)+' y '+_cf(2)+'); después si precisa.');
 }else{
-  _pmList.push(...qtAntiemeticLines(scheme,key,drugsList));
+  const _ae=qtAntiemeticLines(scheme,key,drugsList); if(_ae.length){ _pmList.push({h:'Antiemético'}); _pmList.push(..._ae); }
 }
 if(_ritDrugs.length){
   // ¿Todos los días de rituximab tienen ya corticoide del esquema? Entonces no se añade metilprednisolona.
   const allCo=_cortPm.length&&_ritDays.every(x=>_cortPm.some(c=>c.days.indexOf(x)>=0));
-  const cn=_cortPm.map(c=>c.ivTxt+' IV el día '+c.txt).join(' y ');
-  let pm='Premedicación de rituximab: dexclorfeniramina 5 mg + paracetamol 1000 mg'+(allCo?'':(_cortPm.length?' + metilprednisolona (los días sin corticoide en el esquema)':' + metilprednisolona'))+', 30 min antes de iniciar la infusión.';
-  if(_cortPm.length) pm+=' Como corticoide, '+cn+' (es la dosis de corticoide del esquema de ese día).';
-  _pmList.push(pm);
+  _pmList.push({h:'Premedicación de rituximab'});
+  _pmList.push('Dexclorfeniramina 5 mg, 30 min antes de iniciar el rituximab.');
+  _pmList.push('Paracetamol 1000 mg, 30 min antes de iniciar el rituximab.');
+  if(!allCo) _pmList.push('Metilprednisolona, 30 min antes de iniciar el rituximab'+(_cortPm.length?' (los días sin corticoide en el esquema).':'.'));
+  _cortPm.forEach(c=>{ const t=c.ivTxt.charAt(0).toUpperCase()+c.ivTxt.slice(1); _pmList.push(t+' IV el día '+c.txt+', 30 min antes de iniciar el rituximab (es la dosis de corticoide del esquema de ese día).'); });
   if(_ritDrugs.some(d=>/IV/i.test(d.route||''))) _pmList.push(QT_RITUX_VEL);
 }
 // La velocidad de rituximab la pone siempre la línea estándar de arriba: se descartan las antiguas que
 // traigan los esquemas (de fábrica o editados en la nube) para que no aparezcan velocidades viejas.
-_pmList.push(...(scheme.premed||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l)));
-if(_pm)_pm.value=_pmList.join('\n').replace(/→/g,'/');
-if(_pmw)_pmw.style.display='';
+const _pe=(scheme.premed||[]).filter(l=>!/velocidad de infusi[oó]n de rituximab/i.test(l));
+if(_pe.length){ _pmList.push({h:'Premedicación del esquema'}); _pmList.push(..._pe); }
+// Los títulos de grupo solo se muestran si hay más de un grupo.
+if(_pmList.filter(x=>typeof x==='object'&&x.h).length<2){ for(let _i=_pmList.length-1;_i>=0;_i--){ if(typeof _pmList[_i]==='object'&&_pmList[_i].h&&!scheme.conditioning) _pmList.splice(_i,1); } }
+// Cada línea de la premedicación se puede copiar por separado (y también todas juntas).
+window._qtPm=_pmList.map(x=>typeof x==='string'?{t:x.replace(/→/g,'/')}:x);
+if(_pm)_pm.value=window._qtPm.filter(x=>x.t).map(x=>x.t).join('\n');
+const _pml=$('qt_premed_list');
+if(_pml)_pml.innerHTML=window._qtPm.map((x,i)=>x.h?'<div class="qt-pm-h">'+chatEsc(x.h)+'</div>':'<div class="qt-pm-row"><div class="qt-pm-t" id="qt_pm_'+i+'" contenteditable="true" spellcheck="false">'+chatEsc(x.t)+'</div><button type="button" class="qt-pm-c" onclick="qtCopyPm('+i+')">Copiar</button></div>').join('');
+if(_pmw)_pmw.style.display=window._qtPm.length?'':'none';
 // Notas (solo lectura) + esquema en días del ciclo
 const _nt=$('qt_notes');let _nh='';
 if(scheme.r1split)_nh+='<div class="alert b" style="margin-bottom:8px;font-size:12.5px"><strong>Ciclo 1:</strong> rituximab el día +1 y el resto de la quimioterapia desde el día +2 (la 1.ª infusión de rituximab es lenta); el corticoide mantiene sus días desde el +1. Desde el ciclo 2, todo se administra el día +1.</div>';
@@ -13559,7 +13581,9 @@ wrap.style.display='';
 info.innerHTML='';
 }
 
+function qtCopyPm(i){ const e=$('qt_pm_'+i); const v=e?e.innerText.trim():''; if(!v){ toast('No hay nada que copiar'); return; } copy(v); }
 function qtCopy(id){
+if(id==='qt_premed'){ const v=[...document.querySelectorAll('#qt_premed_list .qt-pm-t')].map(e=>e.innerText.trim()).filter(Boolean).join('\n'); if(!v){toast('No hay nada que copiar');return;} copy(v); return; }
 const v=$(id||'qt_out')?.value;
 if(!v||!v.trim()){toast('No hay nada que copiar');return;}
 copy(v);
