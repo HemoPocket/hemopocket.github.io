@@ -516,6 +516,8 @@ body{font-size:13px}
 .btn-er{background:var(--er)}
 .menu-cat{font-weight:600;letter-spacing:.1px;font-size:13px}
 .st-acts{display:flex;gap:4px}
+.qt-oral{font-size:12.5px;line-height:1.5;color:var(--mut);border-left:3px solid #e0a800;padding:2px 0 2px 10px;margin:8px 0 12px}
+.qt-out{width:100%;min-height:90px;overflow:hidden;resize:none;font-family:inherit;font-size:14px;line-height:1.6;padding:10px 12px}
 .qt-pm{display:flex;flex-direction:column;gap:6px;margin:6px 0 8px}
 .qt-pm-h{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin:6px 0 0}
 .qt-pm-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
@@ -10150,7 +10152,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 444;
+const HP_BUILD = 445;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -10588,7 +10590,7 @@ const QT_SCHEMES = {
     ]
   },
   'BV-AVD': {
-    label: 'Brentuximab vedotina + AVD – Hodgkin avanzado (ECHELON-1, cada 28 días)',
+    label: 'Brentuximab vedotina + AVD – Hodgkin avanzado (cada 28 días)',
     kw: 'hodgkin brentuximab vedotina avd adcetris adriamicina vinblastina dacarbacina echelon estadio iii iv',
     drugs: [
       {name:'Brentuximab vedotina (iniciar 1 h después del AVD)', dose:'1,2 mg/kg (máx 120 mg)', route:'IV 30 min', days:[1,15]},
@@ -10914,7 +10916,7 @@ const QT_SCHEMES = {
     ]
   },
   'DVCD': {
-    label: 'DVCd – Daratumumab + Bortezomib + Ciclofosfamida + Dexametasona · MM (LYRA) (cada 28 días)',
+    label: 'DVCd – Daratumumab + Bortezomib + Ciclofosfamida + Dexametasona · MM (cada 28 días)',
     antiemetic: 'Antiemético: ondansetrón 8 mg IV antes de iniciar la quimioterapia; después, ondansetrón VO cada 8 h (libro azul).',
     drugs: [
       {name:'Daratumumab (1800 mg SC o 16 mg/kg IV)', dose:'1800 mg', route:'SC/IV', days:[1,8,15,22]},
@@ -11420,7 +11422,7 @@ const QT_SCHEMES = {
   },
   // ── LINFOMA – COMBINADOS ──────────────────────────────────────────────
   'GLOFITAMAB-GEMOX': {
-    label: 'Glofitamab + GemOx – STARGLO (cada 21 días, 12 ciclos)',
+    label: 'Glofitamab + GemOx (cada 21 días, 12 ciclos)',
     drugs: [
       {name:'Obinutuzumab (pretratamiento)', dose:'1000 mg', route:'IV', days:[1]},
       {name:'Gemcitabina', dose:'1000 mg/m²', route:'IV', days:[2]},
@@ -11537,7 +11539,7 @@ const QT_SCHEMES = {
     ]
   },  // ── MIELOMA – BIESPECÍFICOS ───────────────────────────────────────────
   'TECLISTAMAB': {
-    label: 'Teclistamab (BCMA×CD3) – step-up SC (MAJESTEC)',
+    label: 'Teclistamab (BCMA×CD3) – step-up SC',
     noAntiemetic: true,
     drugs: [
       {name:'Teclistamab – escalada dosis 1', dose:'0,06 mg/kg', route:'SC', days:[1]},
@@ -12129,8 +12131,8 @@ function qtGroupedKeys(){ var _qS=qtSchemes(); var map={}; qtGroupIds().forEach(
 function qtOverride(){ try{ return ls.g('qtOverride')||{}; }catch(e){ return {}; } }
 // Los nombres de ensayos (PERSEUS, POLARIX, STARGLOW…) no se muestran en el nombre del esquema, tampoco
 // en los esquemas creados o editados desde la app.
-const QT_TRIALS='PERSEUS|STARGLOW|POLARIX|POLARGO|IMROZ|IKEMA|CEPHEUS|CASSIOPEIA|GRIFFIN|MAIA|ALCYONE|CANDOR|ELOQUENT|TOURMALINE|POLLUX|CASTOR|APOLLO|BOSTON|OPTIMISMM|MURANO|CLL1[0-9]|ELEVATE|SEQUOIA|FLAIR|GLOW|CAPTIVATE|AMPLIFY|RATIFY|QUAZAR|VIALE[- ]?[A-C]?|AGILE|LACEWING|ADMIRAL|QUANTUM[- ]?FIRST|ECHELON[- ]?\\d?|HD21|ZUMA[- ]?\\d*|TRANSFORM|BELINDA|LOTIS[- ]?\\d*|EPCORE[- ]?\\w*|MAJESTEC[- ]?\\d*|MONUMENTAL[- ]?\\d*|MAGNETISMM[- ]?\\d*|KARMMA[- ]?\\d*|CARTITUDE[- ]?\\d*|DREAMM[- ]?\\d*|BRUIN|SHINE|TRIANGLE|GALLIUM|PRIMA|RELEVANCE|AUGMENT|GOYA|SMART[- ]?START';
-const QT_TRIAL_RX=[new RegExp('\\s*\\((?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')\\)','gi'), new RegExp('\\s*[–—-]\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi'), new RegExp('\\s*·\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi')];
+const QT_TRIALS='PERSEUS|STARGLOW?|LYRA|POLARIX|POLARGO|IMROZ|IKEMA|CEPHEUS|CASSIOPEIA|GRIFFIN|MAIA|ALCYONE|CANDOR|ELOQUENT|TOURMALINE|POLLUX|CASTOR|APOLLO|BOSTON|OPTIMISMM|MURANO|CLL1[0-9]|ELEVATE|SEQUOIA|FLAIR|GLOW|CAPTIVATE|AMPLIFY|RATIFY|QUAZAR|VIALE[- ]?[A-C]?|AGILE|LACEWING|ADMIRAL|QUANTUM[- ]?FIRST|ECHELON[- ]?\\d?|HD21|ZUMA[- ]?\\d*|TRANSFORM|BELINDA|LOTIS[- ]?\\d*|EPCORE[- ]?\\w*|MAJESTEC[- ]?\\d*|MONUMENTAL[- ]?\\d*|MAGNETISMM[- ]?\\d*|KARMMA[- ]?\\d*|CARTITUDE[- ]?\\d*|DREAMM[- ]?\\d*|BRUIN|SHINE|TRIANGLE|GALLIUM|PRIMA|RELEVANCE|AUGMENT|GOYA|SMART[- ]?START';
+const QT_TRIAL_RX=[new RegExp('\\s*\\((?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')\\)','gi'), new RegExp('\\((?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')\\s*[,;]\\s*','gi'), new RegExp('\\s*[–—-]\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi'), new RegExp('\\s*·\\s*(?:ensayo|estudio)?\\s*(?:'+QT_TRIALS+')(?=\\s*(?:\\(|·|$))','gi')];
 function qtSinEnsayo(t){ if(!t) return t; let x=''+t; QT_TRIAL_RX.forEach(function(r){ x=x.replace(r,''); }); return x.replace(/\s{2,}/g,' ').trim(); }
 function qtSchemes(){ const o=Object.assign({}, QT_SCHEMES, qtOverride()); Object.keys(o).forEach(function(k){ const sc=o[k]; if(sc&&(sc.label||sc.short)){ const l=qtSinEnsayo(sc.label), sh=qtSinEnsayo(sc.short); if(l!==sc.label||sh!==sc.short) o[k]=Object.assign({},sc,{label:l,short:sh}); } }); return o; }
 // Nombre del ciclo tal como debe aparecer AL PAUTAR (respeta mayúsculas/minúsculas).
@@ -12235,18 +12237,18 @@ qtGroupIds().forEach(id=>{
 });
 return `<div class="card">
 <h2>💊 Asistente de quimioterapia</h2>
-<p class="intro">Selecciona el esquema, introduce la fecha del día +1 y obtén el calendario de administración con fechas reales.</p>
-<div class="alert y" style="margin:10px 0;font-size:13px;line-height:1.5">⚠️ <strong>Medicación oral:</strong> toda la medicación oral (corticoides, antieméticos, profilaxis, etc.) debe prescribirse <strong>aparte, fuera de la línea de prescripción de la QT</strong> —en su propia línea— para que enfermería pueda firmarla y administrarla.</div>
+<p class="intro">Elige el esquema y la fecha del día +1: el calendario sale con las fechas reales y las dosis calculadas.</p>
+<div class="qt-oral">La medicación oral (corticoides, antieméticos, profilaxis) se prescribe en una línea aparte, fuera de la de la QT, para que enfermería pueda firmarla.</div>
 <div class="fld"><label class="lbl">Esquema</label>
 <select id="qt_scheme" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
 ${selOpts}
 </select></div>
-${(hpCanEditQt()&&hpEditing())?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">✏️ Editar esquema seleccionado</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">➕ Crear esquema</button><button class="btn btn-out btn-sm" onclick="go(\'qtgroups\')">🗂 Organizar subgrupos</button></div>':''}
-<div class="row2">
+${(hpCanEditQt()&&hpEditing())?'<div class="btns" style="margin-bottom:10px"><button class="btn btn-out btn-sm" onclick="qtEditSel()">Editar el esquema elegido</button><button class="btn btn-out btn-sm" onclick="qtNuevo()">Crear esquema</button><button class="btn btn-out btn-sm" onclick="go(\'qtgroups\')">Organizar subgrupos</button></div>':''}
+<div class="row2" style="grid-template-columns:minmax(0,1fr) 92px;gap:8px">
 <div class="fld"><label class="lbl">Fecha día +1</label>
 <input type="date" id="qt_d1" value="${todayVal}" oninput="qtCalc()" style="font-family:inherit"></div>
 <div class="fld"><label class="lbl">Nº de ciclo</label>
-<input type="number" id="qt_cycle" value="1" min="1" max="12" oninput="qtCalc()" style="font-family:inherit;width:80px"></div>
+<input type="number" id="qt_cycle" value="1" min="1" max="12" oninput="qtCalc()" style="font-family:inherit;width:100%"></div>
 </div>
 <div class="fld" id="qt_lvl_wrap" style="display:none"><label class="lbl">Nivel de dosis (DA-EPOCH)</label>
 <select id="qt_lvl" onchange="qtCalc()" style="width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--bg2);color:var(--txt);font-size:14px;font-family:inherit">
@@ -12265,9 +12267,9 @@ ${QT_DA_EPOCH_LV.map(l=>`<option value="${l}"${l==='1'?' selected':''}>Nivel ${l
 </div>
 <div id="qt_bsa" style="font-size:13px;padding:6px 2px 2px;min-height:18px;color:var(--mut)">Introduce peso y talla para calcular la dosis</div>
 <div id="qt_out_wrap" style="display:none">
-<div class="fld" style="margin-top:6px"><label class="lbl">Esquema de tratamiento (editable)</label>
-<textarea id="qt_out" style="min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7"></textarea></div>
-<div class="btns"><button class="btn btn-g" onclick="qtCopy('qt_out')">📋 Copiar esquema</button></div>
+<div class="fld" style="margin-top:6px"><label class="lbl">Esquema de tratamiento <span style="font-weight:400;color:var(--mut)">· se puede corregir antes de copiar</span></label>
+<textarea id="qt_out" class="qt-out" oninput="qtFit(this)"></textarea></div>
+<div class="btns"><button class="btn btn-g" onclick="qtCopy('qt_out')">Copiar esquema</button></div>
 <div id="qt_premed_wrap" style="display:none">
 <div class="lbl" style="margin-top:14px">Premedicación <span style="font-weight:400;color:var(--mut)">· cada línea se copia por separado y se puede corregir</span></div>
 <div id="qt_premed_list" class="qt-pm"></div><textarea id="qt_premed" hidden></textarea>
@@ -13521,7 +13523,7 @@ if(scheme.conditioning){
   });
 }
 // Esquema (calendario) → recuadro copiable
-if($('qt_out'))$('qt_out').value=lines.join('\n').replace(/→/g,'/');
+if($('qt_out')){ $('qt_out').value=lines.join('\n').replace(/→/g,'/'); qtFit($('qt_out')); }
 // Premedicación → recuadro copiable aparte (ondansetrón general + premed de rituximab si aplica + premed específica del esquema)
 const _pm=$('qt_premed'),_pmw=$('qt_premed_wrap');
 const _pmList=[];
@@ -13579,8 +13581,10 @@ if(QT_DA_EPOCH_RX.test(key+' '+(scheme.label||'')))_nh+=qtDaEpochNadirHtml(_lvl)
 if(_nt){_nt.innerHTML=_nh;_nt.style.display=_nh?'':'none';}
 wrap.style.display='';
 info.innerHTML='';
+qtFit($('qt_out'));
 }
 
+function qtFit(t){ if(!t) return; t.style.height='auto'; t.style.height=(t.scrollHeight+4)+'px'; }
 function qtCopyPm(i){ const e=$('qt_pm_'+i); const v=e?e.innerText.trim():''; if(!v){ toast('No hay nada que copiar'); return; } copy(v); }
 function qtCopy(id){
 if(id==='qt_premed'){ const v=[...document.querySelectorAll('#qt_premed_list .qt-pm-t')].map(e=>e.innerText.trim()).filter(Boolean).join('\n'); if(!v){toast('No hay nada que copiar');return;} copy(v); return; }
