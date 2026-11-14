@@ -514,6 +514,8 @@ body{font-size:13px}
 .home-btn:hover{filter:brightness(1.1)}
 .btn-er{background:var(--er)}
 .menu-cat{font-weight:600;letter-spacing:.1px;font-size:13px}
+.st-acts{display:flex;gap:4px}
+.st-b{border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;padding:3px 7px;font-size:13px;line-height:1.2;cursor:pointer;font-family:inherit}
 .st-edit{display:flex;gap:6px;align-items:center;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:6px;background:var(--bg2)}
 .st-edit input{flex:1;border:1px solid var(--bd);padding:7px 10px;border-radius:var(--rs);background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px;min-width:0}
 .st-edit button{background:var(--er);color:#fff;border:none;border-radius:var(--rs);padding:7px 11px;cursor:pointer;flex-shrink:0;font-family:inherit;font-size:14px;font-weight:600}
@@ -8384,16 +8386,15 @@ bundled=algos.map(p=>`<div class="pdf-item" onclick="openPDFurl('${p.url}','${p.
 }
 const canUp=hpEditUISec(id);
 const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out btn-sm" onclick="event.stopPropagation();hcUpload('${id}','${st.id}')">⬆️ Subir guía a este apartado (PDF o Word)</button></div>`:'';
-// En modo edición, controles del apartado (renombrar / reordenar / eliminar) inline, sin 2º botón.
+// En modo edición, los controles del apartado van en su propia fila, visibles sin abrirlo.
 let ctrls='';
 if(canManage){
-const v=st.name.replace(/"/g,'&quot;');
-const upA=_vp>0?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},-1)" title="Subir apartado" style="background:var(--c2)">↑</button>`:'';
-const dnA=_vp<_visIdx.length-1?`<button onclick="event.stopPropagation();moveSubtype('${id}',${i},1)" title="Bajar apartado" style="background:var(--c2)">↓</button>`:'';
-ctrls=`<div class="st-edit" style="margin:0 0 6px"><input type="text" value="${v}" data-id="${id}" data-i="${i}" onchange="renameSubtype(this)" onclick="event.stopPropagation()" title="Renombrar apartado">${upA}${dnA}<button onclick="event.stopPropagation();delSubtype('${id}',${i})" title="Eliminar apartado">×</button></div>`;
+const upA=_vp>0?`<button class="st-b" onclick="event.stopPropagation();moveSubtype('${id}',${i},-1)" title="Subir apartado" aria-label="Subir apartado">↑</button>`:'';
+const dnA=_vp<_visIdx.length-1?`<button class="st-b" onclick="event.stopPropagation();moveSubtype('${id}',${i},1)" title="Bajar apartado" aria-label="Bajar apartado">↓</button>`:'';
+ctrls=`<span class="st-acts">${upA}${dnA}<button class="st-b" onclick="event.stopPropagation();renameSubtypePrompt('${id}',${i})" title="Cambiar el nombre" aria-label="Cambiar el nombre">✏️</button><button class="st-b" onclick="event.stopPropagation();delSubtype('${id}',${i})" title="Eliminar apartado" aria-label="Eliminar apartado">🗑️</button></span>`;
 }
-h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span class="ar">▶</span></div>
-<div class="coll-c">${ctrls}${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
+h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span style="display:flex;align-items:center;gap:6px;flex-shrink:0">${ctrls}<span class="ar">▶</span></span></div>
+<div class="coll-c">${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
 });
 }
 h+=renderAlgosBlock(id);
@@ -8467,6 +8468,13 @@ go('g_'+id);
 await _hpPropagaSubtipos(id,subs,'✓ Apartado añadido');
 }
 
+async function renameSubtypePrompt(id,i){
+const subs=getSubtypes(id), st=subs[i]; if(!st) return;
+const v=prompt('Nuevo nombre del apartado:', st.name); if(v==null) return;
+const t=v.trim(); if(!t||t===st.name) return;
+st.name=t; setSubtypes(id,subs); go('g_'+id);
+await _hpPropagaSubtipos(id,subs,'✓ Nombre cambiado para todos');
+}
 async function renameSubtype(inp){
 const id=inp.dataset.id,i=+inp.dataset.i,v=inp.value.trim();
 if(!v){inp.value=getSubtypes(id)[i].name;return}
@@ -8485,8 +8493,9 @@ try{
 const allKeys=await idb.keys();
 matchingKeys=allKeys.filter(key=>typeof key==='string'&&key.startsWith(k+'|'));
 }catch(e){}
-let msg=`¿Eliminar el apartado "${st.name}"?`;
-if(matchingKeys.length)msg+=`\n\n⚠️ Se borrarán ${matchingKeys.length} PDF(s) descargados de este apartado.`;
+let msg=`¿Eliminar el apartado «${st.name}» para todo el equipo?`;
+if(matchingKeys.length)msg+=`\n\nContiene ${matchingKeys.length} guía(s), que dejarán de verse.`;
+if((DEFAULT_SUBTYPES[id]||[]).some(d=>d.id===st.id))msg+=`\n\nEs un apartado de los que vienen con la app: se podrá recuperar desde «Eliminados de esta sección».`;
 if(!confirm(msg))return;
 for(const key of matchingKeys){try{await idb.del(key)}catch(e){}}
 subs.splice(i,1);
@@ -10006,7 +10015,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 438;
+const HP_BUILD = 439;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
