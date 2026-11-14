@@ -1,5 +1,5 @@
 {
-  "version": "2026.06.04-repo6",
+  "version": "2026.11.14-repo7",
   "updatedAt": "2026-06-04",
   "note": "Fuente de actualización de HemoPocket (equipo/contactos/guías). Migrado el contenido completo del Gist al repo. Para añadir/quitar guías: subir el PDF a guias/ y editar este archivo + bump version.",
   "collaborators": {

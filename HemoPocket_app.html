@@ -515,6 +515,11 @@ body{font-size:13px}
 .btn-er{background:var(--er)}
 .menu-cat{font-weight:600;letter-spacing:.1px;font-size:13px}
 .st-acts{display:flex;gap:4px}
+.g-trash{margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--bd)}
+.g-trash>button{background:none;border:none;padding:0;color:var(--mut);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline}
+.g-trash-msg{font-size:12.5px;color:var(--mut);padding:6px 0}
+.g-trash .pdf-item button{flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--c2);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:4px 10px}
+.g-trash-sub{display:block;font-size:11px;color:var(--mut);font-weight:400}
 .st-b.st-x,.pdf-item button.pdf-x{font-size:17px;font-weight:600;line-height:1;color:var(--er)}
 .tx-on{outline:2px solid var(--c2);outline-offset:3px;border-radius:4px;background:rgba(26,58,108,.06);cursor:text}
 body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.mx-how):hover{outline:1px dashed rgba(26,58,108,.35);outline-offset:2px;cursor:text}
@@ -8467,8 +8472,6 @@ h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">
 h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'Mostrar en el menú':'Ocultar del menú')+'</button>';
 h+='</div>';
 }
-// Guías y apartados de la app eliminados en esta sección: se pueden recuperar uno a uno (modo edición).
-if(canManage) h+=_hpEliminadasHtml(id,subs);
 // Punto único para crear contenido en esta sección (solo en modo edición).
 if(hpEditUISec(id)){
 h+='<div class="btns" style="margin-bottom:12px"><button class="btn btn-2 btn-sm" onclick="hpAddChooser(\''+id+'\')">Añadir calculadora, algoritmo, información o guía</button></div>';
@@ -8500,6 +8503,7 @@ h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.
 <div class="coll-c">${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
 });
 }
+if(canManage) h+='<div class="g-trash"><button type="button" onclick="hpPapelera(\''+id+'\')">Guías eliminadas</button><div id="g_trash_'+id+'"></div></div>';
 h+=renderAlgosBlock(id);
 h+=renderCalcsBlock(id);
 h+=renderInfosBlock(id);
@@ -8509,20 +8513,39 @@ return h;
 
 function toggleEditGuide(id){_editGuide=_editGuide===id?null:id;go('g_'+id)}
 
-// Guías que vienen con la app ocultadas con 🗑️ y apartados de la app borrados. Antes solo se podían
-// recuperar con «Restaurar apartados», que además deshace todos los cambios de la sección.
-function _hpEliminadasHtml(id,subs){
-  const defs=DEFAULT_SUBTYPES[id]||[], rows=[];
-  defs.forEach(function(d){ if(!subs.some(function(x){return x.id===d.id;})) rows.push('<div class="pdf-item" style="cursor:default"><span class="name">Apartado «'+_hpEsc(d.name)+'»</span><button class="btn btn-out btn-sm" onclick="hpRestaurarApartado(\''+id+'\',\''+d.id+'\')">Restaurar</button></div>'); });
+// ── Papelera de guías: lo eliminado por error se recupera desde aquí (modo edición) ──
+// Las guías subidas se marcan como eliminadas en el índice y su archivo se conserva; las que vienen
+// con la app quedan ocultas. Ambas se listan aquí con su apartado y la fecha, y se recuperan con un toque.
+window.hpPapelera=async function(sec){
+  const box=$('g_trash_'+sec); if(!box) return;
+  if(box.dataset.open==='1'){ box.dataset.open=''; box.innerHTML=''; return; }
+  box.dataset.open='1'; box.innerHTML='<div class="g-trash-msg">Buscando…</div>';
+  const subs=getSubtypes(sec)||[], defs=DEFAULT_SUBTYPES[sec]||[], rows=[];
+  const apName=function(sid){ const st=subs.find(function(x){return x.id===sid;}); return st?st.name:'(apartado eliminado)'; };
   subs.forEach(function(st){ (Array.isArray(st.hidden)?st.hidden:[]).forEach(function(ident){
     if(String(ident).indexOf('cloud:')===0) return;
     const d=defs.find(function(x){return x.id===st.id;}), pdf=d&&(d.pdfs||[]).find(function(q){return q.url===ident;});
-    const nm=pdf?pdf.name:String(ident).split('/').pop();
-    rows.push('<div class="pdf-item" style="cursor:default"><span class="name">📄 '+_hpEsc(nm)+' <span style="font-size:11px;color:var(--mut)">· '+_hpEsc(st.name)+'</span></span><button class="btn btn-out btn-sm" onclick="hpRestaurarGuia(\''+id+'\',\''+st.id+'\',\''+encodeURIComponent(ident)+'\')">Restaurar</button></div>');
+    rows.push({n:pdf?pdf.name:String(ident).split('/').pop(),ap:st.name,fecha:'',act:"hpRestaurarGuia('"+sec+"','"+st.id+"','"+encodeURIComponent(ident)+"')"});
   }); });
-  if(!rows.length) return '';
-  return '<div class="alert y" style="margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">Eliminados de esta sección</div><div style="font-size:12.5px;margin-bottom:6px">Vienen con la app y se eliminaron para todo el equipo. Puedes recuperarlos uno a uno.</div><div class="pdf-list">'+rows.join('')+'</div></div>';
-}
+  let nube=true;
+  try{ (await HemoCloud.listGuides()).filter(function(g){ return g.section===sec&&g.eliminada===true; }).forEach(function(g){
+    const t=g.eliminadaEn&&g.eliminadaEn.seconds?new Date(g.eliminadaEn.seconds*1000).toLocaleDateString('es-ES'):'';
+    rows.push({n:g.name||String(g.path||'').split('/').pop(),ap:apName(g.subtype),fecha:t,act:"hpRecuperarGuia('"+sec+"','"+g.id+"')"});
+  }); }catch(e){ nube=false; }
+  box.innerHTML=rows.length?rows.map(function(r){ return '<div class="pdf-item" style="cursor:default"><span class="name">'+_hpEsc(r.n)+'<span class="g-trash-sub">'+_hpEsc(r.ap)+(r.fecha?' · eliminada el '+r.fecha:'')+'</span></span><button type="button" class="btn btn-out btn-sm" onclick="'+r.act+'">Recuperar</button></div>'; }).join('')
+    :'<div class="g-trash-msg">'+(nube?'No hay guías eliminadas en esta sección.':'Conéctate a Internet para ver las guías eliminadas.')+'</div>';
+};
+window.hpRecuperarGuia=async function(sec,docId){
+  if(!window.HemoCloud||!HemoCloud.canEdit(sec)){ toast('No tienes permiso para editar esta sección'); return; }
+  const subs=(getSubtypes(sec)||[]).filter(function(st){ return !hpSubHidden(sec,st); });
+  let g=null; try{ g=(await HemoCloud.listGuides()).find(function(x){return x.id===docId;}); }catch(e){}
+  if(!g){ toast('No se encontró la guía'); return; }
+  let sub=null; if(!subs.some(function(st){return st.id===g.subtype;})){ if(!subs.length){ toast('Crea antes un apartado en esta sección'); return; } sub=subs[0].id; }
+  try{ await HemoCloud.restoreGuide(docId,sub); }catch(e){ toast('No se pudo recuperar: '+((e&&e.message)||'')); return; }
+  try{ if(window.syncCloudGuides) await syncCloudGuides(true); }catch(e){}
+  go('g_'+sec); toast(sub?'Guía recuperada en «'+subs[0].name+'»':'Guía recuperada para todo el equipo');
+};
+// Descarga al dispositivo una guía de las que vienen con la app (si aún no la tiene).
 async function _hpBajarGuiaApp(sec,sid,pdf){
   const key=sec+'_'+sid+'|'+pdf.url;
   try{ const ex=await idb.get(key); if(ex&&ex.blob) return true; const r=await fetch(pdf.url); if(!r.ok) return false; const blob=await r.blob(); if(blob.size<200) return false; await idb.set(key,{name:pdf.name,size:blob.size,blob:blob}); return true; }catch(e){ return false; }
@@ -8535,19 +8558,7 @@ window.hpRestaurarGuia=async function(sec,sid,encIdent){
   const d=(DEFAULT_SUBTYPES[sec]||[]).find(function(x){return x.id===sid;}), pdf=d&&(d.pdfs||[]).find(function(q){return q.url===ident;});
   const ok=pdf?await _hpBajarGuiaApp(sec,sid,pdf):false;
   go('g_'+sec);
-  await _hpPropagaSubtipos(sec,subs,ok?'✓ Guía restaurada para todos':'✓ Guía restaurada; se descargará al actualizar');
-};
-window.hpRestaurarApartado=async function(sec,sid){
-  if(!window.HemoCloud||!HemoCloud.canEdit(sec)){ toast('No tienes permiso para editar esta sección'); return; }
-  const defs=DEFAULT_SUBTYPES[sec]||[], d=defs.find(function(x){return x.id===sid;}), subs=getSubtypes(sec); if(!d||subs.some(function(x){return x.id===sid;})) return;
-  // Se coloca donde estaba en la lista original: antes del primer apartado que le seguía.
-  const after=defs.slice(defs.indexOf(d)+1).map(function(x){return x.id;});
-  let pos=subs.findIndex(function(x){return after.indexOf(x.id)>=0;}); if(pos<0) pos=subs.length;
-  subs.splice(pos,0,JSON.parse(JSON.stringify(d)));
-  setSubtypes(sec,subs);
-  let ok=true; for(const pdf of (d.pdfs||[])){ if(!(await _hpBajarGuiaApp(sec,sid,pdf))) ok=false; }
-  go('g_'+sec);
-  await _hpPropagaSubtipos(sec,subs,ok?'✓ Apartado restaurado para todos':'✓ Apartado restaurado; sus guías se descargarán al actualizar');
+  await _hpPropagaSubtipos(sec,subs,ok?'Guía recuperada para todo el equipo':'Guía recuperada; se descargará al actualizar');
 };
 
 // Reordenar apartados (subir/bajar). El orden es el del array, que se sincroniza tal cual.
@@ -8598,7 +8609,6 @@ matchingKeys=allKeys.filter(key=>typeof key==='string'&&key.startsWith(k+'|'));
 }catch(e){}
 let msg=`¿Eliminar el apartado «${st.name}» para todo el equipo?`;
 if(matchingKeys.length)msg+=`\n\nContiene ${matchingKeys.length} guía(s), que dejarán de verse.`;
-if((DEFAULT_SUBTYPES[id]||[]).some(d=>d.id===st.id))msg+=`\n\nEs un apartado de los que vienen con la app: se podrá recuperar desde «Eliminados de esta sección».`;
 if(!confirm(msg))return;
 for(const key of matchingKeys){try{await idb.del(key)}catch(e){}}
 subs.splice(i,1);
@@ -8626,6 +8636,15 @@ if(!el||el.dataset.loaded==='1')return;
 el.dataset.loaded='1';
 el.innerHTML='<div style="color:var(--mut);font-size:12px;padding:6px 0">Cargando...</div>';
 try{
+// Si a este dispositivo le falta alguna guía de las que vienen con la app, se descarga al abrir el apartado.
+if(section&&navigator.onLine){ try{
+  const sid=k.slice(section.length+1), stL=(getSubtypes(section)||[]).find(x=>x.id===sid)||{}, hid=Array.isArray(stL.hidden)?stL.hidden:[];
+  const defs=((DEFAULT_SUBTYPES[section]||[]).find(x=>x.id===sid)||{}).pdfs||[];
+  const lista=defs.concat((stL.pdfs||[]).filter(pp=>pp&&!defs.some(d=>d.url===pp.url)));
+  const have=new Set(await idb.keys());
+  const falta=lista.filter(pp=>pp&&pp.url&&pp.name&&hid.indexOf(pp.url)<0&&!have.has(k+'|'+pp.url));
+  if(falta.length){ el.innerHTML='<div style="color:var(--mut);font-size:12px;padding:6px 0">Descargando '+falta.length+(falta.length===1?' guía':' guías')+'…</div>'; for(const pp of falta) await _hpBajarGuiaApp(section,sid,pp); }
+}catch(_f){} }
 const allKeys=await idb.keys();
 const matching=allKeys.filter(key=>typeof key==='string'&&key.startsWith(k+'|'));
 // Metadatos del apartado (orden, ocultas, renombrados), guardados en el subtipo y sincronizados.
@@ -8717,7 +8736,7 @@ window.hcHideGuide=async function(encodedKey,section,subId){
 if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return;}
 const key=decodeURIComponent(encodedKey);const ident=_guideIdent(key);
 const subs=getSubtypes(section);const st=subs.find(s=>s.id===subId);if(!st){toast('No se encontró el apartado');return;}
-if(!confirm('¿Eliminar esta guía para TODOS los usuarios?\n\nEs una guía de las que vienen incluidas en la app; dejará de mostrarse para todo el equipo. Podrás recuperarla con «Restaurar apartados».'))return;
+if(!confirm('¿Eliminar esta guía para TODOS los usuarios?\n\nEs una guía de las que vienen incluidas en la app; dejará de mostrarse para todo el equipo. Podrás recuperarla desde «Guías eliminadas», al final de la página.'))return;
 st.hidden=Array.isArray(st.hidden)?st.hidden:[];
 if(st.hidden.indexOf(ident)===-1)st.hidden.push(ident);
 if(Array.isArray(st.order))st.order=st.order.filter(x=>x!==ident);
@@ -8754,7 +8773,7 @@ try{guides=await HemoCloud.listGuides()}catch(e){console.warn('[hp] cloud guides
 const desired=new Map();
 const _esPrin=!!(window.hpIsPrincipal&&window.hpIsPrincipal());
 for(const g of guides){
-if(!g.section||!g.subtype||!g.path||!g.name)continue;
+if(!g.section||!g.subtype||!g.path||!g.name||g.eliminada===true)continue;
 // Privacidad por hospital: un hospital NO descarga (ni cachea) los PDFs que no le corresponden.
 if(!_esPrin){ let _vis; try{ const _st=(getSubtypes(g.section)||[]).find(s=>s.id===g.subtype)||{}; const _vm=(_st.vis&&typeof _st.vis==='object')?_st.vis:{}; _vis=_vm['cloud:'+g.path]; }catch(e){} if(!hpSecVisibleUser(g.section)||!hpVisiblePriv({vis:_vis})) continue; }
 desired.set(`${g.section}_${g.subtype}|cloud:${g.path}`,g);
@@ -8889,12 +8908,12 @@ if(!window.HemoCloud||!HemoCloud.canEdit(section)){toast('Sin permiso');return}
 if(!navigator.onLine){toast('Necesitas conexión para borrar');return}
 const key=decodeURIComponent(encodedKey);
 let rec;try{rec=await idb.get(key)}catch(e){}
-if(!confirm('¿Eliminar esta guía para TODOS los usuarios? No se puede deshacer.'))return;
-toast('⏳ Eliminando…');
+if(!confirm('¿Eliminar esta guía para todo el equipo?\n\nSi fue un error, se recupera desde «Guías eliminadas», al final de la página.'))return;
+toast('Eliminando…');
 try{
-if(rec&&rec.docId)await HemoCloud.deleteGuide(rec.docId,rec.path);
+if(rec&&rec.docId)await HemoCloud.trashGuide(rec.docId);
 await idb.del(key);
-toast('✓ Eliminada');
+toast('Guía eliminada');
 const k=key.split('|')[0];const el=$(`pdfs_${k}`);if(el){el.dataset.loaded='';loadPDFs(k,section)}
 }catch(e){console.error('hcDeleteGuide',e);toast('❌ Error al eliminar: '+(e.code||e.message||''))}
 };
@@ -10118,7 +10137,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 440;
+const HP_BUILD = 441;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -17326,7 +17345,16 @@ const r=await fetch(url+'?t='+Date.now(),{cache:'no-store'});
 if(!r.ok)return;
 const data=await r.json();
 const remoteVersion=data.version||'';
-const needsUpdate=!lastUpd||(remoteVersion&&remoteVersion!==currentVersion);
+let needsUpdate=!lastUpd||(remoteVersion&&remoteVersion!==currentVersion);
+// Aunque no cambie la versión, si al dispositivo le falta alguna guía de las que vienen con la app
+// (p. ej. se añadió después de su última actualización), se sincroniza para descargarla.
+let _hpMissT=0; try{ _hpMissT=+localStorage.getItem('hp_missSync')||0; }catch(e){}
+if(!needsUpdate&&data.subtypes&&Date.now()-_hpMissT>6*3600*1000){ try{
+  const ks=new Set((await idb.keys()).filter(k=>typeof k==='string'));
+  needsUpdate=Object.keys(data.subtypes).some(sec=>GUIDES_TITLES[sec]&&Array.isArray(data.subtypes[sec])&&data.subtypes[sec].some(st=>{ const hid=(((getSubtypes(sec)||[]).find(x=>x.id===st.id)||{}).hidden)||[]; return (st.pdfs||[]).some(pp=>pp&&pp.url&&hid.indexOf(pp.url)<0&&!ks.has(sec+'_'+st.id+'|'+pp.url)); }));
+  // Como mucho un intento cada 6 h por este motivo, por si alguna guía no se puede descargar.
+  if(needsUpdate){ try{ localStorage.setItem('hp_missSync',String(Date.now())); }catch(e){} }
+}catch(e){} }
 if(!needsUpdate)return;
 // Silencioso si ya hay datos previos; visible la primera vez (porque hay que descargar PDFs)
 if(!lastUpd){
@@ -18108,6 +18136,14 @@ window.HemoCloud = {
       id = r.id;
     }catch(e){ indexError = e; }
     return { id, path, indexError };
+  },
+  // Eliminar una guía subida: se marca en el índice y el archivo se conserva, para poder recuperarla.
+  async trashGuide(docId){
+    await updateDoc(doc(fs,'guias',docId), { eliminada:true, eliminadaPor: curUid || null, eliminadaEn: serverTimestamp() });
+  },
+  async restoreGuide(docId, subtype){
+    const d = { eliminada:false, recuperadaPor: curUid || null, recuperadaEn: serverTimestamp() }; if(subtype) d.subtype = subtype;
+    await updateDoc(doc(fs,'guias',docId), d);
   },
   async deleteGuide(docId, path){
     if(path){
