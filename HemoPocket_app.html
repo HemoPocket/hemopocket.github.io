@@ -515,6 +515,15 @@ body{font-size:13px}
 .btn-er{background:var(--er)}
 .menu-cat{font-weight:600;letter-spacing:.1px;font-size:13px}
 .st-acts{display:flex;gap:4px}
+.st-b.st-x,.pdf-item button.pdf-x{font-size:17px;font-weight:600;line-height:1;color:var(--er)}
+.tx-on{outline:2px solid var(--c2);outline-offset:3px;border-radius:4px;background:rgba(26,58,108,.06);cursor:text}
+body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.mx-how):hover{outline:1px dashed rgba(26,58,108,.35);outline-offset:2px;cursor:text}
+#tx-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:10050;display:flex;align-items:center;gap:8px;max-width:calc(100vw - 24px);background:#1a3a6c;color:#fff;border-radius:12px;padding:8px 10px 8px 14px;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#tx-bar span{flex:1;min-width:0}
+#tx-bar button{flex-shrink:0;background:#fff;color:#1a3a6c;border:none;border-radius:8px;padding:5px 10px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+#tx-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:7px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg2);font-size:12.5px;color:var(--mut)}
+#tx-info span{flex:1}
+#tx-info button{background:none;border:none;color:var(--c2);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline}
 .st-b{border:1px solid var(--bd);background:var(--card);color:var(--txt);border-radius:8px;padding:3px 7px;font-size:13px;line-height:1.2;cursor:pointer;font-family:inherit}
 .st-edit{display:flex;gap:6px;align-items:center;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:6px;background:var(--bg2)}
 .st-edit input{flex:1;border:1px solid var(--bd);padding:7px 10px;border-radius:var(--rs);background:var(--inp);color:var(--txt);font-family:inherit;font-size:13px;min-width:0}
@@ -772,7 +781,7 @@ body{font-size:13px}
   <span id="hp_user_label"></span>
 </button>
 </div>
-<div id="hp-edit-banner"><span>✏️ <strong>Modo edición.</strong> Toca los recuadros resaltados para cambiarlos o usa <strong>➕ Añadir</strong> para crear contenido nuevo. Los cambios se guardan para todo el equipo.</span><button onclick="hpToggleEdit()">Salir</button></div>
+<div id="hp-edit-banner"><span><strong>Modo edición.</strong> Toca cualquier texto para corregirlo; se guarda al terminar, para todo el equipo. Para crear contenido nuevo, usa «Añadir».</span><button onclick="hpToggleEdit()">Salir</button></div>
 <div id="installBar" class="install-bar" hidden>
 <svg class="install-bar-ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 6v8"/><path d="m9 11 3 3 3-3"/><line x1="10" y1="18.5" x2="14" y2="18.5"/></svg>
 <span class="install-bar-txt" id="installBarTxt">Instala <b>HemoPocket</b> en tu dispositivo</span>
@@ -1015,6 +1024,109 @@ window.hpRepushBloques=function(){
     });
   }catch(e){}
 };
+// ── EDICIÓN DIRECTA DE TEXTOS ───────────────────────────────────────────────────────────
+// En modo edición, cualquier texto que no sea un control (botón, enlace, casilla…) se corrige tocándolo:
+// se edita en el sitio y se guarda al salir del texto o con Intro, para todo el equipo. Solo cambia
+// el texto que se ve; la lógica de calculadoras y algoritmos no se toca. Se guarda por página como
+// pares «HTML original → HTML corregido» en 'bloques' (clave «tx:vista») y se aplica al pintar.
+const TX_NOVIEW=new Set(['home','sync','phone','viewer','docedit','pageedit','calcedit','algoedit','infoedit','checklistedit','qtedit','qtgroups','lcedit','lcprof','rxedit','gsecciones','solicitudes','cambios','propuestas','vismap','equipo','reportes','acerca']);
+const TX_INTER='button,input,select,textarea,a,label,summary,svg,canvas,iframe,video,[onclick],[contenteditable],.st-acts';
+const TX_TAGS={P:1,LI:1,TD:1,TH:1,H1:1,H2:1,H3:1,H4:1,H5:1,DT:1,DD:1,DIV:1,SPAN:1,SMALL:1,B:1,STRONG:1,EM:1,I:1};
+const _txOrig=new WeakMap();
+let _txCur=null, _txTimer=null;
+function _txK(h){ return String(h||'').replace(/\s+/g,' ').trim(); }
+function _txMap(view){ try{ var v=hpBloques()['tx:'+view]; return v?(JSON.parse(v)||{}):{}; }catch(e){ return {}; } }
+function _txLeaf(el,root){
+  if(!el||el.nodeType!==1||el===root||!TX_TAGS[el.tagName]) return false;
+  if(el.closest(TX_INTER)) return false;
+  if(el.querySelector('div,p,ul,ol,li,table,tr,td,th,h1,h2,h3,h4,h5,section,details,dl,blockquote,pre,hr,'+TX_INTER)) return false;
+  return !!el.textContent.trim();
+}
+function hpTxCan(view){
+  view=view||(S&&S.view); if(!view||TX_NOVIEW.has(view)||!hpEditUI()) return false;
+  var sec=(view.indexOf('g_')===0)?view.slice(2):hpPageSection(view);
+  return sec?!!(window.HemoCloud&&HemoCloud.canEdit&&HemoCloud.canEdit(sec)):true;
+}
+function hpTxApply(){
+  var root=$('content'), view=S&&S.view; if(!root||!view||TX_NOVIEW.has(view)||_txCur) return;
+  var m=_txMap(view), n=Object.keys(m).length;
+  if(n) root.querySelectorAll('p,li,td,th,h1,h2,h3,h4,h5,dt,dd,div,span,small,b,strong,em').forEach(function(el){
+    if(_txOrig.has(el)||!_txLeaf(el,root)) return;
+    var k=_txK(el.innerHTML); if(Object.prototype.hasOwnProperty.call(m,k)){ _txOrig.set(el,k); el.innerHTML=m[k]; }
+  });
+  // En modo edición, aviso discreto con las correcciones de esta página y la opción de deshacerlas.
+  var info=$('tx-info');
+  if(n&&hpTxCan(view)){
+    var t='<span>'+n+(n===1?' texto corregido':' textos corregidos')+' en esta página</span><button type="button" onclick="hpTxRestaurarPagina()">Restaurar los originales</button>';
+    if(!info){ info=document.createElement('div'); info.id='tx-info'; root.insertBefore(info,root.firstChild); }
+    if(info.innerHTML!==t) info.innerHTML=t;
+  } else if(info) info.remove();
+}
+function _txStart(el,ev){
+  var orig=_txOrig.has(el)?_txOrig.get(el):_txK(el.innerHTML);
+  _txCur={el:el,orig:orig,before:el.innerHTML,view:S.view,changed:_txOrig.has(el)};
+  el.setAttribute('contenteditable','true'); el.classList.add('tx-on');
+  el.addEventListener('keydown',_txKeydown); el.addEventListener('blur',_txBlur);
+  el.focus();
+  try{ var r=document.caretRangeFromPoint?document.caretRangeFromPoint(ev.clientX,ev.clientY):null; if(r&&el.contains(r.startContainer)){ var sl=getSelection(); sl.removeAllRanges(); sl.addRange(r); } }catch(e){}
+  var b=$('tx-bar'); if(!b){ b=document.createElement('div'); b.id='tx-bar'; document.body.appendChild(b); }
+  b.innerHTML='<span>Corrigiendo el texto. Se guarda al tocar fuera o con Intro.</span><button type="button" onmousedown="event.preventDefault()" onclick="hpTxCancelar()">Cancelar</button>'+(_txCur.changed?'<button type="button" onmousedown="event.preventDefault()" onclick="hpTxOriginal()">Original</button>':'');
+}
+function _txKeydown(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); this.blur(); }
+  else if(e.key==='Escape'){ e.preventDefault(); hpTxCancelar(); }
+}
+function _txBlur(){ _txEnd(true); }
+function _txClose(){
+  var c=_txCur; _txCur=null; var b=$('tx-bar'); if(b) b.remove(); if(!c) return null;
+  c.el.removeEventListener('keydown',_txKeydown); c.el.removeEventListener('blur',_txBlur);
+  c.el.removeAttribute('contenteditable'); c.el.classList.remove('tx-on');
+  return c;
+}
+function _txEnd(save){
+  var c=_txClose(); if(!c) return;
+  if(!save){ c.el.innerHTML=c.before; return; }
+  var k=_txK(_hpSanHtml(c.el.innerHTML));
+  if(k===_txK(c.before)){ c.el.innerHTML=c.before; return; }
+  if(!c.el.textContent.trim()){ c.el.innerHTML=c.before; toast('El texto no puede quedar vacío'); return; }
+  var m=_txMap(c.view);
+  if(k===c.orig) delete m[c.orig]; else m[c.orig]=k;
+  c.el.innerHTML=k; _txOrig.set(c.el,c.orig);
+  _txGuardar(c.view,m);
+}
+window.hpTxCancelar=function(){ _txEnd(false); };
+window.hpTxOriginal=function(){
+  var c=_txClose(); if(!c) return;
+  var m=_txMap(c.view); delete m[c.orig]; c.el.innerHTML=c.orig; _txOrig.delete(c.el);
+  _txGuardar(c.view,m,'Texto original restaurado');
+};
+window.hpTxRestaurarPagina=function(){
+  var view=S&&S.view; if(!view||!confirm('¿Restaurar los textos originales de esta página para todo el equipo?')) return;
+  _txGuardar(view,{},'Textos originales restaurados'); go(view);
+};
+async function _txGuardar(view,m,okMsg){
+  var key='tx:'+view, val=Object.keys(m).length?JSON.stringify(m):null;
+  var all=hpBloques(); if(val) all[key]=val; else delete all[key]; try{ ls.s('bloques',all); }catch(e){}
+  try{ var p=_hpBloquePendGet(); p[key]=val; _hpBloquePendSet(p); }catch(e){}
+  try{ hpTxApply(); }catch(e){}
+  try{
+    if(val){ if(window.hpSaveBloque) await window.hpSaveBloque(key,val); } else { if(window.hpDeleteBloque) await window.hpDeleteBloque(key); }
+    _hpBloquePendClear(key,val); toast(okMsg||'Guardado para todo el equipo');
+  }catch(e){ toast('Guardado. Se publicará para todo el equipo al recuperar la conexión'); }
+}
+// Un toque sobre un texto (no sobre un control) en modo edición abre la corrección en el sitio.
+document.addEventListener('click',function(e){
+  var root=$('content'); if(!root||!root.contains(e.target)||!hpTxCan()) return;
+  if(e.target.closest('[contenteditable="true"]')) return;
+  var el=e.target.nodeType===1?e.target:e.target.parentElement, best=null;
+  while(el&&el!==root){ if(_txLeaf(el,root)) best=el; else if(best) break; el=el.parentElement; }
+  if(!best) return;
+  e.preventDefault(); e.stopPropagation();
+  if(_txCur) _txEnd(true);
+  _txStart(best,e);
+},true);
+// Las correcciones se aplican cada vez que la página se pinta o cambia (también en los resultados en vivo).
+try{ new MutationObserver(function(){ if(_txTimer) return; _txTimer=setTimeout(function(){ _txTimer=null; try{ hpTxApply(); }catch(e){} },40); }).observe(document.getElementById('content')||document.body,{childList:true,subtree:true}); }catch(e){}
 // ── MODO EDICIÓN GLOBAL ──────────────────────────────────────────────────────────────────
 // Un único interruptor (solo admin/editor). APAGADO = app limpia (sin lápices/➕/botones de
 // edición). ENCENDIDO = aparecen los controles de edición. NO cambia los permisos reales de
@@ -1030,7 +1142,7 @@ window.hpToggleEdit=function(){
   try{ hpEditFab(); }catch(e){}
   try{ if(typeof renderMenu==='function' && document.getElementById('menu')) renderMenu(($('search')&&$('search').value)||''); }catch(e){}
   try{ var v=S&&S.view; if(v && typeof go==='function') go(v); }catch(e){}
-  if(typeof toast==='function') toast(on?'✏️ Modo edición activado · los cambios se guardan para todos':'Modo edición desactivado');
+  if(typeof toast==='function') toast(on?'Modo edición activado':'Modo edición desactivado');
 };
 // Botón de la barra superior para entrar/salir de modo edición (solo admin/editor).
 function hpEditFab(){
@@ -1093,9 +1205,6 @@ function _hpAddGuia(sec){
 function EB(key, defHtml){
   var ov=hpBloques()[key];
   var html=(ov!=null && String(ov).trim()!=='') ? _hpSanHtml(ov) : defHtml;
-  if(hpEditUI()){
-    return '<div class="eb eb-edit" data-eb="'+_hpEsc(key)+'" onclick="ebEdit(\''+key+'\')" title="Tocar para editar este texto (para todo el equipo)"><div class="eb-c">'+html+'</div></div>';
-  }
   return '<div class="eb" data-eb="'+_hpEsc(key)+'"><div class="eb-c">'+html+'</div></div>';
 }
 function ebEdit(key){
@@ -1730,17 +1839,12 @@ function hpPageWrap(id, base){
   const ov=hpPages()[id]; const canEd=hpCanEditPage(id) && hpEditing();
   if(ov && ov.html && ov.estado==='publicado'){
     let h='<div class="card">';
-    if(canEd){
-      h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span style="flex:1;font-size:11.5px;color:var(--mut)">✏️ Toca el contenido para editarlo</span><button class="btn btn-out btn-sm" onclick="hpRestaurarPage(\''+id+'\')">↺ Restaurar original</button></div>';
-      h+='<div class="hp-page-body" onclick="hpEditPage(\''+id+'\')" style="cursor:pointer;outline:1px dashed var(--c2,#1d4ed8);outline-offset:4px;border-radius:8px" title="Tocar para editar esta página">'+_hpSanHtml(ov.html)+'</div>';
-    } else {
-      h+='<div class="hp-page-body">'+_hpSanHtml(ov.html)+'</div>';
-    }
+    if(canEd) h+='<div style="text-align:right;margin-bottom:6px"><button class="btn btn-out btn-sm" onclick="hpRestaurarPage(\''+id+'\')">Restaurar la página original</button></div>';
+    h+='<div class="hp-page-body">'+_hpSanHtml(ov.html)+'</div>';
     h+='</div>';
     return {html:h, skipPost:true};
   }
   let h=base;
-  if(canEd){ h+='<div class="btns" style="margin:10px 0 4px"><button class="btn btn-out btn-sm" onclick="hpEditPage(\''+id+'\')">✏️ Editar esta página</button></div>'; }
   return {html:h, skipPost:false};
 }
 let _pageDraft=null;
@@ -7443,7 +7547,7 @@ return role?`<li><strong>${name}</strong> — ${role}</li>`:`<li><strong>${name}
 }).join('');
 let h=`<div class="collabs-block">
 <div class="collabs-h">Colaboradores de esta sección</div>`+(list.length?`<ul class="collabs-list">${items}</ul>`:'<div style="font-size:12.5px;color:var(--mut)">Todavía no figura nadie.</div>');
-if(canEd) h+=(window._collabEdit===id)?_hpCollabEditor(id):`<div class="btns" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="hpCollabEditOpen('${id}')">✏️ Editar colaboradores</button></div>`;
+if(canEd) h+=(window._collabEdit===id)?_hpCollabEditor(id):`<div class="btns" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="hpCollabEditOpen('${id}')">Editar colaboradores</button></div>`;
 return h+'</div>';
 }
 // Edición de los colaboradores de una sección (solo administradores, en modo edición). Es independiente
@@ -8354,21 +8458,20 @@ h+='<div class="alert y" style="margin-bottom:14px">⚠️ <strong>Todavía no s
 h+=`<p class="intro">Última actualización: <strong>${new Date(lastUpd).toLocaleDateString('es-ES')}</strong>. <a onclick="go('sync')" style="cursor:pointer;text-decoration:underline">Actualizar</a></p>`;
 }
 if(canManage){
-h+=`<div class="btns" style="margin-bottom:12px"><button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">➕ Añadir apartado</button><button class="btn btn-out btn-sm" onclick="resetSubtypes('${id}')">↺ Restaurar apartados</button></div>`;
+h+=`<div class="btns" style="margin-bottom:12px"><button class="btn btn-out btn-sm" onclick="addSubtype('${id}')">Añadir apartado</button><button class="btn btn-out btn-sm" onclick="resetSubtypes('${id}')">Restaurar apartados</button></div>`;
 }
 // Gestión de la SECCIÓN (renombrar / ocultar del menú): SOLO administradores, no editores. Efectivo para todos.
 if(hpEditUIAdmin()){
 h+='<div class="btns" style="margin-bottom:12px">';
-h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarGuia(\''+id+'\')">✏️ Renombrar apartado de guías</button>';
-h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">✏️ Renombrar sección (categoría)</button>';
-h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'👁️ Mostrar en el menú':'🚫 Ocultar del menú')+'</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpRenombrarSeccion(\''+id+'\')">Renombrar la sección</button>';
+h+='<button class="btn btn-out btn-sm" onclick="hpOcultarSeccion(\''+id+'\')">'+(hpSecHidden(id)?'Mostrar en el menú':'Ocultar del menú')+'</button>';
 h+='</div>';
 }
 // Guías y apartados de la app eliminados en esta sección: se pueden recuperar uno a uno (modo edición).
 if(canManage) h+=_hpEliminadasHtml(id,subs);
 // Punto único para crear contenido en esta sección (solo en modo edición).
 if(hpEditUISec(id)){
-h+='<div class="btns" style="margin-bottom:12px"><button class="btn btn-2 btn-sm" onclick="hpAddChooser(\''+id+'\')">➕ Añadir calculadora, algoritmo, info o guía</button></div>';
+h+='<div class="btns" style="margin-bottom:12px"><button class="btn btn-2 btn-sm" onclick="hpAddChooser(\''+id+'\')">Añadir calculadora, algoritmo, información o guía</button></div>';
 }
 const _visIdx=subs.map((st,i)=>hpSubHidden(id,st)?-1:i).filter(i=>i>=0);
 if(!_visIdx.length){
@@ -8385,13 +8488,13 @@ bundled=algos.map(p=>`<div class="pdf-item" onclick="openPDFurl('${p.url}','${p.
 +`<div style="font-size:11px;color:var(--mut);padding:4px 2px 8px;line-height:1.5">Algoritmos reproducidos de la <strong>App GELTAMO</strong>. © GELTAMO — material orientativo; consulta siempre la fuente original.</div>`;
 }
 const canUp=hpEditUISec(id);
-const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out btn-sm" onclick="event.stopPropagation();hcUpload('${id}','${st.id}')">⬆️ Subir guía a este apartado (PDF o Word)</button></div>`:'';
+const upBtn=canUp?`<div style="padding:6px 2px 4px"><button class="btn btn-out btn-sm" onclick="event.stopPropagation();hcUpload('${id}','${st.id}')">Subir guía a este apartado (PDF o Word)</button></div>`:'';
 // En modo edición, los controles del apartado van en su propia fila, visibles sin abrirlo.
 let ctrls='';
 if(canManage){
 const upA=_vp>0?`<button class="st-b" onclick="event.stopPropagation();moveSubtype('${id}',${i},-1)" title="Subir apartado" aria-label="Subir apartado">↑</button>`:'';
 const dnA=_vp<_visIdx.length-1?`<button class="st-b" onclick="event.stopPropagation();moveSubtype('${id}',${i},1)" title="Bajar apartado" aria-label="Bajar apartado">↓</button>`:'';
-ctrls=`<span class="st-acts">${upA}${dnA}<button class="st-b" onclick="event.stopPropagation();renameSubtypePrompt('${id}',${i})" title="Cambiar el nombre" aria-label="Cambiar el nombre">✏️</button><button class="st-b" onclick="event.stopPropagation();delSubtype('${id}',${i})" title="Eliminar apartado" aria-label="Eliminar apartado">🗑️</button></span>`;
+ctrls=`<span class="st-acts">${upA}${dnA}<button class="st-b" onclick="event.stopPropagation();renameSubtypePrompt('${id}',${i})" title="Cambiar el nombre" aria-label="Cambiar el nombre">✎</button><button class="st-b st-x" onclick="event.stopPropagation();delSubtype('${id}',${i})" title="Eliminar apartado" aria-label="Eliminar apartado">×</button></span>`;
 }
 h+=`<div class="coll"><div class="coll-h" onclick="this.parentElement.classList.toggle('open');loadPDFs('${k}','${id}')"><span>${st.name}</span><span style="display:flex;align-items:center;gap:6px;flex-shrink:0">${ctrls}<span class="ar">▶</span></span></div>
 <div class="coll-c">${bundled}${upBtn}<div id="pdfs_${k}" class="pdf-list"></div></div></div>`;
@@ -8557,10 +8660,10 @@ let btns='',panel='';
 if(canEdit){
 const upB=idx>0?`<button title="Subir" style="color:var(--c2)" onclick="event.stopPropagation();moveGuide('${section}','${subId}','${safeIdent}',-1)">↑</button>`:'';
 const dnB=idx<n-1?`<button title="Bajar" style="color:var(--c2)" onclick="event.stopPropagation();moveGuide('${section}','${subId}','${safeIdent}',1)">↓</button>`:'';
-const renB=`<button title="Renombrar para todos" style="color:var(--c2)" onclick="event.stopPropagation();renameGuide('${safeKey}','${section}','${subId}')">✏️</button>`;
+const renB=`<button title="Renombrar para todos" style="color:var(--c2)" onclick="event.stopPropagation();renameGuide('${safeKey}','${section}','${subId}')">✎</button>`;
 const visB=multi?`<button title="¿Quién puede ver este PDF?" onclick="event.stopPropagation();var p=document.getElementById('pv_${idx}_panel');p.style.display=p.style.display==='none'?'block':'none'">👁️</button>`:'';
 const delAct=item.cloud?`hcDeleteGuide('${safeKey}','${section}')`:`hcHideGuide('${safeKey}','${section}','${subId}')`;
-const delB=`<button title="Eliminar para todos los usuarios" onclick="event.stopPropagation();${delAct}">🗑️</button>`;
+const delB=`<button class="pdf-x" title="Eliminar para todos los usuarios" aria-label="Eliminar" onclick="event.stopPropagation();${delAct}">×</button>`;
 btns=upB+dnB+renB+visB+delB;
 if(multi){
 panel=`<div id="pv_${idx}_panel" onclick="event.stopPropagation()" style="display:none;padding:6px 8px;background:var(--bg2,#f3f3f3);border-radius:6px;margin:0 0 6px">`;
@@ -10015,7 +10118,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 439;
+const HP_BUILD = 440;
 const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
