@@ -9238,6 +9238,8 @@ container.innerHTML=`<div class="viewer-error">No se pudo cargar el visor de PDF
 return;
 }
 try{
+// Libera el PDF que estuviera abierto antes (su memoria en pdf.js).
+try{ if(window._vwPDF){ window._vwPDF.destroy(); window._vwPDF=null; } }catch(e){}
 const arrayBuffer=await pdfBlob.arrayBuffer();
 const pdf=await pdfjsLib.getDocument({data:arrayBuffer,isEvalSupported:false}).promise;
 container.innerHTML='';
@@ -9261,12 +9263,13 @@ if($('vw_total'))$('vw_total').textContent=pdf.numPages;
 if($('vw_page'))$('vw_page').value='1';
 // Abrir directamente en una página concreta (p. ej. desde la herramienta de envío de muestras).
 if(params.page&&params.page>1)setTimeout(()=>{try{vwGoToPage(params.page);}catch(e){}},80);
-container.addEventListener('scroll',()=>{if(!_pgRAF)_pgRAF=requestAnimationFrame(()=>{_pgRAF=0;vwUpdateCurrentPage();});},{passive:true});
 const renderPage=async(pageNum,target)=>{
 if(target.dataset.rendered)return;
 target.dataset.rendered='1';
+const gen=target._vwGen=(target._vwGen||0)+1; // si la página se libera mientras se pinta, se descarta
 try{
 const page=await pdf.getPage(pageNum);
+if(target._vwGen!==gen)return;
 const natural=page.getViewport({scale:1});
 const ratio=natural.height/natural.width;
 target.dataset.ratio=ratio;
@@ -9283,7 +9286,9 @@ target.style.boxShadow='none';
 target.style.display='block';
 target.style.position='relative';
 // Rasteriza con supersampling (2× píxeles físicos → nitidez HD) dimensionado al tamaño actual.
-const canvas=await _vwRasterize(page,natural.width,ratio,cssWidth);
+const canvas=await _vwRasterize(page,natural.width,ratio,cssWidth,t=>{target._vwTask=t;});
+target._vwTask=null;
+if(target._vwGen!==gen){ _vwFreeCanvas(canvas); return; }
 target.appendChild(canvas);
 target.dataset.renderedZoom=_vwZoom;
 // Capa de texto: habilita seleccionar/copiar y el resaltado del buscador.
@@ -9302,25 +9307,63 @@ target.appendChild(tl);
 const tc=await vwGetPageTC(pageNum,page);
 const textDivs=[];
 await pdfjsLib.renderTextLayer({textContentSource:tc,container:tl,viewport:tlViewport,textDivs}).promise;
+if(target._vwGen!==gen)return;
 _vwPageInfo[pageNum]={tl,textDivs};
 if(_vwSearch.q)vwHighlightPage(pageNum);
 }
 }catch(e){/* sin capa de texto en esta página: no es un error fatal */}
+try{ page.cleanup(); }catch(e){} // libera los recursos de la página en pdf.js
 }catch(e){
+if(target._vwGen!==gen||(e&&e.name==='RenderingCancelledException'))return;
 target.innerHTML=`<div style="padding:20px;color:#c00;text-align:center;font-size:12px">Error en la página ${pageNum}: ${e.message}</div>`;
 }
 };
+// Libera una página pintada (lienzo y capa de texto); conserva su tamaño para que nada salte.
+const releasePage=p=>{
+  if(!p.dataset.rendered)return;
+  p._vwGen=(p._vwGen||0)+1;
+  if(p._vwTask){ try{ p._vwTask.cancel(); }catch(e){} p._vwTask=null; }
+  p.querySelectorAll('canvas').forEach(_vwFreeCanvas);
+  p.innerHTML='';
+  delete p.dataset.rendered; delete p.dataset.renderedZoom;
+  p.style.background=''; p.style.boxShadow='';
+  delete _vwPageInfo[parseInt(p.dataset.page)];
+};
+// Qué páginas se ven ahora (búsqueda binaria: sirve igual para PDF de cientos de páginas).
+const visibleRange=()=>{
+  const top=container.scrollTop, bot=top+(container.clientHeight||600);
+  let lo=0,hi=placeholders.length-1,first=0;
+  while(lo<=hi){ const m=(lo+hi)>>1, p=placeholders[m]; if(p.offsetTop+p.offsetHeight<top){ lo=m+1; } else { first=m; hi=m-1; } }
+  let last=first; while(last+1<placeholders.length&&placeholders[last+1].offsetTop<bot) last++;
+  return [first,last];
+};
+const KEEP=_vwMovil?2:4;      // páginas pintadas a cada lado de las visibles
+const MAXBUSY=_vwMovil?1:2;   // páginas pintándose a la vez
+let busy=0, pumpT=0, pumpMax=0;
+const pump=()=>{
+  clearTimeout(pumpT); pumpT=0; clearTimeout(pumpMax); pumpMax=0;
+  if(!container.isConnected)return;
+  const [f,l]=visibleRange(); const a=Math.max(0,f-KEEP), b=Math.min(placeholders.length-1,l+KEEP);
+  // Liberar las que quedan lejos (con un margen de una página para no repintar al ir y volver).
+  container.querySelectorAll('.viewer-page-placeholder[data-rendered="1"]').forEach(p=>{ const i=parseInt(p.dataset.page)-1; if(i<a-1||i>b+1) releasePage(p); });
+  // Pintar primero las visibles y después las cercanas, una (o dos) a la vez.
+  const order=[]; for(let i=f;i<=l;i++)order.push(i); for(let d=1;d<=KEEP;d++){ if(l+d<=b)order.push(l+d); if(f-d>=a)order.push(f-d); }
+  for(const i of order){
+    if(busy>=MAXBUSY)break;
+    const p=placeholders[i]; if(p.dataset.rendered)continue;
+    busy++;
+    renderPage(i+1,p).finally(()=>{ busy--; schedulePump(0); });
+  }
+};
+// Mientras se desliza deprisa no se pinta nada (se espera a que se pare un instante), pero tampoco
+// más de 350 ms seguidos sin pintar, para que al leer despacio las páginas vayan apareciendo.
+const schedulePump=(ms)=>{ clearTimeout(pumpT); pumpT=setTimeout(pump,ms==null?120:ms); if(!pumpMax) pumpMax=setTimeout(pump,350); };
+container.addEventListener('scroll',()=>{if(!_pgRAF)_pgRAF=requestAnimationFrame(()=>{_pgRAF=0;vwUpdateCurrentPage();});schedulePump();},{passive:true});
 // Permite al buscador forzar el render de una página concreta (para resaltar en páginas aún no visibles)
 window._vwRender=async(n)=>{const ph=container.querySelector('.viewer-page-placeholder[data-page="'+n+'"]');if(ph)await renderPage(n,ph);};
+window._vwPump=()=>schedulePump(0);
 await renderPage(1,placeholders[0]);
-if(placeholders.length>1){
-const observer=new IntersectionObserver(entries=>{
-entries.forEach(entry=>{
-if(entry.isIntersecting)renderPage(parseInt(entry.target.dataset.page),entry.target);
-});
-},{root:container,rootMargin:'400px 0px'});
-for(let i=1;i<placeholders.length;i++)observer.observe(placeholders[i]);
-}
+schedulePump(0);
 }catch(e){
 container.innerHTML=`<div class="viewer-error">No se pudo renderizar el PDF.<br><strong>Error:</strong> <code style="font-size:11px">${e.message}</code><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="retryViewer()">Reintentar</button><button class="btn btn-out" onclick="downloadCurrentPDF()">Descargar PDF</button></div></div>`;
 }
@@ -9477,25 +9520,33 @@ window.addEventListener('beforeprint',function(){ if(S&&S.view==='docedit') _dxP
 // Escala de rasterizado: 2× los píxeles físicos del dispositivo (supersampling → nitidez HD), con
 // dos límites de seguridad: escala máx. 8 y área de canvas ≤ 12 Mpx (por debajo del límite de iOS
 // Safari, ~16,7 Mpx, para que el canvas no falle en iPhone/iPad).
+// En móvil (sobre todo iPhone) la memoria para lienzos es limitada: se pinta a la resolución de la
+// pantalla, sin supermuestreo, y con un tope de píxeles por página. Antes cada página ocupaba ~25 MB y,
+// al pasar páginas deprisa en un PDF largo, el navegador se quedaba sin memoria y recargaba la app.
+const _vwMovil=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/i.test(navigator.platform||''));
 function _vwRenderScale(nw,nh,cssW){
-  const dpr=window.devicePixelRatio||1;
-  let s=(cssW/nw)*dpr*2;
+  const dpr=Math.min(window.devicePixelRatio||1,3);
+  let s=(cssW/nw)*dpr*(_vwMovil?1:2);
   if(s>8)s=8;
-  const MAXAREA=12e6;
+  const MAXAREA=_vwMovil?4e6:12e6;
   if(nw*nh*s*s>MAXAREA)s=Math.sqrt(MAXAREA/(nw*nh));
   return s>0?s:1;
 }
 // Rasteriza una página PDF a un canvas nítido dimensionado a cssW (píxeles CSS). Devuelve el canvas.
-async function _vwRasterize(page,nw,ratio,cssW){
+async function _vwRasterize(page,nw,ratio,cssW,onTask){
   const scale=_vwRenderScale(nw,nw*ratio,cssW);
   const vp=page.getViewport({scale});
   const cv=document.createElement('canvas');
   cv.width=Math.floor(vp.width);cv.height=Math.floor(vp.height);
   cv.style.width=cssW+'px';cv.style.height=(cssW*ratio)+'px';cv.style.maxWidth='none';
   const ctx=cv.getContext('2d',{alpha:false});
-  await page.render({canvasContext:ctx,viewport:vp}).promise;
+  const task=page.render({canvasContext:ctx,viewport:vp});
+  if(onTask)onTask(task);
+  try{ await task.promise; }catch(e){ cv.width=0;cv.height=0; throw e; }
   return cv;
 }
+// Libera la memoria de un lienzo (en iOS no basta con quitarlo de la página).
+function _vwFreeCanvas(cv){ try{ cv.width=0; cv.height=0; }catch(e){} }
 let _vwReTimer=0;
 // Tras un cambio de zoom, vuelve a rasterizar en HD las páginas visibles al nuevo tamaño. El zoom en
 // vivo solo escala por CSS (rápido); esto restaura la resolución sin parpadeo: rasteriza un canvas
@@ -9503,6 +9554,7 @@ let _vwReTimer=0;
 // vista (±1 pantalla), para no gastar de más.
 function _vwReraster(){
   const c=window._vwContainer,pdf=window._vwPDF;if(!c||!pdf)return;
+  if(window._vwPump)window._vwPump(); // al alejar se ven más páginas: pintarlas (y liberar las que salen)
   const baseW=Math.min((c.clientWidth||360)-16,900);
   const cssW=baseW*_vwZoom;
   const cr=c.getBoundingClientRect();
@@ -9516,8 +9568,9 @@ function _vwReraster(){
     pdf.getPage(n).then(function(pg){
       const nw=pg.getViewport({scale:1}).width;
       return _vwRasterize(pg,nw,ratio,cssW).then(function(cv){
+        if(!p.dataset.rendered){ _vwFreeCanvas(cv); return; }
         const old=p.querySelector('canvas');
-        if(old)old.replaceWith(cv);else p.insertBefore(cv,p.firstChild);
+        if(old){ old.replaceWith(cv); _vwFreeCanvas(old); } else p.insertBefore(cv,p.firstChild);
       });
     }).catch(function(){});
   });
@@ -10214,8 +10267,8 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 453;
-const APP_BUILD = '2026.11.14 (build ' + HP_BUILD + ')';
+const HP_BUILD = 454;
+const APP_BUILD = '2026.11.16 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
 // desregistra los SW, borra todas las cachés y recarga sin caché.
