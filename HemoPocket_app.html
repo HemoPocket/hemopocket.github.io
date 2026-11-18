@@ -602,7 +602,9 @@ body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.m
 .mtx-tag.lv{background:#e6efff;color:#1e3a8a}
 .mtx-tag.lv::before{content:'🧪 '}
 .mtx-tag.lv.opt{background:transparent;border:1px dashed #7aa2e3}
-.mtx-ori{font-size:12.5px;line-height:1.45;margin-top:10px;padding:8px 11px;border-radius:9px;background:#eef6ff;border:1px solid #c9ddf5;color:var(--txt)}
+.mtx-ori{font-size:13px;line-height:1.45;margin-top:10px;padding:9px 12px;border-radius:9px;background:#eef6ff;border:1px solid #c9ddf5;color:var(--txt)}
+.mtx-ori-s{font-size:12px;color:var(--mut);margin-bottom:3px}
+.mtx-esq{width:100%;max-width:440px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--inp,#fff);color:var(--txt);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 [data-t="dark"] .mtx-ori{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35)}
 .mtx-tag.fo{background:#e3f5e9;color:#14532d}
 .mtx-tag.fo::before{content:'💉 '}
@@ -2952,12 +2954,11 @@ VIEWS.bleyer=function(){
   h+='<div class="fld"><label class="lbl">SC (m²)</label><input id="bly_sc" type="number" step="any" inputmode="decimal" placeholder="auto" oninput="mtxAll()" style="'+inS+'"></div></div>';
   h+='<div id="bly_pt" style="font-size:12px;color:var(--mut);margin:2px 2px 0;min-height:15px"></div>';
   // 1 · Esquema
-  var chip=function(k,txt){ return '<button type="button" class="mtx-chip" data-k="'+k+'" onclick="mtxSel(\''+k+'\')">'+txt+'</button>'; };
+  // Un desplegable (menos carga visual) y, justo debajo, qué rescate se usa habitualmente con ese esquema.
   h+='<div class="mtx-sel"><div class="mtx-step"><span class="mtx-num">1</span>¿Qué esquema lleva?</div>';
-  MTX_GRP.forEach(function(g){ h+='<div class="mtx-grp">'+g[0]+'</div><div class="mtx-chips">'+g[1].map(function(k){ return chip(k,MTX_ESQ[k].n); }).join('')+'</div>'; });
-  h+='</div>';
+  h+='<select id="mtx_esq" class="mtx-esq" onchange="mtxSel(this.value||null)" aria-label="Esquema"><option value="">— Elige el esquema —</option>'+MTX_GRP.map(function(g){ return '<optgroup label="'+g[0]+'">'+g[1].map(function(k){ return '<option value="'+k+'">'+MTX_ESQ[k].t+'</option>'; }).join('')+'</optgroup>'; }).join('')+'</select>';
   h+='<div id="mtx_ori" class="mtx-ori" hidden></div>';
-  h+='<div id="mtx_hint" class="alert b" style="font-size:13px;margin-top:10px">Elige el esquema para empezar.</div>';
+  h+='</div>';
   // 2 · Inicio del MTX (común a todos los esquemas)
   h+='<div class="mtx-sel" id="mtx_step2" hidden><div class="mtx-step"><span class="mtx-num">2</span>¿Cuándo empezó el MTX?</div>';
   // Fecha y hora con tres desplegables (día, hora y minutos). El valor vive en mtx_t0.
@@ -3129,15 +3130,15 @@ function _mtxDet(tit,body,open){ return '<details class="mtx-det"'+(open?' open'
 function _mtxPan(k,tit,sub,body){ return '<div class="mtx-pan" id="mtx_pan_'+k+'" hidden><div class="mtx-pt"><span class="mtx-num">3</span><span>'+tit+'</span></div>'+(sub?'<div class="mtx-ps">'+sub+'</div>':'')+body+'</div>'; }
 // Punto de entrada: el esquema que lleva el paciente decide qué rescate se muestra.
 const MTX_ESQ={
-  matrix:{n:'MATRIX',sub:'MTX 3,5 g/m² en 3 h 15 min',dur:3.25,pans:['fix','bly'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Si los niveles muestran retraso en la eliminación, ajusta el rescate con el <strong>nomograma de Bleyer</strong>.'},
-  rchop:{n:'MTX-R-CHOP',sub:'MTX 3,5 g/m² en 4 h',dur:4,pans:['fix','bly'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Si los niveles muestran retraso en la eliminación, ajusta el rescate con el <strong>nomograma de Bleyer</strong>.'},
-  hcvad:{n:'R-Hiper-CVAD <small>parte B</small>',sub:'MTX 1 g/m² en 24 h',dur:24,pans:['fix','n24'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Infusión de 24 h: el nomograma de Bleyer no sirve.'},
-  bkm:{n:'BURKIMAB-14',pans:['bkm'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
-  l25:{n:'LAL-2025',pans:['l25'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
-  lph:{n:'LAL Ph-2022',pans:['lph'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
-  p13:{n:'SEHOP 2013',pans:['p13'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
-  p15:{n:'Recaída 2015',pans:['p15'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
-  otro:{n:'Otro esquema',dur:4,pans:['fix','bly'],ori:'Infusión de 3-4 h: lo habitual es la <strong>pauta fija del libro azul</strong> y, si hay retraso en la eliminación, el <strong>nomograma de Bleyer</strong>. Bleyer no sirve para infusiones de 24 h.'}
+  matrix:{t:'MATRIX · linfoma primario del SNC',n:'MATRIX',sub:'MTX 3,5 g/m² en 3 h 15 min',dur:3.25,pans:['fix','bly'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Si los niveles muestran retraso en la eliminación, ajusta el rescate con el <strong>nomograma de Bleyer</strong>.'},
+  rchop:{t:'MTX-R-CHOP',n:'MTX-R-CHOP',sub:'MTX 3,5 g/m² en 4 h',dur:4,pans:['fix','bly'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Si los niveles muestran retraso en la eliminación, ajusta el rescate con el <strong>nomograma de Bleyer</strong>.'},
+  hcvad:{t:'R-Hiper-CVAD (parte B)',n:'R-Hiper-CVAD <small>parte B</small>',sub:'MTX 1 g/m² en 24 h',dur:24,pans:['fix','n24'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Infusión de 24 h: el nomograma de Bleyer no sirve.'},
+  bkm:{t:'BURKIMAB-14 · Burkitt',n:'BURKIMAB-14',pans:['bkm'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  l25:{t:'LAL-2025',n:'LAL-2025',pans:['l25'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  lph:{t:'LAL Ph-2022',n:'LAL Ph-2022',pans:['lph'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  p13:{t:'SEHOP 2013 · pediatría',n:'SEHOP 2013',pans:['p13'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  p15:{t:'Recaída 2015 · pediatría',n:'Recaída 2015',pans:['p15'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  otro:{t:'Otro esquema',n:'Otro esquema',dur:4,pans:['fix','bly'],ori:'Infusión de 3-4 h: lo habitual es la <strong>pauta fija del libro azul</strong> y, si hay retraso en la eliminación, el <strong>nomograma de Bleyer</strong>. Bleyer no sirve para infusiones de 24 h.'}
 };
 const MTX_GRP=[['Linfoma',['matrix','rchop','hcvad','bkm']],['LAL del adulto',['l25','lph']],['LAL pediátrica',['p13','p15']],['Otro',['otro']]];
 function _mtxSelGet(){ try{ var v=localStorage.getItem('hp_mtx_sel'); return MTX_ESQ[v]?v:null; }catch(e){ return null; } }
@@ -3154,7 +3155,9 @@ function mtxSel(k,init){
   document.querySelectorAll('.mtx-chip').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-k')===k); });
   document.querySelectorAll('.mtx-pan').forEach(function(p){ p.hidden=pans.indexOf(p.id.replace('mtx_pan_',''))<0; });
   var s2=$('mtx_step2'); if(s2) s2.hidden=!E;
-  var or=$('mtx_ori'); if(or){ or.hidden=!(E&&E.ori); or.innerHTML=E&&E.ori?'🧭 '+E.ori:''; }
+  var es=$('mtx_esq'); if(es&&es.value!==(k||'')) es.value=k||'';
+  var sub=E?(E.sub||(MTX_P[k]&&MTX_P[k].sub)||''):'';
+  var or=$('mtx_ori'); if(or){ or.hidden=!(E&&E.ori); or.innerHTML=E&&E.ori?((sub?'<div class="mtx-ori-s">'+sub+'</div>':'')+'<div>🧭 '+E.ori+'</div>'):''; }
   var hi=$('mtx_hint'); if(hi) hi.hidden=!!E;
   var dw=$('lba_durw'); if(dw) dw.style.display=otro?'':'none';
   var ds=$('lba_dur'); if(E&&E.dur&&ds) ds.value=String(E.dur);
@@ -10586,7 +10589,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 468;
+const HP_BUILD = 469;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
