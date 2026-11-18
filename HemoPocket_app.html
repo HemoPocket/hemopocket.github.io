@@ -2959,7 +2959,7 @@ VIEWS.bleyer=function(){
   var p=(S.p&&S.p.weight)||'', t=(S.p&&S.p.height)||'';
   var inS='width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--inp,#fff);color:var(--txt);font-family:inherit;font-size:15px';
   var h='<div class="card"><h2>💊 Rescate con ácido folínico tras MTX a dosis altas</h2>';
-  h+='<p class="intro" style="margin-bottom:6px">Paso a paso: cuándo extraer los niveles, cuándo dar el folinato y qué dosis según cada nivel.<br><span style="font-size:12px">Dosis como folinato cálcico (Lederfolín); el levofolinato va a mitad de dosis.</span></p>';
+  h+='<p class="intro" style="margin-bottom:6px">Paso a paso: cuándo extraer los niveles, cuándo dar el folinato y qué dosis según cada nivel.<br><span style="font-size:12px">Dosis como folinato cálcico (Lederfolín).</span></p>';
   // Por zonas: cada paso se abre al completar el anterior (mtxFlow) y los ya hechos se pliegan.
   // ① Paciente
   var z='<div class="mtx-pat"><div class="fld"><label class="lbl">Peso (kg)</label><input id="bly_p" type="number" step="any" inputmode="decimal" value="'+p+'" oninput="blyFromPT()" style="'+inS+'"></div>';
@@ -3089,9 +3089,8 @@ function _blyPlanRows(){
 }
 function blyPlanUpd(){
   var box=$('bly_plan'); if(!box) return; var t0=_mtxT0();
-  box.innerHTML=_mtxPlanTbl(_blyPlanRows(),t0)+'<div style="font-size:12.5px;margin:2px 0 4px">Con los niveles en el rango habitual, la dosis es <strong>25 mg/m² cada 6 h</strong> (línea discontinua = estimada). Con cada nivel, ajústala abajo. Suspender cuando el MTX sea &lt; 0,01 µM; niveles como mínimo a las 20, 48 y 72 h (cada 12 h si está en rango tóxico).</div><div class="btns" style="margin-top:4px"><button class="btn btn-out btn-sm" onclick="blyCopyPlan()">Copiar plan</button></div>';
+  box.innerHTML=_mtxPlanTbl(_blyPlanRows(),t0)+'<div style="font-size:12.5px;margin:2px 0 4px">Con los niveles en el rango habitual, la dosis es <strong>25 mg/m² cada 6 h</strong> (línea discontinua = estimada). Con cada nivel, ajústala abajo. Suspender cuando el MTX sea &lt; 0,01 µM; niveles como mínimo a las 20, 48 y 72 h (cada 12 h si está en rango tóxico).</div>';
 }
-function blyCopyPlan(){ var t0=_mtxT0(); copy('Rescate con folinato cálcico según el nomograma de Bleyer, plan estimado si los niveles están en el rango habitual'+(t0?' (inicio del MTX: '+_lbaFmt(t0)+')':'')+'. '+_mtxPlanTxt(_blyPlanRows(),t0)+'. Ajustar la dosis con cada nivel; suspender cuando el MTX sea < 0,01 µM.'); }
 function blyFromPT(){
   var p=_ctNum(($('bly_p')||{}).value), t=_ctNum(($('bly_t')||{}).value), info=$('bly_pt');
   if(p>0&&t>0){ var sc=qtBSA(p,t), imc=hpIMC(p,t); var e=$('bly_sc'); if(e) e.value=sc.toFixed(3); if(info) info.innerHTML='SC (DuBois): <strong>'+_blyF(sc,3)+' m²</strong> · IMC: <strong>'+_blyF(imc.v,2)+' kg/m²</strong> ('+imc.cat+')'; }
@@ -3274,7 +3273,6 @@ function _mtxPlanTbl(rows,t0){
   }).join('')+'</table></div>';
 }
 function _mtxTag(c,t){ return '<span class="mtx-tag '+c+'">'+t+'</span>'; }
-function _mtxPlanTxt(rows,t0){ return rows.map(function(r){ return (t0?_mtxAt(t0,r[0])+' ('+_mtxN(r[0])+' h)':_mtxN(r[0])+' h')+': '+stripHTML(r[1].replace(/<\/span>\s*<span/g,'</span> · <span')); }).join('; '); }
 // Plan previsto de cada protocolo si los niveles son los esperados (horas desde el INICIO del MTX).
 // end: fin de la infusión; lv: niveles; dose: [hora, mg/m²]; fin: qué hacer después.
 const MTX_PLAN={
@@ -3305,11 +3303,7 @@ function _mtxPlanRows(k){
 function mtxPlanUpd(k){
   var box=$('mtx_'+k+'_plan'); if(!box) return; var R=_mtxPlanRows(k); if(!R){ box.innerHTML=''; return; }
   var t0=_mtxT0();
-  box.innerHTML=_mtxPlanTbl(R.rows,t0)+'<div style="font-size:12.5px;margin:2px 0 4px">'+R.fin+'</div><div class="btns" style="margin-top:4px"><button class="btn btn-out btn-sm" onclick="mtxCopyPlan(\''+k+'\')">Copiar plan</button></div>';
-}
-function mtxCopyPlan(k){
-  var R=_mtxPlanRows(k); if(!R) return; var t0=_mtxT0();
-  copy(MTX_P[k].n+' · plan de rescate con folinato si los niveles son los esperados'+(t0?' (inicio del MTX: '+_lbaFmt(t0)+')':'')+'. '+_mtxPlanTxt(R.rows,t0)+'. '+stripHTML(R.fin));
+  box.innerHTML=_mtxPlanTbl(R.rows,t0)+'<div style="font-size:12.5px;margin:2px 0 4px">'+R.fin+'</div>';
 }
 function mtxGluOpen(){ var d=$('mtx_glu_det'); if(!d) return; d.open=true; d.scrollIntoView({behavior:'smooth',block:'start'}); }
 function _mtxUl(a){ return '<ul style="font-size:13px;line-height:1.55;padding-left:18px;margin:6px 0">'+a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'; }
@@ -3479,7 +3473,7 @@ function mtxAll(){ blyCalc(); blyPlanUpd(); Object.keys(MTX_P).forEach(function(
 // ---- Libro azul: pauta fija desde el fin de la infusión ----
 function _mtxLbaHtml(inS){
   var h='<div class="alert b" style="font-size:13px;margin-bottom:8px"><strong>75 mg/m²</strong> a las 12 h de terminar la infusión, <strong>30 mg/m²</strong> 3 h después y luego <strong>30 mg cada 6 h</strong> hasta MTX &lt; 0,2 µM; a partir de ahí, 2 dosis más.</div>';
-  h+='<div id="lba_res"></div><div class="btns" style="margin-top:4px"><button class="btn btn-out btn-sm" onclick="lbaCopy()">Copiar pauta</button></div>';
+  h+='<div id="lba_res"></div>';
   h+=_mtxDet('Cuándo usar esta pauta',_mtxUl(['La dosis no se ajusta por niveles: el nivel solo sirve para saber cuándo parar.','Si los niveles no bajan como deben, el libro no indica cómo subir la dosis: usar el nomograma de Bleyer (infusión corta) o la tabla del protocolo del paciente.','Es la pauta que el libro da para sus esquemas con MTX a dosis altas (MATRIX, R-Hiper-CVAD, bloques de LAL y Burkitt).']));
   h+=_mtxSrc('lba');
   return h;
@@ -3505,10 +3499,6 @@ function lbaCalc(){
   // El enlace a Bleyer solo aparece si el esquema tiene esa pestaña (MATRIX, MTX-R-CHOP u «otro» corto).
   if(corta) nota+='<div class="mtx-ori" style="margin-top:8px">Niveles orientativos de buena eliminación: ≈ 10 µM a las 24 h, ≈ 1 µM a las 48 h y &lt; 0,2 µM a las 72 h (ficha técnica de la leucovorina de EE. UU.). La ficha técnica española pide aumentar el folinato si a las 48 h es ≥ 0,5 µM.'+(window._mtxHasBly?' <strong>Si el retraso es evidente</strong> (p. ej., ≥ 50 µM a las 24 h, ≥ 5 µM a las 48 h o &gt; 0,2 µM a las 72 h), <a onclick="mtxTab(\'bly\',1)" style="color:inherit;text-decoration:underline;cursor:pointer;font-weight:600">ajusta el rescate con el nomograma de Bleyer</a>.':'')+'</div>';
   box.innerHTML=_mtxPlanTbl(_lbaRows(),t0)+nota;
-}
-function lbaCopy(){
-  var t0=_mtxT0(), e=parseFloat(($('lba_dur')||{}).value||'4');
-  copy('Rescate con folinato cálcico (libro azul) tras MTX en '+_mtxN(e)+' h'+(t0?' (inicio: '+_lbaFmt(t0)+')':'')+'. '+_mtxPlanTxt(_lbaRows(),t0)+'. Seguir con 30 mg cada 6 h hasta MTX < 0,2 µM y, entonces, 2 dosis más.');
 }
 // ---- Glucarpidasa y bibliografía ----
 function _mtxGluHtml(){
@@ -10647,7 +10637,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 471;
+const HP_BUILD = 472;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12366,7 +12356,7 @@ const QT_SCHEMES = {
       'Evitar omeprazol/IBP, AINE, cotrimoxazol, penicilinas, ITK, contrastes y nefrotóxicos los días de MTX AD; evitar bebidas de cola.',
       'Se recomienda iniciar el MTX a las 18:00; la IT debe coincidir con la infusión (a la mañana siguiente). No hacer nunca la IT con el rescate ya iniciado (si no es posible, hacerla ≥24 h después de finalizar el rescate).',
       'Niveles de MTX a las 12, 23, 36, 42, 60 h (desde el inicio) y después cada 24 h hasta <0,2 µM. Alerta a las 12 h: si >75 µM con 3 g/m² (>50 µM con 1,5 g/m²), hidratación máxima (hasta 4,5 L/m²/día); si hay oliguria o sube la creatinina, valorar detener la infusión.',
-      'Rescate con folínico (LV racémico; levofolinato = mitad de dosis): 15 mg/m²/6 h IV desde la hora 42 tras el INICIO del MTX hasta MTX <0,2 µM (mínimo 3 dosis). Según [MTX] a 42 h: <1 µM 15; 1-2 → 30; 2-3 → 45; 3-4 → 60; 4-5 → 75; 5-10 → 100; 10-20 → 200; 20-50 → 500 mg/m²/6 h; 50-100 → 500 mg/m²/3 h (≥10 µM valorar glucarpidasa). Según [MTX] a 60 h: <0,2 suspender; 0,2-0,5 → 15 mg/m²/12 h; 0,5-1 → 15/6 h; 1-2 → 30/6 h; 2-4 → 50/6 h; 4-5 → 75/6 h; 5-10 → 100/6 h; >10 individualizado. Desde 84 h (eliminación retardada) no suspender hasta <0,1 µM. Si LV >20 mg/kg, infundir en ≥1 h.',
+      'Rescate con folínico (folinato cálcico): 15 mg/m²/6 h IV desde la hora 42 tras el INICIO del MTX hasta MTX <0,2 µM (mínimo 3 dosis). Según [MTX] a 42 h: <1 µM 15; 1-2 → 30; 2-3 → 45; 3-4 → 60; 4-5 → 75; 5-10 → 100; 10-20 → 200; 20-50 → 500 mg/m²/6 h; 50-100 → 500 mg/m²/3 h (≥10 µM valorar glucarpidasa). Según [MTX] a 60 h: <0,2 suspender; 0,2-0,5 → 15 mg/m²/12 h; 0,5-1 → 15/6 h; 1-2 → 30/6 h; 2-4 → 50/6 h; 4-5 → 75/6 h; 5-10 → 100/6 h; >10 individualizado. Desde 84 h (eliminación retardada) no suspender hasta <0,1 µM. Si LV >20 mg/kg, infundir en ≥1 h.',
       'Glucarpidasa 50 UI/kg IV en 5 min (considerar si [MTX] >50 µM a las 24 h, >30 µM a las 36 h, >10 µM a las 42 h o >5 µM a las 48 h); mantener la misma dosis de LV 48 h y separarla 2-4 h de la glucarpidasa.',
       'Hepatotoxicidad por PEG-ASP en el ciclo previo (pág. 53-54): G1-2: misma dosis con control estrecho; G3: iniciar el siguiente ciclo cuando sea ≤G1 (se acepta G2 de transaminasas) y dar la PEG-ASP al 50% si duró <6 semanas (si no se resolvió en 6 semanas, omitirla en el siguiente ciclo y reintroducirla al 50%); G4 o con riesgo vital: ver pág. 54 (no reintroducir si amenazó la vida).',
       'Hipersensibilidad grado 2-4 o inactivación silente (actividad <100 UI/L): sustituir por crisantaspasa recombinante (Enrylaze®, única Erwinia desde 09/2026): lunes y miércoles 25 mg/m² + viernes 50 mg/m² (IM/IM, IV/IM o IV/IV); sin ajuste por edad.',
@@ -12436,7 +12426,7 @@ const QT_SCHEMES = {
       'Evitar omeprazol/IBP, AINE, cotrimoxazol, penicilinas, ITK, contrastes y nefrotóxicos los días de MTX AD; evitar bebidas de cola.',
       'Se recomienda iniciar el MTX a las 18:00; la IT debe coincidir con la infusión (a la mañana siguiente). No hacer nunca la IT con el rescate ya iniciado (si no es posible, hacerla ≥24 h después de finalizar el rescate).',
       'Niveles de MTX a las 12, 23, 36, 42, 60 h (desde el inicio) y después cada 24 h hasta <0,2 µM. Alerta a las 12 h: si >100 µM con 5 g/m² (>50 µM con 1,5 g/m²), hidratación máxima (hasta 4,5 L/m²/día); si hay oliguria o sube la creatinina, valorar detener la infusión.',
-      'Rescate con folínico (LV racémico; levofolinato = mitad de dosis): 15 mg/m²/6 h IV desde la hora 42 tras el INICIO del MTX hasta MTX <0,2 µM (mínimo 3 dosis). Según [MTX] a 42 h: <1 µM 15; 1-2 → 30; 2-3 → 45; 3-4 → 60; 4-5 → 75; 5-10 → 100; 10-20 → 200; 20-50 → 500 mg/m²/6 h; 50-100 → 500 mg/m²/3 h (≥10 µM valorar glucarpidasa). Según [MTX] a 60 h: <0,2 suspender; 0,2-0,5 → 15 mg/m²/12 h; 0,5-1 → 15/6 h; 1-2 → 30/6 h; 2-4 → 50/6 h; 4-5 → 75/6 h; 5-10 → 100/6 h; >10 individualizado. Desde 84 h (eliminación retardada) no suspender hasta <0,1 µM. Si LV >20 mg/kg, infundir en ≥1 h.',
+      'Rescate con folínico (folinato cálcico): 15 mg/m²/6 h IV desde la hora 42 tras el INICIO del MTX hasta MTX <0,2 µM (mínimo 3 dosis). Según [MTX] a 42 h: <1 µM 15; 1-2 → 30; 2-3 → 45; 3-4 → 60; 4-5 → 75; 5-10 → 100; 10-20 → 200; 20-50 → 500 mg/m²/6 h; 50-100 → 500 mg/m²/3 h (≥10 µM valorar glucarpidasa). Según [MTX] a 60 h: <0,2 suspender; 0,2-0,5 → 15 mg/m²/12 h; 0,5-1 → 15/6 h; 1-2 → 30/6 h; 2-4 → 50/6 h; 4-5 → 75/6 h; 5-10 → 100/6 h; >10 individualizado. Desde 84 h (eliminación retardada) no suspender hasta <0,1 µM. Si LV >20 mg/kg, infundir en ≥1 h.',
       'Glucarpidasa 50 UI/kg IV en 5 min (considerar si [MTX] >50 µM a las 24 h, >30 µM a las 36 h, >10 µM a las 42 h o >5 µM a las 48 h); mantener la misma dosis de LV 48 h y separarla 2-4 h de la glucarpidasa.',
       'Hepatotoxicidad por PEG-ASP en el ciclo previo (pág. 53-54): G1-2: misma dosis con control estrecho; G3: iniciar el siguiente ciclo cuando sea ≤G1 (se acepta G2 de transaminasas) y dar la PEG-ASP al 50% si duró <6 semanas (si no se resolvió en 6 semanas, omitirla en el siguiente ciclo y reintroducirla al 50%); G4 o con riesgo vital: ver pág. 54 (no reintroducir si amenazó la vida).',
       'Hipersensibilidad grado 2-4 o inactivación silente (actividad <100 UI/L): sustituir por crisantaspasa recombinante (Enrylaze®, única Erwinia desde 09/2026): lunes y miércoles 25 mg/m² + viernes 50 mg/m² (IM/IM, IV/IM o IV/IV); sin ajuste por edad.',
