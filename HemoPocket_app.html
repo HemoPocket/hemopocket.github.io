@@ -10566,7 +10566,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 465;
+const HP_BUILD = 466;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -12472,7 +12472,7 @@ const QT_SCHEMES = {
     ]
   },
   'MELFALAN-140': {
-    label: 'Melfalán 140 – TASPE mieloma o amiloidosis (> 65-70 años o ClCr < 50)',
+    label: 'Melfalán 140 – TASPE mieloma (> 65-70 años o ClCr < 50)',
     conditioning: true,
     drugs: [
       {name:'Melfalán',                              dose:'140 mg/m²', route:'IV 1h', days:[1]},
@@ -12484,15 +12484,17 @@ const QT_SCHEMES = {
     ]
   },
   'MELFALAN-200-AMI': {
-    label: 'Melfalán 200 – TASPE amiloidosis AL',
+    label: 'Melfalán 200 en 2 días – TASPE amiloidosis AL',
     conditioning: true,
     drugs: [
-      {name:'Melfalán',                              dose:'200 mg/m²', route:'IV 1h', days:[1]},
-      {name:'Infusión de progenitores hematopoyéticos', dose:'—',      route:'IV', days:[2]}
+      {name:'Melfalán (dosis 1 de 2)',               dose:'100 mg/m²', route:'IV 1h', days:[1]},
+      {name:'Melfalán (dosis 2 de 2)',               dose:'100 mg/m²', route:'IV 1h', days:[2]},
+      {name:'Infusión de progenitores hematopoyéticos', dose:'—',      route:'IV', days:[3]}
     ],
     notes: [
-      'Si edad > 65-70 años o ClCr < 50 ml/min: melfalán 140 mg/m² (esquema «Melfalán 140»), también en la amiloidosis (protocolo de TASPE del HUNSC).',
-      'Melfalán IV en 1 h el día −1 (protocolo de TASPE del HUNSC); en obesidad, dosis con el peso ajustado al 20 % (ABW20). Hidratación ese día: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
+      'Amiloidosis AL: melfalán 200 mg/m² repartido en 2 días, 100 mg/m²/día los días −2 y −1, IV en 1 h (guía de acondicionamiento GETH-TC 2024, p. 262 y 342).',
+      'ClCr < 30 ml/min (pacientes muy seleccionados): melfalán 140 mg/m², también repartido en 2 días (70 mg/m²/día) (GETH-TC 2024).',
+      'En obesidad, dosis con el peso ajustado al 20 % (ABW20) (protocolo de TASPE del HUNSC). Hidratación cada día de melfalán: SF 1000 ml + ClK 10 mEq + furosemida 20 mg en la hora previa; después, SF 2000 ml + ClK 10 mEq + furosemida 20 mg por cada 1000 ml en las 8 h siguientes (libro azul).',
       'Crioterapia oral (hielo) desde 30 min antes, durante la infusión y hasta 30-60 min después del melfalán para prevenir la mucositis.'
     ]
   },
