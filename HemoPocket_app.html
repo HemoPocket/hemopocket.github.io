@@ -10647,7 +10647,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 470;
+const HP_BUILD = 471;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
@@ -11169,7 +11169,8 @@ const QT_SCHEMES = {
     notes: [
       'Hidratación: suero glucosalino 3 L/día + suero bicarbonatado 1/6 M 1 L/día (asociar furosemida en pacientes de edad avanzada).',
       'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6 h.',
-      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'Cisplatino 100 mg/m² en 24 h el día 1 (ensayo CORAL y DHAP del propio libro azul). La tabla del R-DHAP del libro indica 50 mg/m², probablemente por errata. Ajustar por función renal.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
@@ -11315,7 +11316,8 @@ const QT_SCHEMES = {
       'Metotrexato 3,5 g/m² el día 1: 0,5 g/m² en 15 min y, a continuación, 3 g/m² en 3 h (SG 5 % 500 ml). Citarabina 2 g/m²/12 h en 1 h los días 2 y 3. Tiotepa 30 mg/m² en 30 min el día 4.',
       'Hidratación: suero glucosalino 4 L/día + suero bicarbonatado 1/6 M 2 L/día.',
       'Rescate con ácido folínico: 1ª dosis 75 mg/m² IV a las 12 h de finalizar la infusión de metotrexato; a las 3 h, una dosis de 30 mg/m²; seguir con 30 mg cada 6 h IV hasta niveles séricos de MTX < 0,2 µmol/L, y entonces administrar 2 dosis más.',
-      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
     ]
@@ -11596,7 +11598,8 @@ const QT_SCHEMES = {
       'En ≥ 60 años: citarabina 1 g/m²/día (y en LA-MIX, idarubicina 8 mg/m²/día).',
       'G-CSF 5 µg/kg/día SC días 1-4; después, 1 vial/día SC a partir de los 7 días de acabar la quimioterapia, hasta neutrófilos > 1 × 10⁹/L.',
       'LA-MIX: si BCR::ABL1 es positivo, asociar imatinib según el protocolo. Intratecal (ARA-C + MTX + corticoide) solo si se hace punción lumbar por sospecha de afectación del SNC.',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'Hidratación ≥ 2 L/m²/día (1-2 L/m²/día si insuficiencia renal o cardiaca). Profilaxis del SLT según puntuación (LMA-FLOW 2026): 0-1 puntos, alopurinol 300 mg/12-24 h VO ± bicarbonato 1/6 M; 2-3, rasburicasa 0,2 mg/kg dosis única 4 h antes de la QT; 4-6, rasburicasa 0,2 mg/kg 2-4 días. Protección gástrica: omeprazol 20 mg/día.',
       'Profilaxis (libro azul): por la fludarabina, cotrimoxazol frente a Pneumocystis hasta 3-4 meses después de la última dosis; aciclovir 800 mg/12 h en seropositivos para VHS-1 o VVZ.'
     ]
@@ -11636,7 +11639,8 @@ const QT_SCHEMES = {
       '[ciclos 2-3] G-CSF 5 µg/kg/día SC desde el día 7 tras la QT (CBF-2016, pág. 25).',
       'El gemtuzumab puede asociarse a un mayor riesgo hemorrágico y a una trombopenia más prolongada: vigilancia estrecha y soporte transfusional.',
       'La consolidación puede administrarse de forma ambulatoria según la política del centro.',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.'
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).'
     ]
   },
   'FLAG-IDA-R': {
@@ -11652,7 +11656,8 @@ const QT_SCHEMES = {
       'Tras la QT: G-CSF 1 vial/día SC a partir de los 7 días de terminarla, hasta neutrófilos > 1 × 10⁹/L (LMA-RR-On, pág. 28).',
       'Orden de administración: fludarabina primero y la citarabina 4 h después de terminar la fludarabina (LMA-RR-On, pág. 28).',
       'En pacientes ≥60 años: reducir ARA-C a 1000 mg/m² e idarubicina a 8 mg/m², con la misma pauta.',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.'
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV antes de cada dosis de citarabina (profilaxis de neurotoxicidad).'
     ]
   },
   'IA-3+7': {
@@ -11703,7 +11708,8 @@ const QT_SCHEMES = {
       'Hidratación y profilaxis del síndrome de lisis tumoral según el riesgo; rasburicasa en pacientes con SLT hasta su resolución.',
       'Antiemético: granisetrón 3 mg u ondansetrón 8 mg IV cada 6-12 h. Protección gástrica: omeprazol 20-40 mg (o pantoprazol 40 mg IV) o ranitidina 300 mg/día.',
       'Profilaxis antifúngica anti-Aspergillus (voriconazol 200 mg/12 h o posaconazol 300 mg/24 h) desde el ingreso hasta PMN > 500. Descontaminación intestinal: ciprofloxacino 500 mg/12 h VO.',
-      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis.'
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).'
     ]
   },
   'ARAC-AD-MIDO': {
@@ -11716,7 +11722,8 @@ const QT_SCHEMES = {
       'En pacientes ≥60 años, reducir ARA-C a 1500 mg/m²/12 h con la misma pauta.',
       'Midostaurina desde el día 4, 14 días en total (LMA-FLOW 2026: «desde el día 4 hasta el día 18. En total se administrará 14 días»). Continuarla en consolidación solo si se utilizó en la inducción (FLT3+). Ajustar al 50% (25 mg/12 h) si se usa con inhibidores potentes de CYP3A (voriconazol, posaconazol).',
       'Soporte: hidratación, profilaxis de SLT, antiemético, protección gástrica, profilaxis antifúngica anti-Aspergillus y descontaminación intestinal (ciprofloxacino 500 mg/12 h).',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'Midostaurina: ECG con QTcF antes de cada ciclo, a las 24-48 h y a los 5-7 días de empezarla y al añadir fármacos que alarguen el QTc; controlar Ca, Mg y K. No usar si QTcF > 470 ms (libro azul).'
     ]
   },
@@ -11731,7 +11738,8 @@ const QT_SCHEMES = {
       'Quizartinib desde el día 4, 14 días en total (LMA-FLOW 2026, pág. 38). Continuarlo en consolidación solo si se utilizó en la inducción.',
       'Quizartinib 17,7 mg/24 h si se usa con inhibidores potentes de CYP3A4 (voriconazol, posaconazol); nunca menos de 17,7 mg/día. Contraindicado con inductores moderados o potentes de CYP3A4 (LMA-FLOW 2026, pág. 49).',
       'Soporte: hidratación, profilaxis de SLT, antiemético, protección gástrica, profilaxis antifúngica anti-Aspergillus y descontaminación intestinal (ciprofloxacino 500 mg/12 h).',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'Quizartinib: ECG con QTcF antes de cada ciclo y al añadir fármacos que alarguen el QTc; controlar Ca, Mg y K. No usar si QTcF > 470 ms (LMA-FLOW 2026, pág. 49).'
     ]
   },
@@ -12031,7 +12039,8 @@ const QT_SCHEMES = {
     notes: [
             'Rescate con ácido folínico (libro azul): 75 mg/m² IV a las 12 h de acabar el MTX; a las 3 h, 30 mg/m²; después 30 mg cada 6 h IV hasta MTX < 0,2 µmol/L y, entonces, 2 dosis más.',
       'Hidratación: suero glucosalino 3 L/día + suero bicarbonatado 1/6 M 1 L/día.',
-      'Con la citarabina: colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos + vitamina B6 IV antes de cada dosis de ARA-C.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'Las dos pautas (A y B) se alternan cada 21 días.',
       'Profilaxis infecciosa (libro azul): cotrimoxazol 800/160 mg/24 h VO lunes, miércoles y viernes durante el tratamiento y hasta CD4 ≥ 300/µl; aciclovir 800 mg/día o valaciclovir 500 mg/12 h en pacientes linfopénicos.',
       '[ciclo 1] Ciclo 1: alopurinol 300 mg/día VO y protector gástrico (omeprazol 20 mg/día).'
@@ -12249,13 +12258,12 @@ const QT_SCHEMES = {
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[7]}
     ],
     premed: [
-      'Colirio de dexametasona 1 gota en cada ojo cada 8 h durante 3 días (ARA-C AD).',
-      'Vitamina B6 IV, antes de cada dosis de ARA-C (profilaxis de neurotoxicidad).'
+      'Colirio de dexametasona 1 gota en cada ojo cada 8 h, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV antes de cada dosis de citarabina (profilaxis de neurotoxicidad).'
     ],
     notes: [
       'LLA-T inmaduras (pro-T, pre-T, near-ETP, ETP). En >50 años reducir el ARA-C a la mitad (1000 mg/m²).',
       'Hemoderivados celulares irradiados en pacientes que reciben FLAG-IDA.',
-      'Profilaxis con ARA-C a dosis altas: colirio de dexametasona 1 gota en cada ojo cada 8 h × 3 días y vitamina B6.',
       'ARA-C AD: suspender si hay conjuntivitis grave refractaria, reacción alérgica grave, clínica neurológica grave (nistagmo, ataxia, disartria: interrumpir la infusión) o transaminasas >5×LSN; reducir la dosis en insuficiencia renal (el protocolo no da la cifra). No mezclar con MTX.',
       'Si hay RC, consolidación precoz: Consolidación-1, Consolidación-2 y alo-TPH precoz en todos (Consolidación-3 si el TPH se demora). Si no hay RC, fuera de protocolo (ensayo clínico; combinaciones con venetoclax o nelarabina tipo NECTAR).',
       'Protocolo PETHEMA LAL-2025, pág. 31, 35, 47-48, 69.'
@@ -12293,14 +12301,13 @@ const QT_SCHEMES = {
       {name:'Triple intratecal', dose:'MTX 12 mg + ARA-C 30 mg + hidrocortisona 20 mg', route:'IT', days:[7]}
     ],
     premed: [
-      'Colirio de dexametasona 1 gota en cada ojo cada 8 h durante 3 días (ARA-C AD).',
-      'Vitamina B6 IV, antes de cada dosis de ARA-C (profilaxis de neurotoxicidad).'
+      'Colirio de dexametasona 1 gota en cada ojo cada 8 h, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV antes de cada dosis de citarabina (profilaxis de neurotoxicidad).'
     ],
     notes: [
       'Indicación: LLA-B sin RC tras la inducción-1 con contraindicación o toxicidad al inotuzumab; LLA-T madura sin RC tras la inducción-1.',
       'Citarabina 1 g/m² en pacientes de 50-60 años.',
       'Hemoderivados celulares irradiados en pacientes que reciben FLAG-IDA.',
-      'Profilaxis con ARA-C a dosis altas: colirio de dexametasona 1 gota en cada ojo cada 8 h × 3 días y vitamina B6.',
       'ARA-C AD: suspender si hay conjuntivitis grave refractaria, reacción alérgica grave, clínica neurológica grave (nistagmo, ataxia, disartria: interrumpir la infusión) o transaminasas >5×LSN; reducir la dosis en insuficiencia renal (el protocolo no da la cifra). No mezclar con MTX.',
       'Evaluación: si no hay RC morfológica, exclusión del protocolo. Si hay RC: en la LLA-B, Blinatumomab 1; en la LLA-T madura, Consolidación-1 seguida de alo-TPH (Consolidación-2 si el TPH se demora).',
       'Protocolo PETHEMA LAL-2025, pág. 21, 34, 47-48, 69.'
@@ -12383,8 +12390,8 @@ const QT_SCHEMES = {
     ],
     premed: [
       'Pueden administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).',
-      'Colirio de dexametasona 1 gota en cada ojo cada 8 h durante 3 días (ARA-C AD).',
-      'Vitamina B6 IV, antes de cada dosis de ARA-C (profilaxis de neurotoxicidad).',
+      'Colirio de dexametasona 1 gota en cada ojo cada 8 h, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
@@ -12453,8 +12460,8 @@ const QT_SCHEMES = {
     ],
     premed: [
       'Pueden administrarse 80-100 mg de prednisona (o la dosis equivalente de dexametasona) antes de la PEG-ASP (opcional).',
-      'Colirio de dexametasona 1 gota en cada ojo cada 8 h durante 3 días (ARA-C AD).',
-      'Vitamina B6 IV, antes de cada dosis de ARA-C (profilaxis de neurotoxicidad).',
+      'Colirio de dexametasona 1 gota en cada ojo cada 8 h, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
       'PEG-ASP: si ha pasado mucho tiempo desde la dosis previa, valorar avisar a la UMI por riesgo de anafilaxia.'
     ],
     notes: [
@@ -12622,7 +12629,9 @@ const QT_SCHEMES = {
     ],
     notes: [
       'Profilaxis de convulsiones por busulfán (libro azul): fenitoína 300 mg/8 h VO de carga 24 h antes del 1.er busulfán y después 100 mg/8 h hasta 2 días después de la última dosis (alternativa: benzodiacepinas).',
-      'Con la citarabina: colirio de dexametasona 2 gotas cada 8 h en ambos ojos. En pacientes ≥60 años, reducir la citarabina a 1,5 g/m²/12 h.',
+      'Colirio de dexametasona (1 mg/ml) 2 gotas cada 8 h en ambos ojos, desde el inicio de la citarabina hasta 3 días después de la última dosis.',
+      'Vitamina B6 1 ampolla IV cada 12 h, antes de cada dosis de citarabina (profilaxis de neurotoxicidad).',
+      'En pacientes ≥ 60 años, reducir la citarabina a 1,5 g/m²/12 h.',
       'Profilaxis de neumonía por Pneumocystis (cotrimoxazol) si ha recibido fludarabina previamente; suspenderla 3-4 meses después de la última dosis de fludarabina.',
       'G-CSF a partir del día +7 para facilitar la recuperación hematopoyética.',
       'Profilaxis antibiótica y antifúngica a criterio del centro.',
