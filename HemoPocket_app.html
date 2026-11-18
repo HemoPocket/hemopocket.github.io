@@ -606,20 +606,15 @@ body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.m
 [data-t="dark"] .mtx-tag.fo{background:rgba(34,197,94,.16);color:#bbf7d0}
 [data-t="dark"] .mtx-tag.fo.est{background:transparent}
 [data-t="dark"] .mtx-step{color:var(--c2l)}
-.mtx-t0{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.mtx-t0 input{flex:1 1 210px;min-width:0}
-.mtx-t0b{display:flex;gap:6px;flex:0 0 auto}
-.mtx-dt{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;align-items:center}
-.mtx-dtl{font-size:11.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
-.mtx-dinp{border:1px solid var(--bd);border-radius:999px;padding:5px 10px;font:inherit;font-size:13px;background:var(--card);color:var(--txt);max-width:160px}
-.mtx-tm{display:flex;gap:6px;align-items:center}
-#mtx_h{width:96px;text-align:center;font-size:20px;font-weight:700;padding:5px 8px;border:1px solid var(--bd);border-radius:10px;background:var(--inp,#fff);color:var(--txt);font-family:inherit}
-#mtx_h.bad{border-color:var(--er);box-shadow:0 0 0 3px rgba(220,38,38,.15)}
-.mtx-tq .mtx-chip{padding:5px 11px;font-size:12.5px}
-.mtx-pill-i{border-color:var(--c2);color:var(--c2)}
-[data-t="dark"] .mtx-pill-i{border-color:var(--c2l);color:var(--c2l)}
+.mtx-dt2{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.mtx-f{display:flex;flex-direction:column;gap:5px;margin:0}
+.mtx-f>span:first-child{font-size:11.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.mtx-f select{padding:9px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--inp,#fff);color:var(--txt);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+#mtx_dsel{min-width:200px}
+.mtx-hm{display:flex;align-items:center;gap:5px}
+.mtx-hm b{font-size:18px}
 .mtx-now{font-size:12.5px;color:var(--mut);margin-top:6px}
-.mtx-tip{font-size:12.5px;line-height:1.45;margin-top:8px;padding:7px 10px;border-radius:8px;background:var(--card);border:1px dashed var(--bd)}
+.mtx-tip{font-size:12.5px;line-height:1.45;margin-top:12px;color:var(--mut)}
 .mtx-sub{font-size:13px;font-weight:700;margin:14px 0 6px;padding-top:10px;border-top:1px solid var(--bd)}
 .mtx-hd{display:block;font-size:10.5px;font-weight:400;opacity:.8;margin-top:1px}
 .mtx-plan{font-size:12.5px;margin:6px 0;max-width:660px}
@@ -2958,15 +2953,15 @@ VIEWS.bleyer=function(){
   h+='<div id="mtx_hint" class="alert b" style="font-size:13px;margin-top:10px">Elige el esquema para empezar.</div>';
   // 2 · Inicio del MTX (común a todos los esquemas)
   h+='<div class="mtx-sel" id="mtx_step2" hidden><div class="mtx-step"><span class="mtx-num">2</span>¿Cuándo empezó el MTX?</div>';
-  // Fecha y hora con controles propios (el selector del navegador era poco práctico). El valor vive en mtx_t0.
-  h+='<input id="mtx_t0" type="hidden"><div class="mtx-dt">';
-  h+='<span class="mtx-dtl">Día</span><div class="mtx-chips">'+[[-1,'Ayer'],[0,'Hoy'],[1,'Mañana']].map(function(x){ return '<button type="button" class="mtx-chip" data-day="'+x[0]+'" onclick="mtxDay('+x[0]+')">'+x[1]+'</button>'; }).join('')+'<input id="mtx_d" class="mtx-dinp" type="date" onchange="mtxDate(this.value)" aria-label="Otro día"></div>';
-  h+='<span class="mtx-dtl">Hora</span><div class="mtx-tm"><button type="button" class="btn btn-out btn-sm" onclick="mtxStep(-60)" aria-label="Una hora menos">−1 h</button><input id="mtx_h" type="text" inputmode="numeric" maxlength="5" placeholder="18:00" onchange="mtxTime(this.value)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();this.blur();}" aria-label="Hora de inicio (hh:mm)"><button type="button" class="btn btn-out btn-sm" onclick="mtxStep(60)" aria-label="Una hora más">+1 h</button></div>';
-  h+='<span></span><div class="mtx-chips mtx-tq">'+['08:00','12:00','16:00','18:00','20:00'].map(function(x){ return '<button type="button" class="mtx-chip" data-tq="'+x+'" onclick="mtxTime(\''+x+'\')">'+x+'</button>'; }).join('')+'<button type="button" class="mtx-chip" onclick="mtxT0Set()">Ahora</button></div>';
+  // Fecha y hora con tres desplegables (día, hora y minutos). El valor vive en mtx_t0.
+  var hs='',ms=''; for(var hh=0;hh<24;hh++) hs+='<option value="'+hh+'">'+(hh<10?'0':'')+hh+'</option>'; for(var mm=0;mm<60;mm+=5) ms+='<option value="'+mm+'">'+(mm<10?'0':'')+mm+'</option>';
+  h+='<input id="mtx_t0" type="hidden"><div class="mtx-dt2">';
+  h+='<label class="mtx-f"><span>Día</span><select id="mtx_dsel" onchange="mtxDT()"></select></label>';
+  h+='<label class="mtx-f"><span>Hora</span><span class="mtx-hm"><select id="mtx_hsel" onchange="mtxDT()" aria-label="Hora">'+hs+'</select><b>:</b><select id="mtx_msel" onchange="mtxDT()" aria-label="Minutos">'+ms+'</select></span></label>';
+  h+='<label class="mtx-f" id="lba_durw" style="display:none"><span>Duración de la infusión</span><select id="lba_dur" onchange="lbaCalc()"><option value="2">2 h</option><option value="3.25">3 h 15 min</option><option value="4" selected>4 h</option><option value="6">6 h</option><option value="24">24 h</option></select></label>';
   h+='</div>';
-  h+='<div class="mtx-tip">⏰ Se recomienda <strong>empezar a las 18:00</strong>: los niveles y el rescate caen en un horario más cómodo. Por defecto se calcula con hoy a las 18:00; cámbialo si empezó a otra hora.</div>';
+  h+='<div class="mtx-tip">⏰ Se recomienda <strong>empezar a las 18:00</strong>, para que los niveles y el rescate caigan en un horario más cómodo. Por defecto se calcula con hoy a las 18:00.</div>';
   h+='<div id="mtx_now" class="mtx-now"></div>';
-  h+='<div class="fld" id="lba_durw" style="margin:8px 0 0;display:none"><label class="lbl">Duración de la infusión</label><select id="lba_dur" onchange="lbaCalc()" style="'+inS+'"><option value="2">2 h</option><option value="3.25">3 h 15 min</option><option value="4" selected>4 h</option><option value="6">6 h</option><option value="24">24 h</option></select></div>';
   h+='</div>';
   // MATRIX, MTX-R-CHOP y otros: pauta fija del libro azul o rescate según niveles (Bleyer), a elegir
   h+='<div class="mtx-seg" id="mtx_seg" hidden><button type="button" data-v="fix" onclick="mtxTab(\'fix\')">Pauta fija <small>libro azul</small></button><button type="button" data-v="bly" onclick="mtxTab(\'bly\')">Según niveles <small>Bleyer</small></button></div>';
@@ -3170,28 +3165,27 @@ function _mtxIso(d){ var q=function(n){ return (n<10?'0':'')+n; }; return d.getF
 function _mtxHM(d){ var q=function(n){ return (n<10?'0':'')+n; }; return q(d.getHours())+':'+q(d.getMinutes()); }
 function _mtxWrite(d){ var e=$('mtx_t0'); if(!e) return; e.value=_mtxIso(d)+'T'+_mtxHM(d); mtxT0Upd(); }
 function _mtxBase(){ var t=_mtxT0(); if(t) return t; var d=new Date(); d.setHours(18,0,0,0); return d; }
-function mtxDay(off){ var t=_mtxBase(), d=new Date(); d.setDate(d.getDate()+off); t.setFullYear(d.getFullYear(),d.getMonth(),d.getDate()); _mtxWrite(t); }
-function mtxDate(v){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||''); if(!m) return; var t=_mtxBase(); t.setFullYear(+m[1],+m[2]-1,+m[3]); _mtxWrite(t); }
-function mtxStep(min){ var t=_mtxBase(); _mtxWrite(new Date(t.getTime()+min*60000)); }
-// Acepta «18», «18:30», «1830», «18.30» o «18h».
-function mtxTime(v){
-  var hi=$('mtx_h'), m=/^\s*(\d{1,2})(?:\s*[:.h]?\s*(\d{2}))?\s*h?\s*$/i.exec(v||'');
-  var ok=m&&+m[1]<24&&(!m[2]||+m[2]<60);
-  if(hi) hi.classList.toggle('bad',!ok);
-  if(!ok){ if(typeof toast==='function') toast('Escribe la hora como 18:00'); return; }
-  var t=_mtxBase(); t.setHours(+m[1],m[2]?+m[2]:0,0,0); _mtxWrite(t);
+function _mtxDayLbl(d,off){ var w=d.toLocaleDateString('es-ES',{weekday:'short'}).replace('.',''), f=(d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);
+  return (off===0?'Hoy · ':off===-1?'Ayer · ':off===1?'Mañana · ':off===-2?'Anteayer · ':'')+w+' '+f; }
+// Rellena el desplegable de día (de hace 7 días a mañana; añade el día elegido si queda fuera).
+function _mtxFillDays(t0){
+  var sel=$('mtx_dsel'); if(!sel) return; var a=new Date(); a.setHours(0,0,0,0), o=[], cur=t0?_mtxIso(t0):'';
+  for(var off=1;off>=-7;off--){ var d=new Date(a); d.setDate(d.getDate()+off); o.push([_mtxIso(d),_mtxDayLbl(d,off)]); }
+  if(cur&&!o.some(function(x){ return x[0]===cur; })){ var b=new Date(t0); b.setHours(0,0,0,0); o.push([cur,_mtxDayLbl(b,Math.round((b-a)/86400000))]); }
+  sel.innerHTML=o.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===cur?' selected':'')+'>'+x[1]+'</option>'; }).join('');
+}
+function mtxDT(){
+  var dv=($('mtx_dsel')||{}).value, hv=($('mtx_hsel')||{}).value, mv=($('mtx_msel')||{}).value, m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(dv||''); if(!m) return;
+  _mtxWrite(new Date(+m[1],+m[2]-1,+m[3],+hv||0,+mv||0,0,0));
 }
 function mtxT0Upd(){
   var t0=_mtxT0(), nw=$('mtx_now');
-  if(t0){ // sincroniza los controles de día y hora
-    var di=$('mtx_d'); if(di&&di.value!==_mtxIso(t0)) di.value=_mtxIso(t0);
-    var hi=$('mtx_h'); if(hi&&document.activeElement!==hi){ hi.value=_mtxHM(t0); hi.classList.remove('bad'); }
-    var a=new Date(); a.setHours(0,0,0,0); var b=new Date(t0); b.setHours(0,0,0,0); var off=Math.round((b-a)/86400000);
-    document.querySelectorAll('[data-day]').forEach(function(x){ x.classList.toggle('on',+x.getAttribute('data-day')===off); });
-    document.querySelectorAll('[data-tq]').forEach(function(x){ x.classList.toggle('on',x.getAttribute('data-tq')===_mtxHM(t0)); });
+  if(t0){ // sincroniza los desplegables
+    _mtxFillDays(t0);
+    var hs=$('mtx_hsel'); if(hs) hs.value=String(t0.getHours());
+    var ms=$('mtx_msel'); if(ms){ var mn=String(t0.getMinutes()); if(!ms.querySelector('option[value="'+mn+'"]')){ var op=document.createElement('option'); op.value=mn; op.textContent=(+mn<10?'0':'')+mn; ms.appendChild(op); } ms.value=mn; }
   }
-  if(nw){ if(t0){ var hh=(Date.now()-t0.getTime())/3600000; var ini='<span class="mtx-pill mtx-pill-i">Inicio: '+t0.toLocaleDateString('es-ES',{weekday:'long'})+' '+_lbaFmt(t0).replace(' ',' a las ')+'</span> ';
-    nw.innerHTML=ini+(hh>=0?('<span class="mtx-pill">Ahora: '+_mtxN(Math.floor(hh*10)/10)+' h desde el inicio</span>'):'<span class="mtx-pill">Todavía no ha empezado</span>'); } else nw.innerHTML='Escribe la fecha y la hora para ver cuándo toca cada nivel y cada dosis.'; }
+  if(nw){ if(t0){ var hh=(Date.now()-t0.getTime())/3600000; nw.innerHTML=hh>=0?('<span class="mtx-pill">Ahora: '+_mtxN(Math.floor(hh*10)/10)+' h desde el inicio</span>'):('<span class="mtx-pill">Empieza dentro de '+_mtxN(Math.ceil(-hh*10)/10)+' h</span>'); } else nw.innerHTML='Escribe la fecha y la hora para ver cuándo toca cada nivel y cada dosis.'; }
   document.querySelectorAll('[data-hd]').forEach(function(b){
     var sm=b.querySelector('small.mtx-hd'); if(!sm){ sm=document.createElement('small'); sm.className='mtx-hd'; b.appendChild(sm); }
     var txt=t0?b.getAttribute('data-hd').split(',').map(function(x){ return _mtxAt(t0,+x); }).join(' y '):'';
@@ -10572,7 +10566,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 464;
+const HP_BUILD = 465;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
