@@ -589,7 +589,9 @@ body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.m
 [data-t="dark"] .mtx-step{color:var(--c2l)}
 .mtx-t0{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .mtx-t0 input{flex:1 1 210px;min-width:0}
+.mtx-t0b{display:flex;gap:6px;flex:0 0 auto}
 .mtx-now{font-size:12.5px;color:var(--mut);margin-top:6px}
+.mtx-tip{font-size:12.5px;line-height:1.45;margin-top:8px;padding:7px 10px;border-radius:8px;background:var(--card);border:1px dashed var(--bd)}
 .mtx-sub{font-size:13px;font-weight:700;margin:14px 0 6px;padding-top:10px;border-top:1px solid var(--bd)}
 .mtx-hd{display:block;font-size:10.5px;font-weight:400;opacity:.8;margin-top:1px}
 .mtx-plan{font-size:12.5px;margin:6px 0}
@@ -2926,7 +2928,8 @@ VIEWS.bleyer=function(){
   h+='<div id="mtx_hint" class="alert b" style="font-size:13px;margin-top:10px">Elige el esquema para empezar.</div>';
   // 2 · Inicio del MTX (común a todos los esquemas)
   h+='<div class="mtx-sel" id="mtx_step2" hidden><div class="mtx-step">2 · ¿Cuándo empezó el MTX?</div>';
-  h+='<div class="mtx-t0"><input id="mtx_t0" type="datetime-local" oninput="mtxT0Upd()" onchange="mtxT0Upd()" aria-label="Inicio de la infusión de MTX" style="'+inS+'"><button type="button" class="btn btn-out btn-sm" onclick="mtxT0Set(\'18\')">Hoy 18:00</button><button type="button" class="btn btn-out btn-sm" onclick="mtxT0Set()">Ahora</button></div>';
+  h+='<div class="mtx-t0"><input id="mtx_t0" type="datetime-local" oninput="mtxT0Upd()" onchange="mtxT0Upd()" aria-label="Inicio de la infusión de MTX" style="'+inS+'"><span class="mtx-t0b"><button type="button" class="btn btn-out btn-sm" onclick="mtxT0Set(\'18\')">Hoy 18:00</button><button type="button" class="btn btn-out btn-sm" onclick="mtxT0Set()">Ahora</button></span></div>';
+  h+='<div class="mtx-tip">Se recomienda <strong>empezar el MTX a las 18:00</strong>: así los niveles y el rescate caen en un horario más cómodo. Por eso el cálculo parte, por defecto, de hoy a las 18:00; cámbialo si empezó a otra hora.</div>';
   h+='<div id="mtx_now" class="mtx-now"></div>';
   h+='<div class="fld" id="lba_durw" style="margin:8px 0 0;display:none"><label class="lbl">Duración de la infusión</label><select id="lba_dur" onchange="lbaCalc()" style="'+inS+'"><option value="2">2 h</option><option value="3.25">3 h 15 min</option><option value="4" selected>4 h</option><option value="6">6 h</option><option value="24">24 h</option></select></div>';
   h+='</div>';
@@ -2971,7 +2974,9 @@ VIEWS.bleyer=function(){
   h+='</div>';
   return h;
 };
-VIEWS.bleyer_post=function(){ mtxSel(_mtxSelGet(),true); if(_ctNum(($('bly_p')||{}).value)&&_ctNum(($('bly_t')||{}).value)) blyFromPT(); else mtxAll(); mtxT0Upd(); };
+VIEWS.bleyer_post=function(){ mtxSel(_mtxSelGet(),true); if(_ctNum(($('bly_p')||{}).value)&&_ctNum(($('bly_t')||{}).value)) blyFromPT(); else mtxAll();
+  // Por defecto, inicio hoy a las 18:00 (hora recomendada); se puede cambiar.
+  var t0=$('mtx_t0'); if(t0&&!t0.value) mtxT0Set('18'); else mtxT0Upd(); };
 function blySetH(x){ window._bly.h=x; blyCalc(); }
 function blyFromPT(){
   var p=_ctNum(($('bly_p')||{}).value), t=_ctNum(($('bly_t')||{}).value), info=$('bly_pt');
@@ -10483,7 +10488,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 461;
+const HP_BUILD = 462;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
