@@ -6,7 +6,7 @@
   "start_url": "./HemoPocket_app.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#eef1f5",
   "theme_color": "#c41e3a",
   "categories": ["medical", "health", "education"],

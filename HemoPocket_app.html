@@ -486,7 +486,8 @@ body.hp-editing #hp-edit-banner{display:flex;align-items:center;gap:10px;backgro
 .calc-box{background:var(--bg2);border:1px solid var(--bd);padding:14px;border-radius:var(--rs);margin:12px 0}
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-@media(max-width:768px){
+/* Móvil en horizontal: misma maquetación que en vertical (sin barra lateral fija). */
+@media(max-width:768px),(max-height:500px) and (orientation:landscape){
 .app{grid-template-columns:1fr}
 .sb{position:fixed;top:0;left:-320px;width:300px;height:100vh;z-index:100;transition:left .3s;overflow-y:auto;box-shadow:var(--shd2)}
 .sb.open{left:0}
@@ -501,7 +502,7 @@ body{font-size:13px}
 .row,.row2{grid-template-columns:1fr}
 .qtc-row{grid-template-columns:max-content 1fr 78px;gap:10px}
 }
-@media(min-width:769px){
+@media(min-width:769px) and (min-height:501px){
 .main{width:100%;max-width:1180px;margin-inline:auto;padding:18px 28px}
 .home-hero{padding:20px 32px 20px;max-width:560px}
 }
@@ -626,7 +627,9 @@ body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.m
 .viewer-page-placeholder{width:100%;max-width:900px;margin:0 auto 8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;min-height:300px}
 .viewer-loading{padding:30px;text-align:center;color:var(--mut)}
 .viewer-error{padding:20px;text-align:center;color:var(--er);background:var(--card);border-radius:var(--rs);margin:14px}
-@media(max-width:768px){.viewer-card{height:calc(100vh - 70px)}.viewer-pages{padding:8px 4px}}
+@media(max-width:768px),(max-height:500px) and (orientation:landscape){.viewer-card{height:calc(100vh - 70px)}.viewer-pages{padding:8px 4px}}
+/* Móvil en horizontal: el visor de PDF usa toda la altura (sin la barra superior de la app; «Volver» sigue en el visor). */
+@media(max-height:500px) and (orientation:landscape){body.view-viewer .top-bar{display:none}body.view-viewer .viewer-card{height:calc(100vh - 16px);min-height:0}body.view-viewer .viewer-header{padding:4px 10px}body.view-viewer .viewer-toolbar{padding:3px 8px}}
 /* Nota "Contenido en proceso de verificación" (se retira por apartado al validarlo) */
 .verify-note{display:flex;align-items:center;gap:7px;margin:0 0 12px;padding:9px 12px;border-radius:var(--rs);font-size:12.5px;font-weight:600;line-height:1.35;color:#92500a;background:#fff7e6;border:1px solid #f3d28a}
 [data-t="dark"] .verify-note{color:#f6c66b;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)}
@@ -1787,6 +1790,7 @@ function go(id, params) {
       if (!_skipPost && VIEWS[id + '_post']) VIEWS[id + '_post'](params);
     }
     document.body.classList.toggle('view-home', !!document.querySelector('#content .home-screen'));
+    document.body.classList.toggle('view-viewer', id === 'viewer');
     const _ew = $('eriWrap');
     if (_ew) { _ew._manual = false; if (typeof eriAnchor === 'function') requestAnimationFrame(eriAnchor); }
 }
@@ -9234,7 +9238,7 @@ const url=URL.createObjectURL(pdfBlob);
 $('vw_title').textContent=data.name;
 window._currentPDF={blob:pdfBlob,name:data.name,url:url};
 const container=$('vw_pages');
-window._vwContainer=container;_vwZoom=1;{const _zl=$('vw_zlabel');if(_zl)_zl.textContent='100%';}
+window._vwContainer=container;window._vwLastCW=container.clientWidth;_vwZoom=1;{const _zl=$('vw_zlabel');if(_zl)_zl.textContent='100%';}
 vwSetupPinch(container);
 container.innerHTML='<div class="viewer-loading">⏳ Cargando visor PDF...</div>';
 const ok=await ensurePDFJSLoaded();
@@ -9296,6 +9300,7 @@ target._vwTask=null;
 if(target._vwGen!==gen){ _vwFreeCanvas(canvas); return; }
 target.appendChild(canvas);
 target.dataset.renderedZoom=_vwZoom;
+target.dataset.renderedW=cssWidth;
 // Capa de texto: habilita seleccionar/copiar y el resaltado del buscador.
 // Aditiva y tolerante a fallos: si no hay texto (PDF escaneado) o falla, el PDF se sigue viendo igual.
 try{
@@ -9307,6 +9312,7 @@ tl.className='textLayer';
 tl.style.width=baseW+'px';
 tl.style.height=(baseW*ratio)+'px';
 tl.style.setProperty('--scale-factor',tlScale); // requerido por pdf.js 3.x para posicionar el texto
+tl.dataset.baseW=baseW; // ancho base con el que se maquetó (cambia al girar el dispositivo)
 tl.style.transform='scale('+_vwZoom+')';
 target.appendChild(tl);
 const tc=await vwGetPageTC(pageNum,page);
@@ -9640,12 +9646,12 @@ function _vwReraster(){
   const cssW=baseW*_vwZoom;
   const cr=c.getBoundingClientRect();
   c.querySelectorAll('.viewer-page-placeholder[data-rendered="1"]').forEach(function(p){
-    if(Math.abs((parseFloat(p.dataset.renderedZoom)||1)-_vwZoom)<0.01)return;
+    if(Math.abs((parseFloat(p.dataset.renderedZoom)||1)-_vwZoom)<0.01&&Math.abs((parseFloat(p.dataset.renderedW)||cssW)-cssW)<2)return;
     const pr=p.getBoundingClientRect();
     if(pr.bottom<cr.top-cr.height||pr.top>cr.bottom+cr.height)return;
     const n=parseInt(p.dataset.page);if(!n)return;
     const ratio=parseFloat(p.dataset.ratio)||1.414;
-    p.dataset.renderedZoom=_vwZoom; // marca optimista: evita relanzar en paralelo la misma página
+    p.dataset.renderedZoom=_vwZoom;p.dataset.renderedW=cssW; // marca optimista: evita relanzar en paralelo la misma página
     pdf.getPage(n).then(function(pg){
       const nw=pg.getViewport({scale:1}).width;
       return _vwRasterize(pg,nw,ratio,cssW).then(function(cv){
@@ -9667,7 +9673,7 @@ function vwSetZoom(z){
       const cv=p.querySelector('canvas');
       if(cv){const r=parseFloat(p.dataset.ratio)||1.414;cv.style.width=w+'px';cv.style.height=(w*r)+'px';cv.style.maxWidth='none';}
       const tl=p.querySelector('.textLayer');
-      if(tl)tl.style.transform='scale('+_vwZoom+')';
+      if(tl)tl.style.transform='scale('+(w/(parseFloat(tl.dataset.baseW)||baseW))+')';
     });
   }
   const lbl=$('vw_zlabel');if(lbl)lbl.textContent=Math.round(_vwZoom*100)+'%';
@@ -9700,6 +9706,28 @@ function vwZoomAround(newZoom){
   vwUpdateCurrentPage();
 }
 function vwZoom(dir){vwZoomAround(_vwZoom+dir*0.25);}
+function _vwRelayout(){
+  const c=window._vwContainer;if(!c)return;
+  const r=c.getBoundingClientRect();
+  let anchor=null,frac=0;
+  c.querySelectorAll('.viewer-page-placeholder').forEach(p=>{ if(anchor)return; const pr=p.getBoundingClientRect(); if(pr.bottom>r.top+1){ anchor=p; frac=Math.min(1,Math.max(0,(r.top-pr.top)/(pr.height||1))); } });
+  vwSetZoom(_vwZoom);
+  if(anchor){ const r2=c.getBoundingClientRect(),pr2=anchor.getBoundingClientRect(); c.scrollTop=Math.max(0,pr2.top-r2.top+c.scrollTop+frac*(pr2.height||1)); }
+  vwUpdateCurrentPage();
+}
+// Al girar el dispositivo (o cambiar el tamaño de la ventana), reajusta las páginas al nuevo ancho sin
+// cambiar de página ni de zoom; después se vuelven a pintar en HD las páginas visibles.
+let _vwRotT=0;
+window.addEventListener('resize',function(){
+  if(!S||S.view!=='viewer')return;
+  clearTimeout(_vwRotT);
+  _vwRotT=setTimeout(function(){
+    const c=window._vwContainer;if(!c||!window._vwPDF||!c.isConnected)return;
+    const w=c.clientWidth;if(!w||Math.abs(w-(window._vwLastCW||0))<8)return;
+    window._vwLastCW=w;
+    _vwRelayout();
+  },250);
+},{passive:true});
 function vwZoomReset(){vwZoomAround(1);}
 // Navegación a página concreta (como Adobe)
 function vwGoToPage(n){
@@ -10348,7 +10376,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 459;
+const HP_BUILD = 460;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
