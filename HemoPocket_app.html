@@ -601,6 +601,9 @@ body.hp-editing #content :is(p,li,td,th,h2,h3,h4,dd,dt,.intro,.alert,.mx-note,.m
 .mtx-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12.5px;line-height:1.5;margin:1px 2px 1px 0}
 .mtx-tag.lv{background:#e6efff;color:#1e3a8a}
 .mtx-tag.lv::before{content:'🧪 '}
+.mtx-tag.lv.opt{background:transparent;border:1px dashed #7aa2e3}
+.mtx-ori{font-size:12.5px;line-height:1.45;margin-top:10px;padding:8px 11px;border-radius:9px;background:#eef6ff;border:1px solid #c9ddf5;color:var(--txt)}
+[data-t="dark"] .mtx-ori{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35)}
 .mtx-tag.fo{background:#e3f5e9;color:#14532d}
 .mtx-tag.fo::before{content:'💉 '}
 .mtx-tag.fo.est{background:transparent;border:1px dashed #6bbf86}
@@ -2953,6 +2956,7 @@ VIEWS.bleyer=function(){
   h+='<div class="mtx-sel"><div class="mtx-step"><span class="mtx-num">1</span>¿Qué esquema lleva?</div>';
   MTX_GRP.forEach(function(g){ h+='<div class="mtx-grp">'+g[0]+'</div><div class="mtx-chips">'+g[1].map(function(k){ return chip(k,MTX_ESQ[k].n); }).join('')+'</div>'; });
   h+='</div>';
+  h+='<div id="mtx_ori" class="mtx-ori" hidden></div>';
   h+='<div id="mtx_hint" class="alert b" style="font-size:13px;margin-top:10px">Elige el esquema para empezar.</div>';
   // 2 · Inicio del MTX (común a todos los esquemas)
   h+='<div class="mtx-sel" id="mtx_step2" hidden><div class="mtx-step"><span class="mtx-num">2</span>¿Cuándo empezó el MTX?</div>';
@@ -2967,7 +2971,7 @@ VIEWS.bleyer=function(){
   h+='<div id="mtx_now" class="mtx-now"></div>';
   h+='</div>';
   // MATRIX, MTX-R-CHOP y otros: pauta fija del libro azul o rescate según niveles (Bleyer), a elegir
-  h+='<div class="mtx-seg" id="mtx_seg" hidden><button type="button" data-v="fix" onclick="mtxTab(\'fix\')">Pauta fija <small>libro azul</small></button><button type="button" data-v="bly" onclick="mtxTab(\'bly\')">Según niveles <small>Bleyer</small></button></div>';
+  h+='<div class="mtx-seg" id="mtx_seg" hidden><button type="button" data-v="fix" onclick="mtxTab(\'fix\')">Pauta fija <small>libro azul · habitual</small></button><button type="button" data-v="bly" onclick="mtxTab(\'bly\')">Según niveles <small>Bleyer · si hay retraso</small></button></div>';
   h+='<div class="mtx-pan" id="mtx_pan_fix" hidden><div class="mtx-pt"><span class="mtx-num">3</span><span id="lba_tit">Pauta fija del libro azul</span></div><div class="mtx-ps" id="lba_sub"></div>'+_mtxLbaHtml(inS)+'</div>';
   // 1 · Bleyer
   var b='<div id="bly_iniw" class="alert b" style="font-size:13px;margin-bottom:10px"><strong>Dosis inicial (Bleyer):</strong> Lederfolín <strong>35 mg/m²</strong> a las <strong>20 h</strong>, antes de conocer los niveles<span id="bly_ini"></span>.</div>';
@@ -3018,7 +3022,8 @@ function blySetH(x){ window._bly.h=x; blyCalc(); }
 function _blyPlanRows(){
   var P=_mtxPat(), mg=function(m2){ return P.sc?' = <strong>'+_blyF(m2*P.sc,1)+' mg</strong>':''; }, rows=[], n=1;
   rows.push([20,_mtxTag('lv','Nivel de MTX')+' '+_mtxTag('fo','1.ª dosis de folinato 35 mg/m²'+mg(35)+' IV (inicial)')]);
-  [26,32,38,44,48,50,56,62,68,72].forEach(function(x){
+  [26,32,36,38,44,48,50,56,62,68,72].forEach(function(x){
+    if(x===36){ rows.push([36,_mtxTag('lv opt','Nivel de MTX · opcional: si hubo eliminación retardada en un ciclo previo')]); return; }
     if(x===48){ rows.push([48,_mtxTag('lv','Nivel de MTX')]); return; }
     if(x===72){ rows.push([72,_mtxTag('lv','Nivel de MTX')+' '+_mtxTag('inf','Suspender si &lt; 0,01 µM')]); return; }
     n++; rows.push([x,_mtxTag('fo est',n+'.ª dosis 25 mg/m²'+mg(25)+' IV')]);
@@ -3124,30 +3129,32 @@ function _mtxDet(tit,body,open){ return '<details class="mtx-det"'+(open?' open'
 function _mtxPan(k,tit,sub,body){ return '<div class="mtx-pan" id="mtx_pan_'+k+'" hidden><div class="mtx-pt"><span class="mtx-num">3</span><span>'+tit+'</span></div>'+(sub?'<div class="mtx-ps">'+sub+'</div>':'')+body+'</div>'; }
 // Punto de entrada: el esquema que lleva el paciente decide qué rescate se muestra.
 const MTX_ESQ={
-  matrix:{n:'MATRIX',sub:'MTX 3,5 g/m² en 3 h 15 min',dur:3.25,pans:['fix','bly']},
-  rchop:{n:'MTX-R-CHOP',sub:'MTX 3,5 g/m² en 4 h',dur:4,pans:['fix','bly']},
-  hcvad:{n:'R-Hiper-CVAD <small>parte B</small>',sub:'MTX 1 g/m² en 24 h',dur:24,pans:['fix','n24']},
-  bkm:{n:'BURKIMAB-14',pans:['bkm']},
-  l25:{n:'LAL-2025',pans:['l25']},
-  lph:{n:'LAL Ph-2022',pans:['lph']},
-  p13:{n:'SEHOP 2013',pans:['p13']},
-  p15:{n:'Recaída 2015',pans:['p15']},
-  otro:{n:'Otro esquema',dur:4,pans:['fix','bly']}
+  matrix:{n:'MATRIX',sub:'MTX 3,5 g/m² en 3 h 15 min',dur:3.25,pans:['fix','bly'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Si los niveles muestran retraso en la eliminación, ajusta el rescate con el <strong>nomograma de Bleyer</strong>.'},
+  rchop:{n:'MTX-R-CHOP',sub:'MTX 3,5 g/m² en 4 h',dur:4,pans:['fix','bly'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Si los niveles muestran retraso en la eliminación, ajusta el rescate con el <strong>nomograma de Bleyer</strong>.'},
+  hcvad:{n:'R-Hiper-CVAD <small>parte B</small>',sub:'MTX 1 g/m² en 24 h',dur:24,pans:['fix','n24'],ori:'Lo habitual: <strong>pauta fija del libro azul</strong>. Infusión de 24 h: el nomograma de Bleyer no sirve.'},
+  bkm:{n:'BURKIMAB-14',pans:['bkm'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  l25:{n:'LAL-2025',pans:['l25'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  lph:{n:'LAL Ph-2022',pans:['lph'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  p13:{n:'SEHOP 2013',pans:['p13'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  p15:{n:'Recaída 2015',pans:['p15'],ori:'Lo habitual: el <strong>rescate del propio protocolo</strong>, ajustado a los niveles.'},
+  otro:{n:'Otro esquema',dur:4,pans:['fix','bly'],ori:'Infusión de 3-4 h: lo habitual es la <strong>pauta fija del libro azul</strong> y, si hay retraso en la eliminación, el <strong>nomograma de Bleyer</strong>. Bleyer no sirve para infusiones de 24 h.'}
 };
 const MTX_GRP=[['Linfoma',['matrix','rchop','hcvad','bkm']],['LAL del adulto',['l25','lph']],['LAL pediátrica',['p13','p15']],['Otro',['otro']]];
 function _mtxSelGet(){ try{ var v=localStorage.getItem('hp_mtx_sel'); return MTX_ESQ[v]?v:null; }catch(e){ return null; } }
-function _mtxTabGet(){ try{ return localStorage.getItem('hp_mtx_tab')==='bly'?'bly':'fix'; }catch(e){ return 'fix'; } }
-function mtxTab(v){ try{ localStorage.setItem('hp_mtx_tab',v); }catch(e){} mtxSel(window._mtxCur,true); }
+// Pestaña: al elegir un esquema se abre la habitual (pauta fija); el usuario puede cambiarla.
+function mtxTab(v){ window._mtxTabCur=v; mtxSel(window._mtxCur,'tab'); }
 function mtxSel(k,init){
   var E=MTX_ESQ[k]||null, pans=E?E.pans:[], otro=k==='otro';
   window._mtxCur=k;
+  if(init!=='tab') window._mtxTabCur='fix';
   // Con pauta fija y Bleyer posibles, se ve solo una (pestañas).
-  var both=pans.indexOf('fix')>=0&&pans.indexOf('bly')>=0, tab=_mtxTabGet();
+  var both=pans.indexOf('fix')>=0&&pans.indexOf('bly')>=0, tab=window._mtxTabCur||'fix';
   if(both) pans=pans.filter(function(x){ return x!==(tab==='bly'?'fix':'bly'); });
   var sg=$('mtx_seg'); if(sg){ sg.hidden=!both; sg.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-v')===tab); }); }
   document.querySelectorAll('.mtx-chip').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-k')===k); });
   document.querySelectorAll('.mtx-pan').forEach(function(p){ p.hidden=pans.indexOf(p.id.replace('mtx_pan_',''))<0; });
   var s2=$('mtx_step2'); if(s2) s2.hidden=!E;
+  var or=$('mtx_ori'); if(or){ or.hidden=!(E&&E.ori); or.innerHTML=E&&E.ori?'🧭 '+E.ori:''; }
   var hi=$('mtx_hint'); if(hi) hi.hidden=!!E;
   var dw=$('lba_durw'); if(dw) dw.style.display=otro?'':'none';
   var ds=$('lba_dur'); if(E&&E.dur&&ds) ds.value=String(E.dur);
@@ -3417,16 +3424,26 @@ function _mtxLbaHtml(inS){
   return h;
 }
 function _lbaFmt(dt){ var p=function(n){return (n<10?'0':'')+n;}; return p(dt.getDate())+'/'+p(dt.getMonth()+1)+' '+p(dt.getHours())+':'+p(dt.getMinutes()); }
+// Niveles orientativos de buena eliminación tras infusiones cortas (ficha técnica de la leucovorina, EE. UU.).
+const LBA_LV={24:'≈ 10 µM o menos',48:'≈ 1 µM o menos',72:'&lt; 0,2 µM'};
 function _lbaRows(){
-  var P=_mtxPat(), e=parseFloat(($('lba_dur')||{}).value||'4');
+  var P=_mtxPat(), e=parseFloat(($('lba_dur')||{}).value||'4'), corta=e<=6;
   var mg=function(m2){ return P.sc?' = <strong>'+_blyF(m2*P.sc,1)+' mg</strong>':''; };
-  var rows=[[e,_mtxTag('inf','Fin de la infusión')],[e+12,_mtxTag('fo','1.ª dosis de folinato 75 mg/m²'+mg(75)+' IV')],[e+15,_mtxTag('fo','2.ª dosis 30 mg/m²'+mg(30)+' IV')]];
-  for(var i=0;i<6;i++) rows.push([e+21+6*i,_mtxTag('fo',(i+3)+'.ª dosis 30 mg IV')]);
-  return rows;
+  var at={}, g=function(x){ return at[x]||(at[x]=[]); };
+  g(e).push(_mtxTag('inf','Fin de la infusión'));
+  g(e+12).push(_mtxTag('fo','1.ª dosis de folinato 75 mg/m²'+mg(75)+' IV'));
+  g(e+15).push(_mtxTag('fo','2.ª dosis 30 mg/m²'+mg(30)+' IV'));
+  for(var i=0;e+21+6*i<=72;i++) g(e+21+6*i).push(_mtxTag('fo',(i+3)+'.ª dosis 30 mg IV'));
+  (corta?[24,48,72]:[48,72]).forEach(function(x){ g(x).unshift(_mtxTag('lv','Nivel de MTX'+(corta?' · esperado '+LBA_LV[x]:''))); });
+  return Object.keys(at).map(Number).sort(function(a,b){ return a-b; }).map(function(x){ return [x,at[x].join(' ')]; });
 }
 function lbaCalc(){
   var box=$('lba_res'); if(!box) return; var t0=_mtxT0();
-  box.innerHTML=_mtxPlanTbl(_lbaRows(),t0)+'<div style="font-size:12.5px">Seguir con 30 mg cada 6 h hasta MTX &lt; 0,2 µM y dar entonces 2 dosis más.</div>';
+  var e=parseFloat(($('lba_dur')||{}).value||'4'), corta=e<=6;
+  var nota='<div style="font-size:12.5px">Seguir con 30 mg cada 6 h hasta MTX &lt; 0,2 µM y dar entonces 2 dosis más.</div>';
+  if(corta) nota+='<div class="mtx-ori" style="margin-top:8px">Niveles orientativos de buena eliminación: ≈ 10 µM a las 24 h, ≈ 1 µM a las 48 h y &lt; 0,2 µM a las 72 h (ficha técnica de la leucovorina de EE. UU.). La ficha técnica española pide aumentar el folinato si a las 48 h es ≥ 0,5 µM. <strong>Si el retraso es evidente</strong> (p. ej., ≥ 50 µM a las 24 h, ≥ 5 µM a las 48 h o &gt; 0,2 µM a las 72 h), <a onclick="mtxTab(\'bly\')" style="color:inherit;text-decoration:underline;cursor:pointer;font-weight:600">ajusta el rescate con el nomograma de Bleyer</a>.</div>';
+  else nota+='<div style="font-size:12.5px;margin-top:4px">Infusión de 24 h: los niveles de referencia de las infusiones cortas y el nomograma de Bleyer no sirven.</div>';
+  box.innerHTML=_mtxPlanTbl(_lbaRows(),t0)+nota;
 }
 function lbaCopy(){
   var t0=_mtxT0(), e=parseFloat(($('lba_dur')||{}).value||'4');
@@ -10569,7 +10586,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 467;
+const HP_BUILD = 468;
 const APP_BUILD = '2026.11.18 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
