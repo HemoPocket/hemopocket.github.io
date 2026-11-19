@@ -3079,11 +3079,11 @@ function blySetH(x){ window._bly.h=x; blyCalc(); }
 // habitual del nomograma con niveles en rango (25 mg/m² cada 6 h); niveles como mínimo a las 20, 48 y 72 h.
 function _blyPlanRows(){
   var P=_mtxPat(), mg=function(m2){ return P.sc?' = <strong>'+_blyF(m2*P.sc,1)+' mg</strong>':''; }, rows=[], n=1;
-  rows.push([20,_mtxTag('lv','Nivel de MTX'+_mtxEsp(20))+' '+_mtxTag('fo','1.ª dosis de folinato 35 mg/m²'+mg(35)+' IV (inicial)')]);
+  rows.push([20,_mtxTag('lv','Nivel de MTX'+_blyRng(20))+' '+_mtxTag('fo','1.ª dosis de folinato 35 mg/m²'+mg(35)+' IV (inicial)')]);
   [26,32,36,38,44,48,50,56,62,68,72].forEach(function(x){
-    if(x===36){ rows.push([36,_mtxTag('lv opt','Nivel de MTX'+_mtxEsp(36)+' · opcional: si hubo eliminación retardada en un ciclo previo')]); return; }
-    if(x===48){ rows.push([48,_mtxTag('lv','Nivel de MTX'+_mtxEsp(48))]); return; }
-    if(x===72){ rows.push([72,_mtxTag('lv','Nivel de MTX'+_mtxEsp(72))+' '+_mtxTag('inf','Suspender si &lt; 0,01 µM')]); return; }
+    if(x===36){ rows.push([36,_mtxTag('lv opt','Nivel de MTX'+_blyRng(36)+' · opcional: si hubo eliminación retardada en un ciclo previo')]); return; }
+    if(x===48){ rows.push([48,_mtxTag('lv','Nivel de MTX'+_blyRng(48))]); return; }
+    if(x===72){ rows.push([72,_mtxTag('lv','Nivel de MTX'+_blyRng(72))+' '+_mtxTag('inf','Suspender si &lt; 0,01 µM')]); return; }
     n++; rows.push([x,_mtxTag('fo est',n+'.ª dosis 25 mg/m²'+mg(25)+' IV')]);
   });
   return rows;
@@ -3122,9 +3122,15 @@ function _mtxEsp(h){
   if(h>=42){ var b=mtxPK(s,h,MTX_PK_FT), lo=_mtxLvF(Math.min(a,b)), hi=_mtxLvF(Math.max(a,b)); txt=lo===hi?lo:lo+'-'+hi; }
   return ' · esperado ≈ '+txt+' µM';
 }
+// Rango de nivel del nomograma con el que se sigue con 25 mg/m² cada 6 h a esa hora (p. ej. 20 h: 0,1–5 µM).
+function _blyRng(h){
+  var r=BLY_T[h]; if(!r) return ''; var c=[]; r.forEach(function(x,i){ if(x[0]===25&&x[1]===6) c.push(i); }); if(!c.length) return '';
+  var lo=BLY_COLS[c[0]].lo, hi=BLY_COLS[c[c.length-1]+1]?BLY_COLS[c[c.length-1]+1].lo:null;
+  return ' · si '+_mtxN(lo)+(hi!=null?'–'+_mtxN(hi):' o más')+' µM, sigue 25 mg/m²';
+}
 function blyPlanUpd(){
   var box=$('bly_plan'); if(!box) return; var t0=_mtxT0();
-  box.innerHTML=_mtxPlanTbl(_blyPlanRows(),t0)+'<div style="font-size:12.5px;margin:2px 0 4px">Con los niveles en el rango habitual, la dosis es <strong>25 mg/m² cada 6 h</strong> (línea discontinua = estimada). Con cada nivel, ajústala abajo. Suspender cuando el MTX sea &lt; 0,01 µM; niveles como mínimo a las 20, 48 y 72 h (cada 12 h si está en rango tóxico).</div>'+_mtxEspNota();
+  box.innerHTML=_mtxPlanTbl(_blyPlanRows(),t0)+'<div style="font-size:12.5px;margin:2px 0 4px">Si cada nivel está en el rango del nomograma indicado, la dosis es <strong>25 mg/m² cada 6 h</strong> (línea discontinua = estimada). Si cae en otra columna, ajústala abajo con ese nivel. Suspender cuando el MTX sea &lt; 0,01 µM; niveles como mínimo a las 20, 48 y 72 h (cada 12 h si está en rango tóxico).</div>';
 }
 // Nota breve sobre de dónde sale el nivel esperado (MATRIX, MTX-R-CHOP, R-Hiper-CVAD y «otro»).
 function _mtxEspNota(){ var s=_mtxSegs(); if(!s) return ''; var g=s.reduce(function(a,x){ return a+x[2]; },0)/1000;
@@ -10680,7 +10686,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 475;
+const HP_BUILD = 476;
 const APP_BUILD = '2026.11.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
