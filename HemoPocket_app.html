@@ -3094,9 +3094,12 @@ function _blyPlanRows(){
 // 2,9 a las 24 h, 0,9 a las 48 h y 0,2 a las 72 h. Se escala de forma lineal con la dosis (farmacocinética lineal
 // en ese estudio). La referencia de la ficha técnica de EE. UU. (≈ 10, 1 y 0,2 µM tras 12 g/m², pacientes jóvenes)
 // daba valores 3-4 veces más bajos a las 48-72 h. Los protocolos propios usan sus niveles esperados (MTX_PLAN).
+// Desde las 42 h los centros publican valores muy distintos (Michigan, Pai 2020: 0,46 µM a las 42 h con ≈ 7 g/m²),
+// así que ahí se muestra un rango: bajo = modelo ajustado a la ficha técnica de EE. UU. (MTX_PK_FT); alto = MTX_PK.
 const MTX_PK={CL:3.89,V1:13.20,Q:0.2237,V2:4.220};
-function mtxPK(segs,t){
-  var p=MTX_PK, k10=p.CL/p.V1, k12=p.Q/p.V1, k21=p.Q/p.V2, s=k10+k12+k21, d=Math.sqrt(s*s-4*k10*k21), a=(s+d)/2, b=(s-d)/2;
+const MTX_PK_FT={CL:4.159,V1:16.42,Q:0.1191,V2:1.719};
+function mtxPK(segs,t,pp){
+  var p=pp||MTX_PK, k10=p.CL/p.V1, k12=p.Q/p.V1, k21=p.Q/p.V2, s=k10+k12+k21, d=Math.sqrt(s*s-4*k10*k21), a=(s+d)/2, b=(s-d)/2;
   var A=(a-k21)/(a-b), B=(k21-b)/(a-b), c=0;
   segs.forEach(function(g){ var st=g[0], du=g[1], R=g[2]/du, tt=t-st; if(tt<=0) return;
     var f=function(k){ return tt<=du?(1-Math.exp(-k*tt))/k:(1-Math.exp(-k*du))*Math.exp(-k*(tt-du))/k; };
@@ -3113,14 +3116,19 @@ function _mtxSegs(){
   return null;
 }
 function _mtxLvF(x){ if(x<0.01) return '&lt; 0,01'; return (x>=10?Math.round(x):+x.toPrecision(2)).toLocaleString('es-ES',{maximumFractionDigits:3}); }
-function _mtxEsp(h){ var s=_mtxSegs(); return s?' · esperado ≈ '+_mtxLvF(mtxPK(s,h))+' µM':''; }
+function _mtxEsp(h){
+  var s=_mtxSegs(); if(!s) return '';
+  var a=mtxPK(s,h), txt=_mtxLvF(a);
+  if(h>=42){ var b=mtxPK(s,h,MTX_PK_FT), lo=_mtxLvF(Math.min(a,b)), hi=_mtxLvF(Math.max(a,b)); txt=lo===hi?lo:lo+'-'+hi; }
+  return ' · esperado ≈ '+txt+' µM';
+}
 function blyPlanUpd(){
   var box=$('bly_plan'); if(!box) return; var t0=_mtxT0();
   box.innerHTML=_mtxPlanTbl(_blyPlanRows(),t0)+'<div style="font-size:12.5px;margin:2px 0 4px">Con los niveles en el rango habitual, la dosis es <strong>25 mg/m² cada 6 h</strong> (línea discontinua = estimada). Con cada nivel, ajústala abajo. Suspender cuando el MTX sea &lt; 0,01 µM; niveles como mínimo a las 20, 48 y 72 h (cada 12 h si está en rango tóxico).</div>'+_mtxEspNota();
 }
 // Nota breve sobre de dónde sale el nivel esperado (MATRIX, MTX-R-CHOP, R-Hiper-CVAD y «otro»).
 function _mtxEspNota(){ var s=_mtxSegs(); if(!s) return ''; var g=s.reduce(function(a,x){ return a+x[2]; },0)/1000;
-  return '<div style="font-size:11.5px;color:var(--mut);margin:2px 0 4px">Esperado: estimación para '+_mtxN(g)+' g/m² según las horas desde el inicio, a partir de los niveles medianos de adultos con linfoma tratados con 3,5 g/m² en 4 h (Barreto 2022). Orientativo: hay mucha variabilidad (con 3,5 g/m², a las 24 h la mitad de los pacientes está entre ≈ 2 y 6 µM) y en jóvenes suele ser menor.</div>'; }
+  return '<div style="font-size:11.5px;color:var(--mut);margin:2px 0 4px">Esperado: estimación para '+_mtxN(g)+' g/m² según las horas desde el inicio, a partir de adultos con linfoma tratados con 3,5 g/m² en 4 h (Barreto 2022). Desde las 42 h es un rango, porque varía mucho entre centros: el valor bajo sale de la ficha técnica de EE. UU. (≈ 10, 1 y 0,2 µM tras 12 g/m²) y el alto, de esos adultos. Orientativo: con 3,5 g/m², a las 24 h la mitad de los pacientes está entre ≈ 2 y 6 µM.</div>'; }
 function blyFromPT(){
   var p=_ctNum(($('bly_p')||{}).value), t=_ctNum(($('bly_t')||{}).value), info=$('bly_pt');
   if(p>0&&t>0){ var sc=qtBSA(p,t), imc=hpIMC(p,t); var e=$('bly_sc'); if(e) e.value=sc.toFixed(3); if(info) info.innerHTML='SC (DuBois): <strong>'+_blyF(sc,3)+' m²</strong> · IMC: <strong>'+_blyF(imc.v,2)+' kg/m²</strong> ('+imc.cat+')'; }
@@ -3547,6 +3555,7 @@ function _mtxRefHtml(){
    +'PETHEMA LAL-2025 (rescate con leucovorin, tablas I y II) · PETHEMA LAL Ph-2022 (anexo 3) · BURKIMAB-14 (anexo V) · LAL SEHOP-PETHEMA 2013 (tablas 15.1 y 15.2) · Recaída LAL SEHOP-PETHEMA 2015 (tabla 7) · Pautas de quimioterapia y nuevos agentes en hemopatías malignas, 9.ª ed. (libro azul).<br>'
    +'Leucovorin calcium injection, ficha técnica (FDA, EE. UU.): eliminación normal y retrasada del MTX (≈ 10, 1 y 0,2 µM a las 24, 48 y 72 h tras 12 g/m² en 4 h).<br>'
    +'Barreto JN, et al. Prospective evaluation of high-dose methotrexate pharmacokinetics in adult patients with lymphoma using novel determinants of kidney function. Clin Transl Sci. 2022;15(1):105-117. <a href="https://doi.org/10.1111/cts.13125" target="_blank" rel="noopener noreferrer">doi:10.1111/cts.13125</a><br>'
+   +'Pai MP, et al. Comparison of body size, morphomics, and kidney function as covariates of high-dose methotrexate clearance in obese adults with primary central nervous system lymphoma. Pharmacotherapy. 2020;40(4):308-319. <a href="https://doi.org/10.1002/phar.2379" target="_blank" rel="noopener noreferrer">doi:10.1002/phar.2379</a><br>'
    +'Taylor ZL, et al. MTXPK.org: a clinical decision support tool evaluating high-dose methotrexate pharmacokinetics to inform post-infusion care and use of glucarpidase. Clin Pharmacol Ther. 2020;108(3):635-643.</div>';
 }
 
@@ -10671,7 +10680,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 474;
+const HP_BUILD = 475;
 const APP_BUILD = '2026.11.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
