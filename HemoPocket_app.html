@@ -3089,11 +3089,12 @@ function _blyPlanRows(){
   return rows;
 }
 // Nivel esperado según la dosis y las horas desde el inicio (MATRIX, MTX-R-CHOP, R-Hiper-CVAD y «otro»).
-// Modelo bicompartimental (parámetros por m²) ajustado a la ficha técnica de la leucovorina de EE. UU.
-// (eliminación normal tras 12 g/m² en 4 h: ≈ 10, 1 y 0,2 µM a las 24, 48 y 72 h; pico ≈ 1000 µM) y lineal con
-// la dosis: con 3,5 g/m² en 4 h da ≈ 3 µM a las 24 h, como en adultos con linfoma (Barreto, Clin Transl Sci 2022).
-// Los protocolos propios (LAL, Burkitt, pediatría) usan sus propios niveles esperados (MTX_PLAN).
-const MTX_PK={CL:4.159,V1:16.42,Q:0.1191,V2:1.719};
+// Modelo bicompartimental (parámetros por m²) ajustado a los niveles medianos de adultos con linfoma tratados
+// con 3,5 g/m² en 4 h (Barreto, Clin Transl Sci 2022; edad mediana 69 años): ≈ 310 µM al final, 33 a las 12 h,
+// 2,9 a las 24 h, 0,9 a las 48 h y 0,2 a las 72 h. Se escala de forma lineal con la dosis (farmacocinética lineal
+// en ese estudio). La referencia de la ficha técnica de EE. UU. (≈ 10, 1 y 0,2 µM tras 12 g/m², pacientes jóvenes)
+// daba valores 3-4 veces más bajos a las 48-72 h. Los protocolos propios usan sus niveles esperados (MTX_PLAN).
+const MTX_PK={CL:3.89,V1:13.20,Q:0.2237,V2:4.220};
 function mtxPK(segs,t){
   var p=MTX_PK, k10=p.CL/p.V1, k12=p.Q/p.V1, k21=p.Q/p.V2, s=k10+k12+k21, d=Math.sqrt(s*s-4*k10*k21), a=(s+d)/2, b=(s-d)/2;
   var A=(a-k21)/(a-b), B=(k21-b)/(a-b), c=0;
@@ -3119,7 +3120,7 @@ function blyPlanUpd(){
 }
 // Nota breve sobre de dónde sale el nivel esperado (MATRIX, MTX-R-CHOP, R-Hiper-CVAD y «otro»).
 function _mtxEspNota(){ var s=_mtxSegs(); if(!s) return ''; var g=s.reduce(function(a,x){ return a+x[2]; },0)/1000;
-  return '<div style="font-size:11.5px;color:var(--mut);margin:2px 0 4px">Esperado: estimación para '+_mtxN(g)+' g/m² según las horas desde el inicio, con un modelo ajustado a la ficha técnica de la leucovorina (≈ 10, 1 y 0,2 µM a las 24, 48 y 72 h tras 12 g/m² en 4 h). Orientativo: hay mucha variabilidad entre pacientes.</div>'; }
+  return '<div style="font-size:11.5px;color:var(--mut);margin:2px 0 4px">Esperado: estimación para '+_mtxN(g)+' g/m² según las horas desde el inicio, a partir de los niveles medianos de adultos con linfoma tratados con 3,5 g/m² en 4 h (Barreto 2022). Orientativo: hay mucha variabilidad (con 3,5 g/m², a las 24 h la mitad de los pacientes está entre ≈ 2 y 6 µM) y en jóvenes suele ser menor.</div>'; }
 function blyFromPT(){
   var p=_ctNum(($('bly_p')||{}).value), t=_ctNum(($('bly_t')||{}).value), info=$('bly_pt');
   if(p>0&&t>0){ var sc=qtBSA(p,t), imc=hpIMC(p,t); var e=$('bly_sc'); if(e) e.value=sc.toFixed(3); if(info) info.innerHTML='SC (DuBois): <strong>'+_blyF(sc,3)+' m²</strong> · IMC: <strong>'+_blyF(imc.v,2)+' kg/m²</strong> ('+imc.cat+')'; }
@@ -3528,7 +3529,7 @@ function lbaCalc(){
   var nota='<div style="font-size:12.5px">Seguir con 30 mg cada 6 h hasta MTX &lt; 0,2 µM y dar entonces 2 dosis más.</div>';
   // El enlace a Bleyer solo aparece si el esquema tiene esa pestaña (MATRIX, MTX-R-CHOP u «otro» corto).
   nota+=_mtxEspNota();
-  if(corta&&window._mtxHasBly) nota+='<div class="mtx-ori" style="margin-top:8px"><strong>Si el nivel está claramente por encima del esperado</strong> (la ficha técnica de EE. UU. considera retraso ≥ 5 veces lo normal a las 24-48 h o &gt; 0,2 µM a las 72 h; la española pide aumentar el folinato si a las 48 h es ≥ 0,5 µM), <a onclick="mtxTab(\'bly\',1)" style="color:inherit;text-decoration:underline;cursor:pointer;font-weight:600">ajusta el rescate con el nomograma de Bleyer</a>.</div>';
+  if(corta&&window._mtxHasBly) nota+='<div class="mtx-ori" style="margin-top:8px"><strong>Si el nivel está claramente por encima del esperado</strong> (la ficha técnica de EE. UU. considera retraso, tras 12 g/m², ≥ 50 µM a las 24 h, ≥ 5 µM a las 48 h o &gt; 0,2 µM a las 72 h; la española pide aumentar el folinato si a las 48 h es ≥ 0,5 µM), <a onclick="mtxTab(\'bly\',1)" style="color:inherit;text-decoration:underline;cursor:pointer;font-weight:600">ajusta el rescate con el nomograma de Bleyer</a>.</div>';
   box.innerHTML=_mtxPlanTbl(_lbaRows(),t0)+nota;
 }
 // ---- Glucarpidasa y bibliografía ----
@@ -10670,7 +10671,7 @@ const DEFAULT_UPDATE_URL=(location.protocol.indexOf('http')===0)
 // HP_BUILD alimenta tanto la comprobación de actualización (más abajo) como el texto
 // que se muestra. No editar a mano: usa ./bump.sh, que sube este número y lo sincroniza
 // con la versión del CACHE en sw.js (así nunca se descuadran).
-const HP_BUILD = 473;
+const HP_BUILD = 474;
 const APP_BUILD = '2026.11.19 (build ' + HP_BUILD + ')';
 
 // Escape de emergencia si el service worker se queda "pegado" en una versión vieja:
